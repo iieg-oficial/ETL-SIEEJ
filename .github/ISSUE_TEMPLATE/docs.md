@@ -1,4 +1,3 @@
-<!-- .github/ISSUE_TEMPLATE/docs.md -->
 ---
 name: Documentación
 about: Mejorar o actualizar documentación
@@ -51,3 +50,5 @@ assignees: ''
 
 ## 💡 Notas adicionales
 <!-- Cualquier contexto extra -->
+
+---
