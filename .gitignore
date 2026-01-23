@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+.venv
+venv/
+env/
+
+# VSCode
+.vscode/
+
+# Logs
+logs/*
+*.log
+!logs/.gitkeep
+
+# Plugins
+plugins/*
+!plugins/.gitkeep
+
+# Data
+data/*
+!data/.gitkeep
