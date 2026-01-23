@@ -1,0 +1,21 @@
+CREATE TABLE stg_desaparecidos (
+    id SERIAL PRIMARY KEY,
+    folio_estatal_busqueda VARCHAR(100) NOT NULL,
+    sexo_id INTEGER NOT NULL REFERENCES cat_sexos(id),
+    nacionalidad_id INTEGER NOT NULL REFERENCES cat_nacionalidades(id),
+    rango_edad_id INTEGER NOT NULL REFERENCES cat_rangos_edades(id),
+    fecha_reporte DATE NOT NULL,
+    fecha_desaparicion DATE,
+    estado_desaparicion_id INTEGER NOT NULL REFERENCES cat_estados(id),
+    municipio_desaparicion_id INTEGER NOT NULL REFERENCES cat_municipios(id),
+    estatus_desaparicion_id INTEGER NOT NULL REFERENCES cat_estatus_desapariciones(id),
+    fecha_localizacion DATE,
+    condicion_localizacion_id INTEGER REFERENCES cat_condiciones_localizaciones(id),
+    clasificacion_localizacion_id INTEGER REFERENCES cat_clasificaciones_localizaciones(id),
+    estado_localizacion_id INTEGER REFERENCES cat_estados(id),
+    municipio_localizacion_id INTEGER REFERENCES cat_municipios(id),
+    fecha_cierre DATE,
+    tipo_cierre_id INTEGER REFERENCES cat_tipos_cierres(id),
+    folio_estatal_busqueda_vinculado VARCHAR(100),
+    carpeta_investigacion BOOLEAN
+);
