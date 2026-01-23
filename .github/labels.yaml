@@ -1,0 +1,57 @@
+# .github/labels.yml
+
+# Pipeline operations
+- name: "new-pipeline"
+  color: "0e8a16"
+  description: "Implementación de un nuevo flujo ETL completo"
+
+- name: "schema"
+  color: "fbca04"
+  description: "Modificación de estructura de tablas o modelos de datos"
+
+- name: "bootstrap"
+  color: "1d76db"
+  description: "Relacionado con carga histórica completa de datos"
+
+- name: "update"
+  color: "5319e7"
+  description: "Relacionado con carga incremental o actualización de datos"
+
+# Stages
+- name: "extract"
+  color: "c5def5"
+  description: "Problemas o cambios en la extracción de datos de origen"
+
+- name: "transform"
+  color: "bfdadc"
+  description: "Problemas o cambios en la transformación y limpieza de datos"
+
+- name: "load"
+  color: "d4c5f9"
+  description: "Problemas o cambios en la carga de datos al destino"
+
+# Infrastructure
+- name: "airflow"
+  color: "0075ca"
+  description: "Configuración, DAGs o problemas con Apache Airflow"
+
+- name: "docker"
+  color: "2496ed"
+  description: "Contenedores, compose o configuración de Docker"
+
+- name: "migrations"
+  color: "cc0000"
+  description: "Scripts de migración de base de datos con Flyway"
+
+# Type
+- name: "feat"
+  color: "0e8a16"
+  description: "Nueva funcionalidad o capacidad del sistema"
+
+- name: "bug"
+  color: "d73a4a"
+  description: "Algo no funciona como se espera o genera errores"
+
+- name: "docs"
+  color: "0075ca"
+  description: "Mejoras o actualizac
