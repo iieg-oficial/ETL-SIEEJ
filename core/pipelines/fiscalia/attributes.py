@@ -1,0 +1,64 @@
+from enum import Enum, StrEnum, auto
+
+class FiscaliaTables(StrEnum):
+    def __getattribute__(self, name):
+        return super().__getattribute__(name)
+
+    ZONAS_GEOGRAFICAS = auto()
+    MUNICIPIOS = auto()
+    LOCALIDADES = auto()
+    COLONIAS = auto()
+    CALLES = auto()
+    CRUCES = auto()
+    SEMANA = auto()
+    VIOLENCIA = auto()
+    DELITOS = auto()
+    BIEN_AFECTADO = auto()
+    CASOS = auto()
+
+
+class ZonasGeograficas(StrEnum):
+    GUADALAJARA = auto()
+    ZAPOPAN = auto()
+    SAN_PEDRO_TLAQUEPAQUE = auto()
+    TONALA = auto()
+    TLAJOMULCO_DE_ZUÑIGA = auto()
+    EL_SALTO =  auto()
+    IXTLAHUACAN_DE_LOS_MEMBRILLOS = auto()
+    JUANACATLAN = auto()
+    ZAPOTLANEJO = auto()
+    ACATLAN_DE_JUAREZ = auto()
+
+    @classmethod
+    def values(cls):
+        return [c.value for c in cls]
+
+class FiscaliaColumns(StrEnum):
+    ZONA_GEOGRAFICA = auto()
+    MUNICIPIO = auto()
+    LOCALIDAD = auto()
+    COLONIA = auto()
+    CALLE = auto()
+    CRUCE = auto()
+
+    FECHA_DENUNCIA = auto()
+    DIA = auto()
+    ES_VIOLENCIA = auto()
+    DELITO = auto()
+    BIEN_AFECTADO = auto()
+    HORA = auto()
+    COMISION = auto()
+    VICTIMAS = auto()
+    FECHA_ACTUALIZACION = auto()
+
+    @classmethod
+    def values(cls):
+        return [c.value for c in cls]
+
+    def __getattribute__(self, name):
+        return super().__getattribute__(name)
+
+
+if __name__ == "__main__":
+    print(FiscaliaColumns.values())
+    # print(DataColumns.keys())
