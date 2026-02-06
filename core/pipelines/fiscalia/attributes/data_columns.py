@@ -1,6 +1,6 @@
-from enum import StrEnum, unique, auto
+from enum import StrEnum, unique
 
-from core.pipelines.fiscalia.attributes import FiscaliaColumns
+from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
 
 class BaseClass:
     @classmethod
@@ -15,7 +15,6 @@ class BaseClass:
     def get_values(cls):
         return [member.value for member in cls]
 
-
 @unique
 class HistoricalCols(BaseClass, StrEnum):
     fecha = FiscaliaColumns.FECHA_DENUNCIA
@@ -28,10 +27,14 @@ class HistoricalCols(BaseClass, StrEnum):
     zona_geografica = FiscaliaColumns.ZONA_GEOGRAFICA
     bien_afectado = FiscaliaColumns.BIEN_AFECTADO
 
-#TODO: Crear el mapping de UpdateCols con los cols de csv
+@unique
+class UpdateCols(BaseClass, StrEnum):
+    fecha_denuncia = FiscaliaColumns.FECHA_DENUNCIA
+    delito = FiscaliaColumns.DELITO
+    colonia = FiscaliaColumns.COLONIA
+    municipio = FiscaliaColumns.MUNICIPIO
+    clave_mun = "id"
+    calle = FiscaliaColumns.CALLE
+    cruce = FiscaliaColumns.CRUCE
+    localidad = FiscaliaColumns.LOCALIDAD
 
-
-
-
-if __name__ == "__main__":
-    print(HistoricalCols.to_dict())

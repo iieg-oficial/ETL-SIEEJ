@@ -1,4 +1,4 @@
-from enum import Enum, StrEnum, auto
+from enum import  StrEnum, auto
 
 class FiscaliaTables(StrEnum):
     def __getattribute__(self, name):
@@ -15,23 +15,6 @@ class FiscaliaTables(StrEnum):
     DELITOS = auto()
     BIEN_AFECTADO = auto()
     CASOS = auto()
-
-
-class ZonasGeograficas(StrEnum):
-    GUADALAJARA = auto()
-    ZAPOPAN = auto()
-    SAN_PEDRO_TLAQUEPAQUE = auto()
-    TONALA = auto()
-    TLAJOMULCO_DE_ZUÑIGA = auto()
-    EL_SALTO =  auto()
-    IXTLAHUACAN_DE_LOS_MEMBRILLOS = auto()
-    JUANACATLAN = auto()
-    ZAPOTLANEJO = auto()
-    ACATLAN_DE_JUAREZ = auto()
-
-    @classmethod
-    def values(cls):
-        return [c.value for c in cls]
 
 class FiscaliaColumns(StrEnum):
     ZONA_GEOGRAFICA = auto()
@@ -58,7 +41,3 @@ class FiscaliaColumns(StrEnum):
     def __getattribute__(self, name):
         return super().__getattribute__(name)
 
-
-if __name__ == "__main__":
-    print(FiscaliaColumns.values())
-    # print(DataColumns.keys())
