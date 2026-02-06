@@ -1,0 +1,43 @@
+from enum import StrEnum
+from enum import Enum
+
+from core.pipelines.fiscalia.helpers.normalize import normalize_text
+
+class BaseClass(Enum):
+    @classmethod
+    def values(cls):
+        return [c.value for c in cls]
+
+    @classmethod
+    def norm_values(cls):
+        return [normalize_text(c.value) for c in cls]
+
+class IntregridadCorporal(BaseClass):
+    homicidio_doloso = "Homicidio Doloso"
+    lesiones_dolosas = "Lesiones Dolosas"
+    feminicidio = "Feminicidio"
+
+class IntegridadSexual(BaseClass):
+    violacion = "Violación"
+    abuso_sexual_infantil = "Abuso Sexual Infantil"
+
+class LaFamilia(BaseClass):
+    violencia_familiar  = "Violencia Familiar"
+
+class ElPatrimonio(BaseClass):
+    robo_carga_pesada =  "Robo a carga pesada"
+    robo_vehiculos_particulares = "Robo a vehiculos particulares"
+    robo_habitacion = "Robo casa habitacion"
+    robo_motocicletas = "Robo de motocicleta"
+    robo_negocio = "Robo a negocio"
+    robo_persona = "Robo a persona"
+    robo_int_vehiculos = "Robo a int de vehiculos"
+    robo_autopartes = "Robo de autopartes"
+    robo_cuentahabitantes = "Robo a cuentahabientes"
+    robo_bancos = "Robo a bancos"
+
+
+class RenameDelitos(StrEnum):
+	robo_casa_habitacion = "robo a casa habitación"
+	violacion = "violación"
+
