@@ -3,7 +3,7 @@ from core.pipelines.fiscalia.mappings.schemas import ZonasGeograficas
 from core.pipelines.fiscalia.helpers.normalize import normalize_text
 
 def map_municipios_to_zonas_geo(df):
-    municipios = df["municipios"].unique()
+    municipios = df["municipio"].dropna().unique()
     zg = {}
     for mun in municipios:
         if normalize_text(mun) in AMG.values():
@@ -11,6 +11,3 @@ def map_municipios_to_zonas_geo(df):
         else:
             zg[mun] = ZonasGeograficas.Interior.id
     return zg
-
-
-
