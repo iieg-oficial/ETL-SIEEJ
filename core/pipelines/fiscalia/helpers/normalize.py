@@ -9,11 +9,19 @@ def lowercase_df(df: pd.DataFrame)-> pd.DataFrame:
     df[string_cols] = df[string_cols].apply(lambda x: x.str.lower())
     return df
 
-def list_values_to_null(df: pd.DataFrame, rm_list: dict = None) -> pd.DataFrame:
+def titlecase_df(df: pd.DataFrame)-> pd.DataFrame:
+    string_cols = df.select_dtypes(include=['object', 'string']).columns
+    df[string_cols] = df[string_cols].apply(lambda x: x.str.title())
+    return df
+
+def list_values_to_null(df: pd.DataFrame, rm_list: list = None) -> pd.DataFrame:
     df_copy = df.copy()
-    for col in df_copy.select_dtypes(include='str').columns:
+    string_cols = df_copy.select_dtypes(include=['object', 'string']).columns
+
+    for col in string_cols:
+        df_copy[col] = df_copy[col].str.strip().str.strip('"').str.strip("'")
         df_copy[col] = df_copy[col].replace(
-            {val: None for pattern in rm_list for val in [pattern, pattern.lower(), pattern.upper()]}
+            {val: None for pattern in rm_list for val in [pattern, pattern.lower(), pattern.upper(), pattern.title()]}
         )
     return df_copy
 
