@@ -26,7 +26,7 @@ class FiscaliaColumns(StrEnum):
 
     FECHA_DENUNCIA = auto()
     DIA = auto()
-    ES_VIOLENCIA = auto()
+    VIOLENCIA = auto()
     DELITO = auto()
     BIEN_AFECTADO = auto()
     HORA = auto()
