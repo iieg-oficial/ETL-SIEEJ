@@ -9,8 +9,8 @@ class FiscaliaBase(DeclarativeBase):
 class ZonasGeograficas(FiscaliaBase):
     __tablename__ = FiscaliaTables.ZONAS_GEOGRAFICAS
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    zona_geografica: Mapped[str] = mapped_column(String(8), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    zona_geografica: Mapped[str] = mapped_column(String(10), nullable=False)
 class Municipios(FiscaliaBase):
     __tablename__ = FiscaliaTables.MUNICIPIOS
 
@@ -26,7 +26,7 @@ class Localidades(FiscaliaBase):
 class Colonias(FiscaliaBase):
     __tablename__ = FiscaliaTables.COLONIAS
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     colonia: Mapped[str] = mapped_column(String(100), nullable=False)
 
 class Calles(FiscaliaBase):
@@ -44,20 +44,20 @@ class Cruces(FiscaliaBase):
 class EsViolencia(FiscaliaBase):
     __tablename__ = FiscaliaTables.VIOLENCIA
 
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    es_violencia: Mapped[str] = mapped_column(String(15), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    violencia: Mapped[str] = mapped_column(String(15), nullable=False)
 
 class Delitos(FiscaliaBase):
     __tablename__ = FiscaliaTables.DELITOS
 
-    id: Mapped[int] = mapped_column(primary_key = True, autoincrement = True)
+    id: Mapped[int] = mapped_column(primary_key = True, autoincrement = False)
     delito: Mapped[str] =  mapped_column(String(99), nullable=False)
 
 
 class BienesAfectados(FiscaliaBase):
     __tablename__ = FiscaliaTables.BIEN_AFECTADO
 
-    id: Mapped[int] = mapped_column(primary_key = True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key = True, autoincrement=False)
     bien_afectado: Mapped[str] = mapped_column(String(200), nullable=False)
 
 class Casos(FiscaliaBase):
@@ -65,7 +65,7 @@ class Casos(FiscaliaBase):
 
     id: Mapped[int] = mapped_column(primary_key = True, autoincrement = True)
     delitos_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.DELITOS}.id"), nullable = False)
-    es_violencia_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.VIOLENCIA}.id"), nullable = True)
+    violencia_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.VIOLENCIA}.id"), nullable = True)
     zonas_geograficas_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.ZONAS_GEOGRAFICAS}.id"), nullable = True)
     municipios_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.MUNICIPIOS}.id"), nullable = True)
     localidades_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.LOCALIDADES}.id"), nullable = True)
@@ -74,4 +74,4 @@ class Casos(FiscaliaBase):
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
     fecha_denuncia: Mapped[date] = mapped_column(Date, nullable = True)
     hora: Mapped[time] = mapped_column(Time, nullable = True)
-    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable = True)
+    # fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable = True)
