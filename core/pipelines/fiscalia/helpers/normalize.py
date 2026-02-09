@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import unicodedata
 
@@ -23,7 +24,7 @@ def list_values_to_null(df: pd.DataFrame, rm_list: list = None) -> pd.DataFrame:
         df_copy[col] = df_copy[col].replace(
             {val: None for pattern in rm_list for val in [pattern, pattern.lower(), pattern.upper(), pattern.title()]}
         )
-    return df_copy
+    return df_copy.replace({np.nan: None})
 
 def lowercase_col(df: pd.DataFrame, col:str) -> None:
     df[col] = df[col].str.lower()
@@ -49,4 +50,3 @@ def normalize_text(text):
    text  = text.replace(' ', '_').lower()
    return ''.join(c for c in unicodedata.normalize('NFD', text)
                   if unicodedata.category(c) != 'Mn')
-

@@ -30,6 +30,8 @@ class FiscaliaColumns(StrEnum):
     DELITO = auto()
     BIEN_AFECTADO = auto()
     HORA = auto()
+    LONGITUD = auto()
+    LATITUD = auto()
     COMISION = auto()
     VICTIMAS = auto()
     FECHA_ACTUALIZACION = auto()

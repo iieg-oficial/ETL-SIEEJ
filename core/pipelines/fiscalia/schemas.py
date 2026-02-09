@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, Date
+from sqlalchemy import String, ForeignKey, Date, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaTables
 from datetime import date
@@ -75,4 +75,7 @@ class Casos(FiscaliaBase):
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
     fecha_denuncia: Mapped[date | None] = mapped_column(Date, nullable=True)
     hora: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     # fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable = True)
+

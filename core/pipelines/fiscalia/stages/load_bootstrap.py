@@ -26,11 +26,11 @@ class FiscaliaLoadBootstrap(Stage):
         self.db = Database("fiscalia", settings.database_url)
 
     def source(self, input_data: Optional[Any]) -> Any:
-        self.logger.info(f"📥 [source] records recibidos: {list(input_data.keys())}")
+        self.logger.info(f"📥 [source] records received: {list(input_data.keys())}")
         return input_data
 
     def action(self, input_data: Optional[Any]) -> Any:
-        self.logger.info("⚙️ [action] Insertando datos en DB")
+        self.logger.info("⚙️ [action] Inserting data into DB")
 
         self.db.connect()
 
@@ -44,11 +44,11 @@ class FiscaliaLoadBootstrap(Stage):
                 insert_records(session, input_data["colonias_records"], Colonias, conflict_keys=["id"])
                 insert_records(session, input_data["localidades_records"], Localidades, conflict_keys=["id"])
 
-                self.logger.info(f"📦 Insertando {len(input_data['casos_records'])} casos...")
+                self.logger.info(f"Inserting {len(input_data['casos_records'])} records")
                 bulk_insert(session, input_data["casos_records"], Casos)
 
                 session.commit()
-                self.logger.info("Datos insertados correctamente")
+                self.logger.info("Data inserted successfully!")
             except Exception as e:
                 session.rollback()
                 self.logger.error(e)

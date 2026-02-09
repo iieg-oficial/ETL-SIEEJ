@@ -26,10 +26,14 @@ class HistoricalCols(BaseClass, StrEnum):
     violencia = FiscaliaColumns.VIOLENCIA
     zona_geografica = FiscaliaColumns.ZONA_GEOGRAFICA
     bien_afectado = FiscaliaColumns.BIEN_AFECTADO
+    longitud = FiscaliaColumns.LONGITUD
+    latitud = FiscaliaColumns.LATITUD
 
 class RenameHistoricalCols(StrEnum):
     clave_mun =  "id"
     fecha = FiscaliaColumns.FECHA_DENUNCIA
+    x = FiscaliaColumns.LONGITUD
+    y = FiscaliaColumns.LATITUD
 
     @classmethod
     def rename(cls):
