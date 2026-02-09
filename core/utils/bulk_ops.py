@@ -1,5 +1,9 @@
 from sqlalchemy.dialects.postgresql import insert
+from more_itertools import chunked
 from typing import List, Dict
+from core.utils.logger import get_logger
+
+logger = get_logger("bulk_ops")
 
 def insert_records(session, data: List[Dict], model, conflict_keys: List[str]) -> None:
     for item in data:
@@ -17,8 +21,18 @@ def upsert_records(session, data: List[Dict], model, conflict_keys: List[str]) -
     session.execute(stmt)
     session.flush()
 
-def bulk_insert(session, data: List[Dict], model) -> None:
-    session.bulk_insert_mappings(model, data)
+def bulk_insert(session, data: List[Dict], model, chunk_size: int = None) -> None:
+    table_name = model.__tablename__
+    total = len(data)
+    logger.info(f"📦 Inserting {total} records into '{table_name}'")
+
+    if chunk_size:
+        for i, chunk in enumerate(chunked(data, chunk_size), start=1):
+            session.bulk_insert_mappings(model, chunk)
+            logger.info(f"  chunk {i}: {min(i * chunk_size, total)}/{total}")
+    else:
+        session.bulk_insert_mappings(model, data)
+
     session.flush()
 
 def count_records(session, model, filter_column: str = None, filter_value = None) -> int:
