@@ -13,16 +13,16 @@ class BaseClass(Enum):
         return [normalize_text(c.value) for c in cls]
 
 class IntregridadCorporal(BaseClass):
-    homicidio_doloso = "Homicidio Doloso"
-    lesiones_dolosas = "Lesiones Dolosas"
+    homicidio_doloso = "Homicidio doloso"
+    lesiones_dolosas = "Lesiones dolosas"
     feminicidio = "Feminicidio"
 
 class IntegridadSexual(BaseClass):
     violacion = "Violación"
-    abuso_sexual_infantil = "Abuso Sexual Infantil"
+    abuso_sexual_infantil = "Abuso sexual infantil"
 
 class LaFamilia(BaseClass):
-    violencia_familiar  = "Violencia Familiar"
+    violencia_familiar  = "Violencia familiar"
 
 class ElPatrimonio(BaseClass):
     robo_carga_pesada =  "Robo a carga pesada"
@@ -35,9 +35,4 @@ class ElPatrimonio(BaseClass):
     robo_autopartes = "Robo de autopartes"
     robo_cuentahabitantes = "Robo a cuentahabientes"
     robo_bancos = "Robo a bancos"
-
-
-class RenameDelitos(StrEnum):
-	robo_casa_habitacion = "robo a casa habitación"
-	violacion = "violación"
 
