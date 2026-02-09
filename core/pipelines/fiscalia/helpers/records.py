@@ -1,5 +1,11 @@
 import pandas as pd
 from typing import List, Dict, Any
+from core.pipelines.fiscalia.helpers.normalize import normalize_text
+
+
+def records_to_map(records: List[Dict], key: str) -> Dict:
+    """Convierte lista de records a mapping {valor_normalizado: id}"""
+    return {normalize_text(r[key]): r["id"] for r in records}
 
 
 def df_to_records(df: pd.DataFrame, columns: list) -> List[Dict[str, Any]]:

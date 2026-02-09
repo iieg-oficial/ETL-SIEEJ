@@ -1,7 +1,7 @@
-from sqlalchemy import String, ForeignKey, Time, Date
+from sqlalchemy import String, ForeignKey, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaTables
-from datetime import time, date
+from datetime import date
 
 class FiscaliaBase(DeclarativeBase):
     pass
@@ -52,6 +52,7 @@ class Delitos(FiscaliaBase):
 
     id: Mapped[int] = mapped_column(primary_key = True, autoincrement = False)
     delito: Mapped[str] =  mapped_column(String(99), nullable=False)
+    bien_afectado_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.BIEN_AFECTADO}.id"), nullable = False)
 
 
 class BienesAfectados(FiscaliaBase):
@@ -72,6 +73,6 @@ class Casos(FiscaliaBase):
     colonias_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.COLONIAS}.id"), nullable = True)
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
-    fecha_denuncia: Mapped[date] = mapped_column(Date, nullable = True)
-    hora: Mapped[time] = mapped_column(Time, nullable = True)
+    fecha_denuncia: Mapped[date | None] = mapped_column(Date, nullable=True)
+    hora: Mapped[str | None] = mapped_column(String(5), nullable=True)
     # fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable = True)
