@@ -73,9 +73,8 @@ class Casos(FiscaliaBase):
     colonias_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.COLONIAS}.id"), nullable = True)
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
-    fecha_denuncia: Mapped[date | None] = mapped_column(Date, nullable=True)
     hora: Mapped[str | None] = mapped_column(String(5), nullable=True)
     longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
-    # fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable = True)
-
+    fecha_denuncia: Mapped[date | None] = mapped_column(Date, nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)

@@ -49,9 +49,8 @@ class FiscaliaExtractBootstrap(Stage):
         }
 
     def finalization(self, input_data: Optional[Any]) -> Any:
-        self.logger.info(f"[finalization]: fiscalia={len(input_data['fiscalia'])} rows, localidades={len(input_data['localidades'])} rows")
-        self.logger.info(f"[finalization]: Columnas de fiscalía {input_data['fiscalia'].columns}")
-        self.logger.info(f"[finalization]: Columnas de localidades {input_data['localidades'].columns}")
+        self.logger.info(f"[finalization] Records extracted: {list(input_data.keys())}")
+        self.logger.info(f"[finalization]: where fiscalia csv has={len(input_data['fiscalia'])} rows and localidades csv has={len(input_data['localidades'])} rows")
         return input_data
 
 if __name__ == "__main__":

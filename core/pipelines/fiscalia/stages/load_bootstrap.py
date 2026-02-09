@@ -44,8 +44,7 @@ class FiscaliaLoadBootstrap(Stage):
                 insert_records(session, input_data["colonias_records"], Colonias, conflict_keys=["id"])
                 insert_records(session, input_data["localidades_records"], Localidades, conflict_keys=["id"])
 
-                self.logger.info(f"Inserting {len(input_data['casos_records'])} records")
-                bulk_insert(session, input_data["casos_records"], Casos)
+                bulk_insert(session, input_data["casos_records"], Casos, chunk_size=50_000)
 
                 session.commit()
                 self.logger.info("Data inserted successfully!")
@@ -58,11 +57,11 @@ class FiscaliaLoadBootstrap(Stage):
 
     def finalization(self, input_data: Optional[Any]) -> Any:
         with self.db.get_session() as session:
-            total_casos = count_records(session, Casos)
-            total_delitos = count_records(session, DelitosSchema)
-            total_municipios = count_records(session, Municipios)
+            total_cases = count_records(session, Casos)
+            total_crimes = count_records(session, DelitosSchema)
+            total_municipalities = count_records(session, Municipios)
 
         self.db.disconnect()
 
-        self.logger.info(f"📤 [finalization] Carga completada: {total_casos} casos, {total_delitos} delitos, {total_municipios} municipios")
+        self.logger.info(f"📤 [finalization] Load completed: {format(total_cases, ",")} cases, {total_crimes} crimes, {total_municipalities} municipalities")
         return input_data

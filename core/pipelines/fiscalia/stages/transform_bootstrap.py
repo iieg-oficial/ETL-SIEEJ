@@ -1,5 +1,6 @@
 
 import numpy as np
+from datetime import date
 from core.pipelines.stage import Stage
 from typing import Any, Optional, Dict, List
 
@@ -28,7 +29,6 @@ class FiscaliaTransformBootstrap(Stage):
         return input_data
 
     def _get_attributes_records(self, fiscalia_df, localidades_df) -> Dict:
-
         municipio_df = drop_duplicates_col(fiscalia_df, "municipio").dropna(subset=["municipio"])
         colonia_df = drop_duplicates_col(fiscalia_df, "colonia").dropna(subset=["colonia"]).sort_values(by=["colonia"])
 
@@ -68,17 +68,19 @@ class FiscaliaTransformBootstrap(Stage):
         fiscalia_df["localidades_id"] = None  # CSV histórico no tiene localidades
         fiscalia_df["calles_id"] = None  # CSV histórico no tiene calles
         fiscalia_df["cruces_id"] = None  # CSV histórico no tiene cruces
+        fiscalia_df["fecha_actualizacion"] = date.today()
 
         fiscalia_df = fiscalia_df.replace({np.nan: None})
 
         return df_to_records(fiscalia_df, [
             "delitos_id", "violencia_id", "zonas_geograficas_id", "municipios_id",
             "localidades_id", "colonias_id", "calles_id", "cruces_id",
-            "fecha_denuncia", "hora", "longitud", "latitud"
+             "hora", "longitud", "latitud",
+            "fecha_denuncia", "fecha_actualizacion"
         ])
 
     def action(self, input_data: Optional[Any]) -> Any:
-        self.logger.info("⚙️ [action] Transformando datos")
+        self.logger.info("[action] Transforming data")
 
         fiscalia_df = input_data["fiscalia"]
         localidades_df = input_data["localidades"]
@@ -86,13 +88,17 @@ class FiscaliaTransformBootstrap(Stage):
         fiscalia_df = titlecase_df(fiscalia_df)
         localidades_df = titlecase_df(localidades_df)
 
+        self.logger.info("[action] Replacing unavailable values with NULL in fiscalia_df")
         fiscalia_df = list_values_to_null(fiscalia_df, rm_list=["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"])
         localidades_df = list_values_to_null(localidades_df, rm_list=["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"])
 
+        self.logger.info("[action] Parsing dates")
         fiscalia_df["hora"] = parse_hour(fiscalia_df["hora"])
         fiscalia_df["fecha_denuncia"] = parse_date(fiscalia_df["fecha_denuncia"])
 
+        self.logger.info("[action] mapping records to attributes tables")
         attributes_records = self._get_attributes_records(fiscalia_df, localidades_df)
+        self.logger.info("[action] getting records from the Casos table")
         casos_records = self._get_casos_records(fiscalia_df, attributes_records)
 
         return {
@@ -102,5 +108,5 @@ class FiscaliaTransformBootstrap(Stage):
 
     def finalization(self, input_data: Optional[Any]) -> Any:
         self.logger.info(f"[finalization] Records trasnformed: {list(input_data.keys())}")
-        self.logger.info(f"[finalization] Casos: {len(input_data['casos_records'])} records")
+        self.logger.info(f"[finalization] Table Casos with {len(input_data['casos_records'])} records transformed")
         return input_data
