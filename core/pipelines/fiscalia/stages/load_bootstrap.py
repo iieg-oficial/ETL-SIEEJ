@@ -8,7 +8,6 @@ from core.db import Database
 from core.pipelines.fiscalia.schemas import (
     ZonasGeograficas as ZonasGeograficasSchema,
     Municipios,
-    Localidades,
     EsViolencia as EsViolenciaSchema,
     Delitos as DelitosSchema,
     BienesAfectados as BienesAfectadosSchema,
@@ -42,7 +41,6 @@ class FiscaliaLoadBootstrap(Stage):
                 insert_records(session, input_data["zonas_geograficas_records"], ZonasGeograficasSchema, conflict_keys=["id"])
                 insert_records(session, input_data["municipios_records"], Municipios, conflict_keys=["id"])
                 insert_records(session, input_data["colonias_records"], Colonias, conflict_keys=["id"])
-                insert_records(session, input_data["localidades_records"], Localidades, conflict_keys=["id"])
 
                 bulk_insert(session, input_data["casos_records"], Casos, chunk_size=50_000)
 

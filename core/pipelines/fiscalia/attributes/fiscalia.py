@@ -6,7 +6,7 @@ class FiscaliaTables(StrEnum):
 
     ZONAS_GEOGRAFICAS = auto()
     MUNICIPIOS = auto()
-    LOCALIDADES = auto()
+
     COLONIAS = auto()
     CALLES = auto()
     CRUCES = auto()
@@ -19,7 +19,7 @@ class FiscaliaTables(StrEnum):
 class FiscaliaColumns(StrEnum):
     ZONA_GEOGRAFICA = auto()
     MUNICIPIO = auto()
-    LOCALIDAD = auto()
+
     COLONIA = auto()
     CALLE = auto()
     CRUCE = auto()

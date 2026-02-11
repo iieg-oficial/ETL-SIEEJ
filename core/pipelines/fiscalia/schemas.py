@@ -17,29 +17,23 @@ class Municipios(FiscaliaBase):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
     municipio: Mapped[str]
 
-class Localidades(FiscaliaBase):
-    __tablename__ = FiscaliaTables.LOCALIDADES
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
-    localidad: Mapped[str] = mapped_column(String(100), nullable=False)
-
 class Colonias(FiscaliaBase):
     __tablename__ = FiscaliaTables.COLONIAS
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    colonia: Mapped[str] = mapped_column(String(100), nullable=False)
+    colonia: Mapped[str] = mapped_column(String(400), nullable=False)
 
 class Calles(FiscaliaBase):
     __tablename__ = FiscaliaTables.CALLES
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    calle: Mapped[str] = mapped_column(String(100), nullable=False)
+    calle: Mapped[str] = mapped_column(String(400), nullable=False)
 
 class Cruces(FiscaliaBase):
     __tablename__ = FiscaliaTables.CRUCES
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    cruce: Mapped[str] = mapped_column(String(100), nullable=False)
+    cruce: Mapped[str] = mapped_column(String(400), nullable=False)
 
 class EsViolencia(FiscaliaBase):
     __tablename__ = FiscaliaTables.VIOLENCIA
@@ -69,7 +63,6 @@ class Casos(FiscaliaBase):
     violencia_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.VIOLENCIA}.id"), nullable = True)
     zonas_geograficas_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.ZONAS_GEOGRAFICAS}.id"), nullable = True)
     municipios_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.MUNICIPIOS}.id"), nullable = True)
-    localidades_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.LOCALIDADES}.id"), nullable = True)
     colonias_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.COLONIAS}.id"), nullable = True)
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)

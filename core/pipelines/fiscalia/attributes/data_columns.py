@@ -40,25 +40,24 @@ class RenameHistoricalCols(StrEnum):
         return {member.name: member.value for member in cls}
 
 
-class RenameLocalidades(BaseClass, StrEnum):
-    CVE_LOC = "id"
-    NOM_LOC = "localidad"
-
-    @classmethod
-    def rename(cls):
-        return {member.name: member.value for member in cls}
-
 @unique
 class UpdateCols(BaseClass, StrEnum):
-    clave_mun = "id"
     fecha_denuncia = FiscaliaColumns.FECHA_DENUNCIA
     delito = FiscaliaColumns.DELITO
+    hora = FiscaliaColumns.HORA
+    violencia = FiscaliaColumns.VIOLENCIA
     colonia = FiscaliaColumns.COLONIA
     municipio = FiscaliaColumns.MUNICIPIO
     calle = FiscaliaColumns.CALLE
     cruce = FiscaliaColumns.CRUCE
-    localidad = FiscaliaColumns.LOCALIDAD
 
-if __name__ == "__main__":
-    print(RenameLocalidades.rename())
-    print(RenameLocalidades.get_values())
+    longitud = FiscaliaColumns.LONGITUD
+    latitud = FiscaliaColumns.LATITUD
+
+class RenameUpdateCols(StrEnum):
+    x = FiscaliaColumns.LONGITUD
+    y = FiscaliaColumns.LATITUD
+
+    @classmethod
+    def rename(cls):
+        return {member.name: member.value for member in cls}
