@@ -25,10 +25,10 @@ class FiscaliaTransformBootstrap(Stage):
         self.bienes_delitos_map = map_bienes_to_delitos()
 
     def source(self, input_data: Optional[Any]) -> Any:
-        self.logger.info(f"📥 [source] fiscalia={len(input_data['fiscalia'])} rows, localidades={len(input_data['localidades'])} rows")
+        self.logger.info(f"📥 [source] fiscalia={len(input_data)} rows")
         return input_data
 
-    def _get_attributes_records(self, fiscalia_df, localidades_df) -> Dict:
+    def _get_attributes_records(self, fiscalia_df) -> Dict:
         municipio_df = drop_duplicates_col(fiscalia_df, "municipio").dropna(subset=["municipio"])
         colonia_df = drop_duplicates_col(fiscalia_df, "colonia").dropna(subset=["colonia"]).sort_values(by=["colonia"])
 
@@ -37,7 +37,6 @@ class FiscaliaTransformBootstrap(Stage):
         bienes_records = BienesAfectados.to_records(FiscaliaColumns.BIEN_AFECTADO)
         zonas_geograficas_records = ZonasGeograficas.to_records(FiscaliaColumns.ZONA_GEOGRAFICA)
         violencia_records = EsViolencia.to_records(FiscaliaColumns.VIOLENCIA)
-        localidades_records = localidades_df.to_dict("records")
         delitos_records = [
             {**d, "bien_afectado_id": self.bienes_delitos_map.get(d[FiscaliaColumns.DELITO])}
             for d in Delitos.to_records(FiscaliaColumns.DELITO)
@@ -50,7 +49,6 @@ class FiscaliaTransformBootstrap(Stage):
             "zonas_geograficas_records": zonas_geograficas_records,
             "municipios_records": municipios_records,
             "colonias_records": colonias_records,
-            "localidades_records": localidades_records,
         }
 
     def _get_casos_records(self, fiscalia_df, attributes: Dict) -> List[Dict]:
@@ -65,7 +63,6 @@ class FiscaliaTransformBootstrap(Stage):
         fiscalia_df["zonas_geograficas_id"] = normalize_col(fiscalia_df, "zona_geografica").map(zonas_map)
         fiscalia_df["municipios_id"] = normalize_col(fiscalia_df, "municipio").map(municipios_map)
         fiscalia_df["colonias_id"] = normalize_col(fiscalia_df, "colonia").map(colonias_map)
-        fiscalia_df["localidades_id"] = None  # CSV histórico no tiene localidades
         fiscalia_df["calles_id"] = None  # CSV histórico no tiene calles
         fiscalia_df["cruces_id"] = None  # CSV histórico no tiene cruces
         fiscalia_df["fecha_actualizacion"] = date.today()
@@ -74,30 +71,27 @@ class FiscaliaTransformBootstrap(Stage):
 
         return df_to_records(fiscalia_df, [
             "delitos_id", "violencia_id", "zonas_geograficas_id", "municipios_id",
-            "localidades_id", "colonias_id", "calles_id", "cruces_id",
-             "hora", "longitud", "latitud",
+            "colonias_id", "calles_id", "cruces_id",
+            "hora", "longitud", "latitud",
             "fecha_denuncia", "fecha_actualizacion"
         ])
 
     def action(self, input_data: Optional[Any]) -> Any:
         self.logger.info("[action] Transforming data")
 
-        fiscalia_df = input_data["fiscalia"]
-        localidades_df = input_data["localidades"]
+        fiscalia_df = input_data
 
         fiscalia_df = titlecase_df(fiscalia_df)
-        localidades_df = titlecase_df(localidades_df)
 
         self.logger.info("[action] Replacing unavailable values with NULL in fiscalia_df")
         fiscalia_df = list_values_to_null(fiscalia_df, rm_list=["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"])
-        localidades_df = list_values_to_null(localidades_df, rm_list=["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"])
 
         self.logger.info("[action] Parsing dates")
         fiscalia_df["hora"] = parse_hour(fiscalia_df["hora"])
         fiscalia_df["fecha_denuncia"] = parse_date(fiscalia_df["fecha_denuncia"])
 
         self.logger.info("[action] mapping records to attributes tables")
-        attributes_records = self._get_attributes_records(fiscalia_df, localidades_df)
+        attributes_records = self._get_attributes_records(fiscalia_df)
         self.logger.info("[action] getting records from the Casos table")
         casos_records = self._get_casos_records(fiscalia_df, attributes_records)
 

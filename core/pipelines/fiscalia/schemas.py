@@ -21,19 +21,19 @@ class Colonias(FiscaliaBase):
     __tablename__ = FiscaliaTables.COLONIAS
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    colonia: Mapped[str] = mapped_column(String(400), nullable=False)
+    colonia: Mapped[str] = mapped_column(String(400), nullable=False, unique=True)
 
 class Calles(FiscaliaBase):
     __tablename__ = FiscaliaTables.CALLES
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    calle: Mapped[str] = mapped_column(String(400), nullable=False)
+    calle: Mapped[str] = mapped_column(String(400), nullable=False, unique=True)
 
 class Cruces(FiscaliaBase):
     __tablename__ = FiscaliaTables.CRUCES
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    cruce: Mapped[str] = mapped_column(String(400), nullable=False)
+    cruce: Mapped[str] = mapped_column(String(400), nullable=False, unique=True)
 
 class EsViolencia(FiscaliaBase):
     __tablename__ = FiscaliaTables.VIOLENCIA

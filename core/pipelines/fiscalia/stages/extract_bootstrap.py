@@ -22,20 +22,16 @@ class FiscaliaExtractBootstrap(Stage):
             output_folder="data/extract/Fiscalia",
             filenames=["fiscalia_data.csv"]
         )
-
         return pd.read_csv(file_paths["fiscalia_data.csv"], encoding="utf-8")
 
 
     def action(self, input_data: dict) -> Any:
         self.logger.info(f"[action] Reading fiscalia data with {len(input_data)} values")
-
         try:
             input_data = input_data.rename(columns=RenameHistoricalCols.rename())
             input_data = input_data[HistoricalCols.get_values()]
-
         except Exception as e:
             self.logger.error(f"[action] {e}")
-
         return input_data
 
     def finalization(self, input_data: Optional[Any]) -> Any:
