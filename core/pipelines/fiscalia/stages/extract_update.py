@@ -7,7 +7,7 @@ from core.pipelines.fiscalia.config import settings
 from core.pipelines.stage import Stage
 from core.pipelines.fiscalia.attributes.data_columns import UpdateCols, RenameUpdateCols
 from core.pipelines.fiscalia.helpers.normalize import lowercase_headers
-from core.pipelines.fiscalia.helpers.gdrive import download_files_from_folder
+from core.pipelines.fiscalia.helpers.gdrive import download_and_unzip
 
 
 class FiscaliaExtractUpdate(Stage):
@@ -17,32 +17,26 @@ class FiscaliaExtractUpdate(Stage):
         self.logger = get_logger(f"{pipeline_name}.extract")
 
     def source(self, input_data: Optional[Any] = None) -> Any:
-        self.logger.info("[source] Downloading update XLSX from Google Drive")
-        file_paths = download_files_from_folder(
+        self.logger.info("[source] Downloading fiscalia xlsx for database update")
+        xlsx_path = download_and_unzip(
             folder_url=settings.UPDATE_EXCEL_FOLDER,
             output_folder="data/extract/fiscalia",
-            filenames=["BASE ENERO-DICIEMBRE 2025.xlsx"]
+            extension=".xlsx"
         )
-        return file_paths
+        return xlsx_path
 
-    def action(self, input_data: dict) -> Any:
+    def action(self, input_data: str) -> Any:
         self.logger.info("[action] Reading XLSX file")
-        df = pd.read_excel(input_data["BASE ENERO-DICIEMBRE 2025.xlsx"], engine="openpyxl")
+        df = pd.read_excel(input_data, engine="openpyxl")
         self.logger.info(f"[action] Read {len(df)} rows")
-
         lowercase_headers(df)
         df.columns = df.columns.str.replace(' ', '_')
         df = df.rename(columns=RenameUpdateCols.rename())
         df = df[UpdateCols.get_values()]
-
         return df
 
     def finalization(self, input_data: Optional[Any]) -> Any:
         self.logger.info(f"[finalization] Extracted {len(input_data)} rows from update XLSX")
         self.logger.info(f"[finalization] Records extracted: {list(input_data.keys())}")
         return input_data
-if __name__ == "__main__":
-    fc = FiscaliaExtractUpdate()
-    input_data = fc.source()
-    input_data = fc.action(input_data)
-    fc.finalization(input_data)
+
