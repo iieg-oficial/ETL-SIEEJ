@@ -16,14 +16,26 @@ def titlecase_df(df: pd.DataFrame)-> pd.DataFrame:
     return df
 
 def list_values_to_null(df: pd.DataFrame, rm_list: list = None) -> pd.DataFrame:
+    rm_list = rm_list or ['NA', 'N/A', 'null', 'NULL', 'nan', 'NaN', '']
+    rm_list_lower = [val.lower() for val in rm_list]
+
     df_copy = df.copy()
     string_cols = df_copy.select_dtypes(include=['object', 'string']).columns
 
     for col in string_cols:
-        df_copy[col] = df_copy[col].str.strip().str.strip('"').str.strip("'")
-        df_copy[col] = df_copy[col].replace(
-            {val: None for pattern in rm_list for val in [pattern, pattern.lower(), pattern.upper(), pattern.title()]}
-        )
+        df_copy[col] = (df_copy[col]
+                       .str.strip()
+                       .str.strip('"')
+                       .str.strip("'")
+                       .str.strip()
+                       .str.replace('\u200b', '', regex=False)
+                       .str.replace('\xa0', ' ', regex=False)
+                       .str.replace(r'\s+', ' ', regex=True)
+                    )
+
+        mask = df_copy[col].str.lower().isin(rm_list_lower) | (df_copy[col] == '')
+        df_copy.loc[mask, col] = None
+
     return df_copy.replace({np.nan: None})
 
 def lowercase_col(df: pd.DataFrame, col:str) -> None:
