@@ -6,7 +6,7 @@ from core.utils.logger import get_logger
 from core.pipelines.fiscalia.config import settings
 from core.pipelines.stage import Stage
 from core.pipelines.fiscalia.attributes.data_columns import HistoricalCols, RenameHistoricalCols
-from core.pipelines.fiscalia.helpers.gdrive import download_files_from_folder
+from core.pipelines.fiscalia.helpers import download_files_from_folder
 
 
 class FiscaliaExtractBootstrap(Stage):

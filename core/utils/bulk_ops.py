@@ -2,8 +2,9 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import func
 from more_itertools import chunked
 from typing import List, Dict
+
 from core.utils.logger import get_logger
-from core.pipelines.fiscalia.helpers.normalize import normalize_text
+from core.utils import normalize_text
 
 logger = get_logger("bulk_ops")
 

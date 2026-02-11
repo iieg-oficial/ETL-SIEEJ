@@ -3,12 +3,10 @@ from typing import Any, Optional
 
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
-from core.pipelines.fiscalia.helpers.normalize import list_values_to_null, titlecase_df, drop_duplicates_col
-from core.pipelines.fiscalia.helpers.format_datetime import parse_hour, parse_date
-from core.pipelines.fiscalia.helpers.geo import utm13n_to_latlon
+from core.utils import list_values_to_null, titlecase_df, drop_duplicates_col
+from core.pipelines.fiscalia.helpers import parse_hour, parse_date, utm13n_to_latlon
 from core.pipelines.fiscalia.helpers.records import df_to_records
-
-NULL_VALUES = ["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"]
+from core.pipelines.fiscalia.constants import NULL_VALUES
 
 
 class FiscaliaTransformUpdate(Stage):

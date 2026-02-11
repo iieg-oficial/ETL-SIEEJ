@@ -20,7 +20,6 @@ class BaseClass(Enum):
 class ZonasGeograficas(BaseClass):
     AMG = (auto(), "AMG")
     Interior = (auto(), "Interiror")
-
 class BienesAfectados(BaseClass):
     integrad_corporal = (auto(), "La vida y la integridad corporal")
     integrad_sexual = (auto(), "La vida y la integridad sexual")
@@ -45,7 +44,6 @@ class Delitos(BaseClass):
     robo_autopartes = (auto(), ElPatrimonio.robo_autopartes.value)
     robo_cuentahabitantes = (auto(), ElPatrimonio.robo_cuentahabitantes.value)
     robo_bancos = (auto(), ElPatrimonio.robo_bancos.value)
-
 
 class EsViolencia(BaseClass):
     con_violencia = (auto(), "Con violencia")

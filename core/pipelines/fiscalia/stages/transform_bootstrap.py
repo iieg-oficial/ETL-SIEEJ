@@ -5,17 +5,18 @@ from core.pipelines.stage import Stage
 from typing import Any, Optional, Dict, List
 
 from core.utils.logger import get_logger
-from core.pipelines.fiscalia.helpers.normalize import list_values_to_null, titlecase_df, drop_duplicates_col, normalize_col
-from core.pipelines.fiscalia.helpers.records import df_to_records_with_id, df_to_records, records_to_map
-from core.pipelines.fiscalia.helpers.format_datetime import parse_hour, parse_date
+from core.utils import (list_values_to_null, titlecase_df, drop_duplicates_col, normalize_col)
+from core.pipelines.fiscalia.constants import NULL_VALUES
+from core.pipelines.fiscalia.helpers import (parse_hour, parse_date)
+from core.pipelines.fiscalia.helpers.records import (df_to_records_with_id, df_to_records, records_to_map)
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
-from core.pipelines.fiscalia.mappings.schemas import (
+from core.pipelines.fiscalia.mappings import (
     BienesAfectados,
     Delitos,
     EsViolencia,
-    ZonasGeograficas
+    ZonasGeograficas,
+    map_bienes_to_delitos
 )
-from core.pipelines.fiscalia.mappings.delitos import map_bienes_to_delitos
 
 class FiscaliaTransformBootstrap(Stage):
     def __init__(self, pipeline_name: str = 'fiscalia', mode: str = 'bootstrap'):
@@ -84,7 +85,7 @@ class FiscaliaTransformBootstrap(Stage):
         fiscalia_df = titlecase_df(fiscalia_df)
 
         self.logger.info("[action] Replacing unavailable values with NULL in fiscalia_df")
-        fiscalia_df = list_values_to_null(fiscalia_df, rm_list=["Nan", "Desconocido", "N.D", "N.D.", "No Disponible", "N.A"])
+        fiscalia_df = list_values_to_null(fiscalia_df, rm_list=NULL_VALUES)
 
         self.logger.info("[action] Parsing dates")
         fiscalia_df["hora"] = parse_hour(fiscalia_df["hora"])

@@ -1,6 +1,6 @@
 from core.pipelines.fiscalia.attributes.amg import AMG
 from core.pipelines.fiscalia.mappings.schemas import ZonasGeograficas
-from core.pipelines.fiscalia.helpers.normalize import normalize_text
+from core.utils import normalize_text
 
 def map_municipios_to_zonas_geo(df):
     municipios = df["municipio"].dropna().unique()

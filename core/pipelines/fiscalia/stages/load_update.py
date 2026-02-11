@@ -3,17 +3,15 @@ import numpy as np
 from datetime import date
 from typing import Any, Optional
 
-from core.pipelines.stage import Stage
-from core.utils.logger import get_logger
-from core.utils.bulk_ops import insert_records, bulk_insert, count_records, get_mapping, sync_id_sequence
 from core.db import Database
-from core.pipelines.fiscalia.schemas import Casos, Calles, Cruces, Colonias, Municipios
+from core.pipelines.stage import Stage
+from core.utils import normalize_col
+from core.utils.logger import get_logger
+from core.utils.bulk_ops import (insert_records, bulk_insert, count_records, get_mapping, sync_id_sequence)
+from core.pipelines.fiscalia.schemas import (Casos, Calles, Cruces, Colonias, Municipios)
 from core.pipelines.fiscalia.config import settings
-from core.pipelines.fiscalia.helpers.normalize import normalize_col
-from core.pipelines.fiscalia.helpers.records import df_to_records, records_to_map
-from core.pipelines.fiscalia.mappings.delitos import map_bienes_to_delitos
-from core.pipelines.fiscalia.mappings.zonas_geograficas import map_municipios_to_zonas_geo
-from core.pipelines.fiscalia.mappings.schemas import Delitos, EsViolencia
+from core.pipelines.fiscalia.helpers.records import (df_to_records, records_to_map)
+from core.pipelines.fiscalia.mappings import (map_bienes_to_delitos, map_municipios_to_zonas_geo,  Delitos, EsViolencia)
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
 
 

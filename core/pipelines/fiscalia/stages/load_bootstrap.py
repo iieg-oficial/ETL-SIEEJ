@@ -7,12 +7,12 @@ from core.utils.bulk_ops import insert_records, bulk_insert, count_records
 from core.db import Database
 from core.pipelines.fiscalia.schemas import (
     ZonasGeograficas as ZonasGeograficasSchema,
-    Municipios,
+    Municipios as MunicipiosSchema,
     EsViolencia as EsViolenciaSchema,
     Delitos as DelitosSchema,
     BienesAfectados as BienesAfectadosSchema,
-    Colonias,
-    Casos
+    Colonias as ColoniasSchema,
+    Casos as CasosSchema
 )
 from core.pipelines.fiscalia.config import settings
 
@@ -39,10 +39,10 @@ class FiscaliaLoadBootstrap(Stage):
                 insert_records(session, input_data["delitos_records"], DelitosSchema, conflict_keys=["id"])
                 insert_records(session, input_data["violencia_records"], EsViolenciaSchema, conflict_keys=["id"])
                 insert_records(session, input_data["zonas_geograficas_records"], ZonasGeograficasSchema, conflict_keys=["id"])
-                insert_records(session, input_data["municipios_records"], Municipios, conflict_keys=["id"])
-                insert_records(session, input_data["colonias_records"], Colonias, conflict_keys=["id"])
+                insert_records(session, input_data["municipios_records"], MunicipiosSchema, conflict_keys=["id"])
+                insert_records(session, input_data["colonias_records"], ColoniasSchema, conflict_keys=["id"])
 
-                bulk_insert(session, input_data["casos_records"], Casos, chunk_size=50_000)
+                bulk_insert(session, input_data["casos_records"], CasosSchema, chunk_size=50_000)
 
                 session.commit()
                 self.logger.info("Data inserted successfully!")
@@ -55,9 +55,9 @@ class FiscaliaLoadBootstrap(Stage):
 
     def finalization(self, input_data: Optional[Any]) -> Any:
         with self.db.get_session() as session:
-            total_cases = count_records(session, Casos)
+            total_cases = count_records(session, ColoniasSchema)
             total_crimes = count_records(session, DelitosSchema)
-            total_municipalities = count_records(session, Municipios)
+            total_municipalities = count_records(session, MunicipiosSchema)
 
         self.db.disconnect()
 

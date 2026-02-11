@@ -1,6 +1,6 @@
 import pandas as pd
 from typing import List, Dict, Any
-from core.pipelines.fiscalia.helpers.normalize import normalize_text
+from core.utils import normalize_text
 
 
 def records_to_map(records: List[Dict], key: str) -> Dict:

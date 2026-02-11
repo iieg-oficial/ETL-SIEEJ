@@ -2,12 +2,12 @@
 from typing import Any, Optional
 import pandas as pd
 
+from core.utils import lowercase_headers
 from core.utils.logger import get_logger
 from core.pipelines.fiscalia.config import settings
 from core.pipelines.stage import Stage
 from core.pipelines.fiscalia.attributes.data_columns import UpdateCols, RenameUpdateCols
-from core.pipelines.fiscalia.helpers.normalize import lowercase_headers
-from core.pipelines.fiscalia.helpers.gdrive import download_and_unzip
+from core.pipelines.fiscalia.helpers import download_and_unzip
 
 
 class FiscaliaExtractUpdate(Stage):

@@ -1,7 +1,6 @@
-from enum import StrEnum
 from enum import Enum
 
-from core.pipelines.fiscalia.helpers.normalize import normalize_text
+from core.utils import normalize_text
 
 class BaseClass(Enum):
     @classmethod
