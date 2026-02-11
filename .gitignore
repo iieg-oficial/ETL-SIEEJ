@@ -27,3 +27,7 @@ data/*
 
 # Migrations
 **/flyway.conf
+
+# Explore
+
+explore/
