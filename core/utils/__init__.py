@@ -7,7 +7,9 @@ from .normalize import(
     uppercase_col,
     title_col,
     normalize_col,
-    normalize_text,
+    normalize_text
+)
+from .records import (
     records_to_map,
     df_to_records,
     df_to_records_with_id
