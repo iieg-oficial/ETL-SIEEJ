@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-from core.utils import normalize_col
+from core.utils.normalize import normalize_col
 
 def list_values_to_null(df: pd.DataFrame, rm_list: list = None) -> pd.DataFrame:
     rm_list = rm_list or ['NA', 'N/A', 'null', 'nan', '']
