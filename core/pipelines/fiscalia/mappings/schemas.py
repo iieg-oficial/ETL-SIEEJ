@@ -19,7 +19,7 @@ class BaseClass(Enum):
 
 class ZonasGeograficas(BaseClass):
     AMG = (auto(), "AMG")
-    Interior = (auto(), "Interiror")
+    Interior = (auto(), "Interior")
 class BienesAfectados(BaseClass):
     integrad_corporal = (auto(), "La vida y la integridad corporal")
     integrad_sexual = (auto(), "La vida y la integridad sexual")

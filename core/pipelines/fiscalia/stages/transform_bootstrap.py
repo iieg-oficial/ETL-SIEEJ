@@ -4,12 +4,19 @@ from datetime import date
 from core.pipelines.stage import Stage
 from typing import Any, Optional, Dict, List
 
-from core.utils.logger import get_logger
-from core.utils import (list_values_to_null, titlecase_df, drop_duplicates_col, normalize_col)
 from core.pipelines.fiscalia.constants import NULL_VALUES
 from core.pipelines.fiscalia.helpers import (parse_hour, parse_date)
-from core.pipelines.fiscalia.helpers.records import (df_to_records_with_id, df_to_records, records_to_map)
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
+from core.utils.logger import get_logger
+from core.utils import (
+    list_values_to_null,
+    titlecase_df,
+    drop_duplicates_col,
+    normalize_col,
+    df_to_records_with_id,
+    df_to_records,
+    records_to_map
+    )
 from core.pipelines.fiscalia.mappings import (
     BienesAfectados,
     Delitos,

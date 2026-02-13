@@ -5,12 +5,12 @@ from typing import Any, Optional
 
 from core.db import Database
 from core.pipelines.stage import Stage
-from core.utils import normalize_col
+from sqlalchemy import text
+from core.utils import normalize_col, normalize_text, df_to_records, records_to_map
 from core.utils.logger import get_logger
 from core.utils.bulk_ops import (insert_records, bulk_insert, count_records, get_mapping, sync_id_sequence)
-from core.pipelines.fiscalia.schemas import (Casos, Calles, Cruces, Colonias, Municipios)
+from core.pipelines.fiscalia.schemas import (Casos, Calles, Cruces, Colonias)
 from core.pipelines.fiscalia.config import settings
-from core.pipelines.fiscalia.helpers.records import (df_to_records, records_to_map)
 from core.pipelines.fiscalia.mappings import (map_bienes_to_delitos, map_municipios_to_zonas_geo,  Delitos, EsViolencia)
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
 
@@ -44,7 +44,8 @@ class FiscaliaLoadUpdate(Stage):
                 calles_map = get_mapping(session, Calles, 'calle', 'id', is_normalize=True)
                 cruces_map = get_mapping(session, Cruces, 'cruce', 'id', is_normalize=True)
                 colonias_map = get_mapping(session, Colonias, 'colonia', 'id', is_normalize=True)
-                municipios_map = get_mapping(session, Municipios, 'municipio', 'id', is_normalize=True)
+                municipios_rows = session.execute(text("SELECT nomgeo, id FROM cvegeo_municipalities")).all()
+                municipios_map = {normalize_text(row[0]): row[1] for row in municipios_rows}
 
                 bienes_delitos_map = map_bienes_to_delitos()
                 delitos_map = records_to_map(

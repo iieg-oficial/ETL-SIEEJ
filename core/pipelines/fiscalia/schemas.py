@@ -11,12 +11,6 @@ class ZonasGeograficas(FiscaliaBase):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
     zona_geografica: Mapped[str] = mapped_column(String(10), nullable=False)
-class Municipios(FiscaliaBase):
-    __tablename__ = FiscaliaTables.MUNICIPIOS
-
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
-    municipio: Mapped[str]
-
 class Colonias(FiscaliaBase):
     __tablename__ = FiscaliaTables.COLONIAS
 
@@ -62,7 +56,7 @@ class Casos(FiscaliaBase):
     delitos_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.DELITOS}.id"), nullable = False)
     violencia_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.VIOLENCIA}.id"), nullable = True)
     zonas_geograficas_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.ZONAS_GEOGRAFICAS}.id"), nullable = True)
-    municipios_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.MUNICIPIOS}.id"), nullable = True)
+    municipios_id: Mapped[int | None] = mapped_column(nullable=True)
     colonias_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.COLONIAS}.id"), nullable = True)
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)

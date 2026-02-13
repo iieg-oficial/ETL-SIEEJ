@@ -5,7 +5,6 @@ class FiscaliaTables(StrEnum):
         return super().__getattribute__(name)
 
     ZONAS_GEOGRAFICAS = auto()
-    MUNICIPIOS = auto()
 
     COLONIAS = auto()
     CALLES = auto()

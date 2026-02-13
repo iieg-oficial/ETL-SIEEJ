@@ -3,9 +3,8 @@ from typing import Any, Optional
 
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
-from core.utils import list_values_to_null, titlecase_df, drop_duplicates_col
+from core.utils import list_values_to_null, titlecase_df, drop_duplicates_col, df_to_records
 from core.pipelines.fiscalia.helpers import parse_hour, parse_date, utm13n_to_latlon
-from core.pipelines.fiscalia.helpers.records import df_to_records
 from core.pipelines.fiscalia.constants import NULL_VALUES
 
 
