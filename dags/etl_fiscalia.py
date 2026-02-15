@@ -7,31 +7,23 @@ from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
 from core.pipeline import Pipeline
-from core.pipelines.fiscalia.stages.extract_bootstrap import FiscaliaExtractBootstrap
-from core.pipelines.fiscalia.stages.transform_bootstrap import FiscaliaTransformBootstrap
-from core.pipelines.fiscalia.stages.load_bootstrap import FiscaliaLoadBootstrap
-from core.pipelines.fiscalia.stages.extract_update import FiscaliaExtractUpdate
-from core.pipelines.fiscalia.stages.transform_update import FiscaliaTransformUpdate
-from core.pipelines.fiscalia.stages.load_update import FiscaliaLoadUpdate
+from core.pipelines.fiscalia.stages.extract import FiscaliaExtract
+from core.pipelines.fiscalia.stages.transform import FiscaliaTransform
+from core.pipelines.fiscalia.stages.load import FiscaliaLoad
 
 
 def run_bootstrap():
-    """Ejecuta carga inicial de Fiscalia"""
+    """Executes initial load of the Fiscalía database"""
     pipeline = Pipeline(
         name='fiscalia',
         stages=[
-            FiscaliaExtractBootstrap(mode='bootstrap'),
-            FiscaliaTransformBootstrap(mode='bootstrap'),
-            FiscaliaLoadBootstrap(mode='bootstrap')
+            FiscaliaExtract(mode='bootstrap'),
+            FiscaliaTransform(mode='bootstrap'),
+            FiscaliaLoad(mode='bootstrap'),
         ],
-
     )
     pipeline.run(mode='bootstrap')
 
-
-# ============================================================================
-# DAG 1: BOOTSTRAP (Carga Inicial - On Demand)
-# ============================================================================
 
 default_args_bootstrap = {
     'owner': 'José Velazco H.',
@@ -55,26 +47,21 @@ with DAG(
 
 
 def run_update():
-    """Ejecuta actualización mensual de Fiscalia"""
+    """Performs monthly update of the Prosecutor's Office"""
     pipeline = Pipeline(
         name='fiscalia',
         stages=[
-            FiscaliaExtractUpdate(mode='update'),
-            FiscaliaTransformUpdate(mode='update'),
-            FiscaliaLoadUpdate(mode='update')
+            FiscaliaExtract(mode='update'),
+            FiscaliaTransform(mode='update'),
+            FiscaliaLoad(mode='update'),
         ],
     )
     pipeline.run(mode='update')
 
-
-# ============================================================================
-# DAG 2: UPDATE (Actualización Mensual)
-# ============================================================================
-
 default_args_update = {
     'owner': 'José Velazco H.',
-    'retries': 1,
-    'retry_delay': timedelta(minutes=40),
+    'retries': 3,
+    'retry_delay': timedelta(days=7),
 }
 
 with DAG(
@@ -82,7 +69,7 @@ with DAG(
     default_args=default_args_update,
     description='Fiscalia Update - Monthly incremental load',
     schedule='@monthly',
-    start_date=datetime(2024, 1, 1),
+    start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=['etl', 'fiscalia', 'update', 'monthly'],
 ) as dag_update:

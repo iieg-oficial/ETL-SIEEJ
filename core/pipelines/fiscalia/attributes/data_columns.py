@@ -17,21 +17,15 @@ class BaseClass:
 
 @unique
 class HistoricalCols(BaseClass, StrEnum):
-    clave_mun = "id"
-    fecha = FiscaliaColumns.FECHA_DENUNCIA
+    fecha_denuncia = FiscaliaColumns.FECHA_DENUNCIA
     delito = FiscaliaColumns.DELITO
+    hora = FiscaliaColumns.HORA
     colonia = FiscaliaColumns.COLONIA
     municipio = FiscaliaColumns.MUNICIPIO
-    hora = FiscaliaColumns.HORA
-    violencia = FiscaliaColumns.VIOLENCIA
-    zona_geografica = FiscaliaColumns.ZONA_GEOGRAFICA
-    bien_afectado = FiscaliaColumns.BIEN_AFECTADO
     longitud = FiscaliaColumns.LONGITUD
     latitud = FiscaliaColumns.LATITUD
 
 class RenameHistoricalCols(StrEnum):
-    clave_mun =  "id"
-    fecha = FiscaliaColumns.FECHA_DENUNCIA
     x = FiscaliaColumns.LONGITUD
     y = FiscaliaColumns.LATITUD
 

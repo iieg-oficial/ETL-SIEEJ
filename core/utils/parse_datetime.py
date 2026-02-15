@@ -3,9 +3,9 @@ import pandas as pd
 
 def parse_hour(series: pd.Series) -> pd.Series:
     """
-    Convierte valores de hora a formato 'HH:MM'.
-    - Valores válidos '%H:%M' -> 'HH:MM'
-    - Valores inválidos (decimales, 'N.D.', etc.) -> None
+    Parse time values to 'HH:MM' format.
+    - Valid '%H:%M' values -> 'HH:MM'
+    - Invalid values (decimals, 'N.D.', etc.) -> None
     """
     def convert(val):
         if pd.isna(val):
@@ -21,8 +21,8 @@ def parse_hour(series: pd.Series) -> pd.Series:
 
 def parse_date(series: pd.Series) -> pd.Series:
     """
-    Convierte valores de fecha a formato DATE.
-    - Valores válidos -> datetime.date
-    - Valores inválidos -> None
+    Parse date values to datetime.date.
+    - Valid values -> datetime.date
+    - Invalid values -> None
     """
     return pd.to_datetime(series, errors='coerce').dt.date
