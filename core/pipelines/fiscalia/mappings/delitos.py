@@ -1,4 +1,4 @@
-from core.pipelines.fiscalia.mappings.schemas import BienesAfectados
+from core.pipelines.fiscalia.mappings.tables import BienesAfectados
 from core.pipelines.fiscalia.attributes.delitos import (
       ElPatrimonio,
       IntregridadCorporal,
