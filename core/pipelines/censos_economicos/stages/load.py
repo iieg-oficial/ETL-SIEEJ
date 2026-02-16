@@ -191,7 +191,7 @@ class CELoader(Stage):
         df["cvegeo"] = df.apply(lambda row: (row["e03"] + row["e04"]) if row["e03"] and row["e04"] else None, axis=1)
 
         # Seleccionar columnas de salida
-        output_cols = ["anio"] + KEY_COLUMNS + CLASSIFICATION_COLUMNS + ["cvegeo"] + CE_ECONOMIC_COLUMNS
+        output_cols = ["anio"] + KEY_COLUMNS + CLASSIFICATION_COLUMNS + ["cvegeo"] + list(CE_ECONOMIC_COLUMNS)
         available_cols = [c for c in output_cols if c in df.columns]
         df = df[available_cols]
 

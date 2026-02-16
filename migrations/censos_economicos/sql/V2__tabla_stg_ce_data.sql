@@ -14,7 +14,9 @@ CREATE TABLE ce_datos (
     subrama VARCHAR(5),
     clase VARCHAR(6),
     cvegeo VARCHAR(6),
-    -- Columnas economicas (98 en total)
+    -- 98 columnas de variables economicas (codigos INEGI)
+    -- Para nombres descriptivos: unpivot esta tabla y JOIN con ce_diccionarios_datos por nombre_columna
+    -- Tambien documentadas en CE_ECONOMIC_COLUMNS (consts.py) y en el diccionario de datos INEGI
     ue DOUBLE PRECISION,
     h001a DOUBLE PRECISION,
     h000a DOUBLE PRECISION,
