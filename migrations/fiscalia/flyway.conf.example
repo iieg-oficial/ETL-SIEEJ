@@ -6,8 +6,8 @@ flyway.schemas=public
 flyway.cleanDisabled=false
 
 # Foreign Data Wrapper - conexión a la DB de cvegeo
-flyway.placeholders.fdw_dbname=cvegeo
-flyway.placeholders.fdw_host=localhost
-flyway.placeholders.fdw_port=5433
-flyway.placeholders.fdw_user=cvegeo
-flyway.placeholders.fdw_password=cvegeo
+flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
+flyway.placeholders.fdw_host=<FDW_DB_HOST>
+flyway.placeholders.fdw_port=<FDW_DB_PORT>
+flyway.placeholders.fdw_user=<FDW_DB_USER>>
+flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>>

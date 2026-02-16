@@ -9,7 +9,7 @@ from core.pipelines.fiscalia.attributes.data_columns import (
     HistoricalCols, RenameHistoricalCols,
     UpdateCols, RenameUpdateCols,
 )
-from core.utils.gdrive import gdown_folder
+from core.utils.gdrive import download_folder
 from core.utils.files import (
     get_file_by_name, get_latest_file, get_latest_files_per_year,
     parse_date_from_filename,
@@ -24,7 +24,12 @@ class FiscaliaExtract(Stage):
 
     def source(self, input_data: Optional[Any] = None) -> Any:
         self.logger.info(f"[source] Downloading fiscalia files (mode={self.mode})")
-        output_folder = gdown_folder(settings.GDRIVE_FOLDER, "data/extract/fiscalia")
+        output_folder = download_folder(
+            settings.GDRIVE_FOLDER_ID,
+            "data/extract/fiscalia",
+            settings.GDRIVE_CLIENT_EMAIL,
+            settings.GDRIVE_PRIVATE_KEY,
+        )
 
         if self.mode == 'bootstrap':
             historical = get_file_by_name(output_folder, settings.HISTORICAL_FILENAME)
