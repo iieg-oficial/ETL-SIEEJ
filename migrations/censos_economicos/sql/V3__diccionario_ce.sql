@@ -1,12 +1,12 @@
 -- Censos Economicos: tabla de diccionario de datos
 
-CREATE TABLE stg_ce_diccionario_datos (
+CREATE TABLE ce_diccionarios_datos (
     id SERIAL PRIMARY KEY,
-    year INTEGER NOT NULL,
-    column_name VARCHAR(20) NOT NULL,
-    description TEXT,
-    data_type VARCHAR(50),
-    length VARCHAR(20),
-    valid_codes TEXT,
-    CONSTRAINT uq_stg_ce_diccionario_key UNIQUE (year, column_name)
+    anio INTEGER NOT NULL,
+    nombre_columna VARCHAR(20) NOT NULL,
+    descripcion TEXT,
+    tipo_dato VARCHAR(50),
+    longitud VARCHAR(20),
+    codigos_validos TEXT,
+    CONSTRAINT uq_ce_diccionarios_datos_clave UNIQUE (anio, nombre_columna)
 );

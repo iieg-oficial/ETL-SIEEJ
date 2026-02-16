@@ -7,10 +7,8 @@ from typing import Any, Optional
 import requests
 
 from core.pipelines.censos_economicos.config import settings
-from core.pipelines.censos_economicos.consts import CE_YEARS_CONFIG, PIPELINE_NAME
+from core.pipelines.censos_economicos.consts import CE_YEARS_CONFIG, PIPELINE_NAME, RETRYABLE_STATUS_CODES
 from core.pipelines.stage import Stage
-
-RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 
 class CEExtractor(Stage):

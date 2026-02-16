@@ -173,12 +173,12 @@ class CETransformer(Stage):
                 continue
             records.append(
                 {
-                    "year": year,
-                    "column_name": col_name,
-                    "description": row.get("descripcion"),
-                    "data_type": row.get("tipo_dato"),
-                    "length": row.get("longitud"),
-                    "valid_codes": row.get("codigo_valido"),
+                    "anio": year,
+                    "nombre_columna": col_name,
+                    "descripcion": row.get("descripcion"),
+                    "tipo_dato": row.get("tipo_dato"),
+                    "longitud": row.get("longitud"),
+                    "codigos_validos": row.get("codigo_valido"),
                 }
             )
 

@@ -1,9 +1,9 @@
--- V2: Crear tabla de hechos stg_ce_data con 98 columnas economicas
--- Tabla staging de Censos Economicos para indicadores economicos normalizados
+-- V2: Crear tabla de hechos ce_datos con 98 columnas economicas
+-- Tabla de Censos Economicos para indicadores economicos normalizados
 
-CREATE TABLE stg_ce_data (
+CREATE TABLE ce_datos (
     id SERIAL PRIMARY KEY,
-    year INTEGER NOT NULL,
+    anio INTEGER NOT NULL,
     e03 VARCHAR(2) NOT NULL DEFAULT '',
     e04 VARCHAR(3) NOT NULL DEFAULT '',
     codigo VARCHAR(20) NOT NULL DEFAULT '',
@@ -113,9 +113,9 @@ CREATE TABLE stg_ce_data (
     q030a DOUBLE PRECISION,
     q400a DOUBLE PRECISION,
     q900a DOUBLE PRECISION,
-    CONSTRAINT uq_stg_ce_data_natural_key UNIQUE (year, e03, e04, codigo, id_estrato)
+    CONSTRAINT uq_ce_datos_clave_natural UNIQUE (anio, e03, e04, codigo, id_estrato)
 );
 
 -- Crear indices para patrones de consulta comunes
-CREATE INDEX idx_stg_ce_data_cvegeo ON stg_ce_data (cvegeo);
-CREATE INDEX idx_stg_ce_data_year ON stg_ce_data (year);
+CREATE INDEX idx_ce_datos_cvegeo ON ce_datos (cvegeo);
+CREATE INDEX idx_ce_datos_anio ON ce_datos (anio);

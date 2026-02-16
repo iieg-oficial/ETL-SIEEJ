@@ -12,6 +12,7 @@ Más información y descarga directa: https://www.inegi.org.mx/programas/ce/2024
 
 ```
 censos_economicos/
+├── .env.example     # Variables de entorno con valores de ejemplo
 ├── config.py        # Settings del pipeline (extiende BaseConfig)
 ├── consts.py        # Constantes: slugs, URLs, columnas económicas
 ├── schemas.py       # Modelos SQLAlchemy (6 tablas)
@@ -24,7 +25,8 @@ censos_economicos/
 Archivos relacionados fuera de este directorio:
 
 - `dags/etl_censos_economicos.py` — DAG de Airflow (bootstrap + update anual)
-- `migrations/censos_economicos/sql/` — Migraciones Flyway para establecer las tablas staging
+- `migrations/censos_economicos/sql/` — Migraciones Flyway para establecer las tablas
+- `migrations/censos_economicos/flyway.conf.example` — Configuración de ejemplo para Flyway
 
 ## Arquitectura
 
@@ -50,14 +52,14 @@ Los CSVs de datos nunca se cargan completos en memoria entre etapas — se proce
 
 | Tabla | Tipo | Constraint único |
 |-------|------|------------------|
-| `cat_ce_catalogo_actividad` | Catálogo | `codigo` |
-| `cat_ce_catalogo_entidad_municipio` | Catálogo | `cvegeo` |
-| `cat_ce_catalogo_estrato` | Catálogo | `id_estrato` |
-| `stg_ce_diccionario_datos` | Referencia | `(year, column_name)` |
-| `stg_ce_source_files` | Metadata | `(year, slug, file_type)` |
-| `stg_ce_data` | Fact table | `(year, e03, e04, codigo, id_estrato)` |
+| `ce_catalogos_actividades` | Catálogo | `codigo` |
+| `ce_catalogos_entidades_municipios` | Catálogo | `cvegeo` |
+| `ce_catalogos_estratos` | Catálogo | `id_estrato` |
+| `ce_diccionarios_datos` | Referencia | `(anio, nombre_columna)` |
+| `ce_archivos_fuente` | Metadata | `(anio, slug, tipo_archivo)` |
+| `ce_datos` | Fact table | `(anio, e03, e04, codigo, id_estrato)` |
 
-La tabla principal (`stg_ce_data`) tiene 98 columnas de variables económicas (`Float`, nullable — `NULL` indica dato confidencial suprimido por INEGI).
+La tabla principal (`ce_datos`) tiene 98 columnas de variables económicas (`Float`, nullable — `NULL` indica dato confidencial suprimido por INEGI).
 
 ## Utilidades del framework reutilizadas
 
@@ -68,7 +70,7 @@ La tabla principal (`stg_ce_data`) tiene 98 columnas de variables económicas (`
 
 ## Configuración
 
-Variables en `.env` (ver `config.py`):
+Variables en `.env` (ver `.env.example` y `config.py`):
 
 | Variable | Default | Descripción |
 |----------|---------|-------------|
@@ -81,12 +83,13 @@ Variables en `.env` (ver `config.py`):
 
 Hereda `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME` de `BaseConfig`.
 
+Para migraciones Flyway, ver `migrations/censos_economicos/flyway.conf.example`.
+
 ## Extensión a otros años censales
 
 Para agregar un año censal (ej. 2019):
 
-1. Agregar `CE_2019_SLUGS` en `consts.py` con el mapeo de estados → slugs de ese año
-2. Agregar entrada `2019` en `CE_YEARS_CONFIG` con la URL template y patrones de archivo correspondientes
-3. Actualizar `.env`: `CE_YEARS=2019,2024`
+1. Agregar una nueva entrada `2019` en `CE_YEARS_CONFIG` en `consts.py` con la URL template, slugs y patrones de archivo correspondientes (todo autocontenido en la entrada)
+2. Actualizar `.env`: `CE_YEARS=2019,2024`
 
 No se requieren cambios en las etapas ni en el DAG.

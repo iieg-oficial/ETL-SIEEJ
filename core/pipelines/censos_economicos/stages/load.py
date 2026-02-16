@@ -16,13 +16,13 @@ from core.pipelines.censos_economicos.consts import (
     classify_file_type,
 )
 from core.pipelines.censos_economicos.schemas import (
-    CatCeCatalogoActividad,
-    CatCeCatalogoEntidadMunicipio,
-    CatCeCatalogoEstrato,
+    CeArchivosFuente,
     CeBase,
-    StgCeData,
-    StgCeDiccionarioDatos,
-    StgCeSourceFiles,
+    CeCatalogosActividades,
+    CeCatalogosEntidadesMunicipios,
+    CeCatalogosEstratos,
+    CeDatos,
+    CeDiccionariosDatos,
 )
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import insert_records, sync_id_sequence
@@ -61,14 +61,14 @@ class CELoader(Stage):
 
             if "actividad" in year_catalogs:
                 with self.db.get_session() as session:
-                    insert_records(session, year_catalogs["actividad"], CatCeCatalogoActividad, ["codigo"])
+                    insert_records(session, year_catalogs["actividad"], CeCatalogosActividades, ["codigo"])
                 year_stats["actividad"] = len(year_catalogs["actividad"])
                 self.logger.info(f"Cargados {len(year_catalogs['actividad'])} codigos de actividad para el anio {year}.")
 
             if "entidad_municipio" in year_catalogs:
                 with self.db.get_session() as session:
                     insert_records(
-                        session, year_catalogs["entidad_municipio"], CatCeCatalogoEntidadMunicipio, ["cvegeo"]
+                        session, year_catalogs["entidad_municipio"], CeCatalogosEntidadesMunicipios, ["cvegeo"]
                     )
                 year_stats["entidad_municipio"] = len(year_catalogs["entidad_municipio"])
                 self.logger.info(
@@ -77,27 +77,42 @@ class CELoader(Stage):
 
             if "estrato" in year_catalogs:
                 with self.db.get_session() as session:
-                    insert_records(session, year_catalogs["estrato"], CatCeCatalogoEstrato, ["id_estrato"])
+                    insert_records(session, year_catalogs["estrato"], CeCatalogosEstratos, ["id_estrato"])
                 year_stats["estrato"] = len(year_catalogs["estrato"])
                 self.logger.info(f"Cargadas {len(year_catalogs['estrato'])} entradas de estrato para el anio {year}.")
 
             if "diccionario" in year_catalogs:
                 with self.db.get_session() as session:
                     insert_records(
-                        session, year_catalogs["diccionario"], StgCeDiccionarioDatos, ["year", "column_name"]
+                        session, year_catalogs["diccionario"], CeDiccionariosDatos, ["anio", "nombre_columna"]
                     )
                 year_stats["diccionario"] = len(year_catalogs["diccionario"])
                 self.logger.info(f"Cargadas {len(year_catalogs['diccionario'])} entradas de diccionario para el anio {year}.")
 
             stats["catalogs"][year] = year_stats
 
-        # 2. Cargar CSVs de datos
+        # 2. En modo update, consultar archivos ya cargados para omitirlos
+        already_loaded: set[tuple[int, str]] = set()
+        if self.mode == "update":
+            with self.db.get_session() as session:
+                rows = session.execute(
+                    text("SELECT anio, slug FROM ce_archivos_fuente WHERE estado = 'loaded' AND tipo_archivo = 'data'")
+                ).fetchall()
+                already_loaded = {(r[0], r[1]) for r in rows}
+            if already_loaded:
+                self.logger.info(f"Modo update: {len(already_loaded)} archivos ya cargados, se omitiran.")
+
+        # 3. Cargar CSVs de datos
         for entry in data_entries:
             year = entry["year"]
             slug = entry["slug"]
             data_csv = entry["data_csv"]
             slug_dir = entry["slug_dir"]
             url = entry["url"]
+
+            if (year, slug) in already_loaded:
+                self.logger.info(f"Omitiendo {year}/{slug} - ya cargado.")
+                continue
 
             self.logger.info(f"Cargando datos de {year}/{slug} desde {data_csv}")
 
@@ -119,12 +134,12 @@ class CELoader(Stage):
         stats = input_data
 
         all_models = [
-            CatCeCatalogoActividad,
-            CatCeCatalogoEntidadMunicipio,
-            CatCeCatalogoEstrato,
-            StgCeDiccionarioDatos,
-            StgCeSourceFiles,
-            StgCeData,
+            CeCatalogosActividades,
+            CeCatalogosEntidadesMunicipios,
+            CeCatalogosEstratos,
+            CeDiccionariosDatos,
+            CeArchivosFuente,
+            CeDatos,
         ]
 
         with self.db.get_session() as session:
@@ -146,7 +161,7 @@ class CELoader(Stage):
         df = list_values_to_null(df)
 
         # Agregar columna de anio
-        df["year"] = year
+        df["anio"] = year
 
         # Columnas clave: cadena vacia para valores faltantes/None
         for col in KEY_COLUMNS:
@@ -176,7 +191,7 @@ class CELoader(Stage):
         df["cvegeo"] = df.apply(lambda row: (row["e03"] + row["e04"]) if row["e03"] and row["e04"] else None, axis=1)
 
         # Seleccionar columnas de salida
-        output_cols = ["year"] + KEY_COLUMNS + CLASSIFICATION_COLUMNS + ["cvegeo"] + CE_ECONOMIC_COLUMNS
+        output_cols = ["anio"] + KEY_COLUMNS + CLASSIFICATION_COLUMNS + ["cvegeo"] + CE_ECONOMIC_COLUMNS
         available_cols = [c for c in output_cols if c in df.columns]
         df = df[available_cols]
 
@@ -184,8 +199,8 @@ class CELoader(Stage):
         col_list = ", ".join(available_cols)
         placeholders = ", ".join([f":{c}" for c in available_cols])
         upsert_sql = text(
-            f"INSERT INTO stg_ce_data ({col_list}) VALUES ({placeholders}) "
-            f"ON CONFLICT ON CONSTRAINT uq_stg_ce_data_natural_key DO NOTHING"
+            f"INSERT INTO ce_datos ({col_list}) VALUES ({placeholders}) "
+            f"ON CONFLICT ON CONSTRAINT uq_ce_datos_clave_natural DO NOTHING"
         )
 
         batch_size = settings.CE_LOAD_BATCH_SIZE
@@ -208,7 +223,7 @@ class CELoader(Stage):
         row_count: int | None = None,
         error_message: str | None = None,
     ) -> None:
-        """Registra metadatos del archivo fuente en stg_ce_source_files."""
+        """Registra metadatos del archivo fuente en ce_archivos_fuente."""
         year = entry["year"]
         slug = entry["slug"]
         slug_dir = entry["slug_dir"]
@@ -228,20 +243,20 @@ class CELoader(Stage):
         rel_path = os.path.relpath(data_csv, slug_dir)
 
         record = {
-            "year": year,
+            "anio": year,
             "slug": slug,
-            "filename": rel_path,
-            "file_type": classify_file_type(rel_path),
-            "file_path": os.path.abspath(data_csv),
-            "file_size": file_size,
+            "nombre_archivo": rel_path,
+            "tipo_archivo": classify_file_type(rel_path),
+            "ruta_archivo": os.path.abspath(data_csv),
+            "tamanio_archivo": file_size,
             "sha256": sha256,
-            "source_url": url,
-            "downloaded_at": datetime.utcnow(),
-            "row_count": row_count,
-            "status": status,
-            "error_message": error_message,
-            "loaded_at": datetime.utcnow() if status == "loaded" else None,
+            "url_fuente": url,
+            "descargado_en": datetime.utcnow(),
+            "conteo_filas": row_count,
+            "estado": status,
+            "mensaje_error": error_message,
+            "cargado_en": datetime.utcnow() if status == "loaded" else None,
         }
 
         with self.db.get_session() as session:
-            insert_records(session, [record], StgCeSourceFiles, ["year", "slug", "file_type"])
+            insert_records(session, [record], CeArchivosFuente, ["anio", "slug", "tipo_archivo"])
