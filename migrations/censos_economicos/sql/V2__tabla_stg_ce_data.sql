@@ -4,10 +4,10 @@
 CREATE TABLE ce_datos (
     id SERIAL PRIMARY KEY,
     anio INTEGER NOT NULL,
-    e03 VARCHAR(2) NOT NULL DEFAULT '',
-    e04 VARCHAR(3) NOT NULL DEFAULT '',
-    codigo VARCHAR(20) NOT NULL DEFAULT '',
-    id_estrato VARCHAR(5) NOT NULL DEFAULT '',
+    e03 VARCHAR(2) NOT NULL DEFAULT '',  -- Clave de la entidad federativa
+    e04 VARCHAR(3) NOT NULL DEFAULT '',  -- Clave del municipio
+    codigo VARCHAR(20) NOT NULL DEFAULT '',  -- Codigo de actividad economica SCIAN
+    id_estrato VARCHAR(5) NOT NULL DEFAULT '',  -- Clave del estrato
     sector VARCHAR(5),
     subsector VARCHAR(3),
     rama VARCHAR(4),
