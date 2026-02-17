@@ -3,31 +3,48 @@ from sqlalchemy import func
 from more_itertools import chunked
 from typing import List, Dict
 
-from core.utils.logger import get_logger
 from core.utils import normalize_text
+from core.utils.logger import get_console_logger
 
-logger = get_logger("bulk_ops")
+logger = get_console_logger(__name__)
 
 def insert_records(session, data: List[Dict], model, conflict_keys: List[str]) -> None:
+    logger.info(f"Inserting {len(data)} records into '{model.__tablename__}'")
     for item in data:
         stmt = insert(model).values(**item)
         stmt = stmt.on_conflict_do_nothing(index_elements=conflict_keys)
         session.execute(stmt)
     session.flush()
 
-def upsert_records(session, data: List[Dict], model, conflict_keys: List[str]) -> None:
-    stmt = insert(model).values(data)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=conflict_keys,
-        set_={k: stmt.excluded[k] for k in data[0].keys() if k not in conflict_keys}
-    )
-    session.execute(stmt)
+def upsert_records(
+    session,
+    data: List[Dict],
+    model,
+    conflict_keys: List[str],
+    update_keys: List[str] = None,
+    chunk_size: int = 10_000
+) -> None:
+    table_name = model.__tablename__
+    total = len(data)
+    logger.info(f"Upserting {total} records into '{table_name}'")
+    for i, chunk in enumerate(chunked(data, chunk_size), start=1):
+        stmt = insert(model).values(chunk)
+
+        exclude_keys = set(conflict_keys)
+        updatable = update_keys or [k for k in chunk[0].keys() if k not in exclude_keys]
+
+        stmt = stmt.on_conflict_do_update(
+            index_elements=conflict_keys,
+            set_={k: stmt.excluded[k] for k in updatable}
+        )
+        logger.info(f"  chunk {i}: {min(i * chunk_size, total)}/{total}")
+        session.execute(stmt)
     session.flush()
 
 def bulk_insert(session, data: List[Dict], model, chunk_size: int = None) -> None:
     table_name = model.__tablename__
     total = len(data)
-    logger.info(f"📦 Inserting {total} records into '{table_name}'")
+    logger.info(f"Bulk inserting {total} records into '{table_name}'")
 
     if chunk_size:
         for i, chunk in enumerate(chunked(data, chunk_size), start=1):
@@ -42,7 +59,9 @@ def count_records(session, model, filter_column: str = None, filter_value = None
     query = session.query(model)
     if filter_column and filter_value:
         query = query.filter(getattr(model, filter_column) == filter_value)
-    return query.count()
+    count = query.count()
+    logger.info(f"Count '{model.__tablename__}': {count}")
+    return count
 
 def get_all_records(session, model, columns: List[str] = None) -> List[Dict]:
     if columns:
@@ -52,6 +71,7 @@ def get_all_records(session, model, columns: List[str] = None) -> List[Dict]:
 
 def sync_id_sequence(session, model) -> None:
     max_id = session.query(func.max(model.id)).scalar() or 0
+    logger.info(f"Syncing sequence for '{model.__tablename__}' to {max_id + 1}")
     session.execute(
         func.setval(func.pg_get_serial_sequence(model.__tablename__, 'id'), max_id + 1, False)
     )
@@ -61,6 +81,7 @@ def get_mapping(session, model, key_column: str, value_column: str, is_normalize
         getattr(model, key_column),
         getattr(model, value_column)
     ).all()
+    logger.info(f"Mapping '{model.__tablename__}' ({key_column} -> {value_column}): {len(results)} entries")
     if is_normalize:
         return {normalize_text(row[0]): row[1] for row in results}
     return {row[0]: row[1] for row in results}

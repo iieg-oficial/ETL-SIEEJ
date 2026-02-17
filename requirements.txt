@@ -19,3 +19,8 @@ asyncpg
 apache-airflow-providers-fab[common.sql]
 pydantic-settings
 more-itertools
+pydantic_settings
+gdown
+google-auth
+google-auth-httplib2
+google-api-python-client
