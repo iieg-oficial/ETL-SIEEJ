@@ -29,14 +29,18 @@ ps:
 restart service:
     docker compose restart {{service}}
 
-# Docker test-container
-build-test user="test" pass="test" db="test" port="5432" version="17":
-    docker run --name postgres-test \
+# Docker: contenedor PostGIS para desarrollo
+build-dev user="test" pass="test" db="test" port="5432":
+    docker run --name postgres-dev \
       -e POSTGRES_USER={{user}} \
       -e POSTGRES_PASSWORD={{pass}} \
       -e POSTGRES_DB={{db}} \
       -p {{port}}:5432 \
-      -d postgres:{{version}}
+      -d postgis/postgis:17-3.5
+
+# Crear base de datos cvegeo en el contenedor de desarrollo
+create-cvegeo-db:
+    docker exec postgres-dev psql -U test -c "CREATE DATABASE cvegeo;"
 
 # Flyway migrate
 flyway-migrate pipeline:
