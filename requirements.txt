@@ -17,6 +17,8 @@ wget
 GeoAlchemy2
 asyncpg
 apache-airflow-providers-fab[common.sql]
+pydantic-settings
+more-itertools
 pydantic_settings
 gdown
 google-auth
