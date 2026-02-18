@@ -4,52 +4,68 @@ RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 # Configuracion por anio: plantillas URL, patrones de archivo, rutas de catalogos
 # Para agregar un anio censal, agregar una entrada con todos los campos autocontenidos.
+_SLUGS: dict[str, str] = {
+    "nac": "nac",
+    "01": "ags",
+    "02": "bc",
+    "03": "bcs",
+    "04": "camp",
+    "05": "coah",
+    "06": "col",
+    "07": "chis",
+    "08": "chih",
+    "09": "cdmx",
+    "10": "dgo",
+    "11": "gto",
+    "12": "gro",
+    "13": "hgo",
+    "14": "jal",
+    "15": "mex",
+    "16": "mich",
+    "17": "mor",
+    "18": "nay",
+    "19": "nl",
+    "20": "oax",
+    "21": "pue",
+    "22": "qro",
+    "23": "qroo",
+    "24": "slp",
+    "25": "sin",
+    "26": "son",
+    "27": "tab",
+    "28": "tamps",
+    "29": "tlax",
+    "30": "ver",
+    "31": "yuc",
+    "32": "zac",
+}
+
 CE_YEARS_CONFIG: dict[int, dict] = {
+    2019: {
+        "url_template": (
+            "https://www.inegi.org.mx/contenidos/programas/ce/2019/"
+            "Datosabiertos/ce2019_{slug}_csv.zip"
+        ),
+        "slugs": _SLUGS,
+        "data_csv_pattern": "conjunto_de_datos/ce2019_{slug}.csv",
+        "catalog_actividad": "catalogos/tc_codigo_actividad.csv",
+        "catalog_entidad_municipio": "catalogos/tc_entidad_municipio.csv",
+        "catalog_estrato": "catalogos/tc_estrato_ce2019.csv",
+        "diccionario": "diccionario_de_datos/diccionario_de_datos_ce2019.csv",
+        "column_renames": {},
+    },
     2024: {
         "url_template": (
             "https://www.inegi.org.mx/contenidos/programas/ce/2024/"
             "datosabiertos/conjunto_de_datos_ce_{slug}_2024_csv.zip"
         ),
-        "slugs": {
-            "nac": "nac",
-            "01": "ags",
-            "02": "bc",
-            "03": "bcs",
-            "04": "camp",
-            "05": "coah",
-            "06": "col",
-            "07": "chis",
-            "08": "chih",
-            "09": "cdmx",
-            "10": "dgo",
-            "11": "gto",
-            "12": "gro",
-            "13": "hgo",
-            "14": "jal",
-            "15": "mex",
-            "16": "mich",
-            "17": "mor",
-            "18": "nay",
-            "19": "nl",
-            "20": "oax",
-            "21": "pue",
-            "22": "qro",
-            "23": "qroo",
-            "24": "slp",
-            "25": "sin",
-            "26": "son",
-            "27": "tab",
-            "28": "tamps",
-            "29": "tlax",
-            "30": "ver",
-            "31": "yuc",
-            "32": "zac",
-        },
+        "slugs": _SLUGS,
         "data_csv_pattern": "conjunto_de_datos/tr_ce_{slug}_2024.csv",
         "catalog_actividad": "catalogos/tc_codigo_actividad.csv",
         "catalog_entidad_municipio": "catalogos/tc_entidad_municipio.csv",
         "catalog_estrato": "catalogos/tc_estrato_ce2024.csv",
         "diccionario": "diccionario_de_datos/diccionario_de_datos_ce2024.csv",
+        "column_renames": {"e03": "entidad", "e04": "municipio"},
     },
 }
 
@@ -72,7 +88,7 @@ def classify_file_type(filename: str) -> str:
 
 
 # Columnas clave - cadena vacia '' cuando estan ausentes (no NULL) para soportar restriccion unica
-KEY_COLUMNS = ["e03", "e04", "codigo", "id_estrato"]
+KEY_COLUMNS = ["entidad", "municipio", "codigo", "id_estrato"]
 
 # Columnas de jerarquia de clasificacion SCIAN (nulables)
 CLASSIFICATION_COLUMNS = ["sector", "subsector", "rama", "subrama", "clase"]

@@ -29,10 +29,10 @@ class CeCatalogosEntidadesMunicipios(CeBase):
     id = Column(Integer, primary_key=True, autoincrement=True)
     cvegeo = Column(String(6), nullable=False, unique=True)
     cve_ent = Column(String(2), nullable=True)
-    nom_ent = Column(String(100), nullable=True)
-    nom_abr = Column(String(20), nullable=True)
+    nombre_entidad = Column(String(100), nullable=True)
+    nombre_abreviado = Column(String(20), nullable=True)
     cve_mun = Column(String(3), nullable=True)
-    nom_mun = Column(String(100), nullable=True)
+    nombre_municipio = Column(String(100), nullable=True)
 
 
 class CeCatalogosEstratos(CeBase):
@@ -89,15 +89,15 @@ class CeDatos(CeBase):
 
     __tablename__ = "ce_datos"
     __table_args__ = (
-        UniqueConstraint("anio", "e03", "e04", "codigo", "id_estrato", name="uq_ce_datos_clave_natural"),
+        UniqueConstraint("anio", "entidad", "municipio", "codigo", "id_estrato", name="uq_ce_datos_clave_natural"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     anio = Column(Integer, nullable=False)
 
     # Columnas clave - cadena vacia '' cuando estan ausentes (no NULL) para soportar restriccion unica
-    e03 = Column(String(2), nullable=False, server_default="")
-    e04 = Column(String(3), nullable=False, server_default="")
+    entidad = Column(String(2), nullable=False, server_default="")
+    municipio = Column(String(3), nullable=False, server_default="")
     codigo = Column(String(20), nullable=False, server_default="")
     id_estrato = Column(String(5), nullable=False, server_default="")
 

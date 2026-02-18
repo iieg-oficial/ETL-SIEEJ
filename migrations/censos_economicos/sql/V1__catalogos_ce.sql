@@ -12,10 +12,10 @@ CREATE TABLE ce_catalogos_entidades_municipios (
     id SERIAL PRIMARY KEY,
     cvegeo VARCHAR(6) NOT NULL,
     cve_ent VARCHAR(2),
-    nom_ent VARCHAR(100),
-    nom_abr VARCHAR(20),
+    nombre_entidad VARCHAR(100),
+    nombre_abreviado VARCHAR(20),
     cve_mun VARCHAR(3),
-    nom_mun VARCHAR(100),
+    nombre_municipio VARCHAR(100),
     CONSTRAINT uq_ce_catalogos_entidades_municipios_cvegeo UNIQUE (cvegeo)
 );
 

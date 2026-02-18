@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core.pipelines.censos_economicos.consts import KEY_COLUMNS, PIPELINE_NAME
+from core.pipelines.censos_economicos.consts import CE_YEARS_CONFIG, KEY_COLUMNS, PIPELINE_NAME
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null
 from core.utils.normalize import lowercase_headers
@@ -57,11 +57,15 @@ class CETransformer(Stage):
             catalogs_by_year[year] = year_catalogs
 
             # Validar encabezados de CSVs de datos y recolectar entradas para la etapa Load
+            year_config = CE_YEARS_CONFIG.get(year, {})
+            column_renames = year_config.get("column_renames", {})
+
             for entry in entries:
                 data_csv = entry["data_csv"]
                 try:
                     df_header = pd.read_csv(data_csv, nrows=0, dtype=str)
                     df_header.columns = [c.strip().lower() for c in df_header.columns]
+                    df_header.rename(columns=column_renames, inplace=True)
                     missing_keys = [k for k in KEY_COLUMNS if k not in df_header.columns]
                     if missing_keys:
                         self.logger.warning(f"CSV de datos {data_csv} sin columnas clave: {missing_keys}")
@@ -96,7 +100,7 @@ class CETransformer(Stage):
 
     def _read_and_clean(self, path: str) -> pd.DataFrame:
         """Pipeline comun de lectura y limpieza de CSV."""
-        df = pd.read_csv(path, dtype=str, keep_default_na=False)
+        df = pd.read_csv(path, dtype=str, keep_default_na=False, index_col=False)
         lowercase_headers(df)
         df.columns = df.columns.str.strip()
         df = list_values_to_null(df)
@@ -126,21 +130,42 @@ class CETransformer(Stage):
         self.logger.info(f"Limpiando catalogo de entidad-municipio: {path}")
         df = self._read_and_clean(path)
 
+        # Detectar formato: 2024 tiene cvegeo/e03/e04/nom_ent, 2019 tiene entidad/municipio/nombre_entidad
+        is_2024_format = "cvegeo" in df.columns
+
         records = []
-        for _, row in df.iterrows():
-            cvegeo = row.get("cvegeo")
-            if not cvegeo:
-                continue
-            records.append(
-                {
-                    "cvegeo": cvegeo,
-                    "cve_ent": row.get("e03"),
-                    "nom_ent": row.get("nom_ent"),
-                    "nom_abr": row.get("nom_abr"),
-                    "cve_mun": row.get("e04"),
-                    "nom_mun": row.get("nom_mun"),
-                }
-            )
+        if is_2024_format:
+            for _, row in df.iterrows():
+                cvegeo = row.get("cvegeo")
+                if not cvegeo:
+                    continue
+                records.append(
+                    {
+                        "cvegeo": cvegeo,
+                        "cve_ent": row.get("e03"),
+                        "nombre_entidad": row.get("nom_ent"),
+                        "nombre_abreviado": row.get("nom_abr"),
+                        "cve_mun": row.get("e04"),
+                        "nombre_municipio": row.get("nom_mun"),
+                    }
+                )
+        else:
+            for _, row in df.iterrows():
+                cve_ent = row.get("entidad")
+                cve_mun = row.get("municipio")
+                if not cve_ent or not cve_mun:
+                    continue
+                cvegeo = cve_ent + cve_mun
+                records.append(
+                    {
+                        "cvegeo": cvegeo,
+                        "cve_ent": cve_ent,
+                        "nombre_entidad": row.get("nombre_entidad"),
+                        "nombre_abreviado": None,
+                        "cve_mun": cve_mun,
+                        "nombre_municipio": row.get("nombre_municipio"),
+                    }
+                )
 
         self.logger.info(f"Se limpiaron {len(records)} entradas geograficas.")
         return records

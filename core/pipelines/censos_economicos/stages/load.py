@@ -10,6 +10,7 @@ from core.db import Database
 from core.pipelines.censos_economicos.config import settings
 from core.pipelines.censos_economicos.consts import (
     CE_ECONOMIC_COLUMNS,
+    CE_YEARS_CONFIG,
     CLASSIFICATION_COLUMNS,
     KEY_COLUMNS,
     PIPELINE_NAME,
@@ -155,9 +156,16 @@ class CELoader(Stage):
 
     def _load_data_csv(self, csv_path: str, year: int) -> int:
         """Lee, limpia e inserta por lotes un CSV de datos individual."""
-        df = pd.read_csv(csv_path, dtype=str, keep_default_na=False)
+        df = pd.read_csv(csv_path, dtype=str, keep_default_na=False, index_col=False)
         lowercase_headers(df)
         df.columns = df.columns.str.strip()
+
+        # Renombrar columnas segun configuracion del anio (ej. e03→entidad para 2024)
+        year_config = CE_YEARS_CONFIG.get(year, {})
+        column_renames = year_config.get("column_renames", {})
+        if column_renames:
+            df.rename(columns=column_renames, inplace=True)
+
         df = list_values_to_null(df)
 
         # Agregar columna de anio
@@ -187,8 +195,10 @@ class CELoader(Stage):
         # Desfragmentar despues de operaciones columna por columna
         df = df.copy()
 
-        # Derivar cvegeo de e03 + e04
-        df["cvegeo"] = df.apply(lambda row: (row["e03"] + row["e04"]) if row["e03"] and row["e04"] else None, axis=1)
+        # Derivar cvegeo de entidad + municipio
+        df["cvegeo"] = df.apply(
+            lambda row: (row["entidad"] + row["municipio"]) if row["entidad"] and row["municipio"] else None, axis=1
+        )
 
         # Seleccionar columnas de salida
         output_cols = ["anio"] + KEY_COLUMNS + CLASSIFICATION_COLUMNS + ["cvegeo"] + list(CE_ECONOMIC_COLUMNS)

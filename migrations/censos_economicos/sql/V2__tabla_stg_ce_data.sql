@@ -4,8 +4,8 @@
 CREATE TABLE ce_datos (
     id SERIAL PRIMARY KEY,
     anio INTEGER NOT NULL,
-    e03 VARCHAR(2) NOT NULL DEFAULT '',  -- Clave de la entidad federativa
-    e04 VARCHAR(3) NOT NULL DEFAULT '',  -- Clave del municipio
+    entidad VARCHAR(2) NOT NULL DEFAULT '',  -- Clave de la entidad federativa
+    municipio VARCHAR(3) NOT NULL DEFAULT '',  -- Clave del municipio
     codigo VARCHAR(20) NOT NULL DEFAULT '',  -- Codigo de actividad economica SCIAN
     id_estrato VARCHAR(5) NOT NULL DEFAULT '',  -- Clave del estrato
     sector VARCHAR(5),
@@ -115,7 +115,7 @@ CREATE TABLE ce_datos (
     q030a DOUBLE PRECISION,
     q400a DOUBLE PRECISION,
     q900a DOUBLE PRECISION,
-    CONSTRAINT uq_ce_datos_clave_natural UNIQUE (anio, e03, e04, codigo, id_estrato)
+    CONSTRAINT uq_ce_datos_clave_natural UNIQUE (anio, entidad, municipio, codigo, id_estrato)
 );
 
 -- Crear indices para patrones de consulta comunes
