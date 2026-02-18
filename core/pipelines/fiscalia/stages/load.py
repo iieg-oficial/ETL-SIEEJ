@@ -2,15 +2,13 @@ import numpy as np
 from datetime import date
 from typing import Any, Optional
 
-from sqlalchemy import text
-
 from core.db import Database
 from core.pipelines.stage import Stage
 from core.utils import normalize_col, normalize_text, df_to_records, records_to_map
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
 from core.utils.bulk_ops import (
-    insert_records, upsert_records, count_records, get_mapping, sync_id_sequence,
+    insert_records, upsert_records, count_records, get_mapping, get_cvegeo_mapping, sync_id_sequence,
 )
 from core.pipelines.fiscalia.schemas import (
     ZonasGeograficas as ZonasGeograficasSchema,
@@ -74,8 +72,7 @@ class FiscaliaLoad(Stage):
         violencia_map = records_to_map(violencia_records, FiscaliaColumns.VIOLENCIA)
         zonas_geo_map = map_municipios_to_zonas_geo(df)
 
-        municipios_rows = session.execute(text("SELECT nomgeo, id FROM cvegeo_municipalities")).all()
-        municipios_map = {normalize_text(row[0]): row[1] for row in municipios_rows}
+        municipios_map = get_cvegeo_mapping(session, cve_ent=14, is_normalize=True)
 
         df["delitos_id"] = normalize_col(df, "delito").map(delitos_map)
         df["violencia_id"] = normalize_col(df, "violencia").map(violencia_map)
