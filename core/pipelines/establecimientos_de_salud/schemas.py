@@ -133,6 +133,13 @@ class ProgramasMoviles(SaludBase):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     programa_movil: Mapped[str] = mapped_column(String(300), nullable=False, unique=True)
 
+class UnidadesMoviles(SaludBase):
+    __tablename__ = "unidades_moviles"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    nombre_unidad_movil: Mapped[str] = mapped_column(String(300), nullable=False, unique=True)
+    nombre_comercial: Mapped[str | None] = mapped_column(String(300), nullable=True)
+
 
 class TiposUnidadMovil(SaludBase):
     __tablename__ = "tipos_unidad_movil"
@@ -184,8 +191,7 @@ class Establecimientos(SaludBase):
     tipologia_id: Mapped[int | None] = mapped_column(ForeignKey("tipologias.id"), nullable=True)
     subtipologia_id: Mapped[int | None] = mapped_column(ForeignKey("subtipologias.id"), nullable=True)
 
-    nombre_unidad: Mapped[str] = mapped_column(String(400), nullable=False)
-    nombre_comercial: Mapped[str | None] = mapped_column(String(400), nullable=True)
+    unidad_movil_id: Mapped[int | None] = mapped_column(ForeignKey("unidades_moviles.id"), nullable=True)
 
     vialidad_id: Mapped[int | None] = mapped_column(ForeignKey("vialidades.id"), nullable=True)
     numero_exterior: Mapped[str | None] = mapped_column(String(30), nullable=True)
