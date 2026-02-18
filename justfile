@@ -38,9 +38,9 @@ build-dev user="test" pass="test" db="test" port="5432":
       -p {{port}}:5432 \
       -d postgis/postgis:17-3.5
 
-# Crear base de datos cvegeo en el contenedor de desarrollo
-create-cvegeo-db:
-    docker exec postgres-dev psql -U test -c "CREATE DATABASE cvegeo;"
+# Crear base de datos cvegeo
+create-cvegeo-db host="localhost" port="5432" user="test":
+    psql -h {{host}} -p {{port}} -U {{user}} -c "CREATE DATABASE cvegeo;"
 
 # Flyway migrate
 flyway-migrate pipeline:
