@@ -28,17 +28,35 @@ def run_bootstrap():
         pipeline.run(mode='bootstrap')
 
 
+def run_update():
+    pipeline = Pipeline(
+        name='establecimientos_de_salud',
+        stages=[
+            EstablecimientosExtract(mode='update'),
+            EstablecimientosTransform(mode='update'),
+            EstablecimientosLoad(mode='update'),
+        ],
+    )
+    pipeline.run(mode='update')
+
+
 default_args_bootstrap = {
     'owner': 'José Velazco H.',
     'retries': 1,
-    'retry_delay': timedelta(minutes=40),
+    'retry_delay': timedelta(minutes=15),
+}
+
+default_args_update = {
+    'owner': 'José Velazco H.',
+    'retries': 6,
+    'retry_delay': timedelta(days=5),
 }
 
 with DAG(
     'etl_establecimientos_de_salud_bootstrap',
     default_args=default_args_bootstrap,
     description='Establecimientos de Salud Bootstrap - Initial full load (On Demand)',
-    start_date=datetime(2024, 1, 1),
+    start_date=datetime(year = 2024, month = 1, day = 22, hour=3),
     catchup=False,
     tags=['etl', 'establecimientos_de_salud', 'bootstrap', 'on-demand'],
 ) as dag_bootstrap:
@@ -48,6 +66,22 @@ with DAG(
         python_callable=run_bootstrap,
     )
 
+with DAG(
+    'etl_establecimientos_de_salud_update',
+    default_args=default_args_update,
+    description='Establecimientos de Salud Update - Monthly catch-up',
+    schedule='@monthly',
+    start_date=datetime(year = 2024, month = 1, day = 22, hour=3),
+    catchup=False,
+    tags=['etl', 'establecimientos_de_salud', 'update'],
+) as dag_update:
+
+    update_task = PythonOperator(
+        task_id='run_update',
+        python_callable=run_update,
+    )
+
 
 if __name__ == "__main__":
-    run_bootstrap()
+    # run_bootstrap()
+    run_update()
