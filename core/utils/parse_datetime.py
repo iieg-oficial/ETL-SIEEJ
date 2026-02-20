@@ -19,10 +19,10 @@ def parse_hour(series: pd.Series) -> pd.Series:
     return series.apply(convert)
 
 
-def parse_date(series: pd.Series) -> pd.Series:
+def parse_date(series: pd.Series, dayfirst: bool = False) -> pd.Series:
     """
     Parse date values to datetime.date.
     - Valid values -> datetime.date
     - Invalid values -> None
     """
-    return pd.to_datetime(series, errors='coerce').dt.date
+    return pd.to_datetime(series, dayfirst=dayfirst, errors='coerce').dt.date
