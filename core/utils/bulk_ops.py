@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import func
+from sqlalchemy import func, text
 from more_itertools import chunked
 from typing import List, Dict
 
@@ -82,6 +82,16 @@ def get_mapping(session, model, key_column: str, value_column: str, is_normalize
         getattr(model, value_column)
     ).all()
     logger.info(f"Mapping '{model.__tablename__}' ({key_column} -> {value_column}): {len(results)} entries")
+    if is_normalize:
+        return {normalize_text(row[0]): row[1] for row in results}
+    return {row[0]: row[1] for row in results}
+
+def get_cvegeo_mapping(session, table: str = "cvegeo_municipalities", key: str = "nomgeo", value: str = "cve_mun", cve_ent: int = None, is_normalize: bool = False) -> Dict:
+    query = f"SELECT {key}, {value} FROM {table}"
+    if cve_ent is not None:
+        query += f" WHERE cve_ent = {cve_ent}"
+    results = session.execute(text(query)).all()
+    logger.info(f"Mapping '{table}' ({key} -> {value}): {len(results)} entries")
     if is_normalize:
         return {normalize_text(row[0]): row[1] for row in results}
     return {row[0]: row[1] for row in results}
