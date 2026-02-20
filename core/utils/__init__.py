@@ -10,7 +10,10 @@ from .normalize import(
     normalize_text
 )
 from .records import (
-    records_to_map,
     df_to_records,
     df_to_records_with_id
+)
+from .mappings import (
+    records_to_map,
+    map_multiindex,
 )
