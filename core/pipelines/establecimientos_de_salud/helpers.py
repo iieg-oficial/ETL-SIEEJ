@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pandas as pd
 
-from core.pipelines.establecimientos_de_salud.config import settings
 from core.pipelines.establecimientos_de_salud.constants import SIN_NUMERO_RAW
 from core.utils.normalize import normalize_text
 
@@ -19,13 +18,6 @@ COL_MAPPINGS = {
 }
 
 SIN_NUMERO_NORMALIZED = {normalize_text(v.strip()) for v in SIN_NUMERO_RAW}
-
-
-def build_url(month: int, year: int) -> str:
-    return settings.ESTABLECIMIENTOS_URL.format(
-        year=year,
-        month=str(month).zfill(2),
-    )
 
 
 def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:

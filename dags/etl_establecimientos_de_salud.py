@@ -10,18 +10,22 @@ from core.pipeline import Pipeline
 from core.pipelines.establecimientos_de_salud.stages.extract import EstablecimientosExtract
 from core.pipelines.establecimientos_de_salud.stages.transform import EstablecimientosTransform
 from core.pipelines.establecimientos_de_salud.stages.load import EstablecimientosLoad
+from core.pipelines.establecimientos_de_salud.config import settings
 
 
 def run_bootstrap():
-    pipeline = Pipeline(
-        name='establecimientos_de_salud',
-        stages=[
-            EstablecimientosExtract(mode='bootstrap'),
-            EstablecimientosTransform(mode='bootstrap'),
-            EstablecimientosLoad(mode='bootstrap'),
-        ],
-    )
-    pipeline.run(mode='bootstrap')
+    end_year = datetime.today().year
+    for year in range(settings.BOOTSTRAP_START_YEAR, end_year + 1):
+        month = settings.BOOTSTRAP_START_MONTH if year == settings.BOOTSTRAP_START_YEAR else 1
+        pipeline = Pipeline(
+            name='establecimientos_de_salud',
+            stages=[
+                EstablecimientosExtract(mode='bootstrap', year=year, month=month),
+                EstablecimientosTransform(mode='bootstrap'),
+                EstablecimientosLoad(mode='bootstrap'),
+            ],
+        )
+        pipeline.run(mode='bootstrap')
 
 
 default_args_bootstrap = {

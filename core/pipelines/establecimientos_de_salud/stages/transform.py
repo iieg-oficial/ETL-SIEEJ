@@ -89,6 +89,10 @@ class EstablecimientosTransform(Stage):
         }
 
     def action(self, input_data: Any) -> Any:
+        if input_data.empty:
+            self.logger.info("[action] Empty DataFrame, skipping transform")
+            return {"df": input_data, "catalogs": {}}
+
         df = input_data.rename(columns=EstablecimientosColMap.rename())
 
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])

@@ -10,7 +10,6 @@ from core.utils.bulk_ops import (
     insert_records, bulk_insert, count_records, get_mapping, sync_id_sequence, get_all_records,
 )
 from core.pipelines.establecimientos_de_salud.schemas import (
-    SaludBase,
     Localidades, Jurisdicciones, Instituciones,
     TiposEstablecimiento, Tipologias, Subtipologias,
     TiposVialidad, Vialidades, TiposAsentamiento,
@@ -36,7 +35,7 @@ class EstablecimientosLoad(Stage):
         super().__init__(pipeline_name, 'load')
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.load")
-        self.db = Database("establecimientos_de_salud", settings.database_url)
+        self.db = Database(settings.DB_NAME, settings.database_url)
 
     def _load_catalogs(self, session, catalogs):
         for model in [
@@ -65,19 +64,33 @@ class EstablecimientosLoad(Stage):
         ]
         insert_records(session, vialidades_records, Vialidades, conflict_keys=[Vialidades.vialidad.key, Vialidades.tipo_vialidad_id.key])
 
-        insert_records(session, catalogs[T.TIPOS_ASENTAMIENTO], TiposAsentamiento, conflict_keys=[TiposAsentamiento.tipo_asentamiento.key])
-        insert_records(session, EstatusEstablecimientoMap.to_records(EstatusEstablecimiento.estatus_establecimiento.key), EstatusEstablecimiento, conflict_keys=[EstatusEstablecimiento.id.key])
+        insert_records(
+            session, catalogs[T.TIPOS_ASENTAMIENTO],
+            TiposAsentamiento, conflict_keys=[TiposAsentamiento.tipo_asentamiento.key]
+            )
+        insert_records(
+            session,
+            EstatusEstablecimientoMap.to_records(EstatusEstablecimiento.estatus_establecimiento.key),
+            EstatusEstablecimiento, conflict_keys=[EstatusEstablecimiento.id.key]
+            )
         insert_records(session, NivelAtencionMap.to_records(NivelAtencion.nivel_atencion.key), NivelAtencion, conflict_keys=[NivelAtencion.id.key])
         insert_records(session, EstratoUnidadMap.to_records(EstratoUnidad.estrato_unidad.key), EstratoUnidad, conflict_keys=[EstratoUnidad.id.key])
         insert_records(session, catalogs[T.TIPOS_OBRA], TiposObra, conflict_keys=[TiposObra.tipo_obra.key])
         insert_records(session, MovimientosMap.to_records(Movimientos.movimiento.key), Movimientos, conflict_keys=[Movimientos.id.key])
         insert_records(session, catalogs[T.RFC_ESTABLECIMIENTOS], RfcEstablecimientos, conflict_keys=[RfcEstablecimientos.rfc.key])
-        insert_records(session, catalogs[T.MARCAS_MOVILES], MarcasMoviles, conflict_keys=[MarcasMoviles.marca.key, MarcasMoviles.marca_especifica.key, MarcasMoviles.modelo.key])
+        insert_records(
+            session, catalogs[T.MARCAS_MOVILES],
+            MarcasMoviles, conflict_keys=[MarcasMoviles.marca.key,
+            MarcasMoviles.marca_especifica.key, MarcasMoviles.modelo.key]
+             )
         insert_records(session, catalogs[T.PROGRAMAS_MOVILES], ProgramasMoviles, conflict_keys=[ProgramasMoviles.programa_movil.key])
         insert_records(session, catalogs[T.UNIDADES_MOVILES], UnidadesMoviles, conflict_keys=[UnidadesMoviles.nombre_unidad_movil.key])
         insert_records(session, catalogs[T.TIPOS_UNIDAD_MOVIL], TiposUnidadMovil, conflict_keys=[TiposUnidadMovil.tipo_unidad_movil.key])
         insert_records(session, catalogs[T.TIPOLOGIAS_MOVILES], TipologiasMoviles, conflict_keys=[TipologiasMoviles.tipologia_movil.key])
-        insert_records(session, catalogs[T.INSTITUTOS_ADMINISTRACION], InstitutosAdministracion, conflict_keys=[InstitutosAdministracion.instituto_administracion.key])
+        insert_records(
+            session, catalogs[T.INSTITUTOS_ADMINISTRACION],
+            InstitutosAdministracion, conflict_keys=[InstitutosAdministracion.instituto_administracion.key]
+            )
         insert_records(session, catalogs[T.MOTIVOS_BAJA], MotivosBaja, conflict_keys=[MotivosBaja.motivo_baja.key])
 
     def _map_foreign_keys(self, session, df):
@@ -154,35 +167,43 @@ class EstablecimientosLoad(Stage):
         return input_data
 
     def action(self, input_data: Any) -> Any:
-        self.logger.info("[action] Loading data into DB")
         df = input_data["df"]
+        if df.empty:
+            self.logger.info("[action] Empty DataFrame, skipping load")
+            return None
+
+        self.logger.info("[action] Loading data into DB")
         catalogs = input_data["catalogs"]
 
-        self.db.connect()
-        SaludBase.metadata.create_all(self.db.engine)
+        try:
+            self.db.connect()
+            with self.db.get_session() as session:
+                self._load_catalogs(session, catalogs)
+                df = self._map_foreign_keys(session, df)
 
-        with self.db.get_session() as session:
-            self._load_catalogs(session, catalogs)
-            df = self._map_foreign_keys(session, df)
-
-            records_before = count_records(session, Establecimientos)
-
-            records = df_to_records(df, Establecimientos.columns())
-            bulk_insert(
-                session, records, Establecimientos,
-                chunk_size=50_000 if self.mode == "bootstrap" else 10_000,
-            )
+                records_before = count_records(session, Establecimientos)
+                records = df_to_records(df, Establecimientos.columns())
+                bulk_insert(
+                    session, records, Establecimientos,
+                    chunk_size=50_000 if self.mode == "bootstrap" else 10_000,
+                )
+        except Exception:
+            self.db.disconnect()
+            raise
 
         return {"data": input_data, "records_before": records_before}
 
     def finalization(self, input_data: Any) -> Any:
-        with self.db.get_session() as session:
-            total = count_records(session, Establecimientos)
-            inserted = total - input_data["records_before"]
-
-        self.db.disconnect()
         cleanup_pipeline_data(self.pipeline_name)
+        if input_data is None:
+            return None
+        try:
+            with self.db.get_session() as session:
+                total = count_records(session, Establecimientos)
+                inserted = total - input_data["records_before"]
+            self.logger.info(f"[finalization] {format(total, ',')} establecimientos in database")
+            self.logger.info(f"[finalization] {format(inserted, ',')} establecimientos inserted")
+        finally:
+            self.db.disconnect()
 
-        self.logger.info(f"[finalization] {format(total, ',')} establecimientos in database")
-        self.logger.info(f"[finalization] {format(inserted, ',')} establecimientos inserted")
         return input_data["data"]
