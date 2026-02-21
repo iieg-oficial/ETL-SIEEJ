@@ -40,7 +40,62 @@ _SLUGS: dict[str, str] = {
     "32": "zac",
 }
 
+_MASIVA_SLUGS: dict[str, str] = {
+    "nac": "00",
+    "01": "01",
+    "02": "02",
+    "03": "03",
+    "04": "04",
+    "05": "05",
+    "06": "06",
+    "07": "07",
+    "08": "08",
+    "09": "09",
+    "10": "10",
+    "11": "11",
+    "12": "12",
+    "13": "13",
+    "14": "14",
+    "15": "15",
+    "16": "16",
+    "17": "17",
+    "18": "18",
+    "19": "19",
+    "20": "20",
+    "21": "21",
+    "22": "22",
+    "23": "23",
+    "24": "24",
+    "25": "25",
+    "26": "26",
+    "27": "27",
+    "28": "28",
+    "29": "29",
+    "30": "30",
+    "31": "31",
+    "32": "32",
+}
+
+_MASIVA_CONFIG_BASE: dict = {
+    "url_template": "https://www.inegi.org.mx/contenidos/masiva/ce/ce_{slug}_csv.zip",
+    "slugs": _MASIVA_SLUGS,
+    "data_csv_pattern": "ce_{slug}_csv/conjunto_de_datos/ce_inegi_{slug}.csv",
+    "diccionario": "ce_{slug}_csv/diccionario_de_datos/ce_diccionario_de_datos.csv",
+    "column_renames": {
+        "clave_entidad": "entidad",
+        "municipio": "_nombre_municipio",  # renombrar col de nombre para evitar conflicto
+        "clave_municipio": "municipio",  # luego renombrar col de clave a "municipio"
+        "clave_actividad_economica": "codigo",
+        "anio_censal": "anio",  # indica CSV multi-anio a la etapa load
+        "k040a": "k042a",  # combustibles: codigo censal viejo -> nuevo
+        "k041a": "k412a",  # energia electrica: codigo censal viejo -> nuevo
+    },
+}
+
 CE_YEARS_CONFIG: dict[int, dict] = {
+    2004: {**_MASIVA_CONFIG_BASE, "masiva_group": "masiva"},
+    2009: {**_MASIVA_CONFIG_BASE, "masiva_group": "masiva"},
+    2014: {**_MASIVA_CONFIG_BASE, "masiva_group": "masiva"},
     2019: {
         "url_template": (
             "https://www.inegi.org.mx/contenidos/programas/ce/2019/"

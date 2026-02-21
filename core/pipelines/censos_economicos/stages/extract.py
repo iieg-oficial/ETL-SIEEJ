@@ -19,6 +19,7 @@ class CEExtractor(Stage):
     def source(self, input_data: Optional[Any] = None) -> list[dict]:
         """Identifica ZIPs pendientes de descarga. Omite slugs ya extraidos."""
         downloads = []
+        seen_masiva: set[tuple[str, str]] = set()  # (masiva_group, slug)
 
         for year in settings.years_list:
             year_config = CE_YEARS_CONFIG.get(year)
@@ -28,14 +29,25 @@ class CEExtractor(Stage):
 
             url_template = year_config["url_template"]
             data_csv_pattern = year_config["data_csv_pattern"]
+            masiva_group = year_config.get("masiva_group")
 
             for key, slug in year_config["slugs"].items():
-                slug_dir = self.work_dir / str(year) / slug
+                if masiva_group:
+                    slug_dir = self.work_dir / masiva_group / slug
+                else:
+                    slug_dir = self.work_dir / str(year) / slug
+
                 expected_csv = slug_dir / data_csv_pattern.format(slug=slug)
 
                 if expected_csv.exists():
                     self.logger.info(f"Omitiendo {year}/{slug} - ya extraido.")
                     continue
+
+                # Evitar descargas duplicadas para anios masiva que comparten archivos
+                if masiva_group:
+                    if (masiva_group, slug) in seen_masiva:
+                        continue
+                    seen_masiva.add((masiva_group, slug))
 
                 downloads.append(
                     {
@@ -90,9 +102,14 @@ class CEExtractor(Stage):
 
             year_entries = []
             data_csv_pattern = year_config["data_csv_pattern"]
+            masiva_group = year_config.get("masiva_group")
 
             for key, slug in year_config["slugs"].items():
-                slug_dir = self.work_dir / str(year) / slug
+                if masiva_group:
+                    slug_dir = self.work_dir / masiva_group / slug
+                else:
+                    slug_dir = self.work_dir / str(year) / slug
+
                 data_csv = slug_dir / data_csv_pattern.format(slug=slug)
 
                 if not data_csv.exists():
@@ -101,7 +118,10 @@ class CEExtractor(Stage):
 
                 catalog_paths = {}
                 for catalog_key in ["catalog_actividad", "catalog_entidad_municipio", "catalog_estrato", "diccionario"]:
-                    cat_path = slug_dir / year_config[catalog_key]
+                    cat_rel_path = year_config.get(catalog_key)
+                    if not cat_rel_path:
+                        continue
+                    cat_path = slug_dir / cat_rel_path.format(slug=slug)
                     if cat_path.exists():
                         catalog_paths[catalog_key] = str(cat_path)
 

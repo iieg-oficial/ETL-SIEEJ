@@ -191,6 +191,18 @@ class CETransformer(Stage):
         self.logger.info(f"Limpiando diccionario de datos: {path}")
         df = self._read_and_clean(path)
 
+        # Normalizar nombres de columnas del formato masiva (2004-2014)
+        if "nombre del atributo en csv" in df.columns:
+            df.rename(
+                columns={
+                    "nombre del atributo en csv": "columna",
+                    "definición": "descripcion",
+                    "tipo de dato": "tipo_dato",
+                    "códigos válidos": "codigo_valido",
+                },
+                inplace=True,
+            )
+
         records = []
         for _, row in df.iterrows():
             col_name = row.get("columna")

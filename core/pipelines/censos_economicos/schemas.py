@@ -54,7 +54,7 @@ class CeDiccionariosDatos(CeBase):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     anio = Column(Integer, nullable=False)
-    nombre_columna = Column(String(20), nullable=False)
+    nombre_columna = Column(String(50), nullable=False)
     descripcion = Column(Text, nullable=True)
     tipo_dato = Column(String(50), nullable=True)
     longitud = Column(String(20), nullable=True)

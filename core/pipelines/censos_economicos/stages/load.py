@@ -168,8 +168,12 @@ class CELoader(Stage):
 
         df = list_values_to_null(df)
 
-        # Agregar columna de anio
-        df["anio"] = year
+        # CSV multi-anio (masiva): anio ya presente por column_renames (anio_censal -> anio)
+        if "anio" in df.columns:
+            df["anio"] = pd.to_numeric(df["anio"], errors="coerce").astype("Int64")
+            df = df[df["anio"] == year].copy()
+        else:
+            df["anio"] = year
 
         # Columnas clave: cadena vacia para valores faltantes/None
         for col in KEY_COLUMNS:
