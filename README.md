@@ -2,6 +2,28 @@
 
 Proyecto de ETL (Extract, Transform, Load) para el procesamiento automatizado de datos del SIEEJ utilizando Apache Airflow. Cada pipeline descarga datos de fuentes públicas, los transforma siguiendo reglas de negocio específicas y los carga en una base de datos PostgreSQL para su análisis y consumo.
 
+## Índice
+
+- [Descripción](#-descripción)
+- [Arquitectura](#️-arquitectura)
+- [Pre-requisitos](#-pre-requisitos)
+- [Estructura del Proyecto](#-estructura-del-proyecto)
+- [Instalación y Ejecución Local](#-instalación-y-ejecución-local)
+  - [1. Clonar el repositorio](#1-clonar-el-repositorio)
+  - [2. Crear el ambiente de desarrollo](#2-crear-el-ambiente-de-desarrollo)
+  - [3. Levantar la base de datos de desarrollo](#3-levantar-la-base-de-datos-de-desarrollo)
+  - [4. Configurar y ejecutar migraciones (Flyway)](#4-configurar-y-ejecutar-migraciones-flyway)
+  - [5. Configurar las variables de entorno del pipeline](#5-configurar-las-variables-de-entorno-del-pipeline)
+  - [6. Ejecutar un pipeline localmente](#6-ejecutar-un-pipeline-localmente)
+- [Ejecución con Airflow (Docker)](#-ejecución-con-airflow-docker)
+- [Uso de los DAGs](#-uso-de-los-dags)
+- [Logs](#-logs)
+- [Comandos `just`](#-comandos-just)
+- [Troubleshooting](#-troubleshooting)
+- [Resumen de pasos rápidos (Local)](#-resumen-de-pasos-rápidos-local)
+- [Contribución](#-contribución)
+- [Enlaces Útiles](#-enlaces-útiles)
+
 ## 📋 Descripción
 
 Este sistema extrae datos de fuentes externas; conjuntos de datos abiertos publicados en fuentes federales y/o estatales, los cuales se transforman para cumplir una categorización tipo `silver` (sanitización, tipado, desagregación en tablas y sin analíticos). Posteriormente estos datos son cargados en una base de datos PostgreSQL para su análisis y consumo.
@@ -21,38 +43,55 @@ graph TD
         direction LR
         F1["INEGI Datos Abiertos"] ~~~ F2["REPD"] ~~~ F3["Data México"] ~~~ F4["APIs"]
     end
-
     subgraph Airflow["⚙️ APACHE AIRFLOW SERVER"]
-        subgraph Update["DAG: Update — Carga incremental"]
-            U_E["Extract"] --> U_T["Transform"] --> U_L["Load"]
-        end
-        subgraph Bootstrap["DAG: Bootstrap — Carga inicial completa"]
-            B_E["Extract"] --> B_T["Transform"] --> B_L["Load"]
-        end
+            direction TB
         subgraph Componentes["📦 Componentes core/"]
             direction LR
-            CO1["<b>Pipeline</b>\nOrquesta stages\nsecuencialmente"]
-            CO2["<b>Stage</b>\nClase abstracta ETL\nsource → action → finalization"]
-            CO3["<b>Database</b>\nConexión SQLAlchemy\npool, sessions, transacciones"]
-            CO4["<b>Config</b>\nVariables de entorno\npydantic-settings"]
+            CO1["<b>Pipeline</b><br/>Orquesta stages<br/>secuencialmente"]
+            CO2["<b>Stage</b><br/>Clase abstracta ETL<br/>source → action → finalization"]
+            CO3["<b>Database</b><br/>Conexión SQLAlchemy<br/>pool, sessions, transacciones"]
+            CO4["<b>Config</b><br/>Variables de entorno<br/>pydantic-settings"]
             CO1 ~~~ CO2 ~~~ CO3 ~~~ CO4
-            CO5["<b>Logger</b>\nConsola Rich y archivo\npor pipeline/fecha"]
-            CO6["<b>BulkOps</b>\ninsert, upsert, bulk load\nmanejo de conflictos"]
-            CO7["<b>Clean</b>\nSanitización DataFrames\nnulos, duplicados, espacios"]
-            CO8["<b>Normalize</b>\nNormalización de texto\ncase, acentos, headers"]
+            CO5["<b>Logger</b><br/>Consola Rich y archivo<br/>por pipeline/fecha"]
+            CO6["<b>BulkOps</b><br/>insert, upsert, bulk load<br/>manejo de conflictos"]
+            CO7["<b>Clean</b><br/>Sanitización DataFrames<br/>nulos, duplicados, espacios"]
+            CO8["<b>Normalize</b><br/>Normalización de texto<br/>case, acentos, headers"]
             CO5 ~~~ CO6 ~~~ CO7 ~~~ CO8
         end
+        subgraph Bootstrap[<font size = 1> DAG: Bootstrap — Carga inicial completa]
+            direction LR
+            B_SP[ ] ~~~ B_E["Extract"] --> B_T["Transform"] --> B_L["Load"]
+        end
+        subgraph Update[<font size = 1> DAG: Update — Carga incremental]
+            direction LR
+            U_SP[ ] ~~~ U_E["Extract"] --> U_T["Transform"] --> U_L["Load"]
+        end
+        Componentes ~~~ Bootstrap
+        Bootstrap ~~~ Update
     end
-
     subgraph DB["🐘 POSTGRESQL DATABASE"]
-        D1["Tablas de catálogos\n(ce_catalogos_*, cat_*)"]
-        D2["Tablas de datos / staging\n(ce_datos, stg_*)"]
-        D3["Diccionarios de datos"]
+            direction LR
+        D1["Tablas de catálogos<br/>(ce_catalogos_*, cat_*)"]~~~
+        D2["Tablas de datos / staging<br/>(ce_datos, stg_*)"]~~~
+        D3["Diccionarios de datos"]~~~
         D4["Vistas finales"]
     end
-
     Fuentes --> Airflow
     Airflow --> DB
+
+    classDef fuenteStyle fill:#A2AADB,stroke:#0d4f6b,color:#fff
+    classDef componenteStyle fill:#84B179,stroke:#1a3d16,color:#fff
+    classDef bootstrapStyle fill:#FFA6A6,stroke:#5a3a10,color:#fff
+    classDef updateStyle fill:#E2B59A,stroke:#4d1f4d,color:#fff
+    classDef dbStyle fill:#7AAACE,stroke:#0d2545,color:#fff
+    classDef spacer fill:none,stroke:none,color:none
+
+    class F1,F2,F3,F4 fuenteStyle
+    class CO1,CO2,CO3,CO4,CO5,CO6,CO7,CO8 componenteStyle
+    class B_E,B_T,B_L bootstrapStyle
+    class U_E,U_T,U_L updateStyle
+    class D1,D2,D3,D4 dbStyle
+    class B_SP,B_SP2,U_SP,U_SP2 spacer
 ```
 
 ### Flujo de Datos (ETL Pipeline)
@@ -81,22 +120,24 @@ Pipeline.run()
 
 ## 🔧 Pre-requisitos
 
-- **Python 3.12** (recomendado vía [Miniconda](https://docs.anaconda.com/miniconda/install/))
-- **PostgreSQL**: >= 13
-- **Flyway CLI** (para migraciones de esquema de BD)
+- **Python 3.12** (vía [Miniconda](https://docs.anaconda.com/miniconda/install/) o `venv`)
 - **Git**
-- **Docker** >= 20.10 y **Docker Compose** >= 2.0 (solo si se ejecuta con Airflow)
-- **Recursos mínimos**:
-  - 4 GB RAM
-  - 10 GB espacio en disco
-  - 2 CPU cores
-
+- **Docker** >= 20.10 y **Docker Compose** >= 2.0
+- **just** — task runner para comandos del proyecto:
+  ```bash
+  sudo snap install just --classic
+  ```
+- **Flyway CLI** — para migraciones de esquema de BD:
+  ```bash
+  sudo snap install flyway
+  ```
 ## 📁 Estructura del Proyecto
 
 ```
 ETL-SIEEJ/
 ├── compose.yaml                   # Docker Compose para Airflow
 ├── Dockerfile                     # Imagen Docker con Chrome + dependencias Python
+├── justfile                       # Recetas de tareas (just)
 ├── requirements.txt               # Dependencias Python
 ├── .env                           # Variables de entorno globales (crear)
 │
@@ -107,7 +148,6 @@ ETL-SIEEJ/
 │   ├── utils/
 │   │   ├── bulk_ops.py            # insert_records, upsert, bulk_insert, sync_id_sequence
 │   │   ├── clean.py               # list_values_to_null, drop_duplicates_col
-│   │   ├── logger.py              # Logger con salida a consola y archivo
 │   │   └── normalize.py           # Funciones de normalización de texto/columnas
 │   └── pipelines/
 │       ├── stage.py               # Clase abstracta Stage (source → action → finalization)
@@ -121,14 +161,6 @@ ETL-SIEEJ/
 │       │       ├── transform.py   # Limpia catálogos y valida encabezados
 │       │       └── load.py        # Carga catálogos y datos en PostgreSQL
 │       └── repd/
-│           ├── .env               # Variables de entorno del pipeline (crear)
-│           ├── config.py          # Settings específicos (URL fuente)
-│           ├── consts.py          # Columnas y mapeos
-│           ├── schemas.py         # Modelos SQLAlchemy
-│           └── stages/
-│               ├── extract.py     # Extracción REPD
-│               ├── transform.py   # Transformación REPD
-│               └── load.py        # Carga REPD
 │
 ├── dags/                          # DAGs de Airflow
 │   ├── etl_censos_economicos.py
@@ -149,11 +181,6 @@ ETL-SIEEJ/
 │   │       ├── V2__tabla_stg_ce_data.sql
 │   │       └── V3__diccionario_ce.sql
 │   └── repd/
-│       ├── flyway.conf.example
-│       └── sql/
-│           ├── V1__catalogos_repd.sql
-│           ├── V2__tabla_stg_repd.sql
-│           └── V3__vista_repd.sql
 │
 └── config/
     └── airflow.cfg                # Configuración de Airflow
@@ -164,212 +191,115 @@ ETL-SIEEJ/
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
+git clone https://github.com/iieg-oficial/ETL-SIEEJ.git
 cd ETL-SIEEJ
 ```
 
-### 2. Crear el ambiente de Python con Conda
+### 2. Crear el ambiente de desarrollo
+
+#### Opción 1 — .venv
 
 ```bash
-# Crear ambiente con Python 3.12
-conda create -n sieej python=3.12 -y
-
-# Activar el ambiente
-conda activate sieej
-
-# Instalar dependencias
+python3.12 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> Las dependencias principales son: `sqlalchemy`, `pandas`, `psycopg2-binary`, `pydantic-settings`, `requests`, `rich`, `more-itertools`, entre otras. Consulta `requirements.txt` para la lista completa.
-
-### 3. Configurar PostgreSQL
-
-#### 3.1 Crear el usuario de base de datos
-
-Conéctate a PostgreSQL con un usuario superadmin (por ejemplo `postgres`) y crea un usuario dedicado para el proyecto:
+#### Opción 2 — Conda
 
 ```bash
-sudo -u postgres psql
+conda create -n sieej python=3.12 -y
+conda activate sieej
+pip install -r requirements.txt
 ```
 
-```sql
--- Crear usuario con contraseña
-CREATE USER sieej_user WITH PASSWORD 'tu_contraseña_segura';
+### 3. Levantar la base de datos de desarrollo
 
--- Permitir que el usuario cree bases de datos (útil para pruebas)
-ALTER USER sieej_user CREATEDB;
-```
+Para desarrollo local se utiliza un contenedor **PostGIS** gestionado con `just`. Esto evita instalar PostgreSQL directamente en la máquina.
 
-#### 3.2 Crear las bases de datos
-
-Cada pipeline utiliza su propia base de datos. Crea las que necesites:
-
-```sql
--- Base de datos para Censos Económicos
-CREATE DATABASE censos_economicos OWNER sieej_user;
-
--- Base de datos para REPD
-CREATE DATABASE repd OWNER sieej_user;
-```
-
-#### 3.3 Otorgar permisos
-
-Conéctate a cada base de datos y asegura los permisos de escritura y creación de tablas:
+#### 3.1 Iniciar el contenedor
 
 ```bash
-# Para censos_economicos
-sudo -u postgres psql -d censos_economicos
+just build-dev user=sieej_user pass=mi_pass db=sieej
 ```
 
-```sql
--- Otorgar todos los permisos en el schema public
-GRANT ALL PRIVILEGES ON SCHEMA public TO sieej_user;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO sieej_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO sieej_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO sieej_user;
-```
+Esto levanta `postgis/postgis:17-3.5` con el usuario y base de datos indicados, expuesto en el puerto `5432`.
 
-Repetir para la base de datos `repd`:
+#### 3.2 Conectar la base de datos geográfica (cvegeo)
+
+El pipeline de referencias geográficas (`cvegeo`) requiere su propia base de datos con soporte PostGIS. El flujo completo es:
 
 ```bash
-sudo -u postgres psql -d repd
+# 1. Crear la base de datos cvegeo dentro del contenedor
+just create-cvegeo-db
+
+# 2. Copiar y editar el archivo de configuración de Flyway
+cp migrations/cvegeo/flyway.conf.example migrations/cvegeo/flyway.conf
 ```
 
-```sql
-GRANT ALL PRIVILEGES ON SCHEMA public TO sieej_user;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO sieej_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO sieej_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO sieej_user;
+Edita `migrations/cvegeo/flyway.conf`:
+
+```properties
+flyway.url=jdbc:postgresql://localhost:5432/cvegeo
+flyway.user=sieej_user
+flyway.password=mi_pass
+flyway.locations=filesystem:./sql/
+flyway.schemas=public
+flyway.cleanDisabled=false
 ```
-
-### 4. Instalar Flyway
-
-Flyway se utiliza para versionar y aplicar los scripts de migración SQL que crean las tablas de catálogos, staging y vistas.
-
-#### 4.1 Instalar en Linux
 
 ```bash
-# Descargar Flyway Community Edition
-wget -qO- https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/11.3.1/flyway-commandline-11.3.1-linux-x64.tar.gz | tar -xvz
-
-# Mover a una ubicación accesible
-sudo mv flyway-11.3.1 /opt/flyway
-
-# Agregar al PATH (añadir a tu ~/.bashrc o ~/.zshrc)
-echo 'export PATH="/opt/flyway:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-
-# Verificar instalación
-flyway --version
+# 3. Aplicar las migraciones (crea tablas PostGIS y carga el seed de Jalisco)
+just flyway-migrate cvegeo
 ```
 
-> **Nota:** Puedes usar otra versión de Flyway. Consulta la [documentación oficial](https://documentation.red-gate.com/flyway/flyway-cli-and-api/download-and-installation) para más opciones de instalación.
+### 4. Configurar y ejecutar migraciones (Flyway)
 
-#### 4.2 Configurar Flyway para cada pipeline
+Flyway versiona y aplica los scripts SQL que crean las tablas de catálogos, staging y vistas. La instalación se hace vía snap (ver [Pre-requisitos](#-pre-requisitos)).
 
-Cada pipeline tiene su carpeta de migraciones con un archivo de ejemplo `flyway.conf.example`. Copia y edita el archivo de configuración:
+#### 4.1 Configurar Flyway para cada pipeline
 
-**Censos Económicos:**
+Cada pipeline tiene `migrations/<pipeline>/flyway.conf.example`. Copia y edita el archivo:
 
 ```bash
-cd migrations/censos_economicos
-cp flyway.conf.example flyway.conf
+cp migrations/censos_economicos/flyway.conf.example migrations/censos_economicos/flyway.conf
 ```
-
-Edita `flyway.conf` con los datos de tu base de datos:
 
 ```properties
 flyway.url=jdbc:postgresql://localhost:5432/censos_economicos
 flyway.user=sieej_user
-flyway.password=tu_contraseña_segura
+flyway.password=mi_pass
 flyway.locations=filesystem:./sql/
 flyway.schemas=public
 flyway.cleanDisabled=false
 ```
 
-**REPD:**
+Repite para cada pipeline que vayas a utilizar (`repd`, `fiscalia`, etc.).
+
+> **Importante:** `flyway.conf` contiene credenciales y **no debe subirse al repositorio**.
+
+#### 4.2 Ejecutar las migraciones
+
+Desde la raíz del proyecto, usa `just` para aplicar las migraciones:
 
 ```bash
-cd migrations/repd
-cp flyway.conf.example flyway.conf
+just flyway-migrate censos_economicos
+just flyway-migrate repd
+just flyway-migrate fiscalia
 ```
 
-```properties
-flyway.url=jdbc:postgresql://localhost:5432/repd
-flyway.user=sieej_user
-flyway.password=tu_contraseña_segura
-flyway.locations=filesystem:./sql/
-flyway.schemas=public
-flyway.cleanDisabled=false
-```
-
-#### 4.3 Ejecutar las migraciones
-
-Desde la raíz del proyecto:
+Otros comandos útiles de Flyway:
 
 ```bash
-# Migrar Censos Económicos
-cd migrations/censos_economicos
-flyway migrate
-
-# Migrar REPD
-cd ../repd
-flyway migrate
+just flyway-info <pipeline>      # Estado de las migraciones
+just flyway-validate <pipeline>  # Validar scripts
+just flyway-reset <pipeline>     # clean + migrate (⚠️ elimina datos)
 ```
-
-Para verificar el estado de las migraciones:
-
-```bash
-flyway info
-```
-
-> **Importante:** `flyway.conf` contiene credenciales y **no debe subirse al repositorio** (agrégalo a `.gitignore`).
 
 ### 5. Configurar las variables de entorno del pipeline
 
 Cada pipeline lee sus variables desde un archivo `.env` ubicado en `core/pipelines/<nombre_pipeline>/.env`. Estos archivos son cargados automáticamente por `pydantic-settings`.
 
-#### 5.1 Censos Económicos
-
-Crea o edita el archivo `core/pipelines/censos_economicos/.env`:
-
-```dotenv
-# Conexión a la base de datos
-DB_USER=sieej_user
-DB_PASSWORD=tu_contraseña_segura
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=censos_economicos
-
-# Configuración del pipeline
-CE_DOWNLOAD_MAX_WORKERS=4       # Hilos para descarga paralela
-CE_DOWNLOAD_TIMEOUT=120         # Timeout por descarga (segundos)
-CE_DOWNLOAD_MAX_RETRIES=3       # Reintentos por descarga fallida
-CE_DOWNLOAD_RETRY_BACKOFF=5.0   # Backoff exponencial (segundos)
-CE_LOAD_BATCH_SIZE=5000         # Tamaño de lote para INSERT
-CE_YEARS=2024                   # Años censales a procesar (separados por coma)
-LOG_LEVEL=INFO
-```
-
-#### 5.2 REPD
-
-Crea el archivo `core/pipelines/repd/.env`:
-
-```dotenv
-# Conexión a la base de datos
-DB_USER=sieej_user
-DB_PASSWORD=tu_contraseña_segura
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=repd
-
-# URL de la fuente de datos
-REPD_DATA_URL=<URL_DE_LA_FUENTE_REPD>
-LOG_LEVEL=INFO
-```
-
-> **Nota:** Los archivos `.env` contienen credenciales y **no deben subirse al repositorio**.
 
 ### 6. Ejecutar un pipeline localmente
 
@@ -380,9 +310,6 @@ Una vez completados los pasos anteriores (ambiente, BD, migraciones y `.env`), p
 Cada archivo DAG incluye un bloque `if __name__ == "__main__"` que permite ejecutarlo como script:
 
 ```bash
-# Activar el ambiente
-conda activate sieej
-
 # Ejecutar Censos Económicos (bootstrap)
 python dags/etl_censos_economicos.py
 
@@ -562,38 +489,38 @@ docker compose logs -f airflow-worker
 docker compose logs -f
 ```
 
-## 🛠️ Comandos Útiles
+## 🔨 Comandos `just`
 
-### Detener los servicios
+Ejecuta `just` sin argumentos para ver todos los comandos disponibles.
 
-```bash
-docker compose down
-```
+### Docker / Airflow
 
-### Detener y eliminar volúmenes (⚠️ elimina datos)
+| Comando | Descripción |
+|---|---|
+| `just up` | Construye la imagen y levanta todos los servicios |
+| `just down` | Detiene los servicios |
+| `just down-volumes` | Detiene y elimina volúmenes ⚠️ |
+| `just rebuild <servicio>` | Reconstruye un servicio específico |
+| `just logs [servicio]` | Muestra logs en tiempo real |
+| `just ps` | Estado de los servicios |
+| `just restart <servicio>` | Reinicia un servicio |
 
-```bash
-docker compose down -v
-```
+### Desarrollo local
 
-### Reiniciar un servicio específico
+| Comando | Descripción |
+|---|---|
+| `just build-dev [user] [pass] [db] [port]` | Levanta un contenedor PostGIS para desarrollo |
+| `just create-cvegeo-db` | Crea la base de datos `cvegeo` en el contenedor de desarrollo |
 
-```bash
-docker compose restart airflow-scheduler
-```
+### Flyway
 
-### Ejecutar comandos de Airflow CLI
-
-```bash
-docker compose run airflow-worker airflow dags list
-docker compose run airflow-worker airflow tasks list etl_censos_economicos_bootstrap
-```
-
-### Acceder a PostgreSQL (Airflow)
-
-```bash
-docker compose exec postgres psql -U airflow
-```
+| Comando | Descripción |
+|---|---|
+| `just flyway-migrate <pipeline>` | Aplica las migraciones pendientes |
+| `just flyway-info <pipeline>` | Muestra el estado de las migraciones |
+| `just flyway-validate <pipeline>` | Valida los scripts de migración |
+| `just flyway-clean <pipeline>` | Elimina todos los objetos del esquema ⚠️ |
+| `just flyway-reset <pipeline>` | `clean` + `migrate` ⚠️ |
 
 ## 🐛 Troubleshooting
 
@@ -623,7 +550,6 @@ sudo lsof -i :8080
 ### Conexión a Base de Datos falla
 
 - **Ejecución local**: Verifica las credenciales en `core/pipelines/<pipeline>/.env` y que PostgreSQL esté corriendo
-- **Docker**: Recuerda que `localhost` dentro del contenedor es el propio contenedor. Usa `host.docker.internal` para acceder a la BD de tu máquina
 
 ### Permisos de archivos en logs/ o data/
 
@@ -637,45 +563,40 @@ docker compose down && docker compose up -d
 
 ```bash
 # 1. Clonar y entrar al proyecto
-git clone <URL> && cd ETL-SIEEJ
+git clone https://github.com/iieg-oficial/ETL-SIEEJ.git  && cd ETL-SIEEJ
 
-# 2. Crear ambiente Conda
-conda create -n sieej python=3.12 -y && conda activate sieej
+# 2. Crear ambiente
+python3.12 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# 3. Crear BD y usuario en PostgreSQL
-sudo -u postgres psql -c "CREATE USER sieej_user WITH PASSWORD 'mi_pass';"
-sudo -u postgres psql -c "CREATE DATABASE censos_economicos OWNER sieej_user;"
+# 3. Levantar la base de datos de desarrollo (PostGIS)
+just build-dev user=sieej_user pass=mi_pass db=sieej
 
-# 4. Permisos en la BD
-sudo -u postgres psql -d censos_economicos -c "
-  GRANT ALL PRIVILEGES ON SCHEMA public TO sieej_user;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO sieej_user;
-  ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO sieej_user;"
+# 3b. Crear la BD geográfica (necesaria para tablas foráneas de cvegeo)
+just create-cvegeo-db
+cp migrations/cvegeo/flyway.conf.example migrations/cvegeo/flyway.conf
+# Editar flyway.conf con las credenciales
+just flyway-migrate cvegeo
 
-# 5. Instalar Flyway y ejecutar migraciones
-cd migrations/censos_economicos
-cp flyway.conf.example flyway.conf   # editar con credenciales
-flyway migrate
-cd ../..
+# 4. Configurar Flyway y ejecutar migraciones del pipeline
+cp migrations/censos_economicos/flyway.conf.example migrations/censos_economicos/flyway.conf
+# Editar flyway.conf con las credenciales
+just flyway-migrate censos_economicos
 
-# 6. Configurar .env del pipeline
+# 5. Configurar .env del pipeline
 # Editar core/pipelines/censos_economicos/.env con credenciales de BD
 
-# 7. Ejecutar
+# 6. Ejecutar
 python dags/etl_censos_economicos.py
 ```
 
 ## 🤝 Contribución
 
-1. Crear una rama feature: `git checkout -b feature/nueva-funcionalidad`
-2. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
-3. Push a la rama: `git push origin feature/nueva-funcionalidad`
+0. Crear issue correspondiente
+1. Crear una rama feature: `git checkout -b pipeline-nombre-del-flujo`
+2. Commit cambios: `git commit -m 'feat(pipeline/core/utils) | update | chore | docs'`
+3. Push a la rama: `git push origin pipeline-nombre-del-flujo`
 4. Crear Pull Request
-
-## 👥 Autores
-
-- Alejandro Zarate - *Desarrollo inicial*
 
 ## 🔗 Enlaces Útiles
 
