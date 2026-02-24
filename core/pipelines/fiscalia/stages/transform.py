@@ -36,7 +36,7 @@ class FiscaliaTransform(Stage):
         df["hora"] = parse_hour(df["hora"])
         df["fecha_denuncia"] = parse_date(df["fecha_denuncia"])
 
-        required_cols = ["longitud", "latitud", "fecha_denuncia", "hora"]
+        required_cols = ["longitud", "latitud", "fecha_denuncia"]
         before = len(df)
         df = df.dropna(subset=required_cols)
         df = df[(df["longitud"] != 0.0) & (df["latitud"] != 0.0)]
@@ -44,7 +44,7 @@ class FiscaliaTransform(Stage):
         if dropped:
             self.logger.info(f"[action] Dropped {dropped} rows with nulls or zero coords in {required_cols}")
 
-        natural_key = ["delito", "fecha_denuncia", "hora", "longitud", "latitud"]
+        natural_key = ["delito", "fecha_denuncia", "longitud", "latitud"]
         before_dedup = len(df)
         df = df.drop_duplicates(subset=natural_key, keep="last")
         dupes = before_dedup - len(df)

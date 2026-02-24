@@ -52,7 +52,7 @@ class BienesAfectados(FiscaliaBase):
 class Casos(FiscaliaBase):
     __tablename__  = FiscaliaTables.CASOS
     __table_args__ = (
-        UniqueConstraint("delitos_id", "fecha_denuncia", "hora", "longitud", "latitud", name="uq_casos_natural_key"),
+        UniqueConstraint("delitos_id", "fecha_denuncia", "longitud", "latitud", name="uq_casos_natural_key"),
     )
 
     id: Mapped[int] = mapped_column(primary_key = True, autoincrement = True)
@@ -63,7 +63,7 @@ class Casos(FiscaliaBase):
     colonias_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.COLONIAS}.id"), nullable = True)
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
-    hora: Mapped[str] = mapped_column(String(5), nullable=False)
+    hora: Mapped[str] = mapped_column(String(5), nullable=True)
     longitud: Mapped[float] = mapped_column(Float, nullable=False)
     latitud: Mapped[float] = mapped_column(Float, nullable=False)
     fecha_denuncia: Mapped[date] = mapped_column(Date, nullable=False)

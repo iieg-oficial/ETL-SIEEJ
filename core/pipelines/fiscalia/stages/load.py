@@ -95,7 +95,7 @@ class FiscaliaLoad(Stage):
         records_before = count_records(session, CasosSchema)
         upsert_records(
             session, casos_records, CasosSchema,
-            conflict_keys=["delitos_id", "fecha_denuncia", "hora", "longitud", "latitud"],
+            conflict_keys=["delitos_id", "fecha_denuncia", "longitud", "latitud"],
             update_keys=["violencia_id", "zonas_geograficas_id", "municipios_id",
                          "colonias_id", "calles_id", "cruces_id", "fecha_actualizacion"],
             chunk_size=50_000 if self.mode == "bootstrap" else 10_000
