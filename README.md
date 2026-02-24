@@ -38,14 +38,15 @@ Cada pipeline opera en dos modos:
 ## 🏗️ Arquitectura
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 graph TD
-    subgraph Fuentes["🌐 FUENTES EXTERNAS"]
+    subgraph Fuentes["FUENTES EXTERNAS"]
         direction LR
         F1["INEGI Datos Abiertos"] ~~~ F2["REPD"] ~~~ F3["Data México"] ~~~ F4["APIs"]
     end
-    subgraph Airflow["⚙️ APACHE AIRFLOW SERVER"]
+    subgraph Airflow["AIRFLOW SERVER"]
             direction TB
-        subgraph Componentes["📦 Componentes core/"]
+        subgraph Componentes["Componentes core/"]
             direction LR
             CO1["<b>Pipeline</b><br/>Orquesta stages<br/>secuencialmente"]
             CO2["<b>Stage</b><br/>Clase abstracta ETL<br/>source → action → finalization"]
@@ -69,7 +70,7 @@ graph TD
         Componentes ~~~ Bootstrap
         Bootstrap ~~~ Update
     end
-    subgraph DB["🐘 POSTGRESQL DATABASE"]
+    subgraph DB["POSTGRESQL DATABASE"]
             direction LR
         D1["Tablas de catálogos<br/>(ce_catalogos_*, cat_*)"]~~~
         D2["Tablas de datos / staging<br/>(ce_datos, stg_*)"]~~~
