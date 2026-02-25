@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, Date, Float, UniqueConstraint
+from sqlalchemy import String, ForeignKey, Date, Float
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaTables
 from datetime import date
@@ -51,9 +51,6 @@ class BienesAfectados(FiscaliaBase):
 
 class Casos(FiscaliaBase):
     __tablename__  = FiscaliaTables.CASOS
-    __table_args__ = (
-        UniqueConstraint("delitos_id", "fecha_denuncia", "longitud", "latitud", name="uq_casos_natural_key"),
-    )
 
     id: Mapped[int] = mapped_column(primary_key = True, autoincrement = True)
     delitos_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.DELITOS}.id"), nullable = False)
@@ -64,7 +61,7 @@ class Casos(FiscaliaBase):
     calles_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CALLES}.id"), nullable = True)
     cruces_id: Mapped[int] = mapped_column(ForeignKey(f"{FiscaliaTables.CRUCES}.id"), nullable = True)
     hora: Mapped[str] = mapped_column(String(5), nullable=True)
-    longitud: Mapped[float] = mapped_column(Float, nullable=False)
-    latitud: Mapped[float] = mapped_column(Float, nullable=False)
-    fecha_denuncia: Mapped[date] = mapped_column(Date, nullable=False)
-    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
+    longitud: Mapped[float] = mapped_column(Float, nullable=True)
+    latitud: Mapped[float] = mapped_column(Float, nullable=True)
+    fecha_denuncia: Mapped[date] = mapped_column(Date, nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=True)
