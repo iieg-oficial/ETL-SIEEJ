@@ -33,5 +33,3 @@ LEFT JOIN calles cal
     ON c.calles_id = cal.id
 LEFT JOIN cruces cr
     ON c.cruces_id = cr.id
-WHERE c.longitud IS NOT NULL
-    AND c.latitud IS NOT NULL;
