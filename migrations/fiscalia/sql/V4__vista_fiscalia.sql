@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW mart_fiscalia_vw  AS
+CREATE OR REPLACE VIEW delitos_vw AS
 SELECT
     c.id,
     d.delito,
@@ -32,4 +32,6 @@ LEFT JOIN colonias col
 LEFT JOIN calles cal
     ON c.calles_id = cal.id
 LEFT JOIN cruces cr
-    ON c.cruces_id = cr.id;
+    ON c.cruces_id = cr.id
+WHERE c.longitud IS NOT NULL
+    AND c.latitud IS NOT NULL;

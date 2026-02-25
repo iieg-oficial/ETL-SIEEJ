@@ -1,6 +1,7 @@
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
+from pyproj import Transformer
 
 def is_utm_coordinate(x: float, y: float) -> bool:
     if pd.isna(x) or pd.isna(y):
@@ -30,4 +31,9 @@ def utm13n_to_latlon(
     df.loc[utm_mask, x_col] = gdf.geometry.x
     df.loc[utm_mask, y_col] = gdf.geometry.y
 
+    return df
+
+def latlon_to_utm13n(df, lat_col="latitud", lon_col="longitud"):
+    transformer = Transformer.from_crs("EPSG:4326", "EPSG:32613", always_xy=True)
+    df["X"], df["Y"] = transformer.transform(df[lon_col].values, df[lat_col].values)
     return df

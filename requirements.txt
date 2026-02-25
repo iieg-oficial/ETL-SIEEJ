@@ -2,6 +2,7 @@ sqlalchemy>=2.0.0
 rich
 pandas
 geopandas
+pyproj==3.7.2
 psycopg2-binary
 python-dotenv
 polars
