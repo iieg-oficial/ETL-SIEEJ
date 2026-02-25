@@ -28,13 +28,6 @@ class FiscaliaTransform(Stage):
         df["hora"] = parse_hour(df["hora"])
         df["fecha_denuncia"] = parse_date(df["fecha_denuncia"])
 
-        natural_key = ["delito", "fecha_denuncia", "longitud", "latitud"]
-        before_dedup = len(df)
-        df = df.drop_duplicates(subset=natural_key, keep="last")
-        dupes = before_dedup - len(df)
-        if dupes:
-            self.logger.info(f"[action] Dropped {dupes} duplicate rows on {natural_key}")
-
         colonias_df = drop_duplicates_col(df, "colonia").dropna(subset=["colonia"])
         calles_df = drop_duplicates_col(df, "calle").dropna(subset=["calle"])
         cruces_df = drop_duplicates_col(df, "cruce").dropna(subset=["cruce"])
