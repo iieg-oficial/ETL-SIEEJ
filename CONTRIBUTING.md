@@ -212,9 +212,8 @@ El board de GitHub Projects organiza el trabajo en columnas:
 
 ### Como reviewer
 
-- Revisa el PR en las primeras 24-48 horas
+- Revisa el PR en las primeras 24 horas
 - Diferencia entre **bloqueantes** y **sugerencias** en tus comentarios
-- Aprueba con confianza cuando el código sea correcto, aunque no sea exactamente como lo harías tú
 
 ```
 ❌  "Esto está mal"
@@ -239,6 +238,7 @@ El board de GitHub Projects organiza el trabajo en columnas:
 - ❌ Nunca subas `flyway.conf` (tiene credenciales)
 - ❌ Nunca subas archivos `.env` con valores reales
 - ❌ Nunca hardcodees URLs de producción en el código
+- ❌ No hagas prompt injection en los reviews!!
 
 </td>
 <td>

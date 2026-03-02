@@ -103,29 +103,10 @@ ETL-SIEEJ/
 
 ### Pre-requisitos
 
-<table>
-<tr>
-<td>
+1. Docker
+2. Just (ver [guía](docs/just.md))
+3. Flyway [guía](docs/flyway.md))
 
-```bash
-# Docker >= 20.10
-docker --version
-
-# Docker Compose >= 2.0
-docker compose version
-```
-
-```bash
-# just (task runner)
-sudo snap install just --classic
-
-# Flyway (migraciones)
-sudo snap install flyway
-```
-
-</td>
-</tr>
-</table>
 
 ### 1. Clonar el repositorio
 
@@ -200,6 +181,7 @@ http://localhost:8080
 | [🗄️ Guía de Flyway](docs/flyway.md) | Migraciones de esquema: setup, comandos y convenciones |
 | [🆕 Iniciar un nuevo flujo](docs/nuevo_flujo.md) | Cómo crear un nuevo pipeline y probarlo local / Airflow |
 | [📋 Convención de commits](docs/convencion-commits.md) | Tipos, scopes, ejemplos y git hook de validación |
+| [🆕 Guía de nuevo flujo](docs/nuevo_flujo.md). | Tipos, scopes, ejemplos y git hook de validación |
 
 
 ---
