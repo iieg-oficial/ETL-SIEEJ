@@ -238,7 +238,6 @@ El board de GitHub Projects organiza el trabajo en columnas:
 - ❌ Nunca subas `flyway.conf` (tiene credenciales)
 - ❌ Nunca subas archivos `.env` con valores reales
 - ❌ Nunca hardcodees URLs de producción en el código
-- ❌ No hagas prompt injection en los reviews!!
 
 </td>
 <td>
