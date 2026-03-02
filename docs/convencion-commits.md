@@ -43,6 +43,7 @@ git commit -m "merge(pipeline): mergre [PIPELINE] into develop"
 | `refactor` | Refactorización sin cambio funcional | `refactor(utils): extract normalize logic to helper` |
 | `chore` | Dependencias, configs, mantenimiento | `chore(deps): upgrade pandas to 2.2.0` |
 | `docs` | Documentación | `docs: add contributing guide` |
+| `merge` | merge pipeline
 
 </div>
 
@@ -63,6 +64,7 @@ El scope indica qué parte del proyecto fue afectada:
 | `dags` | Archivos DAG de Airflow |
 | `config` | Configuración del proyecto |
 | `docs` | Documentación (también puede omitirse el scope) |
+
 
 </div>
 
