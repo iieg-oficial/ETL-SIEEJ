@@ -179,6 +179,7 @@ http://localhost:8080
 |:----|:------------|
 | [🤝 Contribuir al proyecto](CONTRIBUTING.md) | Flujo issue → PR, convenciones de commits, labels y board |
 | [🆕 Guía de nuevo flujo](docs/nuevo_flujo.md). | Tipos, scopes, ejemplos y git hook de validación |
+| [⚙️ Guía de Just](docs/just.md) | Herramienta de comandos para automatizar funciones del sistema |
 | [🗄️ Guía de Flyway](docs/flyway.md) | Migraciones de esquema: setup, comandos y convenciones |
 | [📋 Convención de commits](docs/convencion-commits.md) | Tipos, scopes, ejemplos y git hook de validación |
 
