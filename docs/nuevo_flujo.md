@@ -143,7 +143,6 @@ just flyway-migrate mi_pipeline
 # 4. Configurar variables de entorno del pipeline
 cp core/pipelines/mi_pipeline/.env.example core/pipelines/mi_pipeline/.env
 # → Editar .env con las credenciales
-
 # 5. Ejecutar
 python dags/etl_mi_pipeline.py
 ```

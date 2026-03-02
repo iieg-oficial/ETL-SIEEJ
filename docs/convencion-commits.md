@@ -25,7 +25,8 @@
 git commit -m "feat(pipeline): add etl_empleo_formal extract stage"
 git commit -m "fix(core): handle null values in normalize_headers"
 git commit -m "update(dags): change repd schedule to first of month"
-git commit -m "docs: add flyway guide to docs/"
+git commit -m "docs(guide): add flyway guide to docs/"
+git commit -m "merge(pipeline): mergre [PIPELINE] into develop"
 ```
 
 ---

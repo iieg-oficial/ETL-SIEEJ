@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗄️ Guía de Flyway — ETL SIEEJ
+# Guía de Flyway — ETL SIEEJ
 
 <img src="https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logoColor=white" alt="Flyway"/>
 <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -47,11 +47,39 @@ migrations/
 
 ## Instalación
 
+### Linux
+
 ```bash
-sudo snap install flyway
+# Descargar y extraer Flyway CLI
+wget https://download.red-gate.com/maven/release/com/redgate/flyway/flyway-commandline/<version>/flyway-commandline-<version>-linux-x64.tar.gz
+tar -xzf flyway-commandline-<version>-linux-x64.tar.gz
+
+# Mover al directorio del sistema
+sudo mv flyway-<version> /opt/flyway
 ```
 
-Verificar instalación:
+Para que Flyway sea fácilmente accesible desde cualquier lugar, añádelo a la variable Path de tu sistema. Para ello, abre tu archivo de configuración ~/.bashrc (o ~/.zshrc para shells Zsh) y agregua la siguiente línea:
+
+```bash
+export PATH=$PATH:/opt/flyway/flyway-10.18.2
+
+source ~/.bashrc
+```
+### macOS
+
+```bash
+brew install flyway
+```
+
+### Windows
+
+1. Descarga el `.zip` desde la [página oficial de Flyway](https://documentation.red-gate.com/fd/command-line-277579359.html?_gl=1*4nv54*_gcl_au*MzY3ODgyMjg0LjE3NzI0NzAyOTc.*_ga*NTg1NTk0NDA2LjE3NzA3MzY5NDU.*_ga_X7VDRWRT4P*czE3NzI0NzI4NDgkbzMkZzEkdDE3NzI0NzI4NjQkajQ0JGwwJGg3MDA4NDA0OTM.)
+2. Extrae en `C:\Program Files\Flyway`
+3. Agrega `C:\Program Files\Flyway` a la variable de entorno `PATH`
+
+---
+
+### Verificar instalación
 
 ```bash
 flyway -v
@@ -130,88 +158,62 @@ flyway.cleanDisabled=false
 
 ## Comandos disponibles
 
-Todos los comandos de Flyway se ejecutan desde la **raíz del proyecto** con `just`:
+### Opción 1. just (recomendado)
+
+Requiere tener `just` instalado. Ver [Guía de just](just.md).
 
 <table>
 <tr>
 <td>
 
-### Migrate — Aplicar migraciones pendientes
+**Comando** | **Descripción**
+:--- | :---
+`just flyway-migrate <pipeline>` | Aplica migraciones pendientes en orden numérico
+`just flyway-info <pipeline>` | Muestra qué scripts se aplicaron, están pendientes o fallaron
+`just flyway-validate <pipeline>` | Verifica que los scripts aplicados no hayan sido modificados
+`just flyway-clean <pipeline>` | Elimina TODAS las tablas, vistas y funciones del schema ⚠️
+`just flyway-reset <pipeline>` | Clean + Migrate: reconstruye el schema desde cero ⚠️
+---
+
+### Opción 2. base
+
+Comandos directos de Flyway, sin dependencias adicionales.
+
+#### Migrate. Aplicar migraciones pendientes
 
 ```bash
-just flyway-migrate censos_economicos
-just flyway-migrate repd
-just flyway-migrate fiscalia
-just flyway-migrate cvegeo
+flyway -configFiles=migrations/censos_economicos/flyway.conf migrate
 ```
 
-Aplica todos los scripts `V*.sql` que aún no se hayan ejecutado, en orden numérico.
-
-</td>
-</tr>
-<tr>
-<td>
-
-###  Info — Ver estado de migraciones
+#### Info. Ver estado de migraciones
 
 ```bash
-just flyway-info censos_economicos
+flyway -configFiles=migrations/censos_economicos/flyway.conf info
 ```
 
-Muestra qué scripts se aplicaron, cuáles están pendientes y cuáles fallaron.
-
-```
-+-----------+---------+-------------------------+------+---------------------+----------+
-| Category  | Version | Description             | Type | Installed On        | State    |
-+-----------+---------+-------------------------+------+---------------------+----------+
-| Versioned | 1       | catalogos ce            | SQL  | 2025-01-10 10:00:00 | Success  |
-| Versioned | 2       | tabla stg ce data       | SQL  | 2025-01-10 10:00:01 | Success  |
-| Versioned | 3       | diccionario ce          | SQL  |                     | Pending  |
-+-----------+---------+-------------------------+------+---------------------+----------+
-```
-
-</td>
-</tr>
-<tr>
-<td>
-
-### Validate — Validar integridad de scripts
+#### Validate — Validar integridad de scripts
 
 ```bash
-just flyway-validate censos_economicos
+flyway -configFiles=migrations/censos_economicos/flyway.conf validate
 ```
 
-Verifica que los scripts ya aplicados no hayan sido modificados. Útil antes de deployar.
 
-</td>
-</tr>
-<tr>
-<td>
-
-### 🗑️ Clean — Eliminar todos los objetos ⚠️
+#### 🗑️ Clean. Eliminar todos los objetos ⚠️
 
 ```bash
-just flyway-clean censos_economicos
+flyway -configFiles=migrations/censos_economicos/flyway.conf clean
 ```
 
 > ⚠️ **Destructivo:** Elimina TODAS las tablas, vistas y funciones del schema. Solo usar en desarrollo.
 
-</td>
-</tr>
-<tr>
-<td>
-
-### 🔄 Reset — Clean + Migrate ⚠️
+#### 🔄 Reset — Clean + Migrate ⚠️
 
 ```bash
-just flyway-reset censos_economicos
+flyway -configFiles=migrations/censos_economicos/flyway.conf clean
+flyway -configFiles=migrations/censos_economicos/flyway.conf migrate
 ```
 
 > ⚠️ **Destructivo:** Borra todo y vuelve a aplicar todas las migraciones desde cero. Útil para probar que tus migraciones son reproducibles.
-
-</td>
-</tr>
-</table>
 
 ---
 
@@ -246,6 +248,7 @@ V{número}__{descripcion_en_snake_case}.sql
 ✅ V2__tabla_stg_ce_data.sql
 ✅ V10__agrega_indice_fecha.sql
 ✅ V11__vista_resumen_municipio.sql
+✅ V1.0__vista_casos.sql
 
 ❌ v1_catalogos.sql        (V minúscula)
 ❌ V1_catalogos.sql        (un solo guion bajo)
@@ -284,7 +287,7 @@ CREATE INDEX IF NOT EXISTS idx_ce_datos_municipio
 ```
 
 
-### Paso 4 — Probar
+### Paso 4. Probar migraciones
 
 ```bash
 # Ver estado antes
@@ -297,7 +300,7 @@ just flyway-migrate censos_economicos
 just flyway-info censos_economicos
 ```
 
-### Paso 5 — Commitear
+### Paso 5.  Commitear
 
 ```bash
 git add migrations/censos_economicos/sql/V4__indice_municipio.sql
