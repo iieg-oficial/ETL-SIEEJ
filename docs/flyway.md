@@ -1,6 +1,6 @@
 <div align="center">
 
-# Guía de Flyway — ETL SIEEJ
+# Guía de Flyway - ETL SIEEJ
 
 <img src="https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logoColor=white" alt="Flyway"/>
 <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
@@ -191,7 +191,7 @@ flyway -configFiles=migrations/censos_economicos/flyway.conf migrate
 flyway -configFiles=migrations/censos_economicos/flyway.conf info
 ```
 
-#### Validate — Validar integridad de scripts
+#### Validate - Validar integridad de scripts
 
 ```bash
 flyway -configFiles=migrations/censos_economicos/flyway.conf validate
@@ -206,7 +206,7 @@ flyway -configFiles=migrations/censos_economicos/flyway.conf clean
 
 > ⚠️ **Destructivo:** Elimina TODAS las tablas, vistas y funciones del schema. Solo usar en desarrollo.
 
-#### 🔄 Reset — Clean + Migrate ⚠️
+#### 🔄 Reset - Clean + Migrate ⚠️
 
 ```bash
 flyway -configFiles=migrations/censos_economicos/flyway.conf clean
@@ -252,7 +252,7 @@ V{número}__{descripcion_en_snake_case}.sql
 
 ❌ v1_catalogos.sql        (V minúscula)
 ❌ V1_catalogos.sql        (un solo guion bajo)
-❌ V01__catalogos.sql      (cero al inicio — aunque funciona, evitar)
+❌ V01__catalogos.sql      (cero al inicio - aunque funciona, evitar)
 ❌ migration_01.sql        (sin prefijo V)
 ```
 
@@ -401,6 +401,6 @@ flyway -configFiles=migrations/<pipeline>/flyway.conf baseline
 
 ¿Problemas con Flyway? Revisa los [docs oficiales](https://documentation.red-gate.com/flyway/) o abre un issue 🐛
 
-<sub>Guía de Flyway — ETL SIEEJ · IIEG Jalisco</sub>
+<sub>Guía de Flyway - ETL SIEEJ - IIEG Jalisco</sub>
 
 </div>

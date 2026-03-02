@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤝 Guía de Contribución — ETL SIEEJ
+# 🤝 Guía de Contribución - ETL SIEEJ
 
 <img src="https://img.shields.io/badge/IIEG-Jalisco-5C2D91?style=for-the-badge" alt="IIEG"/>
 <img src="https://img.shields.io/badge/Contribuciones-Bienvenidas-f97316?style=for-the-badge&logo=github" alt="Contribuciones"/>
@@ -257,6 +257,6 @@ El board de GitHub Projects organiza el trabajo en columnas:
 
 <div align="center">
 
-<sub>Guía de contribución — ETL SIEEJ · IIEG Jalisco</sub>
+<sub>Guía de contribución - ETL SIEEJ - IIEG Jalisco</sub>
 
 </div>

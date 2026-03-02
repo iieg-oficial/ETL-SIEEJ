@@ -73,7 +73,7 @@ ETL-SIEEJ/
 │
 ├── 📄 compose.yaml              # Docker Compose para Airflow completo
 ├── 🐳 Dockerfile                # Imagen personalizada (Chrome + deps)
-├── ⚡ justfile                  # Task runner — ejecuta `just` para ver comandos
+├── ⚡ justfile                  # Task runner - ejecuta `just` para ver comandos
 ├── 📦 requirements.txt          # Dependencias Python
 │
 ├── core/                        # 🧠 Núcleo del sistema ETL
@@ -105,7 +105,7 @@ ETL-SIEEJ/
 
 1. Docker
 2. Just (ver [guía](docs/just.md))
-3. Flyway [guía](docs/flyway.md))
+3. Flyway (ver [guía](docs/flyway.md))
 
 
 ### 1. Clonar el repositorio
@@ -154,15 +154,15 @@ Esto construye la imagen y levanta todos los servicios en background. Servicios 
 | Servicio | Descripción | Puerto |
 |:---------|:------------|:------|
 | `airflow-apiserver` | Interfaz web | **8080** |
-| `airflow-scheduler` | Programador de tareas | — |
-| `airflow-worker` | Ejecutor Celery | — |
-| `airflow-triggerer` | Gestor de triggers | — |
-| `airflow-dag-processor` | Procesador de DAGs | — |
-| `postgres` | Metadatos de Airflow | — |
-| `redis` | Cola de mensajes | — |
+| `airflow-scheduler` | Programador de tareas | - |
+| `airflow-worker` | Ejecutor Celery | - |
+| `airflow-triggerer` | Gestor de triggers | - |
+| `airflow-dag-processor` | Procesador de DAGs | - |
+| `postgres` | Metadatos de Airflow | - |
+| `redis` | Cola de mensajes | - |
 </div>
 
-### 5️⃣ — Acceder a la interfaz
+### 5. Acceder a la interfaz
 
 ```
 http://localhost:8080
@@ -178,10 +178,9 @@ http://localhost:8080
 | Guía | Descripción |
 |:----|:------------|
 | [🤝 Contribuir al proyecto](CONTRIBUTING.md) | Flujo issue → PR, convenciones de commits, labels y board |
-| [🗄️ Guía de Flyway](docs/flyway.md) | Migraciones de esquema: setup, comandos y convenciones |
-| [🆕 Iniciar un nuevo flujo](docs/nuevo_flujo.md) | Cómo crear un nuevo pipeline y probarlo local / Airflow |
-| [📋 Convención de commits](docs/convencion-commits.md) | Tipos, scopes, ejemplos y git hook de validación |
 | [🆕 Guía de nuevo flujo](docs/nuevo_flujo.md). | Tipos, scopes, ejemplos y git hook de validación |
+| [🗄️ Guía de Flyway](docs/flyway.md) | Migraciones de esquema: setup, comandos y convenciones |
+| [📋 Convención de commits](docs/convencion-commits.md) | Tipos, scopes, ejemplos y git hook de validación |
 
 
 ---

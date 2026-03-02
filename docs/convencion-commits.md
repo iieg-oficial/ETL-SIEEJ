@@ -1,6 +1,6 @@
 <div align="center">
 
-# 📋 Convención de Commits — ETL SIEEJ
+# 📋 Convención de Commits - ETL SIEEJ
 
 <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" alt="Git"/>
 <img src="https://img.shields.io/badge/Conventional_Commits-FE5196?style=for-the-badge&logo=conventionalcommits&logoColor=white" alt="Conventional Commits"/>
@@ -139,7 +139,7 @@ fix(core): close db connection on pipeline failure
 <td width="50%">
 
 **1. Tipo y scope en minúsculas**
-`feat(pipeline)` ✅ — `Feat(Pipeline)` ❌
+`feat(pipeline)` ✅ - `Feat(Pipeline)` ❌
 
 **2. Descripción en inglés, imperativo**
 `"add extract stage"` ✅
@@ -152,7 +152,7 @@ fix(core): close db connection on pipeline failure
 <td width="50%">
 
 **4. Scope específico al componente afectado**
-`fix(core)` ✅ — `fix` ❌ *(si hay un scope claro)*
+`fix(core)` ✅ - `fix` ❌ *(si hay un scope claro)*
 
 **5. Un commit = un cambio lógico**
 No mezcles feat + fix en el mismo commit.
@@ -167,6 +167,6 @@ No mezcles feat + fix en el mismo commit.
 
 <div align="center">
 
-<sub>Convención de commits — ETL SIEEJ · IIEG Jalisco</sub>
+<sub>Convención de commits - ETL SIEEJ - IIEG Jalisco</sub>
 
 </div>

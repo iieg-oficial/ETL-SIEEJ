@@ -1,7 +1,9 @@
 <div align="center">
 
 # Guía de just - ETL SIEEJ
+<img src="https://img.shields.io/badge/IIEG-Jalisco-5C2D91?style=for-the-badge" alt="IIEG"/>
 <img src="https://img.shields.io/badge/just-1D1D1D?style=for-the-badge&logoColor=white" alt="just"/>
+
 </div>
 
 ### Automatización de tareas del proyecto
@@ -220,6 +222,6 @@ Ejecuta `clean` seguido de `migrate`: borra todo y reconstruye el schema desde c
 
 <div align="center">
 
-<sub>Guía de just — ETL SIEEJ · IIEG Jalisco</sub>
+<sub>Guía de just - ETL SIEEJ - IIEG Jalisco</sub>
 
 </div>
