@@ -1,17 +1,5 @@
 import pandas as pd
 from typing import List, Dict, Any
-from core.utils.normalize import normalize_text
-
-
-def records_to_map(records: List[Dict], key: str) -> Dict:
-    """
-    Converts a list of records to a mapping dictionary.
-
-    Returns:
-        Dict mapping normalized text values to their IDs
-        Example: {'16_de_septiembre': 1, 'autlan_de_navarro': 2}
-    """
-    return {normalize_text(r[key]): r["id"] for r in records}
 
 
 def df_to_records(df: pd.DataFrame, columns: list) -> List[Dict[str, Any]]:
