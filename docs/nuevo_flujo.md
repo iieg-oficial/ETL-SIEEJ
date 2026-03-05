@@ -135,15 +135,15 @@ just build-dev user=sieej_user pass=mi_pass db=mi_pipeline
 # 2. Crear migración de la base de datos de cvegeo y hacer la migración:
 just create-cvegeo-db user=sieej_user && just flyway-migrate cvegeo
 
-# 3. Configurar Flyway y aplicar migraciones
-cp migrations/mi_pipeline/flyway.conf.example migrations/mi_pipeline/flyway.conf
-# → Editar flyway.conf con: localhost:5432/mi_pipeline, sieej_user, mi_pass
+# 3. Configurar Flyway
+just flyway-config mi_pipeline
+#4. aplicar migraciones
 just flyway-migrate mi_pipeline
 
-# 4. Configurar variables de entorno del pipeline
+# 5. Configurar variables de entorno del pipeline
 cp core/pipelines/mi_pipeline/.env.example core/pipelines/mi_pipeline/.env
 # → Editar .env con las credenciales
-# 5. Ejecutar
+# 6. Ejecutar
 python dags/etl_mi_pipeline.py
 ```
 
@@ -181,7 +181,7 @@ just logs airflow-dag-processor   # errores de importación
 
 Ejecuta `just` sin argumentos para ver todos los comandos disponibles.
 
-### Docker / Airflow
+### Docker
 
 | Comando | Descripción |
 |:--------|:------------|
@@ -193,17 +193,25 @@ Ejecuta `just` sin argumentos para ver todos los comandos disponibles.
 | `just ps` | Estado de los contenedores |
 | `just restart <servicio>` | Reinicia un servicio |
 
+### Airflow
+
+| Comando | Descripción |
+|:--------|:------------|
+| `just airflow-init` | Inicializa Airflow (solo la primera vez) |
+
 ### Desarrollo local
 
 | Comando | Descripción |
 |:--------|:------------|
 | `just build-dev [user] [pass] [db] [port]` | Levanta un contenedor PostGIS para desarrollo |
+| `just stop-dev` | Detiene y elimina el contenedor `postgres-dev` |
 | `just create-cvegeo-db` | Crea la base de datos `cvegeo` en el contenedor de dev |
 
 ### Flyway
 
 | Comando | Descripción |
 |:--------|:------------|
+| `just flyway-config <pipeline>` | Copia `flyway.conf.example` → `flyway.conf` |
 | `just flyway-migrate <pipeline>` | Aplica las migraciones pendientes |
 | `just flyway-info <pipeline>` | Estado de las migraciones |
 | `just flyway-validate <pipeline>` | Valida integridad de los scripts |
