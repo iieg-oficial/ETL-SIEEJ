@@ -76,6 +76,10 @@ def sync_id_sequence(session, model) -> None:
         func.setval(func.pg_get_serial_sequence(model.__tablename__, 'id'), max_id + 1, False)
     )
 
+def get_last_update(session, model, date_column: str):
+    return session.query(func.max(getattr(model, date_column))).scalar()
+
+
 def get_mapping(session, model, key_column: str, value_column: str, is_normalize: bool = False) -> Dict:
     results = session.query(
         getattr(model, key_column),

@@ -24,6 +24,9 @@ def uppercase_col(df: pd.DataFrame, col:str) -> None:
 def title_col(df: pd.DataFrame, col:str) -> None:
     df[col] = df[col].str.title()
 
+def capitalize_col(df: pd.DataFrame, col:str) -> None:
+    df[col] = df[col].str.capitalize()
+
 def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
     normalized = df[col].str.lower()
     normalized = normalized.str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8')
@@ -31,6 +34,8 @@ def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
     return normalized
 
 def normalize_text(text):
-   text  = text.replace(' ', '_').lower()
-   return ''.join(c for c in unicodedata.normalize('NFD', text)
-                  if unicodedata.category(c) != 'Mn')
+    if not isinstance(text, str):
+        return None
+    text = ' '.join(text.split()).replace(' ', '_').lower()
+    return ''.join(c for c in unicodedata.normalize('NFD', text)
+                   if unicodedata.category(c) != 'Mn')
