@@ -17,6 +17,8 @@
 - [Instalación](#instalación)
 - [Ver comandos disponibles](#ver-comandos-disponibles)
 - [Comandos Docker](#comandos-docker)
+- [Comandos Airflow](#comandos-airflow)
+- [Comandos de desarrollo](#comandos-de-desarrollo)
 - [Comandos Flyway](#comandos-flyway)
 
 ---
@@ -92,27 +94,35 @@ just
 
 ```
 Available recipes:
+  [airflow]
+    airflow-init
+
+  [development]
     build-dev user="test" pass="test" db="test" port="5432"
-    create-cvegeo-db host="localhost" port="5432" user="test"
+    stop-dev
+    create-cvegeo-db host="localhost" port="5432" user="test" database="test" pass="test"
+
+  [docker]
+    up
     down
     down-volumes
-    flyway-clean pipeline
-    flyway-info pipeline
-    flyway-migrate pipeline
-    flyway-reset pipeline
-    flyway-validate pipeline
+    rebuild service
     logs service=""
     ps
-    rebuild service
     restart service
-    up
+
+  [flyway]
+    flyway-config pipeline
+    flyway-migrate pipeline
+    flyway-clean pipeline
+    flyway-reset pipeline
+    flyway-info pipeline
+    flyway-validate pipeline
 ```
 
 ---
 
 ## Comandos Docker
-
-### Servicios principales
 
 | Comando | Descripción |
 | :--- | :--- |
@@ -131,7 +141,25 @@ just restart airflow-scheduler
 just down
 ```
 
-### Base de datos de desarrollo
+---
+
+## Comandos Airflow
+
+| Comando | Descripción |
+| :--- | :--- |
+| `just airflow-init` | Inicializa Airflow (solo la primera vez, antes de `just up`) |
+
+```bash
+just airflow-init
+# Esperar: "Admin user airflow created"
+just up
+```
+
+---
+
+## Comandos de desarrollo
+
+### build-dev
 
 `build-dev` levanta un contenedor PostgreSQL/PostGIS standalone para desarrollo local, sin depender del stack de producción.
 
@@ -149,6 +177,14 @@ just build-dev user=sieej_user pass=mi_pass db=sieej
 | `pass` | `test` | Contraseña |
 | `db` | `test` | Nombre de la base de datos |
 | `port` | `5432` | Puerto expuesto en el host |
+
+### stop-dev
+
+Detiene y elimina el contenedor `postgres-dev`.
+
+```bash
+just stop-dev
+```
 
 ### create-cvegeo-db
 
@@ -172,7 +208,15 @@ just create-cvegeo-db host=192.168.1.10 port=5433 user=sieej_user
 
 ## Comandos Flyway
 
-Todos los comandos reciben el nombre del pipeline como argumento. Los pipelines disponibles son: `censos_economicos`, `repd`, `fiscalia`, `cvegeo`. Para más detalle sobre migraciones consulta la [Guía de Flyway](flyway.md).
+Todos los comandos reciben el nombre del pipeline como argumento. Para más detalle sobre migraciones consulta la [Guía de Flyway](flyway.md).
+
+#### flyway-config. Configurar Flyway para un pipeline
+
+```bash
+just flyway-config censos_economicos
+```
+
+Copia `flyway.conf.example` a `flyway.conf` en la carpeta del pipeline. Ejecutar una vez antes de correr migraciones por primera vez.
 
 #### flyway-migrate. Aplicar migraciones pendientes
 
