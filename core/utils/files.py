@@ -17,6 +17,22 @@ def cleanup_pipeline_data(pipeline_name: str) -> None:
             shutil.rmtree(pipeline_dir)
             logger.info(f"Cleaned {pipeline_dir}")
 
+
+def clean_directory(directory: Path, log=None) -> None:
+    """Elimina todos los archivos y subdirectorios dentro de *directory* sin borrar la carpeta."""
+    if not directory.exists():
+        return
+    for item in directory.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+    msg = f"Limpieza completada: {directory}"
+    if log:
+        log.info(msg)
+    else:
+        logger.info(msg)
+
 def parse_date_from_filename(filepath: str, extension: str) -> datetime | None:
     filename = os.path.basename(filepath)
     date_str = filename.replace(extension, "")
