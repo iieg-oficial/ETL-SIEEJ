@@ -1,5 +1,5 @@
 import pandas as pd
-
+from datetime import date
 
 def parse_hour(series: pd.Series) -> pd.Series:
     """
@@ -29,7 +29,6 @@ def parse_date(series: pd.Series, dayfirst: bool = False) -> pd.Series:
 
 
 def parse_month_year(val) -> 'date | None':
-    from datetime import date
     if pd.isna(val) or val is None:
         return None
     val = str(val).strip()
