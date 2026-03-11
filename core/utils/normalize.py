@@ -43,5 +43,4 @@ def normalize_text(text):
     if not isinstance(text, str):
         return None
     text = ' '.join(text.split()).replace(' ', '_').lower()
-    return ''.join(c for c in unicodedata.normalize('NFD', text)
-                   if unicodedata.category(c) != 'Mn')
+    return strip_accents(text)
