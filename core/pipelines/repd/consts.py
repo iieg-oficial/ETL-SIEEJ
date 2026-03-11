@@ -33,16 +33,16 @@ DATE_COLUMNS = [
     "closure_date",
 ]
 
-# Columna del DataFrame a nombre clave del catalogo
-CATALOG_COLUMN_MAP = {
-    "sex": "sex",
-    "nationality": "nationality",
-    "age_range": "age_range",
-    "status": "status",
-    "location_condition": "location_condition",
-    "location_classification": "location_classification",
-    "closure_type": "closure_type",
-}
+# Columnas de catalogo del DataFrame
+CATALOG_COLUMNS = [
+    "sex",
+    "nationality",
+    "age_range",
+    "status",
+    "location_condition",
+    "location_classification",
+    "closure_type",
+]
 
 # Municipios que NO deben resolverse contra cvegeo
 SKIP_MUNICIPALITY_VALUES = frozenset({

@@ -8,7 +8,7 @@ from sqlalchemy import text
 from core.db import Database
 from core.pipelines.repd.config import settings
 from core.pipelines.repd.consts import (
-    CATALOG_COLUMN_MAP,
+    CATALOG_COLUMNS,
     HASH_FIELDS,
     MUNICIPALITY_COLUMNS,
     PIPELINE_NAME,
@@ -139,10 +139,9 @@ class REPDLoader(Stage):
 
     # Agrega columnas *_id mapeando nombre->id de catalogo
     def _resolve_catalog_ids(self, df: pd.DataFrame) -> pd.DataFrame:
-        for cat_key, col_name in CATALOG_COLUMN_MAP.items():
-            id_col = f"{cat_key}_id"
-            cache = self._catalog_caches[cat_key]
-            df[id_col] = df[col_name].apply(
+        for col in CATALOG_COLUMNS:
+            cache = self._catalog_caches[col]
+            df[f"{col}_id"] = df[col].apply(
                 lambda v: cache.get(normalize_text(v)) if v is not None else None
             )
         return df

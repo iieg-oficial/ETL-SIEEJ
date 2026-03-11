@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from core.pipelines.repd.consts import (
-    CATALOG_COLUMN_MAP,
+    CATALOG_COLUMNS,
     COLUMN_RENAME_MAP,
     DATE_COLUMNS,
     HASH_FIELDS,
@@ -68,11 +68,11 @@ class REPDTransformer(Stage):
 
         # Extraer valores unicos de catalogos
         catalogs: dict[str, list[str]] = {}
-        for cat_key, col_name in CATALOG_COLUMN_MAP.items():
-            if col_name in df.columns:
-                unique_vals = df[col_name].dropna().unique().tolist()
-                catalogs[cat_key] = sorted(unique_vals)
-                self.logger.info(f"Catalogo '{cat_key}': {len(unique_vals)} valores unicos")
+        for col in CATALOG_COLUMNS:
+            if col in df.columns:
+                unique_vals = df[col].dropna().unique().tolist()
+                catalogs[col] = sorted(unique_vals)
+                self.logger.info(f"Catalogo '{col}': {len(unique_vals)} valores unicos")
 
         # Sanitizar: convertir NaN/NaT residuales a None
         df = df.where(pd.notna(df), other=None)
