@@ -141,18 +141,20 @@ class REPDLoader(Stage):
     def _resolve_catalog_ids(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in CATALOG_COLUMNS:
             cache = self._catalog_caches[col]
-            df[f"{col}_id"] = df[col].apply(
+            series = df[col].apply(
                 lambda v: cache.get(normalize_text(v)) if v is not None else None
-            )
+            ).astype(object)
+            df[f"{col}_id"] = series.where(pd.notna(series), other=None)
         return df
 
     # Resuelve columnas de municipio a IDs de cvegeo
     def _resolve_municipality_ids(self, df: pd.DataFrame) -> pd.DataFrame:
         for mun_col, state_col, id_col in MUNICIPALITY_COLUMNS:
-            df[id_col] = df.apply(
+            series = df.apply(
                 lambda row: self._resolve_municipality_id(row.get(state_col), row.get(mun_col)),
                 axis=1,
-            )
+            ).astype(object)
+            df[id_col] = series.where(pd.notna(series), other=None)
         return df
 
     # Carga inicial: inserta todos los registros en current e history
