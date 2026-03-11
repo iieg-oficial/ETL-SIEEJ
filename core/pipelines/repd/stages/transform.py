@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 from pathlib import Path
@@ -15,7 +14,7 @@ from core.pipelines.repd.consts import (
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null, parse_boolean
 from core.utils.files import clean_directory
-from core.utils.normalize import normalize_col
+from core.utils.normalize import normalize_col, uppercase_col
 from core.utils.parse_datetime import parse_month_year
 from core.utils.records import compute_record_hash
 
@@ -60,12 +59,12 @@ class REPDTransformer(Stage):
         # Normalizar estados a UPPER
         for col in ["disappearance_state_name", "location_state_name"]:
             if col in df.columns:
-                df[col] = df[col].str.strip().str.upper().replace({np.nan: None})
+                uppercase_col(df, col)
 
         # Normalizar municipios a UPPER
         for col in ["disappearance_municipality", "location_municipality"]:
             if col in df.columns:
-                df[col] = df[col].str.strip().str.upper().replace({np.nan: None})
+                uppercase_col(df, col)
 
         # Extraer valores unicos de catalogos
         catalogs: dict[str, list[str]] = {}
