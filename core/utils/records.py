@@ -1,3 +1,5 @@
+import hashlib
+
 import pandas as pd
 from typing import List, Dict, Any
 
@@ -24,3 +26,12 @@ def df_to_records_with_id(df: pd.DataFrame, columns: list) -> List[Dict[str, Any
     df = df.reset_index(drop=True)
     records = df[columns].to_dict("records")
     return [{"id": i, **record} for i, record in enumerate(records, start=1)]
+
+
+def compute_record_hash(row: dict, fields: list[str]) -> str:
+    parts = []
+    for field in fields:
+        val = row.get(field)
+        parts.append("" if val is None else str(val))
+    payload = "|".join(parts)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()

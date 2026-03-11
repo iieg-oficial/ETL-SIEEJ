@@ -33,6 +33,12 @@ def normalize_col(df: pd.DataFrame, col: str) -> pd.Series:
     normalized = normalized.str.replace(' ', '_')
     return normalized
 
+def strip_accents(text: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFD", text)
+        if unicodedata.category(c) != "Mn"
+    )
+
 def normalize_text(text):
     if not isinstance(text, str):
         return None

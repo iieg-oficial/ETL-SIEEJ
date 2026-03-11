@@ -30,3 +30,24 @@ def drop_duplicates_col(df: pd.DataFrame,column: str) -> pd.DataFrame:
     normalized = normalize_col(df, column)
     mask = ~normalized.duplicated(keep='first')
     return df[mask]
+
+
+def parse_boolean(val) -> 'bool | None':
+    if pd.isna(val) or val is None:
+        return None
+    v = str(val).strip().upper()
+    if v in ("SI", "S"):
+        return True
+    if v in ("NO", "N"):
+        return False
+    return None
+
+
+def nan_to_none(v):
+    if v is None:
+        return None
+    if isinstance(v, float) and np.isnan(v):
+        return None
+    if pd.isna(v):
+        return None
+    return v
