@@ -3,6 +3,8 @@ import pandas as pd
 from datetime import datetime
 from typing import Any, Optional
 
+from sqlalchemy import text
+
 from core.db import Database
 from core.pipelines.repd.config import settings
 from core.pipelines.repd.consts import (
@@ -117,7 +119,6 @@ class REPDLoader(Stage):
 
     # Carga el mapping (estado, municipio)->id desde cvegeo via FDW
     def _load_municipality_cache(self, session) -> None:
-        from sqlalchemy import text
         results = session.execute(
             text("SELECT nom_ent, nomgeo, id FROM cvegeo_municipalities")
         ).all()
