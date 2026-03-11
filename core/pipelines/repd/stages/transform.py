@@ -15,7 +15,7 @@ from core.pipelines.repd.consts import (
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null, parse_boolean
 from core.utils.files import clean_directory
-from core.utils.normalize import strip_accents
+from core.utils.normalize import normalize_col
 from core.utils.parse_datetime import parse_month_year
 from core.utils.records import compute_record_hash
 
@@ -42,7 +42,8 @@ class REPDTransformer(Stage):
         self.logger.info(f"Registros leidos: {len(df)}, columnas: {list(df.columns)}")
 
         # Normalizar nombres de columnas y quitar acentos
-        df.columns = df.columns.str.strip().str.lower().map(strip_accents)
+        tmp = pd.DataFrame({"c": df.columns.str.strip()})
+        df.columns = normalize_col(tmp, "c").values
         df = df.rename(columns=COLUMN_RENAME_MAP)
 
         # Limpiar valores nulos
