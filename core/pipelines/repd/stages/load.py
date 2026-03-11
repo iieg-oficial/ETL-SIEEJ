@@ -1,7 +1,7 @@
+import pandas as pd
+
 from datetime import datetime
 from typing import Any, Optional
-
-import pandas as pd
 
 from core.db import Database
 from core.pipelines.repd.config import settings
@@ -12,15 +12,12 @@ from core.pipelines.repd.consts import (
     PIPELINE_NAME,
     SKIP_MUNICIPALITY_VALUES,
 )
-from core.utils.clean import nan_to_none
-from core.utils.files import clean_directory
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
     CaseCurrent,
     CaseHistory,
     RepdBase,
 )
-from core.utils.records import compute_record_hash
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import (
     bulk_insert,
@@ -28,7 +25,10 @@ from core.utils.bulk_ops import (
     insert_records,
     sync_id_sequence,
 )
+from core.utils.clean import nan_to_none
+from core.utils.files import clean_directory
 from core.utils.normalize import normalize_text
+from core.utils.records import compute_record_hash
 
 
 class REPDLoader(Stage):

@@ -1,7 +1,7 @@
+import requests
+
 from datetime import datetime
 from typing import Any, Optional
-
-import requests
 
 from core.pipelines.repd.config import settings
 from core.pipelines.repd.consts import PIPELINE_NAME

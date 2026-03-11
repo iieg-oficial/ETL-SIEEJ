@@ -1,8 +1,8 @@
-from pathlib import Path
-from typing import Any, Optional
-
 import numpy as np
 import pandas as pd
+
+from pathlib import Path
+from typing import Any, Optional
 
 from core.pipelines.repd.consts import (
     CATALOG_COLUMN_MAP,
