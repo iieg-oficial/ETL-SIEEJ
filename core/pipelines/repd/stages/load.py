@@ -10,10 +10,10 @@ from core.pipelines.repd.consts import (
     HASH_FIELDS,
     MUNICIPALITY_COLUMNS,
     PIPELINE_NAME,
+    SKIP_MUNICIPALITY_VALUES,
 )
 from core.utils.clean import nan_to_none
 from core.utils.files import clean_directory
-from core.pipelines.repd.mappings.municipios import MUNICIPALITY_NAME_FIXES, SKIP_MUNICIPALITY_VALUES
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
     CaseCurrent,
@@ -134,8 +134,7 @@ class REPDLoader(Stage):
         if state is None:
             return None
         normalized_name = normalize_text(name)
-        fixed = MUNICIPALITY_NAME_FIXES.get(normalized_name, normalized_name)
-        key = (normalize_text(state), fixed)
+        key = (normalize_text(state), normalized_name)
         return self._municipality_cache.get(key)
 
     # Agrega columnas *_id mapeando nombre->id de catalogo

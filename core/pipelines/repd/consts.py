@@ -44,6 +44,12 @@ CATALOG_COLUMN_MAP = {
     "closure_type": "closure_type",
 }
 
+# Municipios que NO deben resolverse contra cvegeo
+SKIP_MUNICIPALITY_VALUES = frozenset({
+    "SE IGNORA",
+    "EXTRANJERO",
+})
+
 # Columnas de municipio: (col_municipio, col_estado, col_id_destino)
 MUNICIPALITY_COLUMNS = [
     ("disappearance_municipality", "disappearance_state_name", "disappearance_municipality_id"),
