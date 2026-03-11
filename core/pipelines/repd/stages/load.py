@@ -27,7 +27,6 @@ from core.utils.bulk_ops import (
     insert_records,
     sync_id_sequence,
 )
-from core.utils.clean import nan_to_none
 from core.utils.files import clean_directory
 from core.utils.normalize import normalize_text
 from core.utils.records import compute_record_hash
@@ -334,22 +333,22 @@ class REPDLoader(Stage):
     def _build_case_record(row: pd.Series) -> dict:
         return {
             "feb": row["feb"],
-            "sex_id": nan_to_none(row.get("sex_id")),
-            "nationality_id": nan_to_none(row.get("nationality_id")),
-            "age_range_id": nan_to_none(row.get("age_range_id")),
-            "report_date": nan_to_none(row.get("report_date")),
-            "disappearance_date": nan_to_none(row.get("disappearance_date")),
-            "disappearance_state_name": nan_to_none(row.get("disappearance_state_name")),
-            "disappearance_municipality_id": nan_to_none(row.get("disappearance_municipality_id")),
-            "status_id": nan_to_none(row.get("status_id")),
-            "location_date": nan_to_none(row.get("location_date")),
-            "location_condition_id": nan_to_none(row.get("location_condition_id")),
-            "location_classification_id": nan_to_none(row.get("location_classification_id")),
-            "location_state_name": nan_to_none(row.get("location_state_name")),
-            "location_municipality_id": nan_to_none(row.get("location_municipality_id")),
-            "closure_date": nan_to_none(row.get("closure_date")),
-            "closure_type_id": nan_to_none(row.get("closure_type_id")),
-            "linked_feb": nan_to_none(row.get("linked_feb")),
-            "has_investigation_folder": nan_to_none(row.get("has_investigation_folder")),
+            "sex_id": row.get("sex_id"),
+            "nationality_id": row.get("nationality_id"),
+            "age_range_id": row.get("age_range_id"),
+            "report_date": row.get("report_date"),
+            "disappearance_date": row.get("disappearance_date"),
+            "disappearance_state_name": row.get("disappearance_state_name"),
+            "disappearance_municipality_id": row.get("disappearance_municipality_id"),
+            "status_id": row.get("status_id"),
+            "location_date": row.get("location_date"),
+            "location_condition_id": row.get("location_condition_id"),
+            "location_classification_id": row.get("location_classification_id"),
+            "location_state_name": row.get("location_state_name"),
+            "location_municipality_id": row.get("location_municipality_id"),
+            "closure_date": row.get("closure_date"),
+            "closure_type_id": row.get("closure_type_id"),
+            "linked_feb": row.get("linked_feb"),
+            "has_investigation_folder": row.get("has_investigation_folder"),
             "record_hash": row.get("record_hash"),
         }

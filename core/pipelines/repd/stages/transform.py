@@ -74,6 +74,9 @@ class REPDTransformer(Stage):
                 catalogs[cat_key] = sorted(unique_vals)
                 self.logger.info(f"Catalogo '{cat_key}': {len(unique_vals)} valores unicos")
 
+        # Sanitizar: convertir NaN/NaT residuales a None
+        df = df.where(pd.notna(df), other=None)
+
         self.logger.info(f"Transformacion completa. {len(df)} registros.")
 
         return {
