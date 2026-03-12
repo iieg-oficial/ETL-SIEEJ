@@ -10,14 +10,14 @@ class BaseClass(Enum):
     def to_records(cls, attr_name):
         return [{"id": c.id, attr_name: c.attribute} for c in cls]
 
-class Turnos(BaseClass):
+class TurnosMap(BaseClass):
     MATUTINO = (auto(), "Matutino")
     VESPERTINO = (auto(), "Vespertino")
     CONTINUO = (auto(), "Continuo")
     DISCONTINUO = (auto(), "Discontinuo")
     NOCTURNO = (auto(), "Nocturno")
 
-class TipoEducativo(BaseClass):
+class TipoEducativoMap(BaseClass):
     BASICA = (auto(), "Básica")
     ESPECIAL = (auto(), "Especial")
     MEDIA_SUPERIOR = (auto(), "Media superior")
@@ -25,8 +25,7 @@ class TipoEducativo(BaseClass):
     SUPERIOR = (auto(), "Superior")
     CAPACITACION = (auto(), "Capacitación")
 
-
-class NivelEducativo(BaseClass):
+class NivelEducativoMap(BaseClass):
     INICIAL = (auto(), "Inicial")
     INICIAL_GENERAL = (auto(), "Inicial General")
     PREESCOLAR = (auto(), "Preescolar")
@@ -37,7 +36,7 @@ class NivelEducativo(BaseClass):
     FORMACION_PARA_EL_TRABAJO = (auto(), "Formación para el trabajo")
     LICENCIATURA = (auto(), "Licenciatura")
 
-class ServicioEducativo(BaseClass):
+class ServicioEducativoMap(BaseClass):
     LACTANTE_Y_MATERNAL = (auto(), "Lactante y maternal")
     INICIAL_NO_ESCOLARIZADA = (auto(), "Inicial no escolarizada")
     INICIAL_INDIGENA = (auto(), "Inicial indígena")
@@ -53,19 +52,15 @@ class ServicioEducativo(BaseClass):
     TECNOLOGICO = (auto(), "Tecnológico")
     LICENCIATURA_UNIVERSITARIA_Y_TECNOLOGICA = (auto(), "Licenciatura universitaria y tecnológica")
 
-class NombreControl(BaseClass):
+class NombreControlMap(BaseClass):
     PUBLICO = (auto(), "Público")
     PRIVADO = (auto(), "Privado")
 
-class TipoSostenimiento(BaseClass):
+class TipoSostenimientoMap(BaseClass):
     FEDERAL_TRANSFERIDO = (auto(), "Federal transferido")
     FEDERAL = (auto(), "Federal")
     ESTATAL = (auto(), "Estatal")
     PRIVADO = (auto(), "Privado")
     AUTONOMO = (auto(), "Autónomo")
     SUBSIDIO = (auto(), "Subsidio")
-
-if __name__ == "__main__":
-    # print(TipoEducativo.to_records("tipo_educativo"))
-    print(ServicioEducativo.to_records("servicio_educativo"))
 
