@@ -1,5 +1,5 @@
 import re
-from core.pipelines.centros_educativos.mappings.accent_mappings import ACCENT_MAP
+from core.constants.accent_mappings import ACCENT_MAP
 
 def apply_accents(value: str) -> str:
     if not isinstance(value, str):
