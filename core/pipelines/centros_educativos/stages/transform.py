@@ -9,7 +9,7 @@ from core.utils.logger import get_logger
 from core.utils.normalize import capitalize_col, title_col
 from core.utils.parse_datetime import parse_date
 from core.pipelines.centros_educativos.attributes.centros_educativos import CentrosEducativosTables as T
-from core.pipelines.centros_educativos.constants import NULL_VALUES, CAPITALIZE_COLS, TITLE_COLS, DATE_COLS
+from core.pipelines.centros_educativos.constants import NULL_VALUES, CAPITALIZE_COLS, TITLE_COLS
 from core.utils.accents import apply_accents
 
 
@@ -76,11 +76,6 @@ class CentrosEducativosTransform(Stage):
 
         self.logger.info("[action] Parsing fecha_actualizacion column")
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])
-
-        if DATE_COLS:
-            self.logger.info(f"[action] Parsing {len(DATE_COLS)} date columns")
-            for col in DATE_COLS:
-                df[col] = parse_date(df[col], dayfirst=True)
 
         self.logger.info(f"[action] Capitalizing {len(CAPITALIZE_COLS)} columns")
         for col in CAPITALIZE_COLS:
