@@ -68,4 +68,4 @@ TITLE_COLS: Final[List[str]] = [
     "domicilio", "entre_calle", "y_calle", "calle_posterior", "colonia"
 ]
 
-ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 3))
+ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))
