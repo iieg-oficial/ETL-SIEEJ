@@ -13,7 +13,7 @@ def parse_hour(series: pd.Series) -> pd.Series:
         try:
             parsed = pd.to_datetime(str(val), format='%H:%M', errors='raise')
             return parsed.strftime('%H:%M')
-        except:
+        except ValueError:
             return None
 
     return series.apply(convert)

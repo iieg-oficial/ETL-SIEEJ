@@ -1,6 +1,6 @@
 # core/pipelines/stage.py
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Dict
+from typing import Any, Optional
 from pathlib import Path
 from core.utils.logger import get_logger
 

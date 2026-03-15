@@ -107,8 +107,6 @@ class CELoader(Stage):
             year = entry["year"]
             slug = entry["slug"]
             data_csv = entry["data_csv"]
-            slug_dir = entry["slug_dir"]
-            url = entry["url"]
 
             if (year, slug) in already_loaded:
                 self.logger.info(f"Omitiendo {year}/{slug} - ya cargado.")

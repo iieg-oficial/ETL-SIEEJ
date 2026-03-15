@@ -6,7 +6,7 @@ from typing import Any, Optional
 from sqlalchemy import delete, extract
 from core.db import Database
 from core.pipelines.stage import Stage
-from core.utils import normalize_col, normalize_text, df_to_records, records_to_map
+from core.utils import normalize_col, df_to_records, records_to_map
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
 from core.utils.bulk_ops import (

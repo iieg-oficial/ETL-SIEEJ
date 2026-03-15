@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pandas as pd
 
 from core.pipelines.establecimientos_de_salud.constants import SIN_NUMERO_RAW

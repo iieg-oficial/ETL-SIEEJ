@@ -9,7 +9,6 @@ from core.utils.logger import get_logger
 from core.utils.normalize import capitalize_col, title_col
 from core.utils.parse_datetime import parse_date
 from core.pipelines.establecimientos_de_salud.attributes.establecimientos import EstablecimientosColMap, EstablecimientosTables as T
-from core.pipelines.establecimientos_de_salud.schemas import Establecimientos, TiposUnidadMovil
 from core.pipelines.establecimientos_de_salud.constants import (
     NULL_VALUES, CAPITALIZE_COLS, TITLE_COLS, DATE_COLS, GEO_CLAVE_COLS,
 )

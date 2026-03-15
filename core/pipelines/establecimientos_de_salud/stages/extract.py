@@ -35,7 +35,7 @@ class EstablecimientosExtract(Stage):
         db = Database(settings.DB_NAME, settings.database_url)
         db.connect()
         with db.get_session() as session:
-            self.logger.info(f"[periods] Fetching last update from database")
+            self.logger.info("[periods] Fetching last update from database")
             last = get_last_update(session, Establecimientos, Establecimientos.fecha_actualizacion.key)
         db.disconnect()
 
