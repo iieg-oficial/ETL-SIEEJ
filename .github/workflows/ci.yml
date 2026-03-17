@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+
+jobs:
+  pre-commit:
+    name: Pre-commit hooks
+    uses: ./.github/workflows/pre-commit.yml
+
+  lint:
+    name: Ruff lint & format
+    needs: pre-commit
+    uses: ./.github/workflows/lint.yml
+
+  build:
+    name: Docker build & DAGs
+    needs: lint
+    uses: ./.github/workflows/docker-build.yml

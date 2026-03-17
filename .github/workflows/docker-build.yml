@@ -1,0 +1,51 @@
+name: Docker Build & DAGs
+
+on:
+  workflow_call:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: echo "AIRFLOW_UID=50000" > .env
+
+      - name: Build Airflow image
+        run: docker compose build
+
+      - name: Start Postgres and Redis
+        run: docker compose up -d postgres redis
+
+      - name: Initialize Airflow
+        run: docker compose up airflow-init
+
+      - name: List DAGs
+        id: list-dags
+        run: |
+          docker compose run --rm -T airflow-cli bash -c "airflow dags list" | tee dags_output.txt
+
+      - name: Verify expected DAGs exist
+        run: |
+          EXPECTED_DAGS=(
+            "etl_censos_economicos"
+            "etl_establecimientos_de_salud"
+            "etl_fiscalia"
+            "etl_repd"
+          )
+          MISSING=()
+          for dag in "${EXPECTED_DAGS[@]}"; do
+            if ! grep -q "$dag" dags_output.txt; then
+              MISSING+=("$dag")
+            fi
+          done
+          if [ ${#MISSING[@]} -ne 0 ]; then
+            echo "::error::DAGs no detectados: ${MISSING[*]}"
+            exit 1
+          fi
+          echo "Todos los DAGs fueron detectados correctamente."
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

@@ -37,10 +37,11 @@ ps:
 restart service:
     docker compose restart {{service}}
 
-# Airflow: inicializar (solo la primera vez)
-[group('airflow')]
-airflow-init:
-    docker compose up airflow-init
+# Setup: instalar pre-commit hooks
+[group('development')]
+setup:
+    pre-commit install
+    pre-commit install --hook-type commit-msg
 
 # Docker: contenedor PostGIS para desarrollo
 [group('development')]
