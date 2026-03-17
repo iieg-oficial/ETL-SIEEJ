@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Validates commit messages against the project's conventional commits format.
+# Format: <type>(<scope>): <description>
+#   or:   <type>: <description>
+
+commit_msg_file="$1"
+commit_msg=$(head -1 "$commit_msg_file")
+
+# Allow merge commits
+if echo "$commit_msg" | grep -qE "^Merge "; then
+  exit 0
+fi
+
+TYPES="feat|fix|update|refactor|chore|docs|merge"
+
+PATTERN="^($TYPES)(\([a-z_-]+\))?: .+"
+
+if ! echo "$commit_msg" | grep -qE "$PATTERN"; then
+  echo ""
+  echo "ERROR: El mensaje de commit no sigue la convención."
+  echo ""
+  echo "  Formato: <tipo>(<scope>): <descripción>"
+  echo "  Tipos:   $TYPES"
+  echo "  Scope:   (opcional) nombre del área afectada (pipeline, repd, core, etc.)"
+  echo ""
+  echo "  Ejemplos:"
+  echo "    feat(pipeline): add etl_empleo_formal extract stage"
+  echo "    fix(repd): handle null values in normalize_headers"
+  echo "    chore: upgrade pandas to 2.2.0"
+  echo "    update(core): improve connection pooling"
+  echo ""
+  echo "  Tu mensaje: $commit_msg"
+  echo ""
+  exit 1
+fi
