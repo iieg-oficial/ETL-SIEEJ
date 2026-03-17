@@ -9,8 +9,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create .env file
-        run: echo "AIRFLOW_UID=50000" > .env
+      - name: Create .env files from examples
+        run: |
+          find core/pipelines -name ".env.example" | while read f; do
+            cp "$f" "$(dirname $f)/.env"
+          done
+          echo "AIRFLOW_UID=50000" > .env
 
       - name: Build Airflow image
         run: docker compose build
@@ -23,17 +27,16 @@ jobs:
 
       - name: Verify DAGs
         run: |
-          git fetch origin develop --depth=1
-          DEVELOP_DAGS=$(git show origin/develop:dags/ | grep '\.py$' | grep -v '__init__')
-          MISSING=()
-          for dag in $DEVELOP_DAGS; do
-            [ ! -f "dags/$dag" ] && MISSING+=("$dag")
-          done
-          if [ ${#MISSING[@]} -ne 0 ]; then
-            echo "::error::DAGs eliminados respecto a develop: ${MISSING[*]}"
-            exit 1
-          fi
-          echo "OK: todos los DAGs de develop presentes"
+          docker compose run --rm -T airflow-cli python - << 'PYEOF'
+          import sys
+          from airflow.models import DagBag
+          bag = DagBag('/opt/airflow/dags', include_examples=False)
+          if bag.import_errors:
+              for f, err in bag.import_errors.items():
+                  print('ERROR', f, err)
+              sys.exit(1)
+          print('OK:', list(bag.dags.keys()))
+          PYEOF
 
       - name: Cleanup
         if: always()
