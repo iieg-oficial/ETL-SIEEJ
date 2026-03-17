@@ -40,6 +40,7 @@ restart service:
 # Setup: instalar pre-commit hooks
 [group('development')]
 setup:
+    pip install -r requirements.txt
     chmod +x .githooks/commit-msg
     pre-commit install
     pre-commit install --hook-type commit-msg

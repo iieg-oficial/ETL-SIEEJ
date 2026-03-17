@@ -113,7 +113,7 @@ db.connect()
 with db.get_session() as session:
     # Hacer queries con SQLAlchemy ORM
     users = session.query(User).filter(User.active == True).all()
-    
+
     # Crear datos
     new_user = User(name="Juan", email="juan@example.com")
     session.add(new_user)

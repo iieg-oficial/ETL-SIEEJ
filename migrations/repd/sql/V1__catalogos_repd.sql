@@ -73,4 +73,3 @@ CREATE TABLE IF NOT EXISTS stg_repd_cat_closure_type (
     name        VARCHAR(100) NOT NULL,
     CONSTRAINT uq_repd_cat_closure_type_name UNIQUE (name)
 );
-
