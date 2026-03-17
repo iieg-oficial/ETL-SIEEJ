@@ -16,5 +16,6 @@ jobs:
 
   build:
     name: Docker build & DAGs
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
     needs: pre-commit
     uses: ./.github/workflows/docker-build.yml

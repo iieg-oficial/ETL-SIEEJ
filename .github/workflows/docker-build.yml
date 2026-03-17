@@ -28,12 +28,7 @@ jobs:
 
       - name: Verify expected DAGs exist
         run: |
-          EXPECTED_DAGS=(
-            "etl_censos_economicos"
-            "etl_establecimientos_de_salud"
-            "etl_fiscalia"
-            "etl_repd"
-          )
+          EXPECTED_DAGS=($(ls dags/*.py | xargs -I{} basename {} .py | grep -v __init__))
           MISSING=()
           for dag in "${EXPECTED_DAGS[@]}"; do
             if ! grep -q "$dag" dags_output.txt; then
