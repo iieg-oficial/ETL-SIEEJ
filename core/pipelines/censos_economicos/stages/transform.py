@@ -44,7 +44,9 @@ class CETransformer(Stage):
                     year_catalogs["actividad"] = self._clean_actividad(cats["catalog_actividad"])
 
                 if "catalog_entidad_municipio" in cats:
-                    year_catalogs["entidad_municipio"] = self._clean_entidad_municipio(cats["catalog_entidad_municipio"])
+                    year_catalogs["entidad_municipio"] = self._clean_entidad_municipio(
+                        cats["catalog_entidad_municipio"]
+                    )
 
                 if "catalog_estrato" in cats:
                     year_catalogs["estrato"] = self._clean_estrato(cats["catalog_estrato"])

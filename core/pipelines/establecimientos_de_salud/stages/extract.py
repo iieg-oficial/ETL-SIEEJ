@@ -16,10 +16,14 @@ from core.utils.periods import next_month_period, generate_monthly_periods
 
 
 class EstablecimientosExtract(Stage):
-    def __init__(self, pipeline_name: str = 'establecimientos_de_salud',
-                 mode: str = 'bootstrap', year: int = None, month: int = 1
-                 ):
-        super().__init__(pipeline_name, 'extract')
+    def __init__(
+        self,
+        pipeline_name: str = "establecimientos_de_salud",
+        mode: str = "bootstrap",
+        year: int = None,
+        month: int = 1,
+    ):
+        super().__init__(pipeline_name, "extract")
         self.mode = mode
         self.year = year
         self.month = month
@@ -28,7 +32,7 @@ class EstablecimientosExtract(Stage):
     def _periods(self) -> list[tuple[int, int]]:
         today = (date.today().year, date.today().month)
 
-        if self.mode == 'bootstrap':
+        if self.mode == "bootstrap":
             end = (self.year, 12) if self.year and self.year < date.today().year else today
             return generate_monthly_periods((self.year, self.month), end)
 

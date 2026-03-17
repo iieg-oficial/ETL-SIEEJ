@@ -7,7 +7,6 @@ from core.pipelines.repd.consts import (
     CATALOG_COLUMNS,
     COLUMN_RENAME_MAP,
     DATE_COLUMNS,
-    HASH_FIELDS,
     NULL_VALUES,
     PIPELINE_NAME,
 )
@@ -16,7 +15,6 @@ from core.utils.clean import list_values_to_null, parse_boolean
 from core.utils.files import clean_directory
 from core.utils.normalize import normalize_col, uppercase_col
 from core.utils.parse_datetime import parse_month_year
-from core.utils.records import compute_record_hash
 
 
 class REPDTransformer(Stage):

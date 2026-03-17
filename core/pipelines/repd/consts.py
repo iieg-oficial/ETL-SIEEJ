@@ -45,10 +45,12 @@ CATALOG_COLUMNS = [
 ]
 
 # Municipios que NO deben resolverse contra cvegeo
-SKIP_MUNICIPALITY_VALUES = frozenset({
-    "SE IGNORA",
-    "EXTRANJERO",
-})
+SKIP_MUNICIPALITY_VALUES = frozenset(
+    {
+        "SE IGNORA",
+        "EXTRANJERO",
+    }
+)
 
 # Columnas de municipio: (col_municipio, col_estado, col_id_destino)
 MUNICIPALITY_COLUMNS = [

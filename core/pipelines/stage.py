@@ -1,11 +1,11 @@
 # core/pipelines/stage.py
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Dict
+from typing import Any, Optional
 from pathlib import Path
 from core.utils.logger import get_logger
 
-class Stage(ABC):
 
+class Stage(ABC):
     def __init__(self, pipeline_name: str, stage_name: str):
         """
         Args:

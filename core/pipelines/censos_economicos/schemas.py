@@ -88,9 +88,7 @@ class CeDatos(CeBase):
     """Tabla principal de hechos de Censos Economicos. Una fila por observacion censal."""
 
     __tablename__ = "ce_datos"
-    __table_args__ = (
-        UniqueConstraint("anio", "e03", "e04", "codigo", "id_estrato", name="uq_ce_datos_clave_natural"),
-    )
+    __table_args__ = (UniqueConstraint("anio", "e03", "e04", "codigo", "id_estrato", name="uq_ce_datos_clave_natural"),)
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     anio = Column(Integer, nullable=False)

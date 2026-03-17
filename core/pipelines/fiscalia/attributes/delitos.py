@@ -2,6 +2,7 @@ from enum import Enum
 
 from core.utils import normalize_text
 
+
 class BaseClass(Enum):
     @classmethod
     def values(cls):
@@ -11,20 +12,24 @@ class BaseClass(Enum):
     def norm_values(cls):
         return [normalize_text(c.value) for c in cls]
 
+
 class IntregridadCorporal(BaseClass):
     homicidio_doloso = "Homicidio doloso"
     lesiones_dolosas = "Lesiones dolosas"
     feminicidio = "Feminicidio"
 
+
 class IntegridadSexual(BaseClass):
     violacion = "Violación"
     abuso_sexual_infantil = "Abuso sexual infantil"
 
+
 class LaFamilia(BaseClass):
-    violencia_familiar  = "Violencia familiar"
+    violencia_familiar = "Violencia familiar"
+
 
 class ElPatrimonio(BaseClass):
-    robo_carga_pesada =  "Robo a carga pesada"
+    robo_carga_pesada = "Robo a carga pesada"
     robo_vehiculos_particulares = "Robo a vehiculos particulares"
     robo_habitacion = "Robo casa habitacion"
     robo_motocicletas = "Robo de motocicleta"
@@ -34,4 +39,3 @@ class ElPatrimonio(BaseClass):
     robo_autopartes = "Robo de autopartes"
     robo_cuentahabitantes = "Robo a cuentahabientes"
     robo_bancos = "Robo a bancos"
-

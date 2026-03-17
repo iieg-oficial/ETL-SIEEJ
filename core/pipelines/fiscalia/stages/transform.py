@@ -8,8 +8,8 @@ from core.pipelines.fiscalia.constants import NULL_VALUES
 
 
 class FiscaliaTransform(Stage):
-    def __init__(self, pipeline_name: str = 'fiscalia', mode: str = 'bootstrap'):
-        super().__init__(pipeline_name, 'transform')
+    def __init__(self, pipeline_name: str = "fiscalia", mode: str = "bootstrap"):
+        super().__init__(pipeline_name, "transform")
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.transform")
 

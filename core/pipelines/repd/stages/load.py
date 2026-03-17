@@ -66,9 +66,7 @@ class REPDLoader(Stage):
         df = self._resolve_municipality_ids(df)
 
         # Calcular record_hash
-        df["record_hash"] = df.apply(
-            lambda row: compute_record_hash(row.to_dict(), HASH_FIELDS), axis=1
-        )
+        df["record_hash"] = df.apply(lambda row: compute_record_hash(row.to_dict(), HASH_FIELDS), axis=1)
 
         if self.mode == "bootstrap":
             stats = self._load_bootstrap(df)
@@ -102,9 +100,7 @@ class REPDLoader(Stage):
         session.flush()
 
         for cat_key, model in CATALOG_MODELS.items():
-            self._catalog_caches[cat_key] = get_mapping(
-                session, model, "name", "id", is_normalize=True
-            )
+            self._catalog_caches[cat_key] = get_mapping(session, model, "name", "id", is_normalize=True)
 
     # Inserta nuevos valores en un catalogo y refresca su cache
     def _refresh_catalog(self, session, cat_key: str, new_values: list[str]) -> None:
@@ -112,19 +108,12 @@ class REPDLoader(Stage):
         records = [{"name": v} for v in new_values]
         insert_records(session, records, model, conflict_keys=["name"])
         session.flush()
-        self._catalog_caches[cat_key] = get_mapping(
-            session, model, "name", "id", is_normalize=True
-        )
+        self._catalog_caches[cat_key] = get_mapping(session, model, "name", "id", is_normalize=True)
 
     # Carga el mapping (estado, municipio)->id desde cvegeo via FDW
     def _load_municipality_cache(self, session) -> None:
-        results = session.execute(
-            text("SELECT nom_ent, nomgeo, id FROM cvegeo_municipalities")
-        ).all()
-        self._municipality_cache = {
-            (normalize_text(row[0]), normalize_text(row[1])): row[2]
-            for row in results
-        }
+        results = session.execute(text("SELECT nom_ent, nomgeo, id FROM cvegeo_municipalities")).all()
+        self._municipality_cache = {(normalize_text(row[0]), normalize_text(row[1])): row[2] for row in results}
         self.logger.info(f"Cache de municipios cvegeo: {len(self._municipality_cache)} entradas")
 
     # Resuelve (estado, municipio) a ID de cvegeo
@@ -141,9 +130,7 @@ class REPDLoader(Stage):
     def _resolve_catalog_ids(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in CATALOG_COLUMNS:
             cache = self._catalog_caches[col]
-            series = df[col].apply(
-                lambda v: cache.get(normalize_text(v)) if v is not None else None
-            ).astype(object)
+            series = df[col].apply(lambda v: cache.get(normalize_text(v)) if v is not None else None).astype(object)
             df[f"{col}_id"] = series.where(pd.notna(series), other=None)
         return df
 
@@ -166,20 +153,24 @@ class REPDLoader(Stage):
 
         for _, row in df.iterrows():
             rec = self._build_case_record(row)
-            current_records.append({
-                **rec,
-                "current_version": 1,
-                "created_at": now,
-                "updated_at": now,
-            })
-            history_records.append({
-                **rec,
-                "version_num": 1,
-                "is_current": True,
-                "valid_from": now,
-                "valid_to": None,
-                "created_at": now,
-            })
+            current_records.append(
+                {
+                    **rec,
+                    "current_version": 1,
+                    "created_at": now,
+                    "updated_at": now,
+                }
+            )
+            history_records.append(
+                {
+                    **rec,
+                    "version_num": 1,
+                    "is_current": True,
+                    "valid_from": now,
+                    "valid_to": None,
+                    "created_at": now,
+                }
+            )
 
         batch_size = settings.REPD_LOAD_BATCH_SIZE
 
@@ -239,47 +230,57 @@ class REPDLoader(Stage):
 
             if existing is None:
                 # Registro nuevo
-                new_current.append({
-                    **rec,
-                    "current_version": 1,
-                    "created_at": now,
-                    "updated_at": now,
-                })
-                new_history.append({
-                    **rec,
-                    "version_num": 1,
-                    "is_current": True,
-                    "valid_from": now,
-                    "valid_to": None,
-                    "created_at": now,
-                })
+                new_current.append(
+                    {
+                        **rec,
+                        "current_version": 1,
+                        "created_at": now,
+                        "updated_at": now,
+                    }
+                )
+                new_history.append(
+                    {
+                        **rec,
+                        "version_num": 1,
+                        "is_current": True,
+                        "valid_from": now,
+                        "valid_to": None,
+                        "created_at": now,
+                    }
+                )
 
             elif existing["hash"] != rec["record_hash"]:
                 # Registro cambio: crear nueva version
                 new_version = existing["version"] + 1
-                updated_current.append({
-                    "feb": feb,
-                    "case_id": existing["id"],
-                    "record": {
+                updated_current.append(
+                    {
+                        "feb": feb,
+                        "case_id": existing["id"],
+                        "record": {
+                            **rec,
+                            "current_version": new_version,
+                            "updated_at": now,
+                        },
+                    }
+                )
+                closed_history.append(
+                    {
+                        "feb": feb,
+                        "old_version": existing["version"],
+                        "valid_to": now,
+                    }
+                )
+                updated_history.append(
+                    {
                         **rec,
-                        "current_version": new_version,
-                        "updated_at": now,
-                    },
-                })
-                closed_history.append({
-                    "feb": feb,
-                    "old_version": existing["version"],
-                    "valid_to": now,
-                })
-                updated_history.append({
-                    **rec,
-                    "case_current_id": existing["id"],
-                    "version_num": new_version,
-                    "is_current": True,
-                    "valid_from": now,
-                    "valid_to": None,
-                    "created_at": now,
-                })
+                        "case_current_id": existing["id"],
+                        "version_num": new_version,
+                        "is_current": True,
+                        "valid_from": now,
+                        "valid_to": None,
+                        "created_at": now,
+                    }
+                )
 
         batch_size = settings.REPD_LOAD_BATCH_SIZE
 
@@ -300,26 +301,25 @@ class REPDLoader(Stage):
         if updated_current:
             with self.db.get_session() as session:
                 for item in updated_current:
-                    session.query(CaseCurrent).filter(
-                        CaseCurrent.id == item["case_id"]
-                    ).update(item["record"])
+                    session.query(CaseCurrent).filter(CaseCurrent.id == item["case_id"]).update(item["record"])
 
                 for item in closed_history:
                     session.query(CaseHistory).filter(
                         CaseHistory.feb == item["feb"],
                         CaseHistory.version_num == item["old_version"],
-                    ).update({
-                        "is_current": False,
-                        "valid_to": item["valid_to"],
-                    })
+                    ).update(
+                        {
+                            "is_current": False,
+                            "valid_to": item["valid_to"],
+                        }
+                    )
 
             with self.db.get_session() as session:
                 bulk_insert(session, updated_history, CaseHistory, chunk_size=batch_size)
 
         unchanged = len(df) - len(new_current) - len(updated_current)
         self.logger.info(
-            f"Update: {len(new_current)} nuevos, {len(updated_current)} actualizados, "
-            f"{unchanged} sin cambios"
+            f"Update: {len(new_current)} nuevos, {len(updated_current)} actualizados, {unchanged} sin cambios"
         )
 
         return {

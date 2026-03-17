@@ -11,6 +11,7 @@ class RepdBase(DeclarativeBase):
 
 # Catalogos
 
+
 class CatSex(RepdBase):
     __tablename__ = "stg_repd_cat_sex"
     __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_sex_name"),)
@@ -69,6 +70,7 @@ class CatClosureType(RepdBase):
 
 # Tabla actual: una fila vigente por FEB
 
+
 class CaseCurrent(RepdBase):
     __tablename__ = "stg_repd_case_current"
     __table_args__ = (
@@ -102,6 +104,7 @@ class CaseCurrent(RepdBase):
 
 
 # Tabla historial: snapshot por version
+
 
 class CaseHistory(RepdBase):
     __tablename__ = "stg_repd_case_history"

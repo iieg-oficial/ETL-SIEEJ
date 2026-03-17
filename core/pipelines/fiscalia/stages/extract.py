@@ -6,19 +6,23 @@ from core.utils.logger import get_logger
 from core.pipelines.fiscalia.config import settings
 from core.pipelines.stage import Stage
 from core.pipelines.fiscalia.attributes.data_columns import (
-    HistoricalCols, RenameHistoricalCols,
-    UpdateCols, RenameUpdateCols,
+    HistoricalCols,
+    RenameHistoricalCols,
+    UpdateCols,
+    RenameUpdateCols,
 )
 from core.utils.gdrive import download_folder
 from core.utils.files import (
-    get_file_by_name, get_latest_file, get_latest_files_per_year,
+    get_file_by_name,
+    get_latest_file,
+    get_latest_files_per_year,
     parse_date_from_filename,
 )
 
 
 class FiscaliaExtract(Stage):
-    def __init__(self, pipeline_name: str = 'fiscalia', mode: str = 'bootstrap'):
-        super().__init__(pipeline_name, 'extract')
+    def __init__(self, pipeline_name: str = "fiscalia", mode: str = "bootstrap"):
+        super().__init__(pipeline_name, "extract")
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.extract")
 
@@ -31,7 +35,7 @@ class FiscaliaExtract(Stage):
             settings.GDRIVE_PRIVATE_KEY,
         )
 
-        if self.mode == 'bootstrap':
+        if self.mode == "bootstrap":
             historical = get_file_by_name(output_folder, settings.HISTORICAL_FILENAME)
             updates = get_latest_files_per_year(output_folder)
             return [historical] + updates
@@ -45,14 +49,14 @@ class FiscaliaExtract(Stage):
         for filepath in input_data:
             df = pd.read_excel(filepath, engine="openpyxl")
             lowercase_headers(df)
-            df.columns = df.columns.str.replace(' ', '_')
+            df.columns = df.columns.str.replace(" ", "_")
 
             if parse_date_from_filename(filepath, ".xlsx") is None:
                 df = df.rename(columns=RenameHistoricalCols.rename())
                 df = df[HistoricalCols.get_values()]
-                df["violencia"] = None # Datos Históricos no tienen violencia
-                df["calle"] = None # Datos Históricos no tienen columna calle
-                df["cruce"] = None # Datos Históricos no tienen columna cruce
+                df["violencia"] = None  # Datos Históricos no tienen violencia
+                df["calle"] = None  # Datos Históricos no tienen columna calle
+                df["cruce"] = None  # Datos Históricos no tienen columna cruce
                 df["_is_update"] = False
             else:
                 df = df.rename(columns=RenameUpdateCols.rename())

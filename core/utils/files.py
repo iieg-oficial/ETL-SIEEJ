@@ -33,6 +33,7 @@ def clean_directory(directory: Path, log=None) -> None:
     else:
         logger.info(msg)
 
+
 def parse_date_from_filename(filepath: str, extension: str) -> datetime | None:
     filename = os.path.basename(filepath)
     date_str = filename.replace(extension, "")
@@ -41,12 +42,14 @@ def parse_date_from_filename(filepath: str, extension: str) -> datetime | None:
     except ValueError:
         return None
 
+
 def get_files_by_extension(output_folder: str, extension: str) -> list[str]:
     files = glob.glob(os.path.join(output_folder, f"*{extension}"))
     if not files:
         raise FileNotFoundError(f"No {extension} file was found in {output_folder}")
     logger.info(f"Found {len(files)} {extension} files in {output_folder}")
     return files
+
 
 def get_latest_file(output_folder: str, extension: str = ".xlsx") -> str:
     files = get_files_by_extension(output_folder, extension)
@@ -58,6 +61,7 @@ def get_latest_file(output_folder: str, extension: str = ".xlsx") -> str:
     latest_file = max(valid_files, key=lambda f: parse_date_from_filename(f, extension))
     logger.info(f"Latest file: {os.path.basename(latest_file)}")
     return latest_file
+
 
 def get_latest_files_per_year(output_folder: str, extension: str = ".xlsx") -> list[str]:
     files = get_files_by_extension(output_folder, extension)
@@ -78,6 +82,7 @@ def get_latest_files_per_year(output_folder: str, extension: str = ".xlsx") -> l
         logger.info(f"File: {os.path.basename(file)}")
 
     return latest_files
+
 
 def get_file_by_name(output_folder: str, filename: str) -> str:
     filepath = os.path.join(output_folder, filename)

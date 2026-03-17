@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
 
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
 
 def _build_service(client_email: str, private_key: str):
@@ -18,24 +18,28 @@ def _build_service(client_email: str, private_key: str):
         },
         scopes=SCOPES,
     )
-    return build('drive', 'v3', credentials=credentials)
+    return build("drive", "v3", credentials=credentials)
 
 
 def _list_files(service, folder_id: str):
     query = f"'{folder_id}' in parents"
-    results = service.files().list(
-        q=query,
-        fields="files(id, name, mimeType)",
-        pageSize=1000,
-    ).execute()
-    return results.get('files', [])
+    results = (
+        service.files()
+        .list(
+            q=query,
+            fields="files(id, name, mimeType)",
+            pageSize=1000,
+        )
+        .execute()
+    )
+    return results.get("files", [])
 
 
 def _download_file(service, file_id: str, file_name: str, destination: str) -> str:
     request = service.files().get_media(fileId=file_id)
     file_path = os.path.join(destination, file_name)
 
-    fh = io.FileIO(file_path, 'wb')
+    fh = io.FileIO(file_path, "wb")
     downloader = MediaIoBaseDownload(fh, request)
 
     done = False
@@ -51,7 +55,7 @@ def download_folder(folder_id: str, output_folder: str, client_email: str, priva
     files = _list_files(service, folder_id)
 
     for file in files:
-        if 'application/vnd.google-apps' not in file['mimeType']:
-            _download_file(service, file['id'], file['name'], output_folder)
+        if "application/vnd.google-apps" not in file["mimeType"]:
+            _download_file(service, file["id"], file["name"], output_folder)
 
     return output_folder
