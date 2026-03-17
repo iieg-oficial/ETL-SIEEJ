@@ -14,3 +14,9 @@ jobs:
           python-version: "3.12"
 
       - uses: pre-commit/action@v3.0.1
+
+      - name: Ruff check
+        run: |
+          pip install ruff==0.9.0
+          ruff check --output-format=github .
+          ruff format --check .
