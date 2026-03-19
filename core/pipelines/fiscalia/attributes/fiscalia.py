@@ -1,4 +1,5 @@
-from enum import  StrEnum, auto
+from enum import StrEnum, auto
+
 
 class FiscaliaTables(StrEnum):
     def __getattribute__(self, name):
@@ -14,6 +15,7 @@ class FiscaliaTables(StrEnum):
     DELITOS = auto()
     BIEN_AFECTADO = auto()
     CASOS = auto()
+
 
 class FiscaliaColumns(StrEnum):
     ZONA_GEOGRAFICA = auto()
@@ -41,4 +43,3 @@ class FiscaliaColumns(StrEnum):
 
     def __getattribute__(self, name):
         return super().__getattribute__(name)
-

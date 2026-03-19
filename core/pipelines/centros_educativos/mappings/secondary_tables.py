@@ -10,12 +10,14 @@ class BaseClass(Enum):
     def to_records(cls, attr_name):
         return [{"id": c.id, attr_name: c.attribute} for c in cls]
 
+
 class TurnosMap(BaseClass):
     MATUTINO = (auto(), "Matutino")
     VESPERTINO = (auto(), "Vespertino")
     CONTINUO = (auto(), "Continuo")
     DISCONTINUO = (auto(), "Discontinuo")
     NOCTURNO = (auto(), "Nocturno")
+
 
 class TipoEducativoMap(BaseClass):
     BASICA = (auto(), "Básica")
@@ -24,6 +26,7 @@ class TipoEducativoMap(BaseClass):
     INICIAL = (auto(), "Inicial")
     SUPERIOR = (auto(), "Superior")
     CAPACITACION = (auto(), "Capacitación")
+
 
 class NivelEducativoMap(BaseClass):
     INICIAL = (auto(), "Inicial")
@@ -35,6 +38,7 @@ class NivelEducativoMap(BaseClass):
     BACHILLERATO = (auto(), "Bachillerato")
     FORMACION_PARA_EL_TRABAJO = (auto(), "Formación para el trabajo")
     LICENCIATURA = (auto(), "Licenciatura")
+
 
 class ServicioEducativoMap(BaseClass):
     LACTANTE_Y_MATERNAL = (auto(), "Lactante y maternal")
@@ -52,9 +56,11 @@ class ServicioEducativoMap(BaseClass):
     TECNOLOGICO = (auto(), "Tecnológico")
     LICENCIATURA_UNIVERSITARIA_Y_TECNOLOGICA = (auto(), "Licenciatura universitaria y tecnológica")
 
+
 class NombreControlMap(BaseClass):
     PUBLICO = (auto(), "Público")
     PRIVADO = (auto(), "Privado")
+
 
 class TipoSostenimientoMap(BaseClass):
     FEDERAL_TRANSFERIDO = (auto(), "Federal transferido")
@@ -63,4 +69,3 @@ class TipoSostenimientoMap(BaseClass):
     PRIVADO = (auto(), "Privado")
     AUTONOMO = (auto(), "Autónomo")
     SUBSIDIO = (auto(), "Subsidio")
-

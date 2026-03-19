@@ -2,6 +2,7 @@ from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 from core.config import BaseConfig, env_path
 
+
 class Settings(BaseConfig):
     model_config = SettingsConfigDict(env_file=env_path("establecimientos_de_salud"))
 
@@ -11,5 +12,6 @@ class Settings(BaseConfig):
 
     def build_url(self, year: int, month: int) -> str:
         return self.ESTABLECIMIENTOS_URL.format(year=year, month=str(month).zfill(2))
+
 
 settings = Settings()

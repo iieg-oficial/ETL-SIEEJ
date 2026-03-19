@@ -7,18 +7,18 @@ from core.utils import df_to_records
 from core.utils.clean import list_values_to_null, drop_duplicates_col
 from core.utils.logger import get_logger
 from core.utils.normalize import capitalize_col, title_col
-from core.utils.parse_datetime import parse_date
 from core.pipelines.centros_educativos.attributes.centros_educativos import CentrosEducativosTables as T
 from core.pipelines.centros_educativos.constants import NULL_VALUES, CAPITALIZE_COLS, TITLE_COLS
 from core.utils.accents import apply_accents
 
 
 class CentrosEducativosTransform(Stage):
-    def __init__(self, pipeline_name: str = 'centros_educativos', mode: str = 'bootstrap', entidad: int = None):
-        super().__init__(pipeline_name, 'transform')
+    def __init__(self, pipeline_name: str = "centros_educativos", mode: str = "bootstrap", entidad: int = None):
+        super().__init__(pipeline_name, "transform")
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.transform")
         self.entidad = entidad
+
     def source(self, input_data: Optional[Any]) -> Any:
         pkl_path = Path(f"data/extract/centros_educativos/centros_educativos_{self.entidad}.pkl")
         self.logger.info(f"[source] Checking for existing pkl at {pkl_path}")
@@ -32,19 +32,23 @@ class CentrosEducativosTransform(Stage):
     def _build_catalogs(self, df: pd.DataFrame) -> dict:
         self.logger.info("[_build_catalogs] Building catalogs from dataframe")
 
-        localidades_df = drop_duplicates_col(df, "localidad").dropna(subset=["localidad_id", "municipio_id", "entidad_id"])
+        localidades_df = drop_duplicates_col(df, "localidad").dropna(
+            subset=["localidad_id", "municipio_id", "entidad_id"]
+        )
         localidades = []
         self.logger.info(f"[_build_catalogs] Processing {len(localidades_df)} unique localidades")
 
         for _, row in localidades_df.iterrows():
             cve_geo_id = int(f"{row['entidad_id']:02}{row['municipio_id']:03}{row['localidad_id']:04}")
-            localidades.append({
-                "cve_geo_id": cve_geo_id,
-                "clave_localidad": row["localidad_id"],
-                "municipio_id": row["municipio_id"],
-                "entidad_id": row["entidad_id"],
-                "localidad": row["localidad"]
-            })
+            localidades.append(
+                {
+                    "cve_geo_id": cve_geo_id,
+                    "clave_localidad": row["localidad_id"],
+                    "municipio_id": row["municipio_id"],
+                    "entidad_id": row["entidad_id"],
+                    "localidad": row["localidad"],
+                }
+            )
 
         self.logger.info(f"[_build_catalogs] Building domicilios catalog")
         domicilios = df_to_records(

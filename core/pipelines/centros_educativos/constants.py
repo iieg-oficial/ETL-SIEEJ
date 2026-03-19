@@ -3,18 +3,18 @@ from typing import Final, List
 from core.pipelines.centros_educativos.mappings.secondary_tables import NivelEducativoMap, ServicioEducativoMap
 
 URL_HEADER: Final[dict] = {
-            "Accept-Language": "es-ES,es;q=0.9",
-            "Cache-Control": "no-cache",
-            "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
-            "Origin": "https://siged.sep.gob.mx",
-            "Pragma": "no-cache",
-            "Referer": "https://siged.sep.gob.mx/",
-            "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36",
-        }
+    "Accept-Language": "es-ES,es;q=0.9",
+    "Cache-Control": "no-cache",
+    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
+    "Origin": "https://siged.sep.gob.mx",
+    "Pragma": "no-cache",
+    "Referer": "https://siged.sep.gob.mx/",
+    "User-Agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Mobile Safari/537.36",
+}
 
 REPLACE_VALUES: dict = {
-     'U.S.A.E.R.': ServicioEducativoMap.USAER.value[1],
-     'CAM': NivelEducativoMap.CAM.value[1],
+    "U.S.A.E.R.": ServicioEducativoMap.USAER.value[1],
+    "CAM": NivelEducativoMap.CAM.value[1],
 }
 
 RENAME_HEADER: Final[dict] = {
@@ -54,18 +54,26 @@ RENAME_HEADER: Final[dict] = {
     "fecha_actualizacion": "fecha_actualizacion",
 }
 
-NULL_VALUES: Final[List[str]] = [
-    "ninguno ninguno", "ninguno", "no disponible", "n/a", "na", "null", ""
-]
+NULL_VALUES: Final[List[str]] = ["ninguno ninguno", "ninguno", "no disponible", "n/a", "na", "null", ""]
 
 CAPITALIZE_COLS: Final[List[str]] = [
-    "tipo_educativo", "nivel_educativo", "servicio_educativo",
-    "tipo_control", "tipo_sostenimiento"
+    "tipo_educativo",
+    "nivel_educativo",
+    "servicio_educativo",
+    "tipo_control",
+    "tipo_sostenimiento",
 ]
 
 TITLE_COLS: Final[List[str]] = [
-    "nombre_centro_trabajo", "entidad", "municipio", "localidad",
-    "domicilio", "entre_calle", "y_calle", "calle_posterior", "colonia"
+    "nombre_centro_trabajo",
+    "entidad",
+    "municipio",
+    "localidad",
+    "domicilio",
+    "entre_calle",
+    "y_calle",
+    "calle_posterior",
+    "colonia",
 ]
 
 ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))

@@ -5,6 +5,7 @@ from pydantic_settings import BaseSettings
 def env_path(pipeline_name: str) -> str:
     return f"core/pipelines/{pipeline_name}/.env"
 
+
 class BaseConfig(BaseSettings):
     # Variables comunes a todos los pipelines
     DB_USER: str = Field(default="postgres")

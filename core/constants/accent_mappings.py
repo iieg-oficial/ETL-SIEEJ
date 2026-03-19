@@ -96,7 +96,6 @@ ACCENT_MAP = {
     r"\bVELASQUEZ\b": "VELÁSQUEZ",
     r"\bVELAZQUEZ\b": "VELÁZQUEZ",
     r"\bVICTOR\b": "VÍCTOR",
-
     # ── TOPÓNIMOS ───────────────────────────────────────────────────
     r"\bABALA\b": "ABALÁ",
     r"\bACAMBARO\b": "ACÁMBARO",
@@ -386,12 +385,10 @@ ACCENT_MAP = {
     r"\bZITACUARO\b": "ZITÁCUARO",
     r"\bZOQUITLAN\b": "ZOQUITLÁN",
     r"\bZUMPAHUACAN\b": "ZUMPAHAUCÁN",
-
     # ── PALABRAS COMUNES (FLEXIBLES) ────────────────────────────────
     # Maneja: ACCION, ACCIONES, ATENCION, ATENCIONES, etc.
     r"\b([A-Z]+)CION(ES)?\b": r"\1CIÓN\2",
     r"\b([A-Z]+)SION(ES)?\b": r"\1SIÓN\2",
-
     # Género y Número agrupados: (O/A)(S)?
     r"\bBIOLOGIC(O|A)(S)?\b": r"BIOLÓGIC\1\2",
     r"\bECONOMIC(O|A)(S)?\b": r"ECONÓMIC\1\2",
@@ -414,7 +411,6 @@ ACCENT_MAP = {
     r"\bQUIMIC(O|A)(S)?\b": r"QUÍMIC\1\2",
     r"\bTECNIC(O|A)(S)?\b": r"TÉCNIC\1\2",
     r"\bTECNOLOGIC(O|A)(S)?\b": r"TECNOLÓGIC\1\2",
-
     # Sustantivos con Plural Simple: (S)?
     r"\bAMERICA(S)?\b": r"AMÉRICA\1",
     r"\bARBOL(ES)?\b": r"ÁRBOL\1",
@@ -424,7 +420,6 @@ ACCENT_MAP = {
     r"\bNUMERO(S)?\b": r"NÚMERO\1",
     r"\bPAGINA(S)?\b": r"PÁGINA\1",
     r"\bTECNOLOGIA(S)?\b": r"TECNOLOGÍA\1",
-
     # Palabras Únicas o de Raíz fija
     r"\bADMINISTRACION\b": "ADMINISTRACIÓN",
     r"\bASTRONOMIA\b": "ASTRONOMÍA",
@@ -476,4 +471,3 @@ ACCENT_MAP = {
     r"\bUNION\b": "UNIÓN",
     r"\bVIGESIMO\b": "VIGÉSIMO",
 }
-

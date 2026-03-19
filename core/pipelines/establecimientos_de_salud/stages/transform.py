@@ -8,17 +8,23 @@ from core.utils.clean import list_values_to_null, drop_duplicates_col
 from core.utils.logger import get_logger
 from core.utils.normalize import capitalize_col, title_col
 from core.utils.parse_datetime import parse_date
-from core.pipelines.establecimientos_de_salud.attributes.establecimientos import EstablecimientosColMap, EstablecimientosTables as T
-from core.pipelines.establecimientos_de_salud.schemas import Establecimientos, TiposUnidadMovil
+from core.pipelines.establecimientos_de_salud.attributes.establecimientos import (
+    EstablecimientosColMap,
+    EstablecimientosTables as T,
+)
 from core.pipelines.establecimientos_de_salud.constants import (
-    NULL_VALUES, CAPITALIZE_COLS, TITLE_COLS, DATE_COLS, GEO_CLAVE_COLS,
+    NULL_VALUES,
+    CAPITALIZE_COLS,
+    TITLE_COLS,
+    DATE_COLS,
+    GEO_CLAVE_COLS,
 )
 from core.pipelines.establecimientos_de_salud.helpers import sanitize_numero
 
 
 class EstablecimientosTransform(Stage):
-    def __init__(self, pipeline_name: str = 'establecimientos_de_salud', mode: str = 'bootstrap'):
-        super().__init__(pipeline_name, 'transform')
+    def __init__(self, pipeline_name: str = "establecimientos_de_salud", mode: str = "bootstrap"):
+        super().__init__(pipeline_name, "transform")
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.transform")
 
@@ -112,12 +118,18 @@ class EstablecimientosTransform(Stage):
                 df[col] = df[col].str.rstrip(".")
                 title_col(df, col)
 
-        df[GEO_CLAVE_COLS] = df[GEO_CLAVE_COLS].apply(pd.to_numeric, errors='coerce')
+        df[GEO_CLAVE_COLS] = df[GEO_CLAVE_COLS].apply(pd.to_numeric, errors="coerce")
 
-        df[EstablecimientosColMap.tipo_unidad_movil.name] = df[EstablecimientosColMap.tipo_unidad_movil.name].str.replace(r"(?i)^umm\s+", "", regex=True)
+        df[EstablecimientosColMap.tipo_unidad_movil.name] = df[
+            EstablecimientosColMap.tipo_unidad_movil.name
+        ].str.replace(r"(?i)^umm\s+", "", regex=True)
 
-        df[EstablecimientosColMap.numero_exterior.name] = df[EstablecimientosColMap.numero_exterior.name].apply(sanitize_numero)
-        df[EstablecimientosColMap.numero_interior.name] = df[EstablecimientosColMap.numero_interior.name].apply(sanitize_numero)
+        df[EstablecimientosColMap.numero_exterior.name] = df[EstablecimientosColMap.numero_exterior.name].apply(
+            sanitize_numero
+        )
+        df[EstablecimientosColMap.numero_interior.name] = df[EstablecimientosColMap.numero_interior.name].apply(
+            sanitize_numero
+        )
 
         for col in DATE_COLS:
             df[col] = parse_date(df[col], dayfirst=True)

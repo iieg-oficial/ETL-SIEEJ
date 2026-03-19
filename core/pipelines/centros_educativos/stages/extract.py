@@ -12,10 +12,10 @@ from core.utils.logger import get_logger
 from core.pipelines.stage import Stage
 from core.pipelines.centros_educativos.constants import URL_HEADER, RENAME_HEADER
 from core.pipelines.centros_educativos.config import settings
-from core.pipelines.stage import Stage
 
 logger = get_logger("centros_educativos.extract")
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 class CentrosExtractor(Stage):
     def __init__(self, mode: str = "bootstrap", entidad: int = None):
@@ -36,15 +36,14 @@ class CentrosExtractor(Stage):
         response.raise_for_status()
 
         data = response.json()
-        ccts = data.get('Ccts', [])
+        ccts = data.get("Ccts", [])
         logger.info(f"Entidad {self.entidad}: {len(ccts)} centros found")
         return ccts
-
 
     def action(self, input_data: Optional[Any] = None) -> pd.DataFrame:
         """Convierte los datos de centros educativos en un DataFrame de pandas."""
         df = pd.DataFrame(input_data)
-        df['fecha_actualizacion'] = date.today()
+        df["fecha_actualizacion"] = date.today()
         columns_to_keep = list(RENAME_HEADER.keys())
         df_clean = df[columns_to_keep]
         df_clean = df_clean.rename(columns=RENAME_HEADER).copy()
@@ -60,4 +59,3 @@ class CentrosExtractor(Stage):
         logger.info(f"Finalization: {len(input_data)} rows saved to {pkl_path}")
 
         return input_data
-

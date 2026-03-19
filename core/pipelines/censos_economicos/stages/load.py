@@ -63,7 +63,9 @@ class CELoader(Stage):
                 with self.db.get_session() as session:
                     insert_records(session, year_catalogs["actividad"], CeCatalogosActividades, ["codigo"])
                 year_stats["actividad"] = len(year_catalogs["actividad"])
-                self.logger.info(f"Cargados {len(year_catalogs['actividad'])} codigos de actividad para el anio {year}.")
+                self.logger.info(
+                    f"Cargados {len(year_catalogs['actividad'])} codigos de actividad para el anio {year}."
+                )
 
             if "entidad_municipio" in year_catalogs:
                 with self.db.get_session() as session:
@@ -87,7 +89,9 @@ class CELoader(Stage):
                         session, year_catalogs["diccionario"], CeDiccionariosDatos, ["anio", "nombre_columna"]
                     )
                 year_stats["diccionario"] = len(year_catalogs["diccionario"])
-                self.logger.info(f"Cargadas {len(year_catalogs['diccionario'])} entradas de diccionario para el anio {year}.")
+                self.logger.info(
+                    f"Cargadas {len(year_catalogs['diccionario'])} entradas de diccionario para el anio {year}."
+                )
 
             stats["catalogs"][year] = year_stats
 

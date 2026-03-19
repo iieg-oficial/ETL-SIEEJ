@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, UniqueConstraint, Text, Date
+from sqlalchemy import Integer, String, Float, ForeignKey, UniqueConstraint, Text, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from datetime import date
 
@@ -69,15 +69,13 @@ class Localidades(CentrosEducativosBase):
     """Catalogo de localidades."""
 
     __tablename__ = T.LOCALIDADES
-    __table_args__ = (
-        UniqueConstraint("municipio_id", "entidad_id", "clave_localidad", name="uq_localidades_clave"),
-    )
+    __table_args__ = (UniqueConstraint("municipio_id", "entidad_id", "clave_localidad", name="uq_localidades_clave"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     cve_geo_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     clave_localidad: Mapped[int] = mapped_column(Integer, nullable=False)
     municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ref. cvegeo_municipalities
-    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)    # ref. cvegeo_states
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ref. cvegeo_states
     localidad: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
@@ -113,13 +111,21 @@ class Centros(CentrosEducativosBase):
     clave_centro_trabajo: Mapped[str] = mapped_column(String(20), primary_key=True)
     nombre_centro_trabajo: Mapped[str] = mapped_column(Text, nullable=False)
     turno_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.TURNOS}.id"), nullable=True)
-    tipos_educativos_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.TIPOS_EDUCATIVOS}.id"), nullable=True)
-    nivel_educativo_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.NIVELES_EDUCATIVOS}.id"), nullable=True)
-    servicio_educativo_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.SERVICIOS_EDUCATIVOS}.id"), nullable=True)
+    tipos_educativos_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.TIPOS_EDUCATIVOS}.id"), nullable=True
+    )
+    nivel_educativo_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.NIVELES_EDUCATIVOS}.id"), nullable=True
+    )
+    servicio_educativo_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.SERVICIOS_EDUCATIVOS}.id"), nullable=True
+    )
     tipo_control_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.TIPOS_CONTROLES}.id"), nullable=True)
-    tipo_sostenimiento_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.TIPOS_SOSTENIMIENTO}.id"), nullable=True)
-    entidad_id: Mapped[int | None] = mapped_column(Integer, nullable=True)     # ref. cvegeo_states
-    municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)   # ref. cvegeo_municipalities
+    tipo_sostenimiento_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.TIPOS_SOSTENIMIENTO}.id"), nullable=True
+    )
+    entidad_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ref. cvegeo_states
+    municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ref. cvegeo_municipalities
     localidades_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.LOCALIDADES}.id"), nullable=True)
     domicilios_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.DOMICILIOS}.id"), nullable=True)
     colonias_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.COLONIAS}.id"), nullable=True)
@@ -132,5 +138,3 @@ class Centros(CentrosEducativosBase):
     latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
-
-

@@ -6,11 +6,16 @@ from typing import Any, Optional
 from sqlalchemy import delete, extract
 from core.db import Database
 from core.pipelines.stage import Stage
-from core.utils import normalize_col, normalize_text, df_to_records, records_to_map
+from core.utils import normalize_col, df_to_records, records_to_map
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
 from core.utils.bulk_ops import (
-    insert_records, bulk_insert, count_records, get_mapping, get_cvegeo_mapping, sync_id_sequence,
+    insert_records,
+    bulk_insert,
+    count_records,
+    get_mapping,
+    get_cvegeo_mapping,
+    sync_id_sequence,
 )
 from core.pipelines.fiscalia.schemas import (
     ZonasGeograficas as ZonasGeograficasSchema,
@@ -35,8 +40,8 @@ from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
 
 
 class FiscaliaLoad(Stage):
-    def __init__(self, pipeline_name: str = 'fiscalia', mode: str = 'bootstrap'):
-        super().__init__(pipeline_name, 'load')
+    def __init__(self, pipeline_name: str = "fiscalia", mode: str = "bootstrap"):
+        super().__init__(pipeline_name, "load")
         self.mode = mode
         self.logger = get_logger(f"{pipeline_name}.load")
         self.db = Database("fiscalia", settings.database_url)
@@ -66,9 +71,9 @@ class FiscaliaLoad(Stage):
         return delitos_records, violencia_records
 
     def _map_foreign_keys(self, session, df, delitos_records, violencia_records):
-        colonias_map = get_mapping(session, ColoniasSchema, 'colonia', 'id', is_normalize=True)
-        calles_map = get_mapping(session, CallesSchema, 'calle', 'id', is_normalize=True)
-        cruces_map = get_mapping(session, CrucesSchema, 'cruce', 'id', is_normalize=True)
+        colonias_map = get_mapping(session, ColoniasSchema, "colonia", "id", is_normalize=True)
+        calles_map = get_mapping(session, CallesSchema, "calle", "id", is_normalize=True)
+        cruces_map = get_mapping(session, CrucesSchema, "cruce", "id", is_normalize=True)
 
         delitos_map = records_to_map(delitos_records, FiscaliaColumns.DELITO)
         violencia_map = records_to_map(violencia_records, FiscaliaColumns.VIOLENCIA)
@@ -88,28 +93,32 @@ class FiscaliaLoad(Stage):
         return df.replace({np.nan: None})
 
     def _insert_casos(self, session, df):
-        casos_records = df_to_records(df, [
-            "delitos_id", "violencia_id", "zonas_geograficas_id", "municipios_id",
-            "colonias_id", "calles_id", "cruces_id",
-            "hora", "longitud", "latitud",
-            "fecha_denuncia", "fecha_actualizacion",
-        ])
+        casos_records = df_to_records(
+            df,
+            [
+                "delitos_id",
+                "violencia_id",
+                "zonas_geograficas_id",
+                "municipios_id",
+                "colonias_id",
+                "calles_id",
+                "cruces_id",
+                "hora",
+                "longitud",
+                "latitud",
+                "fecha_denuncia",
+                "fecha_actualizacion",
+            ],
+        )
         records_before = count_records(session, CasosSchema)
 
         if self.mode == "update":
             year = int(pd.to_datetime(df["fecha_denuncia"]).dropna().dt.year.iloc[0])
-            result = session.execute(
-                delete(CasosSchema).where(
-                    extract("year", CasosSchema.fecha_denuncia) == year
-                )
-            )
+            result = session.execute(delete(CasosSchema).where(extract("year", CasosSchema.fecha_denuncia) == year))
             self.logger.info(f" Deleted {result.rowcount:,} records for year {year} to avoid duplicates on update")
             session.flush()
 
-        bulk_insert(
-            session, casos_records, CasosSchema,
-            chunk_size=50_000 if self.mode == "bootstrap" else 10_000
-        )
+        bulk_insert(session, casos_records, CasosSchema, chunk_size=50_000 if self.mode == "bootstrap" else 10_000)
         return records_before
 
     def source(self, input_data: Optional[Any]) -> Any:
@@ -136,15 +145,12 @@ class FiscaliaLoad(Stage):
                 self.logger.error(e)
                 raise
 
-        return {
-            "data": input_data,
-            "records_before_upsert": records_before_upsert
-        }
+        return {"data": input_data, "records_before_upsert": records_before_upsert}
 
     def finalization(self, input_data: Any) -> Any:
         with self.db.get_session() as session:
             total_cases = count_records(session, CasosSchema)
-            net_new = total_cases - input_data['records_before_upsert']
+            net_new = total_cases - input_data["records_before_upsert"]
         self.db.disconnect()
 
         cleanup_pipeline_data(self.pipeline_name)

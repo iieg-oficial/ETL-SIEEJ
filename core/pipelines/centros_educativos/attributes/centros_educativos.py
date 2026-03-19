@@ -1,5 +1,6 @@
 from enum import auto, StrEnum
 
+
 class CentrosEducativosTables(StrEnum):
     TURNOS = auto()
     TIPOS_EDUCATIVOS = auto()

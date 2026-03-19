@@ -3,13 +3,12 @@ from core.utils.logger import get_logger
 
 
 class Pipeline:
-
     def __init__(self, name: str, stages: List[Any]):
         self.name = name
         self.stages = stages
         self.logger = get_logger(name)
 
-    def run(self, mode: str = 'bootstrap') -> None:
+    def run(self, mode: str = "bootstrap") -> None:
         try:
             self.logger.info(f"🚀 Starting pipeline {mode.upper()}: {self.name}")
 
