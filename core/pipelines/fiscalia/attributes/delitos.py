@@ -30,12 +30,12 @@ class LaFamilia(BaseClass):
 
 class ElPatrimonio(BaseClass):
     robo_carga_pesada = "Robo a carga pesada"
-    robo_vehiculos_particulares = "Robo a vehiculos particulares"
-    robo_habitacion = "Robo casa habitacion"
+    robo_vehiculos_particulares = "Robo a vehículos particulares"
+    robo_habitacion = "Robo casa habitación"
     robo_motocicletas = "Robo de motocicleta"
     robo_negocio = "Robo a negocio"
     robo_persona = "Robo a persona"
-    robo_int_vehiculos = "Robo a int de vehiculos"
+    robo_int_vehiculos = "Robo a int de vehículos"
     robo_autopartes = "Robo de autopartes"
     robo_cuentahabitantes = "Robo a cuentahabientes"
     robo_bancos = "Robo a bancos"
