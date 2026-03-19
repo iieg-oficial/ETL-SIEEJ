@@ -2,7 +2,7 @@ from datetime import date
 from sqlalchemy import String, Float, Date, ForeignKey, UniqueConstraint, Integer
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from core.pipelines.inpc.attributes.inpc import InpcTables as T
+from core.pipelines.inpc.attributes import InpcTables as T
 
 
 class InpcBase(DeclarativeBase):
