@@ -1,48 +1,53 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
-from core.pipelines.datamexico.attributes import DataMexicoTables
-DataMexicoBase = declarative_base()
+from sqlalchemy import String, Float, ForeignKey, Integer
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from core.pipelines.datamexico.attributes import DataMexicoTables as T
+
+
+class DataMexicoBase(DeclarativeBase):
+    @classmethod
+    def columns(cls) -> list[str]:
+        return [c.key for c in cls.__table__.columns]
+
 
 class Paises(DataMexicoBase):
-    __tablename__ = DataMexicoTables.PAISES
+    __tablename__ = T.PAISES
 
-    pais_id = Column(Integer, primary_key=True, autoincrement=True)
-    codigo_pais = Column(String(3), nullable=False, unique=True)
-    nombre_pais = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    codigo_pais: Mapped[str] = mapped_column(String(3), nullable=False, unique=True)
+    nombre_pais: Mapped[str] = mapped_column(String, nullable=False)
 
-class EntidadesFederativas(DataMexicoBase):
-    __tablename__ = DataMexicoTables.ENTIDADES_FEDERATIVAS
 
-    entidad_id = Column(Integer, primary_key=True)
-    nombre_entidad = Column(String, nullable=False)
+class Periodos(DataMexicoBase):
+    __tablename__ = T.PERIODOS
 
-class Tiempo(DataMexicoBase):
-    __tablename__ = DataMexicoTables.TIEMPOS
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    anio: Mapped[int] = mapped_column(Integer, nullable=False)
+    trimestre: Mapped[int] = mapped_column(Integer, nullable=False)
+    etiqueta_trimestre: Mapped[str] = mapped_column(String(7), nullable=False)
 
-    periodo_id = Column(Integer, primary_key=True)
-    anio = Column(Integer, nullable=False)
-    trimestre = Column(Integer, nullable=False)
-    etiqueta_trimestre = Column(String(7), nullable=False)
 
-class TipoFlujoComercial(DataMexicoBase):
-    __tablename__ = DataMexicoTables.TIPOS_FLUJOS_COMERCIALES
+class TiposFlujoComercial(DataMexicoBase):
+    __tablename__ = T.TIPOS_FLUJOS_COMERCIALES
 
-    tipo_flujo_id = Column(Integer, primary_key=True)
-    flujo = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    flujo: Mapped[str] = mapped_column(String, nullable=False)
+
 
 class Productos(DataMexicoBase):
-    __tablename__ = DataMexicoTables.PRODUCTOS
+    __tablename__ = T.PRODUCTOS
 
-    producto_id = Column(Integer, primary_key=True)
-    descripcion = Column(String, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    descripcion: Mapped[str] = mapped_column(String, nullable=False)
+
 
 class FlujoComercio(DataMexicoBase):
-    __tablename__ = DataMexicoTables.FLUJO_COMERCIO
+    __tablename__ = T.FLUJO_COMERCIO
 
-    flujo_id = Column(Integer, primary_key=True)
-    pais_id = Column(Integer, ForeignKey('paises.pais_id'), nullable=False)
-    entidad_id = Column(Integer, ForeignKey('entidades_federativas.entidad_id'), nullable=False)
-    periodo_id = Column(Integer, ForeignKey('tiempos.periodo_id'), nullable=False)
-    tipo_flujo_id = Column(Integer, ForeignKey('tipos_flujos_comerciales.tipo_flujo_id'), nullable=False)
-    producto_id = Column(Integer, ForeignKey('productos.producto_id'), nullable=False)
-    valor_comercio = Column(Float, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    pais_id: Mapped[int] = mapped_column(ForeignKey(f"{T.PAISES}.id"), nullable=False)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    periodo_id: Mapped[int] = mapped_column(ForeignKey(f"{T.PERIODOS}.id"), nullable=False)
+    tipo_flujo_id: Mapped[int] = mapped_column(ForeignKey(f"{T.TIPOS_FLUJOS_COMERCIALES}.id"), nullable=False)
+    producto_id: Mapped[int] = mapped_column(ForeignKey(f"{T.PRODUCTOS}.id"), nullable=False)
+    valor_comercio: Mapped[float] = mapped_column(Float, nullable=False)
