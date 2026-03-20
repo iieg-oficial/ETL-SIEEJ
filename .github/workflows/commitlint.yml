@@ -1,0 +1,49 @@
+name: Commitlint
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          commits=$(git log --format=%s --no-merges origin/${{ github.base_ref }}..HEAD)
+
+          regex="^(feat|fix|update|refactor|chore|docs|merge)(\([a-z0-9_-]+\))?: .+"
+          error=0
+
+          while read -r msg; do
+            if [ -z "$msg" ]; then
+              continue
+            fi
+            if echo "$msg" | grep -qE "^Merge "; then
+              continue
+            fi
+            if [[ ! "$msg" =~ $regex ]]; then
+              echo "Invalid commit message: '$msg'"
+              error=1
+            else
+              echo "Valid: '$msg'"
+            fi
+          done <<< "$commits"
+
+          if [ $error -eq 1 ]; then
+            echo ""
+            echo "Format: <type>[(<scope>)]: <description>"
+            echo "Types:  feat, fix, update, refactor, chore, docs, merge"
+            echo ""
+            echo "Examples:"
+            echo "  feat(repd): add extract stage"
+            echo "  fix(core): handle null values in normalize_col"
+            echo "  chore: upgrade pandas to 2.2.0"
+            exit 1
+          fi

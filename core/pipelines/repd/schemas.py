@@ -1,81 +1,155 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from datetime import date, datetime
+from typing import Optional
 
-RepdBase = declarative_base()
+from sqlalchemy import Index, String, UniqueConstraint, func
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-class Sexos(RepdBase):
-    __tablename__ = 'sexos'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(50), nullable=False)
 
-class Nacionalidades(RepdBase):
-    __tablename__ = 'nacionalidades'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
+class RepdBase(DeclarativeBase):
+    pass
 
-class RangosEdades(RepdBase):
-    __tablename__ = 'rangos_edades'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(50), nullable=False)
 
-class Estados(RepdBase):
-    __tablename__ = 'estados'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
+# Catalogos
 
-class Municipios(RepdBase):
-    __tablename__ = 'municipios'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
 
-class EstatusDesapariciones(RepdBase):
-    __tablename__ = 'estatus_desapariciones'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
+class CatSex(RepdBase):
+    __tablename__ = "stg_repd_cat_sex"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_sex_name"),)
 
-class CondicionesLocalizaciones(RepdBase):
-    __tablename__ = 'condiciones_localizaciones'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(60), unique=True)
 
-class ClasificacionesLocalizaciones(RepdBase):
-    __tablename__ = 'clasificaciones_localizaciones'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
 
-class TiposCierres(RepdBase):
-    __tablename__ = 'tipos_cierres'
-    
-    id = Column(Integer, primary_key=True)
-    descripcion = Column(String(100), nullable=False)
+class CatNationality(RepdBase):
+    __tablename__ = "stg_repd_cat_nationality"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_nationality_name"),)
 
-class Desaparecidos(RepdBase):
-    __tablename__ = 'desaparecidos'
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    folio_estatal_busqueda = Column(String(100), nullable=False)
-    sexo_id = Column(Integer, ForeignKey('sexos.id'), nullable=False)
-    nacionalidad_id = Column(Integer, ForeignKey('nacionalidades.id'), nullable=False)
-    rango_edad_id = Column(Integer, ForeignKey('rangos_edades.id'), nullable=False)
-    fecha_reporte = Column(Date, nullable=False)
-    fecha_desaparicion = Column(Date, nullable=True)
-    estado_desaparicion_id = Column(Integer, ForeignKey('estados.id'), nullable=False)
-    municipio_desaparicion_id = Column(Integer, ForeignKey('municipios.id'), nullable=False)
-    estatus_desaparicion_id = Column(Integer, ForeignKey('estatus_desapariciones.id'), nullable=False)
-    fecha_localizacion = Column(Date, nullable=True)
-    condicion_localizacion_id = Column(Integer, ForeignKey('condiciones_localizaciones.id'), nullable=True)
-    clasificacion_localizacion_id = Column(Integer, ForeignKey('clasificaciones_localizaciones.id'), nullable=True)
-    estado_localizacion_id = Column(Integer, ForeignKey('estados.id'), nullable=True)
-    municipio_localizacion_id = Column(Integer, ForeignKey('municipios.id'), nullable=True)
-    fecha_cierre = Column(Date, nullable=True)
-    tipo_cierre_id = Column(Integer, ForeignKey('tipos_cierres.id'), nullable=True)
-    folio_estatal_busqueda_vinculado = Column(String(100), nullable=True)
-    carpeta_investigacion = Column(Boolean, nullable=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+
+
+class CatAgeRange(RepdBase):
+    __tablename__ = "stg_repd_cat_age_range"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_age_range_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
+
+
+class CatStatus(RepdBase):
+    __tablename__ = "stg_repd_cat_status"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_status_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+
+
+class CatLocationCondition(RepdBase):
+    __tablename__ = "stg_repd_cat_location_condition"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_location_condition_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(60), unique=True)
+
+
+class CatLocationClassification(RepdBase):
+    __tablename__ = "stg_repd_cat_location_classification"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_location_classification_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+
+
+class CatClosureType(RepdBase):
+    __tablename__ = "stg_repd_cat_closure_type"
+    __table_args__ = (UniqueConstraint("name", name="uq_repd_cat_closure_type_name"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True)
+
+
+# Tabla actual: una fila vigente por FEB
+
+
+class CaseCurrent(RepdBase):
+    __tablename__ = "stg_repd_case_current"
+    __table_args__ = (
+        UniqueConstraint("feb", name="uq_repd_case_current_feb"),
+        Index("ix_repd_case_current_feb", "feb", unique=True),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    feb: Mapped[str] = mapped_column(String(64), unique=True)
+    sex_id: Mapped[int]
+    nationality_id: Mapped[int]
+    age_range_id: Mapped[int]
+    report_date: Mapped[date]
+    disappearance_date: Mapped[Optional[date]]
+    disappearance_state_name: Mapped[Optional[str]] = mapped_column(String(100))
+    disappearance_municipality_id: Mapped[Optional[int]]
+    status_id: Mapped[int]
+    location_date: Mapped[Optional[date]]
+    location_condition_id: Mapped[Optional[int]]
+    location_classification_id: Mapped[Optional[int]]
+    location_state_name: Mapped[Optional[str]] = mapped_column(String(100))
+    location_municipality_id: Mapped[Optional[int]]
+    closure_date: Mapped[Optional[date]]
+    closure_type_id: Mapped[Optional[int]]
+    linked_feb: Mapped[Optional[str]] = mapped_column(String(64))
+    has_investigation_folder: Mapped[Optional[bool]]
+    record_hash: Mapped[str] = mapped_column(String(64))
+    current_version: Mapped[int] = mapped_column(default=1)
+    created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
+    updated_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+
+# Tabla historial: snapshot por version
+
+
+class CaseHistory(RepdBase):
+    __tablename__ = "stg_repd_case_history"
+    __table_args__ = (
+        UniqueConstraint("feb", "version_num", name="uq_repd_case_history_feb_version"),
+        Index("ix_repd_case_history_feb", "feb"),
+        Index("ix_repd_case_history_is_current", "is_current"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    case_current_id: Mapped[Optional[int]]
+    feb: Mapped[str] = mapped_column(String(64))
+    version_num: Mapped[int]
+    is_current: Mapped[bool] = mapped_column(default=True)
+    valid_from: Mapped[datetime] = mapped_column(server_default=func.now())
+    valid_to: Mapped[Optional[datetime]]
+    sex_id: Mapped[int]
+    nationality_id: Mapped[int]
+    age_range_id: Mapped[int]
+    report_date: Mapped[date]
+    disappearance_date: Mapped[Optional[date]]
+    disappearance_state_name: Mapped[Optional[str]] = mapped_column(String(100))
+    disappearance_municipality_id: Mapped[Optional[int]]
+    status_id: Mapped[int]
+    location_date: Mapped[Optional[date]]
+    location_condition_id: Mapped[Optional[int]]
+    location_classification_id: Mapped[Optional[int]]
+    location_state_name: Mapped[Optional[str]] = mapped_column(String(100))
+    location_municipality_id: Mapped[Optional[int]]
+    closure_date: Mapped[Optional[date]]
+    closure_type_id: Mapped[Optional[int]]
+    linked_feb: Mapped[Optional[str]] = mapped_column(String(64))
+    has_investigation_folder: Mapped[Optional[bool]]
+    record_hash: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
+
+
+# Registro de modelos catalogo para iteracion dinamica
+
+CATALOG_MODELS = {
+    "sex": CatSex,
+    "nationality": CatNationality,
+    "age_range": CatAgeRange,
+    "status": CatStatus,
+    "location_condition": CatLocationCondition,
+    "location_classification": CatLocationClassification,
+    "closure_type": CatClosureType,
+}

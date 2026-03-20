@@ -1,6 +1,8 @@
+sqlalchemy>=2.0.0
 rich
 pandas
 geopandas
+pyproj==3.7.2
 psycopg2-binary
 python-dotenv
 polars
@@ -11,8 +13,16 @@ webdriver-manager==4.0.2
 requests
 pytest
 chardet
-sqlalchemy==1.4.54
 PyYAML
-alembic
 wget
 GeoAlchemy2
+asyncpg
+apache-airflow-providers-fab[common.sql]
+pydantic-settings
+more-itertools
+pydantic_settings
+gdown
+google-auth
+google-auth-httplib2
+google-api-python-client
+pre-commit

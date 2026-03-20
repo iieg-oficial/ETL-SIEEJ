@@ -23,9 +23,9 @@ Closes #
 
 ## ✅ Tareas completadas
 
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
+- [ ]
 
 ---
 

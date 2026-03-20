@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+.venv/
+
+# generated
+dist/
+build/
+*.min.js
+*.generated.*
+
+# databases
+*.sql
+migrations/
+
+# data files
+*.csv
+*.json.gz
+*.md
