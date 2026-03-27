@@ -1,12 +1,25 @@
+import io
 import os
 import glob
 import shutil
+import zipfile
 from pathlib import Path
 from datetime import datetime
+
+import pandas as pd
+import requests
 
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger(__name__)
+
+
+def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+        with z.open(csv_path) as f:
+            return pd.read_csv(f, **read_csv_kwargs)
 
 
 def cleanup_pipeline_data(pipeline_name: str) -> None:

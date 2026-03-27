@@ -27,3 +27,4 @@ google-auth-httplib2
 google-api-python-client
 retry
 pre-commit
+xlrd==2.0.2
