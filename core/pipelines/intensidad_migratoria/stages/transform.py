@@ -36,12 +36,15 @@ class IntensidadMigratoriaTransform(Stage):
         df["municipio_id"] = df.apply(
             lambda row: int(f"{int(row['entidad_id']):02}{int(row['municipio_id']):03}"), axis=1
         )
+        df["grado_iim"] = df["grado_iim"].astype(str).str.replace(r"^\d+\s*", "", regex=True).str.strip()
+        df["lugar_contexto_nacional"] = pd.to_numeric(df["lugar_contexto_nacional"], errors="coerce").astype("Int64")
         df["fecha"] = 2010
         return df[list(RENAME_IIM_MUNICIPAL_2020.values()) + ["fecha"]]
 
     def _process_municipal_2020(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df["municipio_id"] = pd.to_numeric(df["municipio_id"], errors="coerce").astype("Int64")
+        df["lugar_contexto_nacional"] = pd.to_numeric(df["lugar_contexto_nacional"], errors="coerce").astype("Int64")
         df["fecha"] = 2020
         return df[list(RENAME_IIM_MUNICIPAL_2020.values()) + ["fecha"]]
 
@@ -49,6 +52,7 @@ class IntensidadMigratoriaTransform(Stage):
         df = df.copy()
         df["entidad_id"] = pd.to_numeric(df["entidad_id"], errors="coerce")
         df = df[df["entidad_id"] != 0].copy()
+        df["lugar_contexto_nacional"] = pd.to_numeric(df["lugar_contexto_nacional"], errors="coerce").astype("Int64")
         df["fecha"] = 2020
         return df[list(RENAME_IIM_ESTATAL_2020.values()) + ["fecha"]]
 

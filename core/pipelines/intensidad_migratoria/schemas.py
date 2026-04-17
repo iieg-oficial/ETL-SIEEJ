@@ -1,4 +1,4 @@
-from sqlalchemy import Float, Integer, UniqueConstraint
+from sqlalchemy import Float, Integer, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from core.pipelines.intensidad_migratoria.attributes.intensidad_migratoria import IntensidadMigratoriaTable as T
@@ -21,6 +21,8 @@ class IimMunicipal(IntensidadMigratoriaBase):
     por_viv_emigrantes: Mapped[float | None] = mapped_column(Float, nullable=True)
     por_viv_reto: Mapped[float | None] = mapped_column(Float, nullable=True)
     iim_dp2: Mapped[float | None] = mapped_column(Float, nullable=True)
+    grado_iim: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lugar_contexto_nacional: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fecha: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
@@ -35,4 +37,6 @@ class IimEstatal(IntensidadMigratoriaBase):
     por_viv_emigrantes: Mapped[float | None] = mapped_column(Float, nullable=True)
     por_viv_reto: Mapped[float | None] = mapped_column(Float, nullable=True)
     iim_dp2: Mapped[float | None] = mapped_column(Float, nullable=True)
+    grado_iim: Mapped[str | None] = mapped_column(Text, nullable=True)
+    lugar_contexto_nacional: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fecha: Mapped[int] = mapped_column(Integer, nullable=False)

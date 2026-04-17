@@ -7,7 +7,8 @@ SELECT
     e.por_viv_emigrantes,
     e.por_viv_reto,
     e.iim_dp2,
-    RANK() OVER (PARTITION BY e.fecha ORDER BY e.iim_dp2 ASC) AS lugar,
+    e.grado_iim,
+    e.lugar_contexto_nacional,
     e.fecha
 FROM iim_estatal e
 LEFT JOIN cvegeo_states s ON s.cve_ent = e.entidad_id;
@@ -21,6 +22,8 @@ SELECT
     i.por_viv_emigrantes,
     i.por_viv_reto,
     i.iim_dp2,
+    i.grado_iim,
+    i.lugar_contexto_nacional,
     i.fecha
 FROM iim_municipal i
 LEFT JOIN cvegeo_municipalities m ON m.cvegeo = i.municipio_id
