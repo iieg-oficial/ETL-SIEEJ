@@ -48,6 +48,7 @@ class MarginacionTransform(Stage):
         df = df.copy()
         df["indice_marginacion"] = pd.to_numeric(df["indice_marginacion"], errors="coerce")
         df["indice_marginacion_normalizado"] = pd.to_numeric(df["indice_marginacion_normalizado"], errors="coerce")
+        df["porc_viv_sin_refrigerador"] = pd.to_numeric(df["porc_viv_sin_refrigerador"], errors="coerce")
         df["lugar_contexto_nacional"] = pd.to_numeric(df["lugar_contexto_nacional"], errors="coerce").astype("Int64")
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])
         df = list_values_to_null(df, rm_list=NULL_VALUES)

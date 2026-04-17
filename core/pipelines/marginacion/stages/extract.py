@@ -26,7 +26,7 @@ class MarginacionExtract(Stage):
         self.year = year
         self.logger = get_logger("marginacion.extract")
 
-    def _fetch_municipal(self) -> pd.DataFrame:
+    def _fetch_municipal(self, refri_map: dict[int, float]) -> pd.DataFrame:
         url_template = settings.URL_MUNICIPAL_DP2 if self.year <= 2015 else settings.URL_MUNICIPAL
         url = url_template.format(self.year)
         self.logger.info(f"[source] Fetching municipal {self.year}")
@@ -40,6 +40,9 @@ class MarginacionExtract(Stage):
         df = df[list(rename.keys())].rename(columns=rename)
         df = df[df["entidad_id"].astype(str).str.strip() == ENTIDAD_JALISCO].copy()
         df["lugar_contexto_nacional"] = lugar_nacional[df.index]
+        df["porc_viv_sin_refrigerador"] = (
+            pd.to_numeric(df["municipio_id"], errors="coerce").map(refri_map) if refri_map else None
+        )
         df["fecha_actualizacion"] = date(self.year, 1, 1)
 
         self.logger.info(f"[source] Municipal {self.year}: {len(df)} rows")
@@ -80,7 +83,7 @@ class MarginacionExtract(Stage):
         self.logger.info(f"[source] Localidad {self.year}: {len(df)} rows")
         return df
 
-    def _fetch_estatal(self) -> pd.DataFrame:
+    def _fetch_estatal(self, refri_map: dict[int, float]) -> pd.DataFrame:
         if self.year == 2015:
             url = "https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Entidad_Federativa/Base_Indice_de_marginacion_estatal_90-15.csv"
             self.logger.info(f"[source] Fetching estatal {self.year} (CSV historico)")
@@ -103,24 +106,19 @@ class MarginacionExtract(Stage):
         rename = rename_estatal(self.year)
         df = df[list(rename.keys())].rename(columns=rename)
         df = df[pd.to_numeric(df["entidad_id"], errors="coerce").notna()].copy()
-
-        if self.year == 2020:
-            refri_map = self._fetch_pct_sin_refrigerador_all()
-            df["porc_viv_sin_refrigerador"] = (
-                pd.to_numeric(df["entidad_id"], errors="coerce").astype("Int64").map(refri_map)
-            )
-        else:
-            df["porc_viv_sin_refrigerador"] = None
-
+        df["porc_viv_sin_refrigerador"] = (
+            pd.to_numeric(df["entidad_id"], errors="coerce").astype("Int64").map(refri_map) if refri_map else None
+        )
         df["fecha_actualizacion"] = date(self.year, 1, 1)
         self.logger.info(f"[source] Estatal {self.year}: {len(df)} rows")
         return df
 
-    def _fetch_pct_sin_refrigerador_all(self) -> dict[int, float]:
-        result = {}
+    def _fetch_iter_refri(self) -> tuple[dict[int, float], dict[int, float]]:
+        estatal_map: dict[int, float] = {}
+        municipal_map: dict[int, float] = {}
         for state_id in range(1, 33):
             url = f"https://www.inegi.org.mx/contenidos/programas/ccpv/2020/microdatos/iter/iter_{state_id:02d}_2020_csv.zip"
-            self.logger.info(f"[source] Fetching ITER state {state_id:02d} for pct_sin_refrigerador")
+            self.logger.info(f"[source] Fetching ITER state {state_id:02d}")
             try:
                 response = requests.get(url, verify=False, timeout=120)
                 response.raise_for_status()
@@ -128,14 +126,25 @@ class MarginacionExtract(Stage):
                     csv_name = next(n for n in z.namelist() if n.lower().endswith(".csv"))
                     df = pd.read_csv(io.BytesIO(z.read(csv_name)), encoding="latin1", low_memory=False)
                     df.columns = [c.replace("ï»¿", "").strip() for c in df.columns]
+                    df["TVIVPARHAB"] = pd.to_numeric(df["TVIVPARHAB"], errors="coerce")
+                    df["VPH_REFRI"] = pd.to_numeric(df["VPH_REFRI"], errors="coerce")
+
                     row = df[(df["MUN"] == 0) & (df["LOC"] == 0)]
-                    tviv = pd.to_numeric(row["TVIVPARHAB"].values[0], errors="coerce")
-                    vph_refri = pd.to_numeric(row["VPH_REFRI"].values[0], errors="coerce")
-                    result[state_id] = round((tviv - vph_refri) / tviv * 100, 2)
+                    if not row.empty:
+                        tviv = row["TVIVPARHAB"].values[0]
+                        refri = row["VPH_REFRI"].values[0]
+                        estatal_map[state_id] = round((tviv - refri) / tviv * 100, 2) if tviv else None
+
+                    municipios = df[(df["MUN"] != 0) & (df["LOC"] == 0)].copy()
+                    municipios["municipio_id"] = state_id * 1000 + municipios["MUN"]
+                    for _, mrow in municipios.iterrows():
+                        tviv = mrow["TVIVPARHAB"]
+                        refri = mrow["VPH_REFRI"]
+                        mun_id = int(mrow["municipio_id"])
+                        municipal_map[mun_id] = round((tviv - refri) / tviv * 100, 2) if tviv else None
             except Exception as e:
                 self.logger.warning(f"[source] ITER state {state_id:02d} failed: {e}")
-                result[state_id] = None
-        return result
+        return estatal_map, municipal_map
 
     def source(self, input_data: Optional[Any] = None) -> dict[str, pd.DataFrame]:
         pkl_municipal = self.work_dir / f"municipal_{self.year}.pkl"
@@ -151,10 +160,11 @@ class MarginacionExtract(Stage):
                 "df_estatal": pd.read_pickle(pkl_estatal),
             }
 
+        estatal_refri, municipal_refri = self._fetch_iter_refri() if self.year == 2020 else ({}, {})
         return {
-            "df_municipal": self._fetch_municipal(),
+            "df_municipal": self._fetch_municipal(municipal_refri),
             "df_localidad": self._fetch_localidad(),
-            "df_estatal": self._fetch_estatal(),
+            "df_estatal": self._fetch_estatal(estatal_refri),
         }
 
     def action(self, input_data: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:

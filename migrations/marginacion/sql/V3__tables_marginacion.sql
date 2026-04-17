@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS marginaciones_municipales (
     pob_ocup_hasta_2_sal_min        FLOAT,
     indice_marginacion              FLOAT,
     indice_marginacion_normalizado  FLOAT,
+    porc_viv_sin_refrigerador       FLOAT,
     lugar_contexto_nacional         INTEGER,
     fecha_actualizacion             DATE NOT NULL
 );

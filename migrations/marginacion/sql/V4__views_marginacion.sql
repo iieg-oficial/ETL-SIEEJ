@@ -15,6 +15,7 @@ SELECT
     mm.pob_ocup_hasta_2_sal_min,
     mm.indice_marginacion,
     mm.indice_marginacion_normalizado,
+    mm.porc_viv_sin_refrigerador,
     mm.lugar_contexto_nacional,
     mm.fecha_actualizacion
 FROM marginaciones_municipales mm

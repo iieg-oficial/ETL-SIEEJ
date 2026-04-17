@@ -51,6 +51,7 @@ class MarginacionesMunicipales(MarginacionBase):
     pob_ocup_hasta_2_sal_min: Mapped[float | None] = mapped_column(Float, nullable=True)
     indice_marginacion: Mapped[float | None] = mapped_column(Float, nullable=True)
     indice_marginacion_normalizado: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_sin_refrigerador: Mapped[float | None] = mapped_column(Float, nullable=True)
     lugar_contexto_nacional: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
