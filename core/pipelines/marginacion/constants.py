@@ -23,6 +23,65 @@ def rename_municipal(year: int) -> dict[str, str]:
     }
 
 
+def rename_estatal(year: int) -> dict[str, str]:
+    if year == 2015:
+        return {
+            "CVE_ENT": "entidad_id",
+            "NOM_ENT": "entidad",
+            "POB_TOT": "pob_total",
+            "ANALF": "porc_pob15_analfabeta",
+            "SPRIM": "pob15_sin_educ_bas",
+            "OVSDE": "porc_viv_sin_drenaje_ni_excusado",
+            "OVSEE": "porc_viv_sin_energia",
+            "OVSAE": "porc_viv_sin_agua_entubada",
+            "VHAC": "porc_viv_con_hacinamiento",
+            "OVPT": "porc_viv_piso_tierra",
+            "PL<5000": "porc_pob_loc_menos5000_hab",
+            "PO2SM": "pob_ocup_hasta_2_sal_min",
+            "IM": "indice_marginacion",
+            "GM": "grado_marginacion",
+            "IND0A100": "indice_marginacion_normalizado",
+            "LUGAR": "lugar_contexto_nacional",
+        }
+    if year == 2010:
+        return {
+            "Clave de la entidad": "entidad_id",
+            "Entidad federativa": "entidad",
+            "Población total": "pob_total",
+            "% Población de 15 años o más analfabeta": "porc_pob15_analfabeta",
+            "% Población  de 15 años o más sin educación básica": "pob15_sin_educ_bas",
+            "% Ocupantes en viviendas sin drenaje ni excusado": "porc_viv_sin_drenaje_ni_excusado",
+            "% Ocupantes en viviendas sin energía eléctrica": "porc_viv_sin_energia",
+            "% Ocupantes en viviendas sin agua entubada": "porc_viv_sin_agua_entubada",
+            "% Ocupantes en viviendas con piso de tierra": "porc_viv_piso_tierra",
+            "% Viviendas particulares con hacinamiento": "porc_viv_con_hacinamiento",
+            "% Población que vive en localidades menores a 5 000 habitantes": "porc_pob_loc_menos5000_hab",
+            "% Población ocupada con ingresos de hasta 2 salarios mínimos": "pob_ocup_hasta_2_sal_min",
+            "Índice de marginación, 2010": "indice_marginacion",
+            "Grado de marginación, 2010": "grado_marginacion",
+            "Índice de marginación normalizado, 2010": "indice_marginacion_normalizado",
+            "Lugar que ocupa en el contexto nacional": "lugar_contexto_nacional",
+        }
+    return {
+        "Clave de la entidad": "entidad_id",
+        "Entidad federativa": "entidad",
+        "Población total": "pob_total",
+        "% Población analfabeta de 15 años o más": "porc_pob15_analfabeta",
+        "% Población  de 15 años o más sin educación básica": "pob15_sin_educ_bas",
+        "% Ocupantes en viviendas particulares sin drenaje ni excusado": "porc_viv_sin_drenaje_ni_excusado",
+        "% Ocupantes en viviendas particulares sin energía eléctrica": "porc_viv_sin_energia",
+        "% Ocupantes en viviendas particulares sin agua entubada": "porc_viv_sin_agua_entubada",
+        "% Ocupantes en viviendas particulares con piso de tierra": "porc_viv_piso_tierra",
+        "% Viviendas particulares con hacinamiento": "porc_viv_con_hacinamiento",
+        "% Población en localidades con menos de 5 000 habitantes": "porc_pob_loc_menos5000_hab",
+        "% Población ocupada con ingresos menores a 2 salarios mínimos": "pob_ocup_hasta_2_sal_min",
+        f"Índice de marginación, {year}": "indice_marginacion",
+        f"Grado de marginación, {year}": "grado_marginacion",
+        f"Índice de marginación normalizado, {year}": "indice_marginacion_normalizado",
+        "Lugar que ocupa en el contexto nacional": "lugar_contexto_nacional",
+    }
+
+
 def rename_localidad(year: int) -> dict[str, str]:
     return {
         "CVE_LOC": "cve_geo_id",

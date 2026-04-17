@@ -8,6 +8,7 @@ class Settings(BaseConfig):
     model_config = SettingsConfigDict(env_file=env_path("marginacion"))
 
     URL_MUNICIPAL: str
+    URL_MUNICIPAL_DP2: str
     URL_LOCALIDAD: str
     DATA_YEARS: list[int]
 

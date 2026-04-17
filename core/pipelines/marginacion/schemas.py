@@ -51,6 +51,32 @@ class MarginacionesMunicipales(MarginacionBase):
     pob_ocup_hasta_2_sal_min: Mapped[float | None] = mapped_column(Float, nullable=True)
     indice_marginacion: Mapped[float | None] = mapped_column(Float, nullable=True)
     indice_marginacion_normalizado: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lugar_contexto_nacional: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
+
+
+class MarginacionesEstatales(MarginacionBase):
+    __tablename__ = T.MARGINACIONES_ESTATALES
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    grado_marginacion_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.GRADOS_MARGINACION}.id"), nullable=True
+    )
+    pob_total: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_pob15_analfabeta: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pob15_sin_educ_bas: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_sin_drenaje_ni_excusado: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_sin_energia: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_sin_agua_entubada: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_piso_tierra: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_con_hacinamiento: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_pob_loc_menos5000_hab: Mapped[float | None] = mapped_column(Float, nullable=True)
+    pob_ocup_hasta_2_sal_min: Mapped[float | None] = mapped_column(Float, nullable=True)
+    porc_viv_sin_refrigerador: Mapped[float | None] = mapped_column(Float, nullable=True)
+    indice_marginacion: Mapped[float | None] = mapped_column(Float, nullable=True)
+    indice_marginacion_normalizado: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lugar_contexto_nacional: Mapped[int | None] = mapped_column(Integer, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
 

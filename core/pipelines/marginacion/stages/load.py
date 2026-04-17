@@ -11,6 +11,7 @@ from core.pipelines.marginacion.mappings import GradosMarginacion as GradosMargi
 from core.pipelines.marginacion.schemas import (
     GradosMarginacion,
     Localidades,
+    MarginacionesEstatales,
     MarginacionesLocalidades,
     MarginacionesMunicipales,
 )
@@ -38,13 +39,15 @@ class MarginacionLoad(Stage):
     def source(self, input_data: Optional[Any] = None) -> dict[str, Any]:
         pkl_municipal = Path(f"data/transform/marginacion/municipal_{self.year}.pkl")
         pkl_localidad = Path(f"data/transform/marginacion/localidad_{self.year}.pkl")
+        pkl_estatal = Path(f"data/transform/marginacion/estatal_{self.year}.pkl")
         pkl_catalogs = Path(f"data/transform/marginacion/catalogs_{self.year}.pkl")
 
-        if pkl_municipal.exists() and pkl_localidad.exists() and pkl_catalogs.exists():
+        if pkl_municipal.exists() and pkl_localidad.exists() and pkl_estatal.exists() and pkl_catalogs.exists():
             self.logger.info(f"[source] Loading transform pkl files for {self.year}")
             return {
                 "df_municipal": pd.read_pickle(pkl_municipal),
                 "df_localidad": pd.read_pickle(pkl_localidad),
+                "df_estatal": pd.read_pickle(pkl_estatal),
                 "catalogs": pd.read_pickle(pkl_catalogs),
             }
 
@@ -67,7 +70,9 @@ class MarginacionLoad(Stage):
         )
         self.logger.info(f"[_load_catalogs] Catalogs loaded for {self.year}")
 
-    def _map_foreign_keys(self, session, df_municipal: pd.DataFrame, df_localidad: pd.DataFrame):
+    def _map_foreign_keys(
+        self, session, df_municipal: pd.DataFrame, df_localidad: pd.DataFrame, df_estatal: pd.DataFrame
+    ):
         grados_map = get_mapping(
             session,
             GradosMarginacion,
@@ -82,36 +87,47 @@ class MarginacionLoad(Stage):
             df_municipal, GradosMarginacion.grado_marginacion.key
         ).map(grados_map)
 
-        df_localidad = df_localidad.copy()
-        df_localidad[MarginacionesLocalidades.grado_marginacion_id.key] = normalize_col(
-            df_localidad, GradosMarginacion.grado_marginacion.key
+        df_estatal = df_estatal.copy()
+        df_estatal[MarginacionesEstatales.grado_marginacion_id.key] = normalize_col(
+            df_estatal, GradosMarginacion.grado_marginacion.key
         ).map(grados_map)
-        df_localidad[MarginacionesLocalidades.localidad_id.key] = df_localidad[Localidades.cve_geo_id.key].map(
-            localidades_map
-        )
 
-        return df_municipal.replace({np.nan: None}), df_localidad.replace({np.nan: None})
+        if not df_localidad.empty:
+            df_localidad = df_localidad.copy()
+            df_localidad[MarginacionesLocalidades.grado_marginacion_id.key] = normalize_col(
+                df_localidad, GradosMarginacion.grado_marginacion.key
+            ).map(grados_map)
+            df_localidad[MarginacionesLocalidades.localidad_id.key] = df_localidad[Localidades.cve_geo_id.key].map(
+                localidades_map
+            )
+
+        return df_municipal.replace({np.nan: None}), df_localidad, df_estatal.replace({np.nan: None})
 
     def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
         df_municipal = input_data["df_municipal"]
         df_localidad = input_data["df_localidad"]
+        df_estatal = input_data["df_estatal"]
 
         if df_municipal.empty and df_localidad.empty:
             self.logger.info("[action] Empty input, skipping load")
             return None
 
         self.logger.info(
-            f"[action] Loading {len(df_municipal)} municipal, {len(df_localidad)} localidad rows for {self.year}"
+            f"[action] Loading {len(df_municipal)} municipal, "
+            f"{len(df_localidad)} localidad, {len(df_estatal)} estatal rows for {self.year}"
         )
 
         try:
             self.db.connect()
             with self.db.get_session() as session:
                 self._load_catalogs(session, input_data["catalogs"])
-                df_municipal, df_localidad = self._map_foreign_keys(session, df_municipal, df_localidad)
+                df_municipal, df_localidad, df_estatal = self._map_foreign_keys(
+                    session, df_municipal, df_localidad, df_estatal
+                )
 
                 records_before_municipal = count_records(session, MarginacionesMunicipales)
                 records_before_localidad = count_records(session, MarginacionesLocalidades)
+                records_before_estatal = count_records(session, MarginacionesEstatales)
 
                 sync_id_sequence(session, MarginacionesMunicipales)
                 municipal_cols = [c for c in MarginacionesMunicipales.columns() if c != MarginacionesMunicipales.id.key]
@@ -122,11 +138,22 @@ class MarginacionLoad(Stage):
                 )
 
                 sync_id_sequence(session, MarginacionesLocalidades)
-                localidad_cols = [c for c in MarginacionesLocalidades.columns() if c != MarginacionesLocalidades.id.key]
+                if not df_localidad.empty:
+                    localidad_cols = [
+                        c for c in MarginacionesLocalidades.columns() if c != MarginacionesLocalidades.id.key
+                    ]
+                    bulk_insert(
+                        session,
+                        df_to_records(df_localidad.astype(object).where(df_localidad.notna(), None), localidad_cols),
+                        MarginacionesLocalidades,
+                    )
+
+                sync_id_sequence(session, MarginacionesEstatales)
+                estatal_cols = [c for c in MarginacionesEstatales.columns() if c != MarginacionesEstatales.id.key]
                 bulk_insert(
                     session,
-                    df_to_records(df_localidad.astype(object).where(df_localidad.notna(), None), localidad_cols),
-                    MarginacionesLocalidades,
+                    df_to_records(df_estatal.astype(object).where(df_estatal.notna(), None), estatal_cols),
+                    MarginacionesEstatales,
                 )
 
         except Exception:
@@ -137,6 +164,7 @@ class MarginacionLoad(Stage):
             "data": input_data,
             "records_before_municipal": records_before_municipal,
             "records_before_localidad": records_before_localidad,
+            "records_before_estatal": records_before_estatal,
         }
 
     def finalization(self, input_data: Any) -> Any:
@@ -147,13 +175,18 @@ class MarginacionLoad(Stage):
             with self.db.get_session() as session:
                 total_municipal = count_records(session, MarginacionesMunicipales)
                 total_localidad = count_records(session, MarginacionesLocalidades)
+                total_estatal = count_records(session, MarginacionesEstatales)
                 inserted_municipal = total_municipal - input_data["records_before_municipal"]
                 inserted_localidad = total_localidad - input_data["records_before_localidad"]
+                inserted_estatal = total_estatal - input_data["records_before_estatal"]
             self.logger.info(
                 f"[finalization] {total_municipal:,} marginaciones_municipales in database ({inserted_municipal:,} inserted)"
             )
             self.logger.info(
                 f"[finalization] {total_localidad:,} marginaciones_localidades in database ({inserted_localidad:,} inserted)"
+            )
+            self.logger.info(
+                f"[finalization] {total_estatal:,} marginaciones_estatales in database ({inserted_estatal:,} inserted)"
             )
         finally:
             self.db.disconnect()
