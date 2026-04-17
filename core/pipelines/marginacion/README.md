@@ -26,6 +26,7 @@ Pipeline ETL para el índice y grado de marginación municipal, por localidad y 
 | `pob_ocup_hasta_2_sal_min` | % de población ocupada con ingresos de hasta 2 salarios mínimos |
 | `indice_marginacion` | Índice de marginación calculado por CONAPO |
 | `indice_marginacion_normalizado` | Índice de marginación normalizado en escala 0–100 |
+| `porc_viv_sin_refrigerador` | % de viviendas particulares habitadas sin refrigerador (calculado desde ITER 2020 de INEGI; nulo para 2010 y 2015) |
 | `lugar_contexto_nacional` | Posición del municipio en el ranking nacional por índice de marginación |
 
 ### `marginaciones_estatales`
@@ -93,5 +94,5 @@ Para incorporar un nuevo año de publicación:
 2. Verificar si los nombres de columna cambiaron en la fuente y actualizar `rename_municipal`, `rename_estatal` y `rename_localidad` en `constants.py`
 3. Verificar si el patrón de URL cambió y actualizar `config.py` y `.env.example`
 4. Para el año estatal, identificar el nuevo archivo en el portal de CONAPO y actualizar `_fetch_estatal` en `extract.py`
-5. Para `porc_viv_sin_refrigerador`, actualizar la URL del ITER en `_fetch_pct_sin_refrigerador_all` cuando se publique el Censo 2030
+5. Para `porc_viv_sin_refrigerador`, actualizar la URL del ITER en `_fetch_iter_refri` en `extract.py` cuando se publique el Censo 2030
 6. Ejecutar `python dags/etl_marginacion.py`
