@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS iim_municipal (
     viv_totales         INTEGER,
     por_viv_remesas     FLOAT,
     por_viv_emigrantes  FLOAT,
+    por_viv_circ        FLOAT,
     por_viv_reto        FLOAT,
     iim_dp2             FLOAT,
     grado_iim           TEXT,
