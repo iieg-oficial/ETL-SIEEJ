@@ -36,6 +36,7 @@ class IimEstatal(IntensidadMigratoriaBase):
     viv_totales: Mapped[int | None] = mapped_column(Integer, nullable=True)
     por_viv_remesas: Mapped[float | None] = mapped_column(Float, nullable=True)
     por_viv_emigrantes: Mapped[float | None] = mapped_column(Float, nullable=True)
+    por_viv_circ: Mapped[float | None] = mapped_column(Float, nullable=True)
     por_viv_reto: Mapped[float | None] = mapped_column(Float, nullable=True)
     iim_dp2: Mapped[float | None] = mapped_column(Float, nullable=True)
     grado_iim: Mapped[str | None] = mapped_column(Text, nullable=True)

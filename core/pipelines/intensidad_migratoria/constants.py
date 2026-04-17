@@ -28,6 +28,7 @@ RENAME_IIM_ESTATAL_2020: dict[str, str] = {
     "VIV_TOT": "viv_totales",
     "VIV_REM": "por_viv_remesas",
     "VIV_EMIG": "por_viv_emigrantes",
+    "VIV_CIRC": "por_viv_circ",
     "VIV_RET": "por_viv_reto",
     "IIM-DP2": "iim_dp2",
     "GIM-DP2": "grado_iim",
