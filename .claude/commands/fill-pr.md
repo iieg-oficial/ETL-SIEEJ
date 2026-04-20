@@ -1,36 +1,60 @@
-Tomando en cuenta el pipeline realizado, muestra al usuario el siguiente template de pull request llenado con la información del pipeline:
+Crea el Pull Request en GitHub para el pipeline actual.
 
-<!-- .github/pull_request_template.md -->
+## Pasos
 
-## 🔗 Issue
+1. Detecta el nombre del pipeline del contexto actual (rama, archivos recientes, conversación).
 
-Closes #
+2. Busca el issue abierto relacionado:
+   ```bash
+   gh issue list --state open --search "{pipeline}" --json number,title,url
+   ```
+   Usa el número encontrado para `Closes #N`. Si hay más de uno, pregunta al usuario cuál es el correcto.
 
----
+3. Obtén el resumen de commits de esta rama:
+   ```bash
+   git log main..HEAD --oneline
+   ```
 
-## 📝 Qué se hizo
+4. Crea el PR:
+   ```bash
+   gh pr create \
+     --title "feat(pipeline): {pipeline}" \
+     --body "$(cat <<'EOF'
+   ## Issue
 
-<!-- Descripción breve de los cambios -->
+   Closes #{numero_issue}
 
----
+   ---
 
-## 🏷️ Tipo
+   ## Qué se hizo
 
-- [ ] `feat` - Nueva funcionalidad
-- [ ] `bug` - Corrección
-- [ ] `refactor` - Refactorización
-- [ ] `docs` - Documentación
+   {descripcion_breve_basada_en_commits}
 
----
+   ---
 
-## ✅ Tareas completadas
+   ## Tipo
 
-- [ ]
-- [ ]
-- [ ]
+   - [x] `feat` - Nueva funcionalidad
 
----
+   ---
 
-## ⚠️ Notas
+   ## Tareas completadas
 
-<!-- Información adicional para el reviewer -->
+   - [x] Schemas (constants, attributes, schemas)
+   - [x] Extract
+   - [x] Transform
+   - [x] Load
+   - [x] DAG
+   - [x] Migraciones
+   - [x] README
+
+   ---
+
+   ## Notas
+
+   <!-- Información adicional para el reviewer -->
+   EOF
+   )"
+   ```
+
+5. Muestra la URL del PR creado.
