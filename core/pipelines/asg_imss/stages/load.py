@@ -5,8 +5,8 @@ from typing import Any, Optional
 import pandas as pd
 
 from core.db import Database
-from core.pipelines.asg_imms.config import settings
-from core.pipelines.asg_imms.consts import (
+from core.pipelines.asg_imss.config import settings
+from core.pipelines.asg_imss.consts import (
     CATALOG_RANGO_EDAD,
     CATALOG_RANGO_SALARIAL,
     CATALOG_RANGO_UMA,
@@ -14,9 +14,9 @@ from core.pipelines.asg_imms.consts import (
     CATALOG_TAMANIO_PATRON,
     PIPELINE_NAME,
 )
-from core.pipelines.asg_imms.schemas import (
-    AsgImmsBase,
-    AsgImmsDatos,
+from core.pipelines.asg_imss.schemas import (
+    AsgImssBase,
+    AsgImssDatos,
     CatDelegacion,
     CatEntidadMunicipio,
     CatRangoEdad,
@@ -34,7 +34,7 @@ from core.utils.bulk_ops import insert_records, upsert_records
 from core.utils.files import clean_directory
 
 
-class AsgImmsLoader(Stage):
+class AsgImssLoader(Stage):
     def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "load")
         self.mode = mode
@@ -46,7 +46,7 @@ class AsgImmsLoader(Stage):
 
         self.db = Database(PIPELINE_NAME, settings.database_url)
         self.db.connect()
-        AsgImmsBase.metadata.create_all(self.db.engine)
+        AsgImssBase.metadata.create_all(self.db.engine)
         self.logger.info("Tablas verificadas/creadas.")
         return input_data
 
@@ -78,7 +78,7 @@ class AsgImmsLoader(Stage):
                 upsert_records(
                     session,
                     records,
-                    AsgImmsDatos,
+                    AsgImssDatos,
                     conflict_keys=["record_hash"],
                     chunk_size=settings.ASG_LOAD_BATCH_SIZE,
                 )

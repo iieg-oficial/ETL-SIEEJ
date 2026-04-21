@@ -6,8 +6,8 @@ from typing import Any, Optional
 
 import requests
 
-from core.pipelines.asg_imms.config import settings
-from core.pipelines.asg_imms.consts import DOWNLOAD_HEADERS, PIPELINE_NAME, SOURCE_URL_TEMPLATE
+from core.pipelines.asg_imss.config import settings
+from core.pipelines.asg_imss.consts import DOWNLOAD_HEADERS, PIPELINE_NAME, SOURCE_URL_TEMPLATE
 from core.pipelines.stage import Stage
 
 
@@ -35,7 +35,7 @@ def _generate_month_end_dates(start: date, end: date) -> list[date]:
     return dates
 
 
-class AsgImmsExtractor(Stage):
+class AsgImssExtractor(Stage):
     def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "extract")
         self.mode = mode

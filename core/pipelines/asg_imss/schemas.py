@@ -5,7 +5,7 @@ from sqlalchemy import Index, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class AsgImmsBase(DeclarativeBase):
+class AsgImssBase(DeclarativeBase):
     pass
 
 
@@ -14,19 +14,19 @@ class AsgImmsBase(DeclarativeBase):
 # ---------------------------------------------------------------------------
 
 
-class CatDelegacion(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_delegacion"
-    __table_args__ = (UniqueConstraint("cve_delegacion", name="uq_asg_imms_cat_delegacion_cve"),)
+class CatDelegacion(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_delegacion"
+    __table_args__ = (UniqueConstraint("cve_delegacion", name="uq_asg_imss_cat_delegacion_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_delegacion: Mapped[int] = mapped_column(unique=True)
     descripcion: Mapped[str] = mapped_column(String(100))
 
 
-class CatSubdelegacion(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_subdelegacion"
+class CatSubdelegacion(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_subdelegacion"
     __table_args__ = (
-        UniqueConstraint("cve_delegacion", "cve_subdelegacion", name="uq_asg_imms_cat_subdelegacion_cve"),
+        UniqueConstraint("cve_delegacion", "cve_subdelegacion", name="uq_asg_imss_cat_subdelegacion_cve"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
@@ -35,9 +35,9 @@ class CatSubdelegacion(AsgImmsBase):
     descripcion: Mapped[str] = mapped_column(String(100))
 
 
-class CatEntidadMunicipio(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_entidad_municipio"
-    __table_args__ = (UniqueConstraint("cve_municipio", name="uq_asg_imms_cat_entidad_municipio_cve"),)
+class CatEntidadMunicipio(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_entidad_municipio"
+    __table_args__ = (UniqueConstraint("cve_municipio", name="uq_asg_imss_cat_entidad_municipio_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_municipio: Mapped[str] = mapped_column(String(10), unique=True)
@@ -47,18 +47,18 @@ class CatEntidadMunicipio(AsgImmsBase):
     desc_municipio: Mapped[str] = mapped_column(String(200))
 
 
-class CatSector1(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_sector_1"
-    __table_args__ = (UniqueConstraint("cve_sector_1", name="uq_asg_imms_cat_sector_1_cve"),)
+class CatSector1(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_sector_1"
+    __table_args__ = (UniqueConstraint("cve_sector_1", name="uq_asg_imss_cat_sector_1_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_sector_1: Mapped[int] = mapped_column(unique=True)
     descripcion: Mapped[str] = mapped_column(String(300))
 
 
-class CatSector2(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_sector_2"
-    __table_args__ = (UniqueConstraint("cve_sector_1", "cve_sector_2", name="uq_asg_imms_cat_sector_2_cve"),)
+class CatSector2(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_sector_2"
+    __table_args__ = (UniqueConstraint("cve_sector_1", "cve_sector_2", name="uq_asg_imss_cat_sector_2_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_sector_1: Mapped[int]
@@ -67,9 +67,9 @@ class CatSector2(AsgImmsBase):
     descripcion: Mapped[str] = mapped_column(String(500))
 
 
-class CatSector4(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_sector_4"
-    __table_args__ = (UniqueConstraint("cve_sector_2", "cve_sector_4", name="uq_asg_imms_cat_sector_4_cve"),)
+class CatSector4(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_sector_4"
+    __table_args__ = (UniqueConstraint("cve_sector_2", "cve_sector_4", name="uq_asg_imss_cat_sector_4_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_sector_2: Mapped[int]
@@ -78,45 +78,45 @@ class CatSector4(AsgImmsBase):
     descripcion: Mapped[str] = mapped_column(String(500))
 
 
-class CatTamanioPatron(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_tamanio_patron"
-    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imms_cat_tamanio_patron_cve"),)
+class CatTamanioPatron(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_tamanio_patron"
+    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imss_cat_tamanio_patron_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve: Mapped[str] = mapped_column(String(5), unique=True)
     descripcion: Mapped[str] = mapped_column(String(100))
 
 
-class CatSexo(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_sexo"
-    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imms_cat_sexo_cve"),)
+class CatSexo(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_sexo"
+    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imss_cat_sexo_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve: Mapped[int] = mapped_column(unique=True)
     descripcion: Mapped[str] = mapped_column(String(50))
 
 
-class CatRangoEdad(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_rango_edad"
-    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imms_cat_rango_edad_cve"),)
+class CatRangoEdad(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_rango_edad"
+    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imss_cat_rango_edad_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve: Mapped[str] = mapped_column(String(5), unique=True)
     descripcion: Mapped[str] = mapped_column(String(200))
 
 
-class CatRangoSalarial(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_rango_salarial"
-    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imms_cat_rango_salarial_cve"),)
+class CatRangoSalarial(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_rango_salarial"
+    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imss_cat_rango_salarial_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve: Mapped[str] = mapped_column(String(5), unique=True)
     descripcion: Mapped[str] = mapped_column(String(200))
 
 
-class CatRangoUma(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_cat_rango_uma"
-    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imms_cat_rango_uma_cve"),)
+class CatRangoUma(AsgImssBase):
+    __tablename__ = "stg_asg_imss_cat_rango_uma"
+    __table_args__ = (UniqueConstraint("cve", name="uq_asg_imss_cat_rango_uma_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve: Mapped[str] = mapped_column(String(5), unique=True)
@@ -128,12 +128,12 @@ class CatRangoUma(AsgImmsBase):
 # ---------------------------------------------------------------------------
 
 
-class AsgImmsDatos(AsgImmsBase):
-    __tablename__ = "stg_asg_imms_datos"
+class AsgImssDatos(AsgImssBase):
+    __tablename__ = "stg_asg_imss_datos"
     __table_args__ = (
-        UniqueConstraint("record_hash", name="uq_asg_imms_datos_record_hash"),
-        Index("ix_asg_imms_datos_record_hash", "record_hash", unique=True),
-        Index("ix_asg_imms_datos_fecha_corte", "fecha_corte"),
+        UniqueConstraint("record_hash", name="uq_asg_imss_datos_record_hash"),
+        Index("ix_asg_imss_datos_record_hash", "record_hash", unique=True),
+        Index("ix_asg_imss_datos_fecha_corte", "fecha_corte"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

@@ -5,7 +5,7 @@ from core.config import BaseConfig, env_path
 
 
 class Settings(BaseConfig):
-    model_config = SettingsConfigDict(env_file=env_path("asg_imms"))
+    model_config = SettingsConfigDict(env_file=env_path("asg_imss"))
 
     ASG_DOWNLOAD_TIMEOUT: int = Field(default=300)
     ASG_DOWNLOAD_MAX_RETRIES: int = Field(default=3)

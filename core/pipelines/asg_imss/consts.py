@@ -1,4 +1,4 @@
-PIPELINE_NAME = "asg_imms"
+PIPELINE_NAME = "asg_imss"
 
 SOURCE_URL_TEMPLATE = "http://datos.imss.gob.mx/sites/default/files/asg-{date}.csv"
 

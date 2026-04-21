@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core.pipelines.asg_imms.consts import (
+from core.pipelines.asg_imss.consts import (
     HASH_FIELDS,
     JALISCO_CVE_ENTIDAD,
     METRIC_FLOAT_COLUMNS,
@@ -61,7 +61,7 @@ def _extract_sector4_catalogs(df: pd.DataFrame) -> list[dict]:
     return records
 
 
-class AsgImmsTransformer(Stage):
+class AsgImssTransformer(Stage):
     def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "transform")
         self.mode = mode

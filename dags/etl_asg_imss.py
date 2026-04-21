@@ -9,31 +9,31 @@ from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
 from core.pipeline import Pipeline
-from core.pipelines.asg_imms.stages.extract import AsgImmsExtractor
-from core.pipelines.asg_imms.stages.load import AsgImmsLoader
-from core.pipelines.asg_imms.stages.transform import AsgImmsTransformer
+from core.pipelines.asg_imss.stages.extract import AsgImssExtractor
+from core.pipelines.asg_imss.stages.load import AsgImssLoader
+from core.pipelines.asg_imss.stages.transform import AsgImssTransformer
 
 
 def run_bootstrap():
-    """Ejecuta la carga inicial completa de asg_imms (desde 2015-01-31)"""
+    """Ejecuta la carga inicial completa de asg_imss (desde 2015-01-31)"""
     Pipeline(
-        name="asg_imms",
+        name="asg_imss",
         stages=[
-            AsgImmsExtractor(mode="bootstrap"),
-            AsgImmsTransformer(mode="bootstrap"),
-            AsgImmsLoader(mode="bootstrap"),
+            AsgImssExtractor(mode="bootstrap"),
+            AsgImssTransformer(mode="bootstrap"),
+            AsgImssLoader(mode="bootstrap"),
         ],
     ).run(mode="bootstrap")
 
 
 def run_update():
-    """Ejecuta carga incremental de asg_imms (mes anterior)"""
+    """Ejecuta carga incremental de asg_imss (mes anterior)"""
     Pipeline(
-        name="asg_imms",
+        name="asg_imss",
         stages=[
-            AsgImmsExtractor(mode="update"),
-            AsgImmsTransformer(mode="update"),
-            AsgImmsLoader(mode="update"),
+            AsgImssExtractor(mode="update"),
+            AsgImssTransformer(mode="update"),
+            AsgImssLoader(mode="update"),
         ],
     ).run(mode="update")
 
@@ -43,7 +43,7 @@ def run_update():
 # ============================================================================
 
 with DAG(
-    "etl_asg_imms_bootstrap",
+    "etl_asg_imss_bootstrap",
     default_args={
         "owner": "iieg",
         "retries": 1,
@@ -53,7 +53,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     catchup=False,
     schedule=None,
-    tags=["etl", "asg_imms", "bootstrap", "on-demand"],
+    tags=["etl", "asg_imss", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
 
@@ -63,7 +63,7 @@ with DAG(
 # ============================================================================
 
 with DAG(
-    "etl_asg_imms_update",
+    "etl_asg_imss_update",
     default_args={
         "owner": "Alejandro Zarate Macias",
         "retries": 2,
@@ -73,7 +73,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     catchup=False,
     schedule="0 6 1 * *",
-    tags=["etl", "asg_imms", "update"],
+    tags=["etl", "asg_imss", "update"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)
 

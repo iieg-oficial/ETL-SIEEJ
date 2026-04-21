@@ -15,7 +15,7 @@ El IMSS publica mensualmente archivos CSV con el universo de asegurados permanen
 ## Estructura
 
 ```
-asg_imms/
+asg_imss/
 ├── .env.example     # Variables de entorno con valores de ejemplo
 ├── config.py        # Settings del pipeline (extiende BaseConfig)
 ├── consts.py        # Constantes: URL, campos de hash, catálogos estáticos
@@ -28,16 +28,16 @@ asg_imms/
 
 Archivos relacionados fuera de este directorio:
 
-- `dags/etl_asg_imms.py` — DAGs de Airflow (bootstrap + update mensual)
-- `migrations/asg_imms/sql/` — Migración Flyway para crear las tablas
-- `migrations/asg_imms/flyway.conf.example` — Configuración de ejemplo para Flyway
+- `dags/etl_asg_imss.py` — DAGs de Airflow (bootstrap + update mensual)
+- `migrations/asg_imss/sql/` — Migración Flyway para crear las tablas
+- `migrations/asg_imss/flyway.conf.example` — Configuración de ejemplo para Flyway
 
 ## Arquitectura
 
 Sigue el patrón de 3 etapas del framework (`Stage` → `Pipeline`):
 
 ```
-AsgImmsExtractor → AsgImmsTransformer → AsgImmsLoader
+AsgImssExtractor → AsgImssTransformer → AsgImssLoader
 ```
 
 Cada etapa implementa `source()`, `action()`, `finalization()` del ABC `Stage`. El `Pipeline` encadena las etapas secuencialmente, pasando datos entre ellas.
@@ -60,28 +60,28 @@ El pipeline gestiona 12 tablas en PostgreSQL: 11 catálogos y 1 tabla principal 
 
 | Tabla | Clave única | Descripción |
 |-------|-------------|-------------|
-| `stg_asg_imms_cat_tamanio_patron` | `cve` | Tamaño del patrón por rango de puestos (S1–S7) |
-| `stg_asg_imms_cat_sexo` | `cve` | Sexo del asegurado (1=Hombre, 2=Mujer, 3=No especificado) |
-| `stg_asg_imms_cat_rango_edad` | `cve` | Rango de edad (E1–E14, de menores de 15 a 75+ años) |
-| `stg_asg_imms_cat_rango_salarial` | `cve` | Rango salarial en múltiplos del salario mínimo (W1–W11) |
-| `stg_asg_imms_cat_rango_uma` | `cve` | Rango salarial en múltiplos de la UMA (W1–W25) |
+| `stg_asg_imss_cat_tamanio_patron` | `cve` | Tamaño del patrón por rango de puestos (S1–S7) |
+| `stg_asg_imss_cat_sexo` | `cve` | Sexo del asegurado (1=Hombre, 2=Mujer, 3=No especificado) |
+| `stg_asg_imss_cat_rango_edad` | `cve` | Rango de edad (E1–E14, de menores de 15 a 75+ años) |
+| `stg_asg_imss_cat_rango_salarial` | `cve` | Rango salarial en múltiplos del salario mínimo (W1–W11) |
+| `stg_asg_imss_cat_rango_uma` | `cve` | Rango salarial en múltiplos de la UMA (W1–W25) |
 
 ### Catálogos dinámicos (extraídos de los CSVs en bootstrap)
 
 | Tabla | Clave única | Descripción |
 |-------|-------------|-------------|
-| `stg_asg_imms_cat_delegacion` | `cve_delegacion` | Delegaciones del IMSS presentes en el archivo fuente |
-| `stg_asg_imms_cat_subdelegacion` | `(cve_delegacion, cve_subdelegacion)` | Subdelegaciones por delegación |
-| `stg_asg_imms_cat_entidad_municipio` | `cve_municipio` | Municipios con su clave de entidad y delegación |
-| `stg_asg_imms_cat_sector_1` | `cve_sector_1` | Sectores económicos de primer nivel |
-| `stg_asg_imms_cat_sector_2` | `(cve_sector_1, cve_sector_2)` | Subsectores (segundo nivel) |
-| `stg_asg_imms_cat_sector_4` | `(cve_sector_2, cve_sector_4)` | Fracciones SCIAN (cuarto nivel) |
+| `stg_asg_imss_cat_delegacion` | `cve_delegacion` | Delegaciones del IMSS presentes en el archivo fuente |
+| `stg_asg_imss_cat_subdelegacion` | `(cve_delegacion, cve_subdelegacion)` | Subdelegaciones por delegación |
+| `stg_asg_imss_cat_entidad_municipio` | `cve_municipio` | Municipios con su clave de entidad y delegación |
+| `stg_asg_imss_cat_sector_1` | `cve_sector_1` | Sectores económicos de primer nivel |
+| `stg_asg_imss_cat_sector_2` | `(cve_sector_1, cve_sector_2)` | Subsectores (segundo nivel) |
+| `stg_asg_imss_cat_sector_4` | `(cve_sector_2, cve_sector_4)` | Fracciones SCIAN (cuarto nivel) |
 
 ### Tabla principal
 
 | Tabla | Clave única | Descripción |
 |-------|-------------|-------------|
-| `stg_asg_imms_datos` | `record_hash` | Registro mensual de asegurados por combinación de dimensiones |
+| `stg_asg_imss_datos` | `record_hash` | Registro mensual de asegurados por combinación de dimensiones |
 
 La tabla principal tiene 14 columnas de dimensiones, 12 métricas enteras (conteos de trabajadores) y 5 métricas de punto flotante (masa salarial). El `record_hash` es un SHA-256 calculado sobre 13 campos dimensionales + `fecha_corte`.
 
@@ -94,7 +94,7 @@ La tabla principal tiene 14 columnas de dimensiones, 12 métricas enteras (conte
 ### Extract
 
 1. Calcula las fechas objetivo según el modo (ver [Modos del pipeline](#modos-del-pipeline)).
-2. Omite archivos que ya existen en `data/extract/asg_imms/`.
+2. Omite archivos que ya existen en `data/extract/asg_imss/`.
 3. Descarga cada CSV desde `http://datos.imss.gob.mx/sites/default/files/asg-{fecha}.csv`.
 4. Detecta el encoding de la respuesta (UTF-8 → latin-1 → UTF-8 con sustitución).
 5. Guarda cada archivo normalizado a UTF-8 en disco.
@@ -111,13 +111,13 @@ La tabla principal tiene 14 columnas de dimensiones, 12 métricas enteras (conte
 7. Calcula `record_hash` (SHA-256) sobre los 13 campos dimensionales + `fecha_corte`.
 8. Convierte NaN restantes a `None` para compatibilidad con PostgreSQL.
 9. Extrae catálogos dinámicos (delegaciones, subdelegaciones, municipios, sectores) acumulando valores únicos de todos los archivos procesados.
-10. Serializa el DataFrame transformado como pickle en `data/transform/asg_imms/`.
+10. Serializa el DataFrame transformado como pickle en `data/transform/asg_imss/`.
 
 ### Load
 
 1. Verifica y crea las tablas con `metadata.create_all()` si no existen.
 2. **Solo en modo bootstrap**: carga los catálogos estáticos (`ON CONFLICT DO NOTHING`) y los catálogos dinámicos acumulados en Transform.
-3. Para cada pickle, lee el DataFrame y aplica upsert sobre `stg_asg_imms_datos` por `record_hash`.
+3. Para cada pickle, lee el DataFrame y aplica upsert sobre `stg_asg_imss_datos` por `record_hash`.
 4. Elimina los pickles intermedios al finalizar (`clean_directory`).
 
 ## Modos del pipeline
@@ -141,7 +141,7 @@ Ver [.env.example](.env.example) para la plantilla completa. Las variables confi
 | `DB_PASSWORD` | — | Contraseña de PostgreSQL |
 | `DB_HOST` | `localhost` | Host de PostgreSQL |
 | `DB_PORT` | `5432` | Puerto de PostgreSQL |
-| `DB_NAME` | `asg_imms` | Base de datos de destino |
+| `DB_NAME` | `asg_imss` | Base de datos de destino |
 | `ASG_DOWNLOAD_TIMEOUT` | `300` | Timeout HTTP por descarga (segundos) |
 | `ASG_DOWNLOAD_MAX_RETRIES` | `3` | Reintentos por archivo fallido |
 | `ASG_LOAD_BATCH_SIZE` | `50000` | Filas por batch en upsert |
@@ -154,43 +154,43 @@ Ver [.env.example](.env.example) para la plantilla completa. Las variables confi
 
 ```bash
 # 1. Configurar variables de entorno
-cp core/pipelines/asg_imms/.env.example core/pipelines/asg_imms/.env
+cp core/pipelines/asg_imss/.env.example core/pipelines/asg_imss/.env
 # Editar .env con los valores reales
 
 # 2. Configurar Flyway y ejecutar migraciones
-just flyway-config asg_imms
-# Editar migrations/asg_imms/flyway.conf con la URL de conexión real
-just flyway-migrate asg_imms
+just flyway-config asg_imss
+# Editar migrations/asg_imss/flyway.conf con la URL de conexión real
+just flyway-migrate asg_imss
 
 # 3. Ejecutar el DAG bootstrap desde Airflow (On Demand)
-#    DAG: etl_asg_imms_bootstrap
+#    DAG: etl_asg_imss_bootstrap
 ```
 
 ### Update incremental (mes anterior)
 
-El DAG `etl_asg_imms_update` se ejecuta automáticamente el día 1 de cada mes a las 06:00. Para ejecutarlo manualmente desde Airflow, activar y disparar el DAG desde la interfaz.
+El DAG `etl_asg_imss_update` se ejecuta automáticamente el día 1 de cada mes a las 06:00. Para ejecutarlo manualmente desde Airflow, activar y disparar el DAG desde la interfaz.
 
 ### Airflow
 
 | Acción | DAG |
 |--------|-----|
-| Carga inicial completa | `etl_asg_imms_bootstrap` (trigger manual) |
-| Actualización mensual | `etl_asg_imms_update` (schedule automático) |
+| Carga inicial completa | `etl_asg_imss_bootstrap` (trigger manual) |
+| Actualización mensual | `etl_asg_imss_update` (schedule automático) |
 
 ## Programación
 
 | DAG | Schedule | Trigger | Descripción |
 |-----|----------|---------|-------------|
-| `etl_asg_imms_bootstrap` | Sin schedule | Manual / On Demand | Carga histórica completa desde 2015 |
-| `etl_asg_imms_update` | `0 6 1 * *` | Automático | Carga incremental el 1° de cada mes a las 06:00 |
+| `etl_asg_imss_bootstrap` | Sin schedule | Manual / On Demand | Carga histórica completa desde 2015 |
+| `etl_asg_imss_update` | `0 6 1 * *` | Automático | Carga incremental el 1° de cada mes a las 06:00 |
 
 El DAG de update descarga y procesa únicamente el archivo del último día del mes anterior.
 
 ## Migraciones
 
-- **V1** (`V1__tablas_iniciales.sql`): Crea las 11 tablas catálogo y la tabla principal `stg_asg_imms_datos` con sus constraints únicos e índices.
+- **V1** (`V1__tablas_iniciales.sql`): Crea las 11 tablas catálogo y la tabla principal `stg_asg_imss_datos` con sus constraints únicos e índices.
 
-Ver `migrations/asg_imms/flyway.conf.example` para la configuración de Flyway.
+Ver `migrations/asg_imss/flyway.conf.example` para la configuración de Flyway.
 
 ## Notas técnicas
 
