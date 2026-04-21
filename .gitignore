@@ -29,3 +29,5 @@ data/*
 # Migrations
 **/flyway.conf
 
+# Claude local settings
+.claude/settings.local.json

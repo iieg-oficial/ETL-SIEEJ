@@ -1,12 +1,25 @@
+import io
 import os
 import glob
 import shutil
+import zipfile
 from pathlib import Path
 from datetime import datetime
+
+import pandas as pd
+import requests
 
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger(__name__)
+
+
+def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+        with z.open(csv_path) as f:
+            return pd.read_csv(f, **read_csv_kwargs)
 
 
 def cleanup_pipeline_data(pipeline_name: str) -> None:
@@ -17,6 +30,23 @@ def cleanup_pipeline_data(pipeline_name: str) -> None:
             shutil.rmtree(pipeline_dir)
             logger.info(f"Cleaned {pipeline_dir}")
 
+
+def clean_directory(directory: Path, log=None) -> None:
+    """Elimina todos los archivos y subdirectorios dentro de *directory* sin borrar la carpeta."""
+    if not directory.exists():
+        return
+    for item in directory.iterdir():
+        if item.is_dir():
+            shutil.rmtree(item)
+        else:
+            item.unlink()
+    msg = f"Limpieza completada: {directory}"
+    if log:
+        log.info(msg)
+    else:
+        logger.info(msg)
+
+
 def parse_date_from_filename(filepath: str, extension: str) -> datetime | None:
     filename = os.path.basename(filepath)
     date_str = filename.replace(extension, "")
@@ -25,12 +55,14 @@ def parse_date_from_filename(filepath: str, extension: str) -> datetime | None:
     except ValueError:
         return None
 
+
 def get_files_by_extension(output_folder: str, extension: str) -> list[str]:
     files = glob.glob(os.path.join(output_folder, f"*{extension}"))
     if not files:
         raise FileNotFoundError(f"No {extension} file was found in {output_folder}")
     logger.info(f"Found {len(files)} {extension} files in {output_folder}")
     return files
+
 
 def get_latest_file(output_folder: str, extension: str = ".xlsx") -> str:
     files = get_files_by_extension(output_folder, extension)
@@ -42,6 +74,7 @@ def get_latest_file(output_folder: str, extension: str = ".xlsx") -> str:
     latest_file = max(valid_files, key=lambda f: parse_date_from_filename(f, extension))
     logger.info(f"Latest file: {os.path.basename(latest_file)}")
     return latest_file
+
 
 def get_latest_files_per_year(output_folder: str, extension: str = ".xlsx") -> list[str]:
     files = get_files_by_extension(output_folder, extension)
@@ -62,6 +95,7 @@ def get_latest_files_per_year(output_folder: str, extension: str = ".xlsx") -> l
         logger.info(f"File: {os.path.basename(file)}")
 
     return latest_files
+
 
 def get_file_by_name(output_folder: str, filename: str) -> str:
     filepath = os.path.join(output_folder, filename)

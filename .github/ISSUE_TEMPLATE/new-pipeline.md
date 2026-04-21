@@ -9,7 +9,7 @@ assignees: ''
 
 ## 📊 Información del Pipeline
 
-**Nombre del pipeline:** 
+**Nombre del pipeline:**
 
 **Fuente de datos:**
 - [ ] API

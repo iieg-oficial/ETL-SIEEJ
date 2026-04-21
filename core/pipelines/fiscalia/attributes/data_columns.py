@@ -2,6 +2,7 @@ from enum import StrEnum, unique
 
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
 
+
 class BaseClass:
     @classmethod
     def to_dict(cls):
@@ -15,6 +16,7 @@ class BaseClass:
     def get_values(cls):
         return [member.value for member in cls]
 
+
 @unique
 class HistoricalCols(BaseClass, StrEnum):
     fecha_denuncia = FiscaliaColumns.FECHA_DENUNCIA
@@ -24,6 +26,7 @@ class HistoricalCols(BaseClass, StrEnum):
     municipio = FiscaliaColumns.MUNICIPIO
     longitud = FiscaliaColumns.LONGITUD
     latitud = FiscaliaColumns.LATITUD
+
 
 class RenameHistoricalCols(StrEnum):
     x = FiscaliaColumns.LONGITUD
@@ -47,6 +50,7 @@ class UpdateCols(BaseClass, StrEnum):
 
     longitud = FiscaliaColumns.LONGITUD
     latitud = FiscaliaColumns.LATITUD
+
 
 class RenameUpdateCols(StrEnum):
     x = FiscaliaColumns.LONGITUD

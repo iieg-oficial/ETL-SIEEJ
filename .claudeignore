@@ -1,0 +1,6 @@
+*.yaml
+.prettierignore
+*.toml
+*.txt
+.venv/
+.ruff_cache/
