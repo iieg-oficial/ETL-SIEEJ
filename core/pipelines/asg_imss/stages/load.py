@@ -55,10 +55,14 @@ class AsgImssLoader(Stage):
         catalogs: dict[str, list[dict]] = input_data.get("catalogs", {})
         total_upserted = 0
 
+        unknown_static_values = self._detect_unknown_static_values(files)
+
         with self.db.get_session() as session:
             if self.mode == "bootstrap":
-                self._load_static_catalogs(session)
+                self._load_static_catalogs(session, unknown_static_values)
                 self._load_dynamic_catalogs(session, catalogs)
+            elif unknown_static_values:
+                self._insert_placeholder_catalog_values(session, unknown_static_values)
 
         for item in files:
             pkl_path = Path(item["file_path"])
@@ -86,8 +90,16 @@ class AsgImssLoader(Stage):
             total_upserted += len(records)
             self.logger.info(f"  {pkl_path.name}: {len(records):,} registros upserted.")
 
+        if unknown_static_values:
+            self.logger.warning("=" * 60)
+            self.logger.warning("NUEVOS VALORES SIN DESCRIPCIÓN DETECTADOS EN CATÁLOGOS ESTÁTICOS:")
+            for catalog, values in unknown_static_values.items():
+                self.logger.warning(f"  {catalog}: {values}")
+            self.logger.warning("Actualizar los CATALOG_* correspondientes en consts.py.")
+            self.logger.warning("=" * 60)
+
         self.logger.info(f"Carga completa. Total upserted: {total_upserted:,}")
-        return {"row_count": total_upserted}
+        return {"row_count": total_upserted, "unknown_catalog_values": unknown_static_values}
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         if self.db:
@@ -97,24 +109,90 @@ class AsgImssLoader(Stage):
         self.logger.info(f"Pipeline {PIPELINE_NAME} load finalizado.")
         return input_data
 
-    def _load_static_catalogs(self, session) -> None:
+    def _load_static_catalogs(self, session, unknown_values: dict[str, list] | None = None) -> None:
         self.logger.info("Cargando catálogos estáticos...")
+        extra = unknown_values or {}
 
-        insert_records(session, CATALOG_TAMANIO_PATRON, CatTamanioPatron, conflict_keys=["cve"])
-        self.logger.info(f"  CatTamanioPatron: {len(CATALOG_TAMANIO_PATRON)} registros.")
+        tamanio_patron = list(CATALOG_TAMANIO_PATRON) + [
+            {"cve": str(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in extra.get("tamanio_patron", [])
+        ]
+        insert_records(session, tamanio_patron, CatTamanioPatron, conflict_keys=["cve"])
+        self.logger.info(f"  CatTamanioPatron: {len(tamanio_patron)} registros.")
 
-        insert_records(session, CATALOG_SEXO, CatSexo, conflict_keys=["cve"])
-        self.logger.info(f"  CatSexo: {len(CATALOG_SEXO)} registros.")
+        sexo = list(CATALOG_SEXO) + [{"cve": int(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in extra.get("sexo", [])]
+        insert_records(session, sexo, CatSexo, conflict_keys=["cve"])
+        self.logger.info(f"  CatSexo: {len(sexo)} registros.")
 
-        insert_records(session, CATALOG_RANGO_EDAD, CatRangoEdad, conflict_keys=["cve"])
-        self.logger.info(f"  CatRangoEdad: {len(CATALOG_RANGO_EDAD)} registros.")
+        rango_edad = list(CATALOG_RANGO_EDAD) + [
+            {"cve": str(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in extra.get("rango_edad", [])
+        ]
+        insert_records(session, rango_edad, CatRangoEdad, conflict_keys=["cve"])
+        self.logger.info(f"  CatRangoEdad: {len(rango_edad)} registros.")
 
-        insert_records(session, CATALOG_RANGO_SALARIAL, CatRangoSalarial, conflict_keys=["cve"])
-        self.logger.info(f"  CatRangoSalarial: {len(CATALOG_RANGO_SALARIAL)} registros.")
+        rango_salarial = list(CATALOG_RANGO_SALARIAL) + [
+            {"cve": str(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in extra.get("rango_salarial", [])
+        ]
+        insert_records(session, rango_salarial, CatRangoSalarial, conflict_keys=["cve"])
+        self.logger.info(f"  CatRangoSalarial: {len(rango_salarial)} registros.")
 
-        insert_records(session, CATALOG_RANGO_UMA, CatRangoUma, conflict_keys=["cve"])
-        self.logger.info(f"  CatRangoUma: {len(CATALOG_RANGO_UMA)} registros.")
+        rango_uma = list(CATALOG_RANGO_UMA) + [
+            {"cve": str(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in extra.get("rango_uma", [])
+        ]
+        insert_records(session, rango_uma, CatRangoUma, conflict_keys=["cve"])
+        self.logger.info(f"  CatRangoUma: {len(rango_uma)} registros.")
 
+        session.flush()
+
+    def _detect_unknown_static_values(self, files: list[dict]) -> dict[str, list]:
+        """Scans transformed pickles for static catalog values not present in consts."""
+        _CVE_CAST: dict[str, type] = {
+            "tamanio_patron": str,
+            "sexo": int,
+            "rango_edad": str,
+            "rango_salarial": str,
+            "rango_uma": str,
+        }
+        known: dict[str, set] = {
+            "tamanio_patron": {str(r["cve"]) for r in CATALOG_TAMANIO_PATRON},
+            "sexo": {int(r["cve"]) for r in CATALOG_SEXO},
+            "rango_edad": {str(r["cve"]) for r in CATALOG_RANGO_EDAD},
+            "rango_salarial": {str(r["cve"]) for r in CATALOG_RANGO_SALARIAL},
+            "rango_uma": {str(r["cve"]) for r in CATALOG_RANGO_UMA},
+        }
+        found: dict[str, set] = {k: set() for k in known}
+
+        for item in files:
+            pkl_path = Path(item["file_path"])
+            if not pkl_path.exists():
+                continue
+            df: pd.DataFrame = pd.read_pickle(pkl_path)
+            for col, cast in _CVE_CAST.items():
+                if col in df.columns:
+                    for raw_val in df[col].dropna().unique():
+                        try:
+                            val = cast(raw_val)
+                        except (ValueError, TypeError):
+                            continue
+                        if val not in known[col]:
+                            found[col].add(val)
+
+        return {k: sorted(v, key=str) for k, v in found.items() if v}
+
+    def _insert_placeholder_catalog_values(self, session, unknown_values: dict[str, list]) -> None:
+        """Inserts placeholder entries for newly discovered static catalog values (update mode)."""
+        self.logger.info("Insertando valores nuevos en catálogos estáticos (sin descripción)...")
+        _catalog_map: dict[str, tuple] = {
+            "tamanio_patron": (CatTamanioPatron, str),
+            "sexo": (CatSexo, int),
+            "rango_edad": (CatRangoEdad, str),
+            "rango_salarial": (CatRangoSalarial, str),
+            "rango_uma": (CatRangoUma, str),
+        }
+        for col, values in unknown_values.items():
+            model, cve_cast = _catalog_map[col]
+            records = [{"cve": cve_cast(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in values]
+            insert_records(session, records, model, conflict_keys=["cve"])
+            self.logger.info(f"  {model.__tablename__}: {len(records)} nuevos valores insertados.")
         session.flush()
 
     def _load_dynamic_catalogs(self, session, catalogs: dict[str, list[dict]]) -> None:
