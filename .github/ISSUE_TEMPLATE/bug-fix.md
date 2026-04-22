@@ -1,4 +1,3 @@
-<!-- .github/ISSUE_TEMPLATE/bug-fix.md -->
 ---
 name: Bug Fix
 about: Reportar un error en un pipeline existente
@@ -46,3 +45,5 @@ assignees: ''
 
 ## 🔧 Contexto adicional
 <!-- Si hay algo más relevante -->
+
+---

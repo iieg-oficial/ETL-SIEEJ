@@ -1,4 +1,3 @@
-<!-- .github/ISSUE_TEMPLATE/refactor.md -->
 ---
 name: Refactor
 about: Proponer refactorización o mejora de código
@@ -49,3 +48,5 @@ assignees: ''
 - [ ] Tarea 1
 - [ ] Tarea 2
 - [ ] Tarea 3
+
+---

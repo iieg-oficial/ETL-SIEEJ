@@ -1,4 +1,3 @@
-<!-- .github/ISSUE_TEMPLATE/new-pipeline.md -->
 ---
 name: Nuevo Pipeline
 about: Solicitar implementación de un nuevo pipeline ETL
@@ -50,3 +49,5 @@ assignees: ''
 
 **Notas:**
 <!-- Cualquier detalle adicional -->
+
+---
