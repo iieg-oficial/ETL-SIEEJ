@@ -116,16 +116,19 @@ La tabla principal tiene 14 columnas de dimensiones, 12 métricas enteras (conte
 ### Load
 
 1. Verifica y crea las tablas con `metadata.create_all()` si no existen.
-2. **Solo en modo bootstrap**: carga los catálogos estáticos (`ON CONFLICT DO NOTHING`) y los catálogos dinámicos acumulados en Transform.
-3. Para cada pickle, lee el DataFrame y aplica upsert sobre `stg_asg_imss_datos` por `record_hash`.
-4. Elimina los pickles intermedios al finalizar (`clean_directory`).
+2. **Detección de valores desconocidos en catálogos estáticos**: antes de tocar la base de datos, escanea todos los pickles y compara los valores de `tamanio_patron`, `sexo`, `rango_edad`, `rango_salarial` y `rango_uma` contra las constantes definidas en `consts.py`. Los valores no reconocidos se insertan con `descripcion = "[SIN DESCRIPCIÓN]"` para no bloquear la carga.
+3. **Solo en modo bootstrap**: carga los catálogos estáticos (incluyendo placeholders) con `ON CONFLICT DO NOTHING`, y los catálogos dinámicos acumulados en Transform.
+4. **En modo update**: si se detectaron valores desconocidos, los inserta como placeholders (`ON CONFLICT DO NOTHING`) para mantener integridad referencial.
+5. Para cada pickle, lee el DataFrame y aplica upsert sobre `stg_asg_imss_datos` por `record_hash`.
+6. Si se detectaron valores desconocidos, emite un bloque de `WARNING` visible en los logs al final de la carga. Esto indica que hay catálogos que deben actualizarse manualmente en `consts.py`.
+7. Elimina los pickles intermedios al finalizar (`clean_directory`).
 
 ## Modos del pipeline
 
 | Modo | Fechas procesadas | Catálogos | Cuándo ejecutar |
 |------|-------------------|-----------|-----------------|
 | **bootstrap** | `2015-01-31` → último día del mes anterior | Se cargan en este paso | Una sola vez (carga inicial) |
-| **update** | Solo el último día del mes anterior | No se recargan | Mensualmente (DAG automático) |
+| **update** | Solo el último día del mes anterior | Solo se insertan valores nuevos no conocidos (como placeholders) | Mensualmente (DAG automático) |
 
 La fecha de inicio del bootstrap se controla con `ASG_START_DATE` (default: `2015-01-31`).
 
@@ -198,6 +201,7 @@ Ver `migrations/asg_imss/flyway.conf.example` para la configuración de Flyway.
 - **Normalización de columna con ñ**: El CSV fuente incluye la columna `tamaño_patron`; el transformer la renombra a `tamanio_patron` antes de procesar.
 - **Estrategia de hash**: El `record_hash` es un SHA-256 sobre la concatenación ordenada de los 13 campos dimensionales (`fecha_corte`, `cve_delegacion`, `cve_subdelegacion`, `cve_entidad`, `cve_municipio`, `sector_economico_1`, `sector_economico_2`, `sector_economico_4`, `tamanio_patron`, `sexo`, `rango_edad`, `rango_salarial`, `rango_uma`). Esto garantiza idempotencia en los upserts: una misma combinación de dimensiones para el mismo mes siempre produce el mismo hash.
 - **Conversión de NaN**: Los valores `float NaN` de pandas se convierten explícitamente a `None` antes del upsert para evitar errores de tipo en columnas nullable de PostgreSQL.
+- **Catálogos estáticos desconocidos**: Si el IMSS agrega un valor nuevo sin publicar una versión actualizada del catálogo de datos, el loader lo detecta automáticamente, lo inserta con `descripcion = "[SIN DESCRIPCIÓN]"` y emite un `WARNING` al final de la ejecución indicando exactamente qué tablas y claves requieren actualización manual en `consts.py`.
 - **Catálogos dinámicos solo en bootstrap**: Delegaciones, subdelegaciones, municipios y sectores se extraen de los datos del CSV y se insertan únicamente durante el bootstrap (`ON CONFLICT DO NOTHING`). Las ejecuciones de update no los re-sincronizan.
 - **Descarga robusta**: El extractor respeta un sleep de 3 segundos entre archivos consecutivos y retries con backoff de 3 segundos para evitar bloqueos en el servidor del IMSS.
 - **Volumen de datos verificado**: 448,951 filas de Jalisco para `fecha_corte = 2025-03-31`.
