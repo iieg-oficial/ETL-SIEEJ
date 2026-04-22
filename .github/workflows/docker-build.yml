@@ -1,0 +1,43 @@
+name: Docker Build & DAGs
+
+on:
+  workflow_call:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env files from examples
+        run: |
+          find core/pipelines -name ".env.example" | while read f; do
+            cp "$f" "$(dirname $f)/.env"
+          done
+          echo "AIRFLOW_UID=50000" > .env
+
+      - name: Build Airflow image
+        run: docker compose build
+
+      - name: Start Postgres and Redis
+        run: docker compose up -d postgres redis
+
+      - name: Initialize Airflow
+        run: docker compose up airflow-init
+
+      - name: Verify DAGs
+        run: |
+          docker compose run --rm -T airflow-cli python - << 'PYEOF'
+          import sys
+          from airflow.models import DagBag
+          bag = DagBag('/opt/airflow/dags', include_examples=False)
+          if bag.import_errors:
+              for f, err in bag.import_errors.items():
+                  print('ERROR', f, err)
+              sys.exit(1)
+          print('OK:', list(bag.dags.keys()))
+          PYEOF
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

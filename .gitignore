@@ -8,7 +8,8 @@ __pycache__/
 .venv
 venv/
 env/
-
+tmp/
+explore/
 # VSCode
 .vscode/
 
@@ -24,3 +25,9 @@ plugins/*
 # Data
 data/*
 !data/.gitkeep
+
+# Migrations
+**/flyway.conf
+
+# Claude local settings
+.claude/settings.local.json

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{ echo '=== CLAUDE.md ==='; cat CLAUDE.md; for f in .claude/rules/*.md; do echo \"=== $f ===\"; cat \"$f\"; done; } | jq -Rs '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": .}}'",
+            "statusMessage": "Re-loading project context..."
+          }
+        ]
+      }
+    ]
+  }
+}

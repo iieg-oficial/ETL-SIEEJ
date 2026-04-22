@@ -1,5 +1,4 @@
-FROM apache/airflow:3.0.1rc1
-
+FROM apache/airflow:3.1.1-python3.12
 
 COPY requirements.txt .
 COPY .env .
@@ -21,6 +20,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 USER airflow
 
-RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" uv
-RUN uv pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r requirements.txt
-
+RUN pip install --no-cache-dir -r requirements.txt

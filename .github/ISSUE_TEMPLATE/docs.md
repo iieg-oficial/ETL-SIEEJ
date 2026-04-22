@@ -23,9 +23,9 @@ assignees: ''
 <!-- Tema o componente que falta documentar -->
 
 **Específicamente:**
-- [ ] 
-- [ ] 
-- [ ] 
+- [ ]
+- [ ]
+- [ ]
 
 ---
 
