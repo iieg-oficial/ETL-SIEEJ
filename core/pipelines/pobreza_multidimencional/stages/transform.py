@@ -52,9 +52,7 @@ class PobrezaMultidimencionalTransform(Stage):
 
         # Columnas del schema (excluyendo id y municipio_id que se resuelven en load)
         schema_cols = [
-            c.key
-            for c in PobrezaMultidimencionalDatos.__table__.columns
-            if c.key not in ("id", "municipio_id")
+            c.key for c in PobrezaMultidimencionalDatos.__table__.columns if c.key not in ("id", "municipio_id")
         ]
 
         # Añadir columnas faltantes como None (ej: discap ausente en 2016/2018)

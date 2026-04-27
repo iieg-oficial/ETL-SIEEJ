@@ -1,5 +1,4 @@
 import zipfile
-from pathlib import Path
 from typing import Any, Optional
 
 import requests
@@ -47,14 +46,10 @@ class PobrezaMultidimencionalExtract(Stage):
         csv_output = self.work_dir / f"pobreza_multidimencional_{year}.csv"
 
         with zipfile.ZipFile(zip_path) as zf:
-            csv_entries = [
-                n for n in zf.namelist()
-                if n.lower().endswith(".csv") and "base final" in n.lower()
-            ]
+            csv_entries = [n for n in zf.namelist() if n.lower().endswith(".csv") and "base final" in n.lower()]
             if not csv_entries:
                 raise FileNotFoundError(
-                    f"No se encontró CSV en 'Base final/' dentro del ZIP. "
-                    f"Entradas disponibles: {zf.namelist()[:20]}"
+                    f"No se encontró CSV en 'Base final/' dentro del ZIP. Entradas disponibles: {zf.namelist()[:20]}"
                 )
             csv_entry = csv_entries[0]
             self.logger.info(f"CSV encontrado en ZIP: {csv_entry}")

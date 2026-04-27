@@ -10,13 +10,12 @@ class PobrezaMultidimencionalBase(DeclarativeBase):
 
 # ----- Catálogos -----
 
+
 class CatEntidad(PobrezaMultidimencionalBase):
     """Catálogo de entidades federativas — fuente: cat_entidades_federativas.csv."""
 
     __tablename__ = "stg_pobreza_multidimencional_cat_entidad"
-    __table_args__ = (
-        UniqueConstraint("codigo", name="uq_pm_cat_entidad_codigo"),
-    )
+    __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_entidad_codigo"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     codigo: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
@@ -27,9 +26,7 @@ class CatParentesco(PobrezaMultidimencionalBase):
     """Catálogo de parentesco — fuente: cat_parentesco.csv."""
 
     __tablename__ = "stg_pobreza_multidimencional_cat_parentesco"
-    __table_args__ = (
-        UniqueConstraint("codigo", name="uq_pm_cat_parentesco_codigo"),
-    )
+    __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_parentesco_codigo"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     codigo: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
@@ -38,13 +35,17 @@ class CatParentesco(PobrezaMultidimencionalBase):
 
 # ----- Tabla principal -----
 
+
 class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     """Microdatos de pobreza multidimensional CONEVAL — Base final MMP."""
 
     __tablename__ = "stg_pobreza_multidimencional_datos"
     __table_args__ = (
         UniqueConstraint(
-            "folioviv", "foliohog", "numren", "anio",
+            "folioviv",
+            "foliohog",
+            "numren",
+            "anio",
             name="uq_pm_datos_llave",
         ),
     )

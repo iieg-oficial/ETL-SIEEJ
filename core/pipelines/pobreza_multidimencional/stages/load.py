@@ -48,9 +48,7 @@ class PobrezaMultidimencionalLoad(Stage):
 
             unmatched = df[df["municipio_id"].isna() & df["ubica_geo"].notna()]
             if not unmatched.empty:
-                self.logger.warning(
-                    f"[{year}] {len(unmatched)} registros sin match en cvegeo_municipalities"
-                )
+                self.logger.warning(f"[{year}] {len(unmatched)} registros sin match en cvegeo_municipalities")
 
             # 3. Upsert datos principales (idempotente por llave natural)
             # replace NaN→None: df.where() no convierte NaN en columnas numéricas
