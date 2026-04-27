@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 try:
     from airflow import DAG
     from airflow.providers.standard.operators.python import PythonOperator
+
     _AIRFLOW_AVAILABLE = True
 except ImportError:
     _AIRFLOW_AVAILABLE = False
@@ -42,9 +43,7 @@ if _AIRFLOW_AVAILABLE:
     with DAG(
         "etl_pobreza_multidimencional_bootstrap",
         default_args=default_args,
-        description=(
-            "Pobreza Multidimensional Bootstrap — CONEVAL MMP 2016/2018/2020/2022 (on demand)"
-        ),
+        description=("Pobreza Multidimensional Bootstrap — CONEVAL MMP 2016/2018/2020/2022 (on demand)"),
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
