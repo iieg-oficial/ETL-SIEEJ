@@ -1,0 +1,12 @@
+flyway.url=jdbc:postgresql://<DB_HOST>:<DB_PORT>/pobreza_multidimencional
+flyway.user=<DB_USER>
+flyway.password=<DB_PASSWORD>
+flyway.locations=filesystem:migrations/pobreza_multidimencional/sql
+flyway.schemas=public
+flyway.cleanDisabled=false
+
+flyway.placeholders.fdw_dbname=<FDW_DBNAME>
+flyway.placeholders.fdw_host=<FDW_HOST>
+flyway.placeholders.fdw_port=<FDW_PORT>
+flyway.placeholders.fdw_user=<FDW_USER>
+flyway.placeholders.fdw_password=<FDW_PASSWORD>
