@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, Float, Integer, SmallInteger, Text, UniqueConstraint
+from sqlalchemy import Float, Index, Integer, SmallInteger, String, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -8,133 +9,128 @@ class PobrezaMultidimencionalBase(DeclarativeBase):
     pass
 
 
-# ----- Catálogos -----
-
-
 class CatEntidad(PobrezaMultidimencionalBase):
-    """Catálogo de entidades federativas — fuente: cat_entidades_federativas.csv."""
+    """Catálogo de entidades federativas."""
 
     __tablename__ = "stg_pobreza_multidimencional_cat_entidad"
-    __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_entidad_codigo"),)
+    __table_args__ = (
+        UniqueConstraint("cve_ent", name="uq_pobreza_multidimencional_cat_entidad_cve"),
+    )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    codigo: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
-    nombre: Mapped[str] = mapped_column(Text, nullable=False)
-
-
-class CatParentesco(PobrezaMultidimencionalBase):
-    """Catálogo de parentesco — fuente: cat_parentesco.csv."""
-
-    __tablename__ = "stg_pobreza_multidimencional_cat_parentesco"
-    __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_parentesco_codigo"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    codigo: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
-    nombre: Mapped[str] = mapped_column(Text, nullable=False)
-
-
-# ----- Tabla principal -----
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    cve_ent: Mapped[str] = mapped_column(String(2), nullable=False)
+    nombre_entidad: Mapped[str] = mapped_column(String(100), nullable=False)
 
 
 class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
-    """Microdatos de pobreza multidimensional CONEVAL — Base final MMP."""
+    """Indicadores de pobreza municipal CONEVAL — una fila por municipio × año."""
 
     __tablename__ = "stg_pobreza_multidimencional_datos"
     __table_args__ = (
         UniqueConstraint(
-            "folioviv",
-            "foliohog",
-            "numren",
-            "anio",
-            name="uq_pm_datos_llave",
+            "cve_mun", "anio",
+            name="uq_pobreza_multidimencional_datos_cve_anio",
         ),
+        Index("ix_pobreza_multidimencional_datos_cve_anio", "cve_mun", "anio", unique=True),
+        Index("ix_pobreza_multidimencional_datos_anio", "anio"),
+        Index("ix_pobreza_multidimencional_datos_entidad", "cat_entidad_id"),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+
+    # Identificadores geográficos
+    cve_mun: Mapped[str] = mapped_column(String(5), nullable=False)
+    nombre_municipio: Mapped[Optional[str]] = mapped_column(String(150))
+    cat_entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    # Temporalidad
     anio: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    folioviv: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    foliohog: Mapped[int] = mapped_column(Integer, nullable=False)
-    numren: Mapped[int] = mapped_column(Integer, nullable=False)
-    est_dis: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    upm: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    factor: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    tam_loc: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
-    rururb: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ent: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    ubica_geo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    municipio_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    edad: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    sexo: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
-    parentesco: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    anac_e: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    ic_rezedu: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    inas_esc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    niv_ed: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_asalud: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_segsoc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    sa_dir: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ss_dir: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    s_salud: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    par: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    jef_ss: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    cony_ss: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    hijo_ss: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pea: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    jub: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pam: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ing_pam: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_cv: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    icv_pisos: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    icv_muros: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    icv_techos: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    icv_hac: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_sbv: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    isb_agua: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    isb_dren: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    isb_luz: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    isb_combus: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_ali_nc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    id_men: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    tot_iaad: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    tot_iamen: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ins_ali: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ic_ali: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    lca: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    dch: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    plp_e: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    plp: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pobreza: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pobreza_e: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pobreza_m: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    vul_car: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    vul_ing: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    no_pobv: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    i_privacion: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    carencias: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    carencias3: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    cuadrantes: Mapped[Optional[int]] = mapped_column(SmallInteger, nullable=True)
-    prof1: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    prof_e1: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    profun: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    int_pob: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    int_pobe: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    int_vulcar: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    int_caren: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    tamhogesc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ictpc: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ict: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ing_mon: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ing_lab: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ing_ren: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    ing_tra: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    nomon: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    pago_esp: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    reg_esp: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    hli: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
-    discap: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    poblacion: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # Pobreza total
+    pobreza_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    pobreza_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Pobreza extrema
+    pobreza_ext_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_ext_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    pobreza_ext_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Pobreza moderada
+    pobreza_mod_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_mod_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    pobreza_mod_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Vulnerables por carencia social
+    vul_carencia_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    vul_carencia_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    vul_carencia_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Vulnerables por ingreso (sin carencias_promedio en fuente)
+    vul_ingreso_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    vul_ingreso_personas: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # No pobre y no vulnerable (sin carencias_promedio en fuente)
+    no_pobre_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    no_pobre_personas: Mapped[Optional[int]] = mapped_column(Integer)
+
+    # Rezago educativo
+    rez_edu_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    rez_edu_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    rez_edu_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Carencia por acceso a servicios de salud
+    car_salud_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    car_salud_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    car_salud_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Carencia por acceso a seguridad social
+    car_seg_soc_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    car_seg_soc_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    car_seg_soc_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Carencia por calidad y espacios de la vivienda
+    car_viv_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    car_viv_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    car_viv_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Carencia por acceso a servicios básicos de la vivienda
+    car_sbv_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    car_sbv_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    car_sbv_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Carencia por acceso a la alimentación
+    car_ali_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    car_ali_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    car_ali_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Población con al menos una carencia social
+    al_1_car_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    al_1_car_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    al_1_car_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Población con tres o más carencias sociales
+    tres_mas_car_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    tres_mas_car_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    tres_mas_car_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Ingreso < línea de pobreza
+    lpi_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    lpi_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    lpi_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    # Ingreso < línea de pobreza extrema
+    lpei_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
+    lpei_personas: Mapped[Optional[int]] = mapped_column(Integer)
+    lpei_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+
+    created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
+    updated_at: Mapped[Optional[datetime]] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
 
 
 CATALOG_MODELS: dict[str, type] = {
     "entidad": CatEntidad,
-    "parentesco": CatParentesco,
 }
