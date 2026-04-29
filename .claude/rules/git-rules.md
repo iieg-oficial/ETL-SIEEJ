@@ -1,45 +1,20 @@
 ---
-name: git-rules
-description: Reglas de control de versiones, ramas, commits y .gitignore para ETL
-  SIEEJ.
-paths:
-- '**'
+description: Git workflow rules. Applies to all files.
 ---
 
-## Commits
+# Git Rules
 
-- Formato: `tipo(scope): mensaje en inglés imperativo`. Detalle en el skill `git-pipeline-commits` y en [docs/convencion-commits.md](../../docs/convencion-commits.md).
-- Solo encabezado. Sin cuerpo, sin `Co-Authored-By`.
-- Máximo 72 caracteres en la primera línea.
-- Un commit = un cambio lógico. Commits por funcionalidad para evitar deuda técnica.
-- Scope = nombre del pipeline cuando aplica (ej: `feat(asg_imss): add extract stage`).
+> Aplican a: GIT
 
-## Staging
+## Rules
 
-- **Nunca** usar `git add .` ni `git commit -a`.
-- Agregar archivos uno por uno o por grupos explícitos.
-
-## Ramas
-
-- Crear desde `develop`.
-- Formato: `<issue_number>-<issue_title>`, ej: `123-pipeline-nombre-flujo`.
-- Una rama por issue.
-
-## Pre-commit
-
-- Hook `ruff check` activo. Revisar la salida del commit y arreglar antes de re-intentar.
-- No usar `--no-verify` para saltar validaciones.
-
-## .gitignore
-
-Mantener actualizado. Vigilar que **no** se commiteen:
-
-- `.env`, `*.env.local`
-- `*.pyc`, `__pycache__/`
-- Datos crudos: `*.csv`, `*.xlsx`, `*.zip`, `*.pkl` salvo que estén en `assets/` y sean intencionales.
-- Archivos generados en `data/extract/`, `data/transform/`, `data/load/`, `logs/`.
-
-## Issues y PRs
-
-- Toda implementación arranca con un issue creado desde el template de [.github/ISSUE_TEMPLATE/new-pipeline.md](../../.github/ISSUE_TEMPLATE/new-pipeline.md).
-- Toda fusión se hace vía PR usando [.github/pull_request_template.md](../../.github/pull_request_template.md), con `Closes #N`.
+- Nunca usar `git add .`. Agregar únicamente los archivos específicos del cambio.
+- Seguir la convención de commits definida en el skill `git-pipeline-commits`. Mensajes en inglés imperativo.
+- Un commit por funcionalidad (un stage, una migración, el DAG, la documentación). No mezclar cambios no relacionados.
+- Crear la rama desde `develop` con el formato `{issue_number}-pipeline-{flujo}` (p.ej. `42-pipeline-fiscalia`).
+- El proyecto tiene pre-commit con Ruff check. Revisar el output del commit y corregir errores antes de intentar de nuevo.
+- No commitear archivos `.env`, `.pyc`, datos crudos (`.csv`, `.xlsx`, `.json` de fuentes) ni archivos de cache. Verificar `.gitignore` antes de cada commit.
+- Mantener el `.gitignore` actualizado con las extensiones y rutas de datos del nuevo pipeline.
+- El scope del commit es el nombre del flujo (p.ej. `feat(fiscalia): add extract stage`), no el componente (no `feat(pipeline)` ni `feat(dags)`).
+- Al abrir el Pull Request, referenciar el issue con `Closes #{numero}` en la descripción.
+- El PR se abre desde la rama del pipeline hacia `develop`, nunca directamente a `main`.

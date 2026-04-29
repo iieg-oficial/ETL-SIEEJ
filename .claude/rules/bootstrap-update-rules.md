@@ -1,58 +1,21 @@
 ---
-name: bootstrap-update-rules
-description: Reglas para distinguir y manejar bootstrap, update incremental y SCD
-  en pipelines ETL.
-paths:
-- core/pipelines/**/stages/**/*.py
-- dags/**/*.py
+description: Bootstrap and update mode rules. Applies to dags/*.py and stages/*.py.
 ---
 
-## Definiciones
+# Bootstrap & Update Rules
 
-- **Bootstrap**: primera ejecución. Procesa todo el histórico disponible.
-- **Update**: ejecuciones subsecuentes. Procesa solo lo nuevo o lo cambiado desde la última corrida.
+> Aplican a: DEA, ETL
 
-## Variantes de update
+## Rules
 
-### Variante A — Append puro
-
-La fuente solo agrega registros nuevos sin modificar los existentes.
-
-- Estrategia de carga: `bulk_insert` con `conflict_keys` para evitar duplicados.
-- No se requiere historial.
-
-### Variante B — Mezcla (SCD Tipo 2)
-
-La fuente publica nuevos registros **y** actualiza registros previos.
-
-- Generar `hash_id` con las columnas a monitorear para cambios.
-- Comparar `hash_id` contra el almacenado para detectar cambios.
-- Versionar registros con:
-  - `valid_from: Date NOT NULL`
-  - `valid_to: Date NULL`
-  - `is_current: Bool NOT NULL`
-- Inserción de nueva versión: `is_current=True`, marca la versión anterior con `valid_to` y `is_current=False`.
-- **Vistas de integración**: filtrar `WHERE is_current = TRUE`.
-
-## DAG
-
-- `bootstrap`: `schedule=None`, ejecutar manualmente o vía param `bootstrap=True`.
-- `update`: schedule cron / preset (`@yearly`, `@monthly`, etc.) según periodicidad real de la fuente.
-- Catchup desactivado salvo justificación explícita.
-
-## Iterables vs no-iterables
-
-| Aspecto | Iterable | No-iterable |
-|---|---|---|
-| URL | Fija, parametrizada por año/entidad | Cambia con cada release |
-| `Stage.__init__` | `__init__(self, year)` | `__init__(self)` |
-| Archivos | `extract_{year}.pkl` | nombre estático |
-| Carga | `upsert_records` con `conflict_keys` | `bulk_insert` (bootstrap) |
-| Update | Automático por DAG | Manual con nueva URL en `.env` |
-
-## Checklist al cerrar el pipeline
-
-- [ ] Variante de update declarada en README interno.
-- [ ] Modo bootstrap probado.
-- [ ] Modo update probado y sin duplicados.
-- [ ] Si SCD: vista filtra `is_current=True`.
+- **Bootstrap**: primera ejecución del pipeline. Procesa la totalidad de los datos históricos disponibles desde la fuente. El DAG correspondiente lleva el sufijo `_bootstrap` y se ejecuta `On Demand`.
+- **Update**: ejecuciones subsecuentes. Solo procesa registros nuevos o modificados desde la última ejecución exitosa. El DAG correspondiente lleva el sufijo `_update` y tiene un `schedule_interval` definido.
+- Cada `Stage` debe aceptar el parámetro `mode: str` (`"bootstrap"` o `"update"`) y ramificar su lógica según corresponda.
+- **Update tipo solo-inserciones**: la fuente solo agrega datos nuevos. Implementar con `INSERT ... ON CONFLICT DO NOTHING` a través de `bulk_ops.insert_records` o `bulk_ops.bulk_insert`.
+- **Update tipo SCD (Slowly Changing Dimension)**: la fuente puede mezclar registros nuevos con actualizaciones a registros existentes.
+  - Generar un hash de las columnas monitoreadas (todas las columnas significativas, excluir `id` y timestamps).
+  - Comparar el hash con el hash almacenado en BD para detectar cambios.
+  - Al detectar un cambio: marcar el registro vigente con `valid_to = fecha_actual` e `is_current = False`, insertar el nuevo registro con `valid_from = fecha_actual`, `valid_to = NULL` e `is_current = True`.
+  - La vista de integración (`V4`) filtra siempre por `is_current = True`.
+- Definir dos `DAG` distintos en el mismo archivo: uno para bootstrap y otro para update. Cada uno con sus propios `default_args`.
+- La función `main()` al final del archivo ejecuta el modo `bootstrap` completo para pruebas locales sin Airflow.

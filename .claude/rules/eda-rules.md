@@ -1,35 +1,24 @@
 ---
-name: eda-rules
-description: Reglas para scripts de análisis exploratorio (EDA) de pipelines ETL SIEEJ.
-paths:
-- core/pipelines/**/eda/**/*.py
+description: EDA script requirements. Applies to eda/*.py files.
 ---
 
-## Formato
+# EDA Rules
 
-- Solo scripts `.py`. Nunca notebooks `.ipynb`.
-- Ubicación: `core/pipelines/{flujo}/eda/`.
-- Un script por fuente o por nivel (estatal, municipal, etc.).
+> Aplican a: EDA
 
-## Pasos obligatorios
+## Rules
 
-Cada script debe ejecutar y reportar, en este orden:
-
-1. Descarga / carga del archivo (con `requests`, `pandas`, `ZipFile` según aplique).
-2. `df.shape`, `df.columns`, `df.dtypes`, `df.head()`.
-3. Conteo de registros para entender escala.
-4. Identificar columnas clave, columnas de fechas y columnas de georeferenciación.
-5. Valores únicos por columna (para detectar catálogos).
-6. Nivel geográfico (nacional / estatal / municipal / localidad).
-7. Análisis de nulos: `NaN`, `NA`, `N/A`, vacíos, y todo lo que aparezca en `NULL_VALUES`.
-8. Frecuencia de actualización: si hay múltiples archivos o columnas con fecha, documentar la periodicidad.
-
-## Salida
-
-Cada script genera un reporte JSON estandarizado siguiendo el skill `eda-reporte`. Guardar como:
-
-```
-core/pipelines/{flujo}/eda/reporte_{nombre}.json
-```
-
-El JSON es la única fuente de verdad consumida por el `db-agent` y el `etl-agent`.
+- Escribir los scripts de EDA como archivos `.py`, no notebooks. Los notebooks dificultan la revisión en Git.
+- Guardar todos los scripts en `./core/pipelines/{flujo}/eda/`. Nombre de archivo: `eda_{flujo}.py`.
+- El script debe cubrir los siguientes pasos en orden:
+  1. Descargar o cargar los archivos fuente (usar la misma lógica que usará el stage `extract`).
+  2. Mostrar las primeras filas y los tipos de datos de cada columna (`dtypes`).
+  3. Reportar número total de registros y número de columnas.
+  4. Identificar columnas clave (IDs, fechas, periodos).
+  5. Contar valores únicos por columna para detectar posibles catálogos (< 100 valores únicos = candidato a catálogo).
+  6. Analizar nivel geográfico: nacional, estatal o municipal (columnas `cve_ent`, `cve_mun`, etc.).
+  7. Analizar valores nulos y vacíos: `NaN`, `NA`, `N/A`, cadenas vacías, espacios.
+  8. Analizar periodicidad si hay múltiples archivos fuente (mensual, anual, etc.).
+- El output final del script debe ser el reporte JSON generado con el skill `eda-reporte`. No mostrar solo prints; serializar resultados.
+- No guardar archivos intermedios dentro de `eda/`. Solo el script y el `reporte_eda.json`.
+- Importar utilidades del proyecto desde `core.utils` cuando sea posible (p.ej. `normalize_text`, `get_logger`).

@@ -1,55 +1,20 @@
 ---
-name: database-rules
-description: Reglas para esquemas SQLAlchemy y migraciones Flyway de los pipelines
-  ETL SIEEJ.
-paths:
-- migrations/**/*.sql
-- core/pipelines/**/schemas.py
-- core/pipelines/**/mappings.py
+description: Database design and migration rules. Applies to *.sql and schemas.py files.
 ---
 
-## SQLAlchemy
+# Database Rules
 
-- Usar SQLAlchemy 2.0: `Mapped`, `mapped_column`, `DeclarativeBase`. Nunca el estilo 1.x (`Column`, `declarative_base`).
-- Toda tabla tiene PK `id: Mapped[int]`.
-- FKs se nombran `{singular_table_name}_id` y referencian `{tabla}.id`.
-- Toda tabla principal tiene `fecha_actualizacion: Date NOT NULL`, salvo que la periodicidad ya esté capturada por un catálogo `periodos`.
+> Aplican a: DB
 
-## Naming de tablas
+## Rules
 
-- Minúsculas, sin acentos (ñ → ni), separadas por guiones bajos, en plural.
-- En español, sin prefijos en el `__tablename__`.
-- Prefijos solo a nivel BD/migración:
-  - `cat_` para tablas catálogo.
-  - `stg_` para tablas principales (staging).
-- Las claves de columnas siguen `snake_case` en español, sin caracteres especiales.
-
-## Tipos
-
-Homologar:
-
-| Origen | Destino |
-|---|---|
-| string | `Text` / `VARCHAR(n)` |
-| numérico | `Integer` / `Numeric` / `Float` |
-| fecha | `Date` |
-| timestamp | `TIMESTAMP` |
-
-## Migraciones (Flyway)
-
-Estructura por pipeline en `migrations/{flujo}/sql/`:
-
-- `V1__foreign_tables.sql` — `postgres_fdw` y foreign tables hacia `cve_geo` (entidades, municipios, localidades). Nunca duplicar geografía en el servidor.
-- `V2__catalogs_{flujo}.sql` — catálogos `cat_*` (omitir si no aplica).
-- `V3__tables_{flujo}.sql` — tablas principales `stg_*`. La columna `nullable` debe coincidir con `schemas.py`.
-- `V4__views_{flujo}.sql` — vistas de integración con joins a `cvegeo`. Filtrar `WHERE cve_ent = 14` solo si el pipeline es Jalisco-only.
-
-Reglas operativas:
-
-- Aplicar migraciones siempre vía `just flyway-*` contra la BD docker local.
-- Errores de lógica → corregir el script de migración existente. **No** crear migraciones nuevas para parchar.
-- Mantener `flyway.conf.example` versionado y `flyway.conf` ignorado.
-
-## Lectura de la BD
-
-Usar la BD docker local vía `just`. No conectar a producción para validar.
+- Homologar tipos de columna: texto → `VARCHAR(n)`, numérico entero → `INT`, decimal → `FLOAT` o `NUMERIC(p,s)`, fecha → `DATE`, fecha-hora → `TIMESTAMP`.
+- Homologar nombres de columna a `snake_case` en español, sin espacios, tildes ni caracteres especiales. Usar `normalize_text` como referencia de transformación.
+- Tablas catálogo llevan prefijo `cat_`. La tabla principal lleva prefijo `stg_`. No usar otros prefijos.
+- Crear tablas únicamente a través de migraciones Flyway versionadas. Validar la aplicación con `just flyway-migrate {flujo}` en la BD local de Docker.
+- Para consultar o inspeccionar la BD usar `just psql` o los comandos definidos en el `justfile`. No conectar directamente sin pasar por Docker.
+- Si hay un error de lógica en una migración ya versionada y aún no aplicada en producción, corregir el script existente; no crear una migración nueva para parchar el error.
+- Para referencias a municipios y entidades, usar la BD `cve_geo` a través del Foreign Data Wrapper (FDW) ya configurado. No duplicar estas tablas en el esquema del pipeline.
+- Nombres de migración: `V{n}__{flujo}__{descripcion}.sql` (dos guiones bajos entre cada segmento).
+- El archivo `schemas.py` del pipeline debe mantenerse en sincronía con las migraciones Flyway. Cada tabla en SQL tiene su modelo SQLAlchemy correspondiente.
+- Generar diagrama ER con ERAlchemy2 después de aplicar las migraciones y guardarlo en `./core/pipelines/{flujo}/assets/er_{flujo}.png`.
