@@ -1,5 +1,5 @@
 -- =======================================================================
--- V2__cvegeo.sql  |  Pipeline: pobreza_multidimencional
+-- V2__cvegeo.sql  |  Pipeline: pobreza_multidimensional
 -- Foreign Data Wrapper hacia la BD cvegeo del IIEG.
 -- =======================================================================
 

@@ -1,9 +1,9 @@
 -- =======================================================================
--- V4__vista.sql  |  Pipeline: pobreza_multidimencional
+-- V4__vista.sql  |  Pipeline: pobreza_multidimensional
 -- Vista analítica con nombres humanos (joins a catálogos y cvegeo).
 -- =======================================================================
 
-CREATE OR REPLACE VIEW public.vw_pobreza_multidimencional AS
+CREATE OR REPLACE VIEW public.vw_pobreza_multidimensional AS
 SELECT
     d.id,
     d.anio,
@@ -52,7 +52,7 @@ SELECT
     d.ing_lab,
     d.factor
 
-FROM public.stg_pobreza_multidimencional_datos d
-LEFT JOIN public.stg_pobreza_multidimencional_cat_entidad  e ON e.codigo = d.ent
-LEFT JOIN public.stg_pobreza_multidimencional_cat_parentesco p ON p.codigo = d.parentesco
+FROM public.stg_pobreza_multidimensional_datos d
+LEFT JOIN public.stg_pobreza_multidimensional_cat_entidad  e ON e.codigo = d.ent
+LEFT JOIN public.stg_pobreza_multidimensional_cat_parentesco p ON p.codigo = d.parentesco
 LEFT JOIN public.cvegeo_municipalities                       m ON m.id     = d.municipio_id;

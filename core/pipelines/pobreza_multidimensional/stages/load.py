@@ -5,20 +5,20 @@ import numpy as np
 import pandas as pd
 
 from core.db import Database
-from core.pipelines.pobreza_multidimencional.config import settings
-from core.pipelines.pobreza_multidimencional.consts import CATALOG_CSV_DIR, PIPELINE_NAME
-from core.pipelines.pobreza_multidimencional.schemas import (
+from core.pipelines.pobreza_multidimensional.config import settings
+from core.pipelines.pobreza_multidimensional.consts import CATALOG_CSV_DIR, PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.schemas import (
     CatEntidad,
     CatParentesco,
-    PobrezaMultidimencionalBase,
-    PobrezaMultidimencionalDatos,
+    PobrezaMultidimensionalBase,
+    PobrezaMultidimensionalDatos,
 )
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
 
 
-class PobrezaMultidimencionalLoad(Stage):
+class PobrezaMultidimensionalLoad(Stage):
     """Carga catálogos, resuelve cvegeo y persiste los microdatos MMP."""
 
     def __init__(self, year: int):
@@ -31,7 +31,7 @@ class PobrezaMultidimencionalLoad(Stage):
             raise ValueError("Load no recibió datos de Transform")
         self.db = Database(PIPELINE_NAME, settings.database_url)
         self.db.connect()
-        PobrezaMultidimencionalBase.metadata.create_all(self.db.engine)
+        PobrezaMultidimensionalBase.metadata.create_all(self.db.engine)
         return input_data
 
     def action(self, input_data: Optional[Any] = None) -> dict:
@@ -56,11 +56,11 @@ class PobrezaMultidimencionalLoad(Stage):
             upsert_records(
                 session,
                 records,
-                PobrezaMultidimencionalDatos,
+                PobrezaMultidimensionalDatos,
                 conflict_keys=["folioviv", "foliohog", "numren", "anio"],
-                chunk_size=settings.POBREZA_MULTIDIMENCIONAL_LOAD_BATCH_SIZE,
+                chunk_size=settings.POBREZA_MULTIDIMENSIONAL_LOAD_BATCH_SIZE,
             )
-            sync_id_sequence(session, PobrezaMultidimencionalDatos)
+            sync_id_sequence(session, PobrezaMultidimensionalDatos)
 
         self.logger.info(f"[{year}] {len(df)} registros cargados")
         return {"row_count": len(df), "year": year}

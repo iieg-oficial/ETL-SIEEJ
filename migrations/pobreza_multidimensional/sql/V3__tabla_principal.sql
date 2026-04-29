@@ -1,10 +1,10 @@
 -- =======================================================================
--- V3__tabla_principal.sql  |  Pipeline: pobreza_multidimencional
+-- V3__tabla_principal.sql  |  Pipeline: pobreza_multidimensional
 -- Microdatos CONEVAL — Medición de la Pobreza Multidimensional (MMP).
 -- Años: 2016, 2018, 2020, 2022.
 -- =======================================================================
 
-CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimencional_datos (
+CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimensional_datos (
     id           SERIAL PRIMARY KEY,
     anio         SMALLINT NOT NULL,
     folioviv     BIGINT   NOT NULL,
@@ -110,13 +110,13 @@ CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimencional_datos (
 );
 
 CREATE INDEX IF NOT EXISTS ix_pm_datos_anio
-    ON public.stg_pobreza_multidimencional_datos (anio);
+    ON public.stg_pobreza_multidimensional_datos (anio);
 
 CREATE INDEX IF NOT EXISTS ix_pm_datos_ubica_geo
-    ON public.stg_pobreza_multidimencional_datos (ubica_geo);
+    ON public.stg_pobreza_multidimensional_datos (ubica_geo);
 
 CREATE INDEX IF NOT EXISTS ix_pm_datos_municipio_id
-    ON public.stg_pobreza_multidimencional_datos (municipio_id);
+    ON public.stg_pobreza_multidimensional_datos (municipio_id);
 
 CREATE INDEX IF NOT EXISTS ix_pm_datos_ent
-    ON public.stg_pobreza_multidimencional_datos (ent);
+    ON public.stg_pobreza_multidimensional_datos (ent);

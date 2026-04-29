@@ -4,17 +4,17 @@ from sqlalchemy import BigInteger, Float, Integer, SmallInteger, Text, UniqueCon
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class PobrezaMultidimencionalBase(DeclarativeBase):
+class PobrezaMultidimensionalBase(DeclarativeBase):
     pass
 
 
 # ----- Catálogos -----
 
 
-class CatEntidad(PobrezaMultidimencionalBase):
+class CatEntidad(PobrezaMultidimensionalBase):
     """Catálogo de entidades federativas — fuente: cat_entidades_federativas.csv."""
 
-    __tablename__ = "stg_pobreza_multidimencional_cat_entidad"
+    __tablename__ = "stg_pobreza_multidimensional_cat_entidad"
     __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_entidad_codigo"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -22,10 +22,10 @@ class CatEntidad(PobrezaMultidimencionalBase):
     nombre: Mapped[str] = mapped_column(Text, nullable=False)
 
 
-class CatParentesco(PobrezaMultidimencionalBase):
+class CatParentesco(PobrezaMultidimensionalBase):
     """Catálogo de parentesco — fuente: cat_parentesco.csv."""
 
-    __tablename__ = "stg_pobreza_multidimencional_cat_parentesco"
+    __tablename__ = "stg_pobreza_multidimensional_cat_parentesco"
     __table_args__ = (UniqueConstraint("codigo", name="uq_pm_cat_parentesco_codigo"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -36,10 +36,10 @@ class CatParentesco(PobrezaMultidimencionalBase):
 # ----- Tabla principal -----
 
 
-class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
+class PobrezaMultidimensionalDatos(PobrezaMultidimensionalBase):
     """Microdatos de pobreza multidimensional CONEVAL — Base final MMP."""
 
-    __tablename__ = "stg_pobreza_multidimencional_datos"
+    __tablename__ = "stg_pobreza_multidimensional_datos"
     __table_args__ = (
         UniqueConstraint(
             "folioviv",

@@ -1,4 +1,4 @@
-PIPELINE_NAME = "pobreza_multidimencional"
+PIPELINE_NAME = "pobreza_multidimensional"
 
 DATA_YEARS: list[int] = [2016, 2018, 2020, 2022]
 

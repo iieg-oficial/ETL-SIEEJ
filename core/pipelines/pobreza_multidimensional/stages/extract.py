@@ -3,15 +3,15 @@ from typing import Any, Optional
 
 import requests
 
-from core.pipelines.pobreza_multidimencional.config import settings
-from core.pipelines.pobreza_multidimencional.consts import (
+from core.pipelines.pobreza_multidimensional.config import settings
+from core.pipelines.pobreza_multidimensional.consts import (
     DATA_YEARS,
     PIPELINE_NAME,
 )
 from core.pipelines.stage import Stage
 
 
-class PobrezaMultidimencionalExtract(Stage):
+class PobrezaMultidimensionalExtract(Stage):
     """Descarga el ZIP de CONEVAL y extrae el CSV de la Base final."""
 
     def __init__(self, year: int):
@@ -43,7 +43,7 @@ class PobrezaMultidimencionalExtract(Stage):
 
         # Búsqueda y extracción del CSV dentro del ZIP
         # Estructura real del ZIP: "Base final/pobreza{YY}.csv"
-        csv_output = self.work_dir / f"pobreza_multidimencional_{year}.csv"
+        csv_output = self.work_dir / f"pobreza_multidimensional_{year}.csv"
 
         with zipfile.ZipFile(zip_path) as zf:
             csv_entries = [n for n in zf.namelist() if n.lower().endswith(".csv") and "base final" in n.lower()]

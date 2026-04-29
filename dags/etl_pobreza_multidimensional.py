@@ -14,21 +14,21 @@ except ImportError:
     _AIRFLOW_AVAILABLE = False
 
 from core.pipeline import Pipeline
-from core.pipelines.pobreza_multidimencional.consts import DATA_YEARS
-from core.pipelines.pobreza_multidimencional.stages.extract import PobrezaMultidimencionalExtract
-from core.pipelines.pobreza_multidimencional.stages.load import PobrezaMultidimencionalLoad
-from core.pipelines.pobreza_multidimencional.stages.transform import PobrezaMultidimencionalTransform
+from core.pipelines.pobreza_multidimensional.consts import DATA_YEARS
+from core.pipelines.pobreza_multidimensional.stages.extract import PobrezaMultidimensionalExtract
+from core.pipelines.pobreza_multidimensional.stages.load import PobrezaMultidimensionalLoad
+from core.pipelines.pobreza_multidimensional.stages.transform import PobrezaMultidimensionalTransform
 
 
 def run_bootstrap() -> None:
     """Ejecuta el pipeline de bootstrap para todos los años configurados."""
     for year in DATA_YEARS:
         Pipeline(
-            name="pobreza_multidimencional",
+            name="pobreza_multidimensional",
             stages=[
-                PobrezaMultidimencionalExtract(year=year),
-                PobrezaMultidimencionalTransform(year=year),
-                PobrezaMultidimencionalLoad(year=year),
+                PobrezaMultidimensionalExtract(year=year),
+                PobrezaMultidimensionalTransform(year=year),
+                PobrezaMultidimensionalLoad(year=year),
             ],
         ).run(mode="bootstrap")
 
@@ -41,13 +41,13 @@ default_args = {
 
 if _AIRFLOW_AVAILABLE:
     with DAG(
-        "etl_pobreza_multidimencional_bootstrap",
+        "etl_pobreza_multidimensional_bootstrap",
         default_args=default_args,
         description=("Pobreza Multidimensional Bootstrap — CONEVAL MMP 2016/2018/2020/2022 (on demand)"),
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
-        tags=["etl", "pobreza_multidimencional", "bootstrap", "on-demand", "coneval"],
+        tags=["etl", "pobreza_multidimensional", "bootstrap", "on-demand", "coneval"],
     ) as dag_bootstrap:
         PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
 

@@ -3,19 +3,19 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core.pipelines.pobreza_multidimencional.consts import (
+from core.pipelines.pobreza_multidimensional.consts import (
     FLOAT_COLS,
     INT_COLS,
     NULL_VALUES,
     PIPELINE_NAME,
 )
-from core.pipelines.pobreza_multidimencional.schemas import PobrezaMultidimencionalDatos
+from core.pipelines.pobreza_multidimensional.schemas import PobrezaMultidimensionalDatos
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null
 from core.utils.files import clean_directory
 
 
-class PobrezaMultidimencionalTransform(Stage):
+class PobrezaMultidimensionalTransform(Stage):
     """Normaliza y castea los tipos del CSV de la Base final MMP."""
 
     def __init__(self, year: int):
@@ -52,7 +52,7 @@ class PobrezaMultidimencionalTransform(Stage):
 
         # Columnas del schema (excluyendo id y municipio_id que se resuelven en load)
         schema_cols = [
-            c.key for c in PobrezaMultidimencionalDatos.__table__.columns if c.key not in ("id", "municipio_id")
+            c.key for c in PobrezaMultidimensionalDatos.__table__.columns if c.key not in ("id", "municipio_id")
         ]
 
         # Añadir columnas faltantes como None (ej: discap ausente en 2016/2018)
