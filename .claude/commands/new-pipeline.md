@@ -1,31 +1,51 @@
 ---
-description: Inicia el flujo completo de creación de un pipeline ETL desde EDA hasta
-  PR (fases 0-8) usando el Data Engineer Agent.
-argument-hint: '[nombre del pipeline] [URLs de la fuente]'
+description: Crea un agent team para construir un nuevo pipeline ETL completo en 9 fases secuenciales. Tú eres el lead del equipo y coordinas a los agentes especialistas.
 ---
 
-> Use el agente `dea`.
+# Nuevo Pipeline ETL — Agent Team
 
-Quiero crear un nuevo pipeline ETL siguiendo las 9 fases definidas en [refactor.md](../../refactor.md).
+## Paso 1: Recopilar contexto
 
-**Información inicial:**
+Antes de crear el equipo, completar la siguiente tabla con el usuario (preguntar si algún campo no está definido):
 
-- **Nombre del pipeline (snake_case):** {{flujo}}
-- **Fuente / URLs:** {{fuentes}}
-- **Notas adicionales:** {{notas}}
+| Variable               | Valor                                                          |
+|------------------------|----------------------------------------------------------------|
+| `{flujo}`              | Nombre interno del pipeline en `snake_case` (p.ej. `repd`)    |
+| `{fuente}`             | URL de descarga o descripción de la fuente de datos            |
+| `{frecuencia}`         | Mensual / Anual / Trimestral / On-demand / Otra                |
+| `{tipo_update}`        | `solo-inserciones` o `scd`                                     |
+| `{contexto_adicional}` | Detalles relevantes: credenciales, nivel geográfico, tablas destino esperadas, etc. |
 
-**Tu trabajo:**
+---
 
-1. Si falta información (iterable vs no, frecuencia, alcance Jalisco, variante de update, credenciales), pregúntala en una sola tanda antes de empezar.
-2. Coordina las 9 fases delegando a los subagentes especializados:
-   - Fase 1 → `eda-agent`
-   - Fase 2 → `db-agent`
-   - Fase 4 (issue + rama) → `git-agent` modo `init`
-   - Fase 5 → `etl-agent`
-   - Fase 6 → `testing-agent`
-   - Fase 7 → `docs-agent`
-   - Fase 8 → `git-agent` modos `commit` + `pr`
-3. Después de cada fase, valida el contrato y reporta el avance al usuario.
-4. No escribas archivos antes de que el usuario apruebe la propuesta de esquema.
+## Paso 2: Crear el equipo y ejecutar las fases
 
-Aplica las reglas heredadas de `.github/instructions/`.
+Crear un agent team. Eres el **lead**. Spawnar **un teammate a la vez** en el orden de la tabla. Esperar que el teammate reporte su output completo y pedir **confirmación explícita del usuario** antes de pasar a la siguiente fase.
+
+Al spawnar cada teammate, sustituir los valores reales de `{flujo}`, `{fuente}`, `{frecuencia}`, `{tipo_update}` y `{contexto_adicional}` en el prompt — nunca pasar variables sin resolver.
+
+| Fase | Agente       | Prompt de spawn                                                                                                                                                           | Confirmar |
+|:----:|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:---------:|
+| 0    | `dea`        | `Fase 0. Pipeline: {flujo}. Fuente: {fuente}. Frecuencia: {frecuencia}. Tipo de update: {tipo_update}. Contexto adicional: {contexto_adicional}. Revisar si falta información, preguntar al usuario, generar esqueleto del pipeline.` | ✅ |
+| 1    | `eda-agent`  | `Fase 1. Pipeline: {flujo}. Fuente: {fuente}. Formato: {formato si se conoce}. Crear eda_{flujo}.py en ./core/pipelines/{flujo}/eda/, ejecutar con conda run -n etl python, generar reporte_eda.json.` | ✅ |
+| 2    | `db-agent`   | `Fase 2. Pipeline: {flujo}. Nivel geográfico: {nivel según EDA}. Leer reporte_eda.json, generar migraciones Flyway, attributes.py, schemas.py y diagrama ER.`             | ✅ |
+| 3    | `dea`        | `Fase 3. Pipeline: {flujo}. Leer reporte_eda.json y las migraciones generadas. Sintetizar el plan ETL (stages, frecuencia, tipo de update, tablas). Presentar al usuario y esperar aprobación.` | ✅ |
+| 4    | `git-agent`  | `Fase 4. Pipeline: {flujo}. Nombre legible: {nombre}. Crear GitHub issue con template new-pipeline y la rama {numero_issue}-pipeline-{flujo} desde develop.`             | ✅ |
+| 5    | `etl-agent`  | `Fase 5. Pipeline: {flujo}. Tipo de update: {tipo_update}. Frecuencia: {frecuencia}. Implementar stages extract/transform/load, DAG de Airflow y .env.example.`           | ✅ |
+| 6    | `testing-agent` | `Fase 6. Pipeline: {flujo}. Ejecutar python dags/etl_{flujo}.py en modo bootstrap con conda run -n etl, validar BD Docker, generar reporte de pruebas PASS/FAIL por stage.` | ✅ |
+| 7    | `docs-agent` | `Fase 7. Pipeline: {flujo}. Generar README.md en ./core/pipelines/{flujo}/ consolidando fuente, esquema de BD, DAG y variables de entorno.`                               | ✅ |
+| 8    | `git-agent`  | `Fase 8. Pipeline: {flujo}. Issue #{numero_issue}. Commits atómicos por funcionalidad y abrir Pull Request hacia develop con Closes #{numero_issue}.`                    | ✅ |
+
+---
+
+## Paso 3: Cleanup
+
+Al completar la Fase 8, hacer cleanup del equipo.
+
+---
+
+## Reglas de coordinación
+
+- Declarar la fase activa al inicio de cada bloque: `[Fase N — {AGENTE}]`.
+- Si un teammate reporta errores (p.ej. Fase 6 falla), no avanzar: notificar al usuario y coordinar la corrección con el agente correspondiente antes de reintentar.
+- Si la Fase 3 no recibe aprobación del usuario, detener el flujo y esperar instrucciones.
