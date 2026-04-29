@@ -17,6 +17,7 @@ applyTo: "**/*.py"
 - Antes de crear un helper, verificar si existe en `core/utils/`. Si no existe, crearlo en `helpers/` del pipeline.
 - Archivos en UTF-8. Usar `normalize_text` de `core/utils/normalize.py` para nombres de variables y columnas; no incluir tildes, ñ ni caracteres especiales en identificadores.
 - Sin comentarios decorativos (p.ej. `#=== Título ===`). Comentarios breves, puntuales y en inglés.
-- Entorno: conda `etl` (Python 3.12) o `.venv` en la raíz del proyecto. Crear si no existe. Agregar dependencias a `requirements.txt` con versión fijada.
+- **Entorno:** siempre usar conda `etl` (Python 3.12) para ejecutar scripts Python. Activar con `conda activate etl` antes de correr cualquier script. No usar `python` o `python3` del sistema sin verificar que pertenece al entorno `etl`.
+- Agregar dependencias a `requirements.txt` con versión fijada.
 - Respetar `line-length = 120` definido en `pyproject.toml` (Ruff). Ejecutar `ruff check` antes de cada commit.
 - Los archivos de stage heredan de `core.pipeline.Stage` (ABC). Implementar `source()`, `action()`, `finalization()`.
