@@ -36,6 +36,6 @@ Tipos de commit válidos y ejemplos aplicados al contexto ETL:
 
 **Reglas del mensaje:**
 - Formato: `{tipo}({scope}): {descripcion imperativa en ingles}`
-- El scope es el nombre del flujo (p.ej. `fiscalia`), no el componente.
+- El scope es el nombre del flujo, no el componente.
 - Descripción en minúsculas, sin punto final, máximo 72 caracteres.
 - El proyecto usa commitlint; un mensaje fuera del formato bloqueará el push.

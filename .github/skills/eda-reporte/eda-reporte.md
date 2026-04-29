@@ -19,7 +19,3 @@ Invocar al finalizar el script EDA para serializar los resultados en un JSON est
 ## Template
 
 → Ver `template.py` en esta carpeta.
-
-## References
-
-- Archivo de ejemplo: `core/pipelines/fiscalia/` (adaptación del script de análisis)

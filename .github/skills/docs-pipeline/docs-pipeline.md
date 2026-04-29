@@ -21,7 +21,3 @@ Invocar en la Fase 7 para generar el `README.md` que documenta el pipeline para 
 ## Template
 
 → Ver `template.md` en esta carpeta.
-
-## References
-
-- README de referencia: `core/pipelines/fiscalia/README.md`

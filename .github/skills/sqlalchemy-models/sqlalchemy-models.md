@@ -21,8 +21,3 @@ Invocar después de aplicar las migraciones Flyway (Fase 2) para generar los mod
 ## Template
 
 → Ver `template.py` en esta carpeta.
-
-## References
-
-- Archivo de referencia: `core/pipelines/fiscalia/schemas.py`
-- Atributos de referencia: `core/pipelines/fiscalia/attributes/fiscalia.py`

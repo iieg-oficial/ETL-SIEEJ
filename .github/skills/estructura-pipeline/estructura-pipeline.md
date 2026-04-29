@@ -54,7 +54,3 @@ migrations/{flujo}/
     ├── V3__{flujo}__tabla_principal.sql
     └── V4__{flujo}__vista.sql
 ```
-
-## References
-- Archivo de ejemplo: `core/pipelines/fiscalia/` (pipeline de referencia)
-- Migraciones de referencia: `migrations/fiscalia/sql/`

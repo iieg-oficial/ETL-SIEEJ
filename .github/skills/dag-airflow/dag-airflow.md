@@ -22,7 +22,3 @@ Invocar en la Fase 5 para generar el archivo DAG que orquesta los stages del pip
 ## Template
 
 → Ver `template.py` en esta carpeta.
-
-## References
-
-- DAG de referencia: `dags/etl_fiscalia.py`

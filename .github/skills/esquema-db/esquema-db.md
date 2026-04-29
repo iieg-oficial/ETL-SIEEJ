@@ -21,8 +21,3 @@ Invocar en la Fase 2 para traducir el análisis exploratorio a un esquema SQL ve
 ## Template
 
 → Ver `template_v1_catalogos.sql`, `template_v2_geo.sql`, `template_v3_tabla.sql`, `template_v4_vista.sql` en esta carpeta.
-
-## References
-
-- Migraciones de referencia: `migrations/fiscalia/sql/`
-- Esquema de referencia: `core/pipelines/fiscalia/schemas.py`
