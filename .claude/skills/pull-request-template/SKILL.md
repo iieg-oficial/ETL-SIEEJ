@@ -1,62 +1,23 @@
 ---
 name: pull-request-template
-description: Abre el Pull Request de un pipeline al cierre de su implementación, llenando el template y vinculando el issue.
+description: Abre el Pull Request del pipeline usando el template estandarizado del proyecto.
 ---
 
-## Cuándo usar
+# Skill: Pull Request Template
 
-Fase 8 (cierre). Después de los commits de implementación, testing y docs. Ejecutado por `git-agent`.
+## Purpose
+Invocar en la Fase 8, después de hacer todos los commits, para abrir el PR que cierra el ciclo de desarrollo del pipeline.
 
-## Pre-requisitos
+## Steps
 
-- Rama del issue al día con `develop` (rebase si hace falta).
-- Pre-commit pasa.
-- Pipeline corrió en bootstrap localmente sin errores.
-- README interno actualizado y ERD generado.
+1. Leer el template en `.github/pull_request_template.md` para conocer las secciones requeridas.
+2. Completar el título del PR con el formato: `feat({flujo}): pipeline {nombre del flujo}`.
+3. Llenar la descripción con los cambios realizados por fase (qué se generó en cada fase).
+4. Referenciar el issue correspondiente con `Closes #{numero}` en la sección de issue.
+5. Completar el checklist de tipo de cambio (`feat`) y el de tareas completadas.
+6. Agregar notas relevantes para el reviewer (pasos manuales pendientes, credenciales, migraciones a aplicar).
+7. Crear el PR con `gh pr create` desde la rama del pipeline hacia `develop`.
 
-## Pasos
+## References
 
-### 1. Resumen de cambios
-
-Inventariar:
-
-- Archivos creados / modificados agrupados por área (pipeline / migrations / dags / docs).
-- Resultado de testing (filas en BD por tabla, status del DAG, vista verificada).
-
-### 2. Generar cuerpo del PR
-
-Usar [.github/pull_request_template.md](../../.github/pull_request_template.md). Llenar:
-
-- `Closes #{N}` con el issue.
-- "Qué se hizo": párrafo breve con foco en valor entregado.
-- Marcar tipo `feat` (default para nuevo pipeline).
-- "Tareas completadas": checklist con los stages implementados, migraciones aplicadas, DAG corrido, README + ERD.
-- "Notas": pasos manuales que el reviewer debe ejecutar (cargar `.env`, correr `just flyway-migrate {flujo}`, etc.).
-
-### 3. Crear el PR con `gh`
-
-```bash
-gh pr create \
-  --base develop \
-  --head "$(git branch --show-current)" \
-  --title "feat({flujo}): implement pipeline" \
-  --body-file /tmp/pr_body.md \
-  --label "feat,new-pipeline"
-```
-
-Solicitar review si el repo lo requiere:
-
-```bash
-gh pr edit --add-reviewer @org/etl-reviewers
-```
-
-### 4. Confirmar
-
-Reportar URL del PR y los próximos pasos esperados (revisión, merge a `develop`).
-
-## Reglas
-
-- Base **siempre** `develop`. Nunca `main`.
-- Título del PR sigue la misma convención de commits (`feat({flujo}): ...`).
-- No usar `gh pr merge` automático. El merge es manual del reviewer.
-- Si el pipeline tiene SCD o un paso manual extra, documentarlo en "Notas".
+- Template de PR: `.github/pull_request_template.md`

@@ -1,116 +1,84 @@
 ---
 name: docs-pipeline
-description: Genera el README interno de un pipeline con esquema, fuentes, metodología, variables y diagrama ER.
+description: Genera el README interno del pipeline con toda la información de implementación.
 ---
 
-## Cuándo usar
+# Skill: Documentación de Pipeline
 
-Fase 7. Después del testing exitoso. Ejecutado por `docs-agent`.
+## Purpose
+Invocar en la Fase 7 para generar el `README.md` que documenta el pipeline para futuros desarrolladores.
 
-## Pre-requisitos
+## Steps
 
-- `schemas.py` final.
-- Migraciones V1-V4 aplicadas y validadas.
-- Stages implementados.
-- DAG corrido en bootstrap.
+1. Leer `./core/pipelines/{flujo}/eda/reporte_eda.json` para extraer información de la fuente (URL, formato, frecuencia).
+2. Leer las migraciones `V1`–`V4` en `./migrations/{flujo}/sql/` para documentar el esquema de BD y las tablas.
+3. Leer `./dags/etl_{flujo}.py` para documentar el nombre del DAG, el `schedule_interval` y el orden de stages.
+4. Leer `./core/pipelines/{flujo}/.env.example` para listar las variables de entorno requeridas.
+5. Incluir el diagrama ER desde `./core/pipelines/{flujo}/assets/er_{flujo}.png` si existe.
+6. Construir el README siguiendo el template de abajo.
+7. Guardar en `./core/pipelines/{flujo}/README.md`.
 
-## Salidas
-
-- `core/pipelines/{flujo}/README.md`
-- `core/pipelines/{flujo}/assets/erd.png` (regenerar siempre que `schemas.py` haya cambiado).
-
-## Generar ERD
-
-```python
-from eralchemy2 import render_er
-
-from core.pipelines.{flujo}.schemas import {Flujo}Base
-
-render_er({Flujo}Base, "core/pipelines/{flujo}/assets/erd.png")
-```
-
-## Estructura del README
-
-Todo en español. En este orden:
+## Template
 
 ```markdown
-# {DB_NAME}
+# {Nombre del Pipeline}
 
-Breve descripción del dominio del pipeline (1-2 oraciones).
+> {Descripción en una línea de qué datos procesa y para qué sirve.}
 
 ## Fuente
 
-- **Publicador**: {INEGI / Secretaría / etc.}
-- **URL**: {url_principal}
-- **Formato**: {csv / xlsx / api}
-- **Encoding**: {utf-8 / iso-8859-1}
-- **Cobertura geográfica**: {nacional / estatal / municipal}
-- **Frecuencia de actualización**: {anual / mensual / on-demand}
+| Campo       | Valor                        |
+|-------------|------------------------------|
+| Proveedor   | {nombre del proveedor}       |
+| URL         | {url de descarga}            |
+| Formato     | {csv/xlsx/json/...}          |
+| Frecuencia  | {mensual/anual/...}          |
+| Último dato | {año o fecha del último dato conocido} |
 
-## Esquema
+## Esquema de Base de Datos
 
-<img src="assets/erd.png" width="600">
+![Diagrama ER](assets/er_{flujo}.png)
 
-### Diccionario de variables
+### Tablas catálogo
+- **`cat_{nombre}`** — {descripción breve de qué contiene}
 
-#### `stg_{principal}`
+### Tabla principal
+- **`stg_{flujo}`** — {descripción de qué registra, granularidad, período cubierto}
 
-| Columna | Descripción |
-|---|---|
-| {col_no_obvia} | {descripción breve} |
+### Vista de integración
+- **`v_{flujo}`** — {qué desnormaliza y para qué se usa}
 
-(Solo columnas cuyo significado no es obvio. Omitir `id`, `nombre`, `fecha_actualizacion`.)
+## Implementación ETL
 
-## Bootstrap y Update
+| Modo      | DAG                       | Schedule       |
+|-----------|---------------------------|----------------|
+| Bootstrap | `etl_{flujo}_bootstrap`   | On Demand      |
+| Update    | `etl_{flujo}_update`      | `{cron expr}`  |
 
-- **Bootstrap**: {sí / no} — {breve cómo}.
-- **Update**: {append / SCD2 / no aplica} — {periodicidad y disparador}.
+**Tipo de update:** {solo-inserciones / SCD}
 
-## Diagrama de archivos
+## Árbol de archivos
 
-```
+\`\`\`
 core/pipelines/{flujo}/
-├── stages/{extract,transform,load}.py
-├── schemas.py
-├── attributes.py
-├── constants.py
-├── mappings.py
-└── eda/
+├── ...
+\`\`\`
+
+## Metodología ETL
+
+**Extract:** {descripción de cómo se descargan los datos}
+
+**Transform:** {descripción de las transformaciones aplicadas}
+
+**Load:** {descripción del método de carga y manejo de duplicados/cambios}
+
+## Variables de Entorno
+
+| Variable | Descripción |
+|----------|-------------|
+| `VAR_1`  | {descripción} |
+
+## Pasos Manuales
+
+1. {Paso manual requerido, si aplica}
 ```
-
-## Metodología
-
-### Extract
-
-{Breve: cómo descarga, qué filtros, dónde guarda el pickle.}
-
-### Transform
-
-{Breve: pasos de limpieza, normalización, build de catálogos, FKs resueltas.}
-
-### Load
-
-{Breve: orden de carga, estrategia (`bulk_insert` / `upsert_records`), conflict_keys.}
-
-## Variables del .env
-
-| Variable | Descripción | Ejemplo |
-|---|---|---|
-| `DB_NAME` | Nombre de la BD | `etl_{flujo}` |
-| `URL_{NIVEL}` | URL fuente | `https://...` |
-
-## Pasos manuales
-
-1. Copiar `.env.example` a `.env` y completar.
-2. `just up-database`
-3. `just flyway-migrate {flujo}`
-4. `python dags/etl_{flujo}.py` (bootstrap)
-```
-
-## Reglas
-
-- Nombres de columna y tabla **idénticos** a `schemas.py`. Validarlo antes de escribir.
-- No documentar lo que no esté verificado en código.
-- Omitir secciones que no aplican (no dejar vacías).
-- Sin emojis.
-- Si la cobertura es Jalisco-only, mencionarlo en "Cobertura geográfica" y referenciar el filtro `cve_ent = 14` en la vista.

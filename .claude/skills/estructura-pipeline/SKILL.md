@@ -1,56 +1,65 @@
 ---
 name: estructura-pipeline
-description: Genera la estructura de carpetas y archivos vacíos/plantilla para un nuevo pipeline ETL siguiendo la convención del proyecto.
+description: Crea la estructura de carpetas y archivos base para un nuevo pipeline ETL en el proyecto.
 ---
 
-## Cuándo usar
+# Skill: Estructura de Pipeline
 
-Al iniciar un nuevo pipeline (Fase 0 → 1 de `refactor.md`), después de que el usuario confirmó el nombre y la fuente.
+## Purpose
+Invocar al inicio del desarrollo (Fase 0 y Fase 5) para generar el esqueleto completo del pipeline antes de escribir cualquier lógica.
 
-## Estructura a crear
+## Steps
 
-Reemplazar `{flujo}` por el nombre del pipeline (snake_case, sin acentos).
+1. Crear la carpeta raíz del pipeline: `./core/pipelines/{flujo}/`
+2. Crear las subcarpetas: `eda/`, `stages/`, `helpers/`, `assets/`
+3. Crear los archivos base vacíos: `__init__.py`, `attributes.py`, `schemas.py`, `constants.py`, `config.py`, `.env.example`
+4. Crear `__init__.py` vacío en cada subcarpeta.
+5. Crear la carpeta de migraciones: `./migrations/{flujo}/sql/` y copiar un `flyway.conf.example` desde otro pipeline como referencia.
+6. Confirmar la estructura generada listando el árbol de archivos antes de continuar.
+
+## Template
+
+Árbol esperado al finalizar el pipeline completo:
 
 ```
 core/pipelines/{flujo}/
 ├── __init__.py
-├── config.py
-├── constants.py
-├── attributes.py            # o attributes/{__init__,base,{flujo}}.py si hay múltiples enums
-├── mappings.py              # catálogos estáticos (id → label)
-├── helpers.py               # helpers locales del pipeline (opcional)
-├── schemas.py               # SQLAlchemy 2.0
-├── .env.example             # variables del pipeline
-├── README.md                # generado por skill docs-pipeline
-├── assets/
-│   └── erd.png              # generado por eralchemy2
+├── attributes.py       # StrEnum de nombres de tabla: {Flujo}Tables(StrEnum) — OBLIGATORIO
+├── config.py           # Pydantic-settings: variables de entorno del pipeline
+├── constants.py        # Constantes UPPER_CASE del pipeline
+├── mappings.py         # Dicts de lookup para catálogos (opcional, si hay valores fijos)
+├── schemas.py          # Modelos SQLAlchemy (generado por DB Agent)
+├── .env.example        # Variables de entorno requeridas (sin valores)
+├── README.md           # Documentación interna (generado por DOCS Agent)
 ├── eda/
-│   └── reporte_{nombre}.py  # scripts EDA
-└── stages/
-    ├── __init__.py
-    ├── extract.py
-    ├── transform.py
-    └── load.py
+│   ├── __init__.py
+│   ├── eda_{flujo}.py  # Script de análisis exploratorio
+│   └── reporte_eda.json
+├── stages/
+│   ├── __init__.py
+│   ├── extract.py
+│   ├── transform.py
+│   └── load.py
+├── helpers/            # Funciones auxiliares específicas del pipeline
+│   └── __init__.py
+└── assets/
+    └── er_{flujo}.png  # Diagrama ER (generado por DB Agent)
+
+dags/
+└── etl_{flujo}.py      # DAG de Airflow (bootstrap + update)
 
 migrations/{flujo}/
-├── flyway.conf.example
+├── flyway.conf
 └── sql/
-    ├── V1__foreign_tables.sql
-    ├── V2__catalogs_{flujo}.sql       # solo si hay catálogos
-    ├── V3__tables_{flujo}.sql
-    └── V4__views_{flujo}.sql
-
-dags/etl_{flujo}.py
+    # Con nivel geográfico (municipal/estatal):
+    ├── V1__foreign_tables.sql       # FDW cvegeo — sin nombre de flujo en el archivo
+    ├── V2__catalogs_{flujo}.sql     # Tablas cat_
+    ├── V3__table_{flujo}.sql        # Tabla stg_
+    └── V4__view_{flujo}.sql         # Vista v_
+    # Sin nivel geográfico:
+    ├── V1__catalogs_{flujo}.sql
+    ├── V2__table_{flujo}.sql
+    └── V3__view_{flujo}.sql
 ```
 
-## Reglas
-
-- `attributes.py` plano cuando hay un único enum. Carpeta `attributes/` cuando hay múltiples (base + por dominio).
-- Nunca declarar constantes fuera de `constants.py`.
-- `assets/`, `eda/` se crean vacíos al inicio; el ERD y los reportes EDA se generan en sus fases.
-- Si el pipeline es no-iterable, `dags/etl_{flujo}.py` debe quedar con `schedule=None` por default.
-- Crear todos los `__init__.py` necesarios.
-
-## Output
-
-Lista de archivos creados con un breve comentario de qué contendrán cada uno. **No** llenar los archivos en este paso; esa labor corresponde a los skills `esquema-db`, `sqlalchemy-models`, `dag-airflow`, etc.
+> **Nota:** Algunos pipelines legacy usan `consts.py` en lugar de `constants.py`. Los nuevos pipelines deben usar `constants.py`.

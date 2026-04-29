@@ -1,81 +1,41 @@
 ---
 name: git-pipeline-commits
-description: Convención de commits y checklist para implementación incremental de pipelines ETL.
+description: Define la convención de commits para la implementación de pipelines ETL en este proyecto.
 ---
 
-## Formato
+# Skill: Git Pipeline Commits
 
-```
-<tipo>(<scope>): <descripción en inglés imperativo>
-```
+## Purpose
+Invocar en la Fase 8 para generar commits atómicos y con mensajes consistentes antes de abrir el Pull Request.
 
-- Solo línea de encabezado. Sin cuerpo. Sin `Co-Authored-By`.
-- Máximo 72 caracteres.
-- En minúsculas, salvo nombres propios o siglas.
+## Steps
 
-## Tipos
+1. Verificar que los archivos a commitear no incluyan `.env`, datos crudos (`.csv`, `.xlsx`), `.pyc` ni archivos generados no deseados. Revisar con `git status` y comparar con `.gitignore`.
+2. Ejecutar `ruff check` sobre los archivos Python del commit: `ruff check <archivos>`.
+3. Hacer `git add` de los archivos específicos del cambio. Nunca `git add .`.
+4. Escribir el mensaje de commit siguiendo la convención de la tabla de abajo.
+5. Ejecutar el commit y revisar el output del pre-commit. Si Ruff falla, corregir los errores y repetir desde el paso 2.
+6. Repetir por cada funcionalidad hasta tener todos los cambios commiteados.
 
-| Tipo | Uso |
-|---|---|
-| `feat` | Nueva funcionalidad o stage |
-| `fix` | Corrección de bug |
-| `update` | Modificación de funcionalidad existente |
-| `refactor` | Refactor sin cambio funcional |
-| `chore` | Configs, dependencias, mantenimiento |
-| `docs` | Documentación |
-| `merge` | Merge de pipeline a develop |
+## Template
 
-## Scopes
+Tipos de commit válidos y ejemplos aplicados al contexto ETL:
 
-| Scope | Aplica a |
-|---|---|
-| `{flujo}` | Cambios dentro de `core/pipelines/{flujo}/` o `dags/etl_{flujo}.py` o `migrations/{flujo}/` |
-| `core` | Módulos en `core/` (db, pipeline, config) |
-| `utils` | Utilidades en `core/utils/` |
-| `dags` | Cambios genéricos a DAGs (no específicos de un pipeline) |
-| `migrations` | Cambios genéricos de Flyway |
-| `config` | Configuración del proyecto |
-| `docs` | Documentación |
+| Tipo       | Cuándo usar                                           | Ejemplo de mensaje                                          |
+|------------|-------------------------------------------------------|------------------------------------------------------------|
+| `feat`     | Nuevo archivo de pipeline o funcionalidad             | `feat({flujo}): add extract stage`                         |
+| `feat`     | Nuevo DAG de Airflow                                  | `feat({flujo}): add airflow dag bootstrap and update`      |
+| `feat`     | Nueva migración Flyway                                | `feat({flujo}): add V1 catalogs migration`                  |
+| `feat`     | Nuevo schemas.py                                      | `feat({flujo}): add sqlalchemy models`                      |
+| `fix`      | Corrección de bug en un stage                         | `fix({flujo}): handle null values in transform stage`      |
+| `fix`      | Corrección de migración                               | `fix({flujo}): correct column type in V3 migration`         |
+| `chore`    | Actualización de dependencias, .env.example, config   | `chore({flujo}): update requirements and env example`      |
+| `docs`     | README del pipeline                                   | `docs({flujo}): add pipeline readme and er diagram`         |
+| `test`     | Script de prueba o reporte de testing                 | `test({flujo}): add eda script and report`                  |
+| `refactor` | Reestructuración sin cambio de comportamiento         | `refactor({flujo}): split load stage into helpers`          |
 
-**Para un pipeline específico el scope es siempre el nombre del pipeline**, no `pipeline` ni `dags` ni `migrations`.
-
-## Secuencia recomendada para un pipeline nuevo
-
-Un commit por funcionalidad para evitar deuda técnica:
-
-1. `chore({flujo}): scaffold pipeline structure`
-2. `feat({flujo}): add EDA scripts and report`
-3. `feat({flujo}): add migrations V1-V4`
-4. `feat({flujo}): add SQLAlchemy schemas and attributes`
-5. `feat({flujo}): add extract stage`
-6. `feat({flujo}): add transform stage`
-7. `feat({flujo}): add load stage`
-8. `feat({flujo}): add Airflow DAG`
-9. `docs({flujo}): add internal README and ERD`
-10. `fix({flujo}): <correcciones detectadas en testing>` (las que apliquen)
-
-## Reglas operativas
-
-- Nunca `git add .`. Agregar archivos por funcionalidad.
-- Pre-commit corre `ruff check`. Si falla: corregir y reintentar; nunca usar `--no-verify`.
-- Una rama por issue (`<issue_number>-<title>`), creada desde `develop`.
-- Antes de abrir PR: rebase contra `develop` si hay conflictos.
-
-## Ejemplos válidos
-
-```
-feat(asg_imss): add extract stage for monthly file
-fix(repd): handle empty dataframe in transform
-update(censos_economicos): change schedule to quarterly
-docs(fiscalia): add internal README with ERD
-chore(deps): upgrade pandas to 2.2.0
-```
-
-## Ejemplos inválidos
-
-```
-feat(pipeline): ...                # scope debe ser el nombre del flujo
-Feat(asg_imss): ...                # mayúsculas
-feat(asg_imss): added extract...   # debe ser imperativo (add, no added)
-feat(asg_imss): agrega extract...  # debe ser inglés
-```
+**Reglas del mensaje:**
+- Formato: `{tipo}({scope}): {descripcion imperativa en ingles}`
+- El scope es el nombre del flujo, no el componente.
+- Descripción en minúsculas, sin punto final, máximo 72 caracteres.
+- El proyecto usa commitlint; un mensaje fuera del formato bloqueará el push.
