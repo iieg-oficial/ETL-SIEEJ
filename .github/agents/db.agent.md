@@ -21,9 +21,9 @@ Generar el esquema de base de datos SQL a partir del reporte EDA y aplicarlo con
   1. Leer `reporte_eda.json` para identificar columnas, tipos de dato y catálogos.
   2. Homologar nombres a `snake_case` en español (sin tildes, sin caracteres especiales) usando las reglas de `database.instructions.md`.
   3. Identificar tablas catálogo (`cat_`) y tabla principal (`stg_`).
-  4. Generar las migraciones V1 (catálogos), V2 (conexión `cve_geo` si aplica), V3 (tabla principal) y V4 (vista de integración) usando el skill `esquema-db`.
-  5. Generar `schemas.py` con los modelos SQLAlchemy usando el skill `sqlalchemy-models`.
-  6. Aplicar las migraciones con `just migrate {flujo}` y verificar que se apliquen sin errores.
+  4. Generar las migraciones siguiendo el skill `esquema-db`. Si el pipeline tiene nivel geográfico: V1=FDW, V2=catálogos, V3=tabla principal, V4=vista. Si no tiene geo: V1=catálogos, V2=tabla principal, V3=vista.
+  5. Generar `schemas.py` con los modelos SQLAlchemy usando el skill `sqlalchemy-models`. Crear `attributes.py` con el StrEnum de nombres de tabla antes de generar `schemas.py`.
+  6. Aplicar las migraciones con `just flyway-migrate {flujo}` y verificar que se apliquen sin errores.
   7. Generar el diagrama ER con ERAlchemy2 y guardarlo en `./core/pipelines/{flujo}/assets/er_{flujo}.png`.
 
 ## Instructions
