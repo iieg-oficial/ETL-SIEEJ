@@ -58,9 +58,7 @@ class PobrezaMultidimencionalExtract(Stage):
             members = zf.namelist()
             xlsx_members = [m for m in members if m.endswith(".xlsx")]
             if not xlsx_members:
-                raise FileNotFoundError(
-                    f"No se encontró ningún .xlsx en el ZIP. Contenido: {members}"
-                )
+                raise FileNotFoundError(f"No se encontró ningún .xlsx en el ZIP. Contenido: {members}")
             # Preferir el archivo esperado; si no, tomar el primero
             target = XLSX_FILENAME if XLSX_FILENAME in xlsx_members else xlsx_members[0]
             output_path = self.work_dir / target

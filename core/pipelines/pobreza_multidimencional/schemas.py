@@ -13,9 +13,7 @@ class CatEntidad(PobrezaMultidimencionalBase):
     """Catálogo de entidades federativas."""
 
     __tablename__ = "stg_pobreza_multidimencional_cat_entidad"
-    __table_args__ = (
-        UniqueConstraint("cve_ent", name="uq_pobreza_multidimencional_cat_entidad_cve"),
-    )
+    __table_args__ = (UniqueConstraint("cve_ent", name="uq_pobreza_multidimencional_cat_entidad_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_ent: Mapped[str] = mapped_column(String(2), nullable=False)
@@ -28,7 +26,8 @@ class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     __tablename__ = "stg_pobreza_multidimencional_datos"
     __table_args__ = (
         UniqueConstraint(
-            "cve_mun", "anio",
+            "cve_mun",
+            "anio",
             name="uq_pobreza_multidimencional_datos_cve_anio",
         ),
         Index("ix_pobreza_multidimencional_datos_cve_anio", "cve_mun", "anio", unique=True),
@@ -126,9 +125,7 @@ class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     lpei_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
-    updated_at: Mapped[Optional[datetime]] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now(), onupdate=func.now())
 
 
 CATALOG_MODELS: dict[str, type] = {
