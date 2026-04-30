@@ -1,8 +1,8 @@
 ---
-applyTo: "**/*.py"
+description: Python coding standards. Applies to all .py files.
 ---
 
-# Python Instructions
+# Python Rules
 
 > Aplican a: DEA, EDA, ETL, TEST
 

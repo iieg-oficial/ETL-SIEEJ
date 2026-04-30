@@ -1,82 +1,83 @@
-# ETL SIEEJ — Guía del sistema de agentes / instructions / skills / prompts
+---
+name: copilot-instructions
+description: Always-on instructions for the ETL SIEEJ project.
+---
 
-Este repositorio usa un sistema modular de Copilot Customizations con responsabilidades separadas. Consulta este índice antes de asumir dónde está la información.
+# ETL SIEEJ — Copilot Instructions
 
-## Modelo mental (fábrica)
+## Project Overview
 
-| Componente | Rol en la fábrica | Ubicación |
-|---|---|---|
-| **Agent** | Supervisor de planta — decide **qué** hacer y en qué orden | `.github/agents/*.agent.md` |
-| **Instruction** | Manual operativo — reglas y convenciones auto-aplicadas | `.github/instructions/*.instructions.md` |
-| **Skill** | Máquina especializada — templates y patrones on-demand | `.github/skills/<name>/SKILL.md` |
-| **Prompt** | Orden de producción — entrada del cliente hacia el supervisor | `.github/prompts/*.prompt.md` |
+**ETL SIEEJ** is the data pipeline system for the _Sistema de Información Estratégica del Estado de Jalisco_, developed by IIEG (Instituto de Información Estadística y Geográfica de Jalisco). It ingests data from public sources, transforms them using pipeline-specific business rules, and loads them into a PostgreSQL/PostGIS database for analysis and consumption.
 
-## Reglas de separación
+Each pipeline runs in two modes:
+- **`bootstrap`** — full historical load (first load or full rebuild).
+- **`update`** — incremental load on a cron schedule.
 
-- **Agents** describen rol, entradas, plan por fases, deliverables y restricciones. **Nunca** contienen código, SQL o JSON de ejemplo: solo delegan a skills/instructions.
-- **Instructions** contienen reglas de estilo, nomenclatura y convenciones aplicadas automáticamente por glob. Describen **qué hacer y qué no hacer**, no cómo escribirlo paso a paso.
-- **Skills** son la única fuente de verdad para templates (código, SQL, estructura de archivos, secuencias de comandos). Se cargan on-demand cuando un agente los invoca.
-- **Prompts** recopilan el input del usuario y lo entregan al agente correspondiente.
+---
 
-## Agents disponibles
+## Tech Stack
 
-| Agente | Invocable | Responsabilidad |
-|---|---|---|
-| `data-engineer` | Usuario | Orquestador principal del flujo "crear pipeline" (7 fases) |
-| `eda` | Interno | Análisis exploratorio de la fuente → JSON estructurado |
-| `db` | Interno | `schemas.py` + migraciones Flyway + validación |
-| `etl` | Interno | Stages (extract/transform/load) + DAG + config |
-| `docs` | Interno | `README.md` del pipeline + `.env.example` |
-| `git` | Interno | Commits atómicos convencionales |
-| `just` | Interno | Ejecución de comandos `just` y diagnóstico |
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Orchestration | Apache Airflow (CeleryExecutor) | 3.x |
+| Language | Python | 3.12 |
+| Database | PostgreSQL + PostGIS | 17 |
+| ORM | SQLAlchemy | 2.x |
+| Migrations | Flyway | latest |
+| Data processing | Pandas | 2.x |
+| Config/validation | pydantic-settings | 2.x |
+| Linter | Ruff | `line-length = 120` |
+| Task runner | just | latest |
+| Containers | Docker + Docker Compose | ≥ 20.10 |
 
-## Instructions (reglas auto-aplicadas)
+---
 
-| Instruction | applyTo |
-|---|---|
-| `python.instructions.md` | `**/*.py` |
-| `commits.instructions.md` | `**` |
-| `airflow.instructions.md` | `dags/**/*.py,core/pipelines/**/*.py,core/pipelines/**/stages/*.py` |
-| `db.instructions.md` | `migrations/**/*.sql,core/pipelines/**/schemas.py,core/pipelines/**/config.py` |
-| `flyway.instructions.md` | `justfile,migrations/**,compose.yaml` |
+## Global Rules
 
-## Skills disponibles
+### Python Environment
+**Always use the conda `etl` environment (Python 3.12) to run any Python script.** Activate it before running:
 
-| Skill | Uso |
-|---|---|
-| `scaffold-pipeline` | Templates de `config.py`, `consts.py`, `schemas.py`, stages, DAG, `.env.example` |
-| `generate-migration` | Templates SQL V1–V4 + variante SCD2 |
-| `eda-source` | Proceso de EDA y contrato JSON obligatorio |
-| `pipeline-readme` | Template canónico del README de un pipeline |
-| `cvegeo-integration` | Patrón FDW + resolución de municipios |
-| `scd2-pattern` | Esquema `_current` + `_history` + lógica de load con versionado |
-| `git-pipeline-commits` | Secuencia atómica de commits para un pipeline nuevo |
-| `find-docs` / `context7-mcp` | Consultar docs actualizadas de libs/frameworks |
+```bash
+conda activate etl
+python dags/etl_{flujo}.py
+```
 
-## Prompts disponibles
+Or invoke the interpreter directly:
 
-| Prompt | Agente al que delega |
-|---|---|
-| `/create-pipeline` | `data-engineer` |
+```bash
+conda run -n etl python dags/etl_{flujo}.py
+```
 
-## Regla de oro cuando se crea un pipeline
+Never use system `python` or `python3` without verifying it belongs to the `etl` environment.
 
-1. El usuario invoca `/create-pipeline` con el cuestionario.
-2. `data-engineer` ejecuta las 7 fases en orden estricto.
-3. Cada fase consume los skills e instructions correspondientes.
-4. Ningún archivo se crea sin pasar por el skill que lo define.
+---
 
-## Dónde buscar qué
+## Justfile Automations
 
-| Necesito saber... | Voy a... |
-|---|---|
-| Cómo se escribe un stage nuevo | Skill `scaffold-pipeline` |
-| Reglas del patrón Stage/Pipeline | Instruction `airflow.instructions.md` |
-| Cómo se escribe una migración V3 con SCD2 | Skill `generate-migration` + skill `scd2-pattern` |
-| Reglas de nomenclatura SQL | Instruction `db.instructions.md` |
-| Comandos para aplicar migraciones | Instruction `flyway.instructions.md` |
-| Cómo integrar cvegeo | Skill `cvegeo-integration` |
-| Formato del README del pipeline | Skill `pipeline-readme` |
-| Convención de commits | Instruction `commits.instructions.md` |
-| Secuencia exacta de commits al cerrar un pipeline | Skill `git-pipeline-commits` |
-| Estilo de Python del proyecto | Instruction `python.instructions.md` |
+The `justfile` centralizes all repetitive tasks for development, Docker, and Flyway. **Always check `just --list` first** — it shows every available recipe with its description and parameters before writing custom shell commands.
+
+```bash
+just --list   # show all available recipes
+```
+
+Key recipe groups:
+
+| Group | Recipe | Description |
+|-------|--------|-------------|
+| **development** | `just build-dev` | Spin up a local PostGIS container for testing (default: user/pass/db = `test`, port `5432`) |
+| | `just create-cvegeo-db` | Create and seed the `cvegeo` database (required before pipelines that use geographic codes) |
+| | `just setup` | Install pre-commit hooks after cloning the repo |
+| | `just stop-dev` | Stop and remove the local dev container |
+| **docker** | `just up` | Start all Docker Compose services (Airflow stack) |
+| | `just down` | Stop all services |
+| | `just down-volumes` | Stop all services and remove volumes (destructive) |
+| | `just ps` | Show status of running services |
+| | `just logs [service]` | Tail logs for a service |
+| | `just restart <service>` | Restart a specific service |
+| | `just rebuild <service>` | Rebuild and restart a specific service |
+| **flyway** | `just flyway-config <pipeline>` | Copy `flyway.conf.example` → `flyway.conf` for a pipeline |
+| | `just flyway-migrate <pipeline>` | Apply pending migrations for a pipeline |
+| | `just flyway-info <pipeline>` | Show migration status |
+| | `just flyway-validate <pipeline>` | Validate applied migrations against scripts |
+| | `just flyway-clean <pipeline>` | Drop all objects managed by Flyway (destructive) |
+| | `just flyway-reset <pipeline>` | Clean + migrate (full rebuild of schema) |
