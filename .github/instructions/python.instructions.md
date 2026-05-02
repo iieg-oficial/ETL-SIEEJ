@@ -1,23 +1,76 @@
 ---
+name: python
+description: Convenciones globales de estilo y estructura para código Python.
 applyTo: "**/*.py"
 ---
 
-# Python Instructions
+# Python — Instrucciones globales
 
-> Aplican a: DEA, EDA, ETL, TEST
+## Reglas generales
 
-## Rules
+- Priorizar código simple, claro, mantenible y modular.
+- Evitar sobreingeniería.
+- Mantener consistencia en nombres, estructura y estilo en todo el proyecto.
+- Antes de agregar archivos o módulos nuevos, respetar la estructura ya definida del repositorio.
+- Toda lectura y escritura de archivos debe manejarse en UTF-8.
+- No usar `print()` para depuración o seguimiento; usar `logging`.
+- Separar responsabilidades: no mezclar acceso a datos, validación, lógica de negocio y presentación en un mismo archivo.
 
-- Seguir PEP8. Funciones atómicas y reutilizables con docstrings en inglés.
-- Tipado estricto en argumentos y valor de retorno de todas las funciones.
-- Manejo de excepciones con `try/except` explícito. Usar `logging`, nunca `print`.
-- Imports al inicio del archivo en orden: stdlib → third-party → local. Nunca dentro de funciones.
-- Sin hardcoding de valores: usar constantes `UPPER_CASE` definidas en `constants.py` o `consts.py` del pipeline.
-- Nomenclatura: `snake_case` para variables y funciones, `PascalCase` para clases, `UPPER_CASE` para constantes.
-- Antes de crear un helper, verificar si existe en `core/utils/`. Si no existe, crearlo en `helpers/` del pipeline.
-- Archivos en UTF-8. Usar `normalize_text` de `core/utils/normalize.py` para nombres de variables y columnas; no incluir tildes, ñ ni caracteres especiales en identificadores.
-- Sin comentarios decorativos (p.ej. `#=== Título ===`). Comentarios breves, puntuales y en inglés.
-- **Entorno:** siempre usar conda `etl` (Python 3.12) para ejecutar scripts Python. Activar con `conda activate etl` antes de correr cualquier script. No usar `python` o `python3` del sistema sin verificar que pertenece al entorno `etl`.
-- Agregar dependencias a `requirements.txt` con versión fijada.
-- Respetar `line-length = 120` definido en `pyproject.toml` (Ruff). Ejecutar `ruff check` antes de cada commit.
-- Los archivos de stage heredan de `core.pipeline.Stage` (ABC). Implementar `source()`, `action()`, `finalization()`.
+## Lenguaje y entorno
+
+- Versión objetivo: Python 3.12+.
+- Antes de ejecutar o probar código, verificar que se usa el entorno virtual correcto del proyecto.
+
+## Imports
+
+- Mantener imports solamente en la parte superior del archivo.
+- No usar imports dentro de funciones, salvo que exista una razón técnica clara (ej: dependencia opcional o circular).
+- Ordenar imports: stdlib → terceros → locales, separados por línea en blanco.
+
+## Convenciones de nombres
+
+- `snake_case` para variables, funciones, módulos y archivos.
+- `PascalCase` para clases.
+- `UPPER_CASE` para constantes.
+- Nombres descriptivos; evitar abreviaciones crípticas.
+
+## Funciones
+
+- Toda función debe incluir type hints en parámetros y retorno.
+- Toda función debe tener docstring clara y breve con:
+  - descripción
+  - args
+  - returns
+- Preferir funciones atómicas, reutilizables y con una sola responsabilidad.
+- Evitar funciones demasiado largas (guideline: si supera ~40 líneas, considerar dividir).
+- Evitar código duplicado; extraer lógica repetida a funciones reutilizables.
+
+## Comentarios y logging
+
+- Comentar únicamente bloques concretos cuando aporte claridad real.
+- Los comentarios deben ser simples, cortos y usando `#`.
+- No usar `print()` para seguimiento; usar `logging` con niveles apropiados (debug, info, warning, error).
+- Mantener los mensajes de log sencillos, directos y consistentes.
+
+## Manejo de errores
+
+- Manejar errores de forma explícita y clara.
+- Capturar excepciones específicas, no usar `except Exception` genérico salvo en capas superiores.
+- Incluir contexto útil en los mensajes de error.
+
+## Estilo de implementación
+
+- Escribir primero código legible antes que código "inteligente".
+- Preferir claridad sobre abreviaciones.
+- Mantener cada archivo enfocado en una responsabilidad concreta.
+- Si una solución se puede resolver de forma simple o compleja, elegir la simple.
+- Al generar código nuevo, seguir el patrón existente del proyecto antes de proponer estructuras distintas.
+
+## Qué evitar
+
+- No usar `print()` para logging o depuración.
+- No usar imports dentro de funciones sin razón técnica clara.
+- No mezclar múltiples responsabilidades en un mismo archivo.
+- No generar código innecesariamente abstracto.
+- No agregar dependencias nuevas sin justificación clara.
+- No ignorar errores silenciosamente (`except: pass`).
