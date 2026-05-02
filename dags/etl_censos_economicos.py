@@ -37,7 +37,7 @@ with DAG(
     "etl_censos_economicos_bootstrap",
     default_args=default_args_bootstrap,
     description="Censos Economicos Bootstrap - carga unica (On Demand)",
-    schedule_interval=None,
+    schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=["etl", "censos_economicos", "bootstrap", "on-demand", "inegi"],

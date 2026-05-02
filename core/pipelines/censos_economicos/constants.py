@@ -1,3 +1,5 @@
+from core.pipelines.censos_economicos.mappings import CLASIFICADOR_CODIGO_MAP
+
 PIPELINE_NAME = "censos_economicos"
 
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
@@ -8,36 +10,36 @@ INEGI_STATE_SLUGS: dict[str, str] = {
     "nac": "nac",
     "01": "ags",
     "02": "bc",
-    "03": "bcs",
-    "04": "camp",
-    "05": "coah",
-    "06": "col",
-    "07": "chis",
-    "08": "chih",
-    "09": "cdmx",
-    "10": "dgo",
-    "11": "gto",
-    "12": "gro",
-    "13": "hgo",
-    "14": "jal",
-    "15": "mex",
-    "16": "mich",
-    "17": "mor",
-    "18": "nay",
-    "19": "nl",
-    "20": "oax",
-    "21": "pue",
-    "22": "qro",
-    "23": "qroo",
-    "24": "slp",
-    "25": "sin",
-    "26": "son",
-    "27": "tab",
-    "28": "tamps",
-    "29": "tlax",
-    "30": "ver",
-    "31": "yuc",
-    "32": "zac",
+    # "03": "bcs",
+    # "04": "camp",
+    # "05": "coah",
+    # "06": "col",
+    # "07": "chis",
+    # "08": "chih",
+    # "09": "cdmx",
+    # "10": "dgo",
+    # "11": "gto",
+    # "12": "gro",
+    # "13": "hgo",
+    # "14": "jal",
+    # "15": "mex",
+    # "16": "mich",
+    # "17": "mor",
+    # "18": "nay",
+    # "19": "nl",
+    # "20": "oax",
+    # "21": "pue",
+    # "22": "qro",
+    # "23": "qroo",
+    # "24": "slp",
+    # "25": "sin",
+    # "26": "son",
+    # "27": "tab",
+    # "28": "tamps",
+    # "29": "tlax",
+    # "30": "ver",
+    # "31": "yuc",
+    # "32": "zac",
 }
 
 CE_YEARS_CONFIG: dict[int, dict] = {
@@ -550,3 +552,10 @@ COLUMN_DESCRIPTIONS_BY_YEAR: dict[int, dict[str, str]] = {
 GEO_LEVEL_NACIONAL = "nacional"
 GEO_LEVEL_ESTATAL = "estatal"
 GEO_LEVEL_MUNICIPAL = "municipal"
+
+GEO_RENAME_2019: dict[str, str] = {}
+GEO_RENAME_2024: dict[str, str] = {"e03": "entidad", "e04": "municipio"}
+
+EXTRA_COLS_2024: list[str] = ["sector", "subsector", "rama", "subrama", "clase"]
+
+CLASIFICADOR_TEXT_TO_ID: dict[str, int] = {v.lower(): k for k, v in CLASIFICADOR_CODIGO_MAP.items()}
