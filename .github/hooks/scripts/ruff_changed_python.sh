@@ -19,13 +19,14 @@ EOF
   exit 0
 fi
 
-if command -v conda >/dev/null 2>&1; then
+if command -v conda >/dev/null 2>&1 \
+  && conda run -n etl python -c "import importlib.util, sys; sys.exit(0 if importlib.util.find_spec('ruff') else 1)" >/dev/null 2>&1; then
   runner=(conda run -n etl python -m ruff check)
 elif command -v ruff >/dev/null 2>&1; then
   runner=(ruff check)
 else
   cat <<'EOF'
-{"continue":true,"systemMessage":"Ruff check skipped: neither conda nor ruff is available in the current shell."}
+{"continue":true,"systemMessage":"Ruff check skipped: Ruff is not installed in the etl conda environment and no standalone Ruff CLI was found."}
 EOF
   exit 0
 fi
