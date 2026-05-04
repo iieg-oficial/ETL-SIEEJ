@@ -287,12 +287,16 @@ db-dump pipeline: (_load-env pipeline)
     DB_USER=$(grep '^DB_USER=' "$env_file" | cut -d= -f2-)
     DB_PASSWORD=$(grep '^DB_PASSWORD=' "$env_file" | cut -d= -f2-)
     mkdir -p dumps/{{pipeline}}
-    out="dumps/{{pipeline}}/${DB_NAME}_$(date +%Y%m%d_%H%M%S).dump"
-    PGPASSWORD="$DB_PASSWORD" pg_dump \
-      -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" \
+    ts=$(date +%Y%m%d_%H%M%S)
+    filename="${DB_NAME}_${ts}.dump"
+    docker run --rm --network host \
+      -e PGPASSWORD="$DB_PASSWORD" \
+      -v "$(pwd)/dumps/{{pipeline}}:/dumps" \
+      postgis/postgis:17-3.5 \
+      pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" \
       -Fc --no-owner --no-acl \
-      -f "$out" "$DB_NAME"
-    echo "Saved: $out"
+      -f "/dumps/${filename}" "$DB_NAME"
+    echo "Saved: dumps/{{pipeline}}/${filename}"
 
 [group('database')]
 [doc("Dump comprimido de todos los pipelines con DB activa")]
@@ -315,6 +319,14 @@ db-dump-all:
         fi
         just db-dump "$pipeline"
     done
+
+[group('database')]
+[doc("Listar contenido de un dump (sin restaurar)")]
+db-list dump:
+    docker run --rm \
+      -v "$(pwd):/project" \
+      postgis/postgis:17-3.5 \
+      pg_restore --list /project/{{dump}}
 
 [group('database')]
 [doc("Resumen de estado de todos los pipelines (env, db, datos)")]
