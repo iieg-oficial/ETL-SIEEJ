@@ -26,6 +26,10 @@ plugins/*
 data/*
 !data/.gitkeep
 
+# Dumps
+dumps/*
+!dumps/.gitkeep
+
 # Migrations
 **/flyway.conf
 

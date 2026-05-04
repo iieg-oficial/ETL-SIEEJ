@@ -1,11 +1,10 @@
 flyway.url=jdbc:postgresql://<DB_HOST>:<DB_PORT>/<DB_NAME>
 flyway.user=<DB_USER>
 flyway.password=<DB_PASSWORD>
-flyway.locations=<SQL_MIGRATIONS_PATH>
+flyway.locations=migrations/denue/sql
 flyway.schemas=public
 flyway.cleanDisabled=false
 
-# Foreign Data Wrapper - conexión a la DB de cvegeo
 flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
 flyway.placeholders.fdw_host=<FDW_DB_HOST>
 flyway.placeholders.fdw_port=<FDW_DB_PORT>
