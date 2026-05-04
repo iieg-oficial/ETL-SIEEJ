@@ -37,20 +37,70 @@ Archivos relacionados:
 
 ## Esquema de base de datos
 
-```
-+------------------------------------+     +-------------------------------------------+
-| stg_pobreza_multidimencional_      |     | stg_pobreza_multidimencional_datos        |
-| cat_entidad                        |     |-------------------------------------------|
-|------------------------------------|     | id              SERIAL PK                 |
-| id              SERIAL PK          |<----| cat_entidad_id  INTEGER FK                |
-| cve_ent         VARCHAR(2) UNIQUE  |     | cve_mun         VARCHAR(5)                |
-| nombre_entidad  VARCHAR(100)       |     | nombre_municipio VARCHAR(150)             |
-+------------------------------------+     | anio            SMALLINT    -- 2010/15/20 |
-                                           | poblacion       INTEGER                   |
-                                           | pobreza_porcentaje / _personas / ...      |
-                                           | [~46 columnas de indicadores]             |
-                                           | UNIQUE (cve_mun, anio)                    |
-                                           +-------------------------------------------+
+```mermaid
+erDiagram
+    stg_pobreza_multidimencional_cat_entidad {
+        INTEGER id PK
+        VARCHAR_2_ cve_ent
+        VARCHAR_100_ nombre_entidad
+    }
+    stg_pobreza_multidimencional_datos {
+        INTEGER id PK
+        VARCHAR_5_ cve_mun
+        VARCHAR_150_ nombre_municipio
+        INTEGER cat_entidad_id FK
+        SMALLINT anio
+        INTEGER poblacion
+        FLOAT pobreza_porcentaje
+        INTEGER pobreza_personas
+        FLOAT pobreza_carencias_promedio
+        FLOAT pobreza_ext_porcentaje
+        INTEGER pobreza_ext_personas
+        FLOAT pobreza_ext_carencias_promedio
+        FLOAT pobreza_mod_porcentaje
+        INTEGER pobreza_mod_personas
+        FLOAT pobreza_mod_carencias_promedio
+        FLOAT vul_carencia_porcentaje
+        INTEGER vul_carencia_personas
+        FLOAT vul_carencia_carencias_promedio
+        FLOAT vul_ingreso_porcentaje
+        INTEGER vul_ingreso_personas
+        FLOAT no_pobre_porcentaje
+        INTEGER no_pobre_personas
+        FLOAT rez_edu_porcentaje
+        INTEGER rez_edu_personas
+        FLOAT rez_edu_carencias_promedio
+        FLOAT car_salud_porcentaje
+        INTEGER car_salud_personas
+        FLOAT car_salud_carencias_promedio
+        FLOAT car_seg_soc_porcentaje
+        INTEGER car_seg_soc_personas
+        FLOAT car_seg_soc_carencias_promedio
+        FLOAT car_viv_porcentaje
+        INTEGER car_viv_personas
+        FLOAT car_viv_carencias_promedio
+        FLOAT car_sbv_porcentaje
+        INTEGER car_sbv_personas
+        FLOAT car_sbv_carencias_promedio
+        FLOAT car_ali_porcentaje
+        INTEGER car_ali_personas
+        FLOAT car_ali_carencias_promedio
+        FLOAT al_1_car_porcentaje
+        INTEGER al_1_car_personas
+        FLOAT al_1_car_carencias_promedio
+        FLOAT tres_mas_car_porcentaje
+        INTEGER tres_mas_car_personas
+        FLOAT tres_mas_car_carencias_promedio
+        FLOAT lpi_porcentaje
+        INTEGER lpi_personas
+        FLOAT lpi_carencias_promedio
+        FLOAT lpei_porcentaje
+        INTEGER lpei_personas
+        FLOAT lpei_carencias_promedio
+        DATETIME created_at
+        DATETIME updated_at
+    }
+    stg_pobreza_multidimencional_cat_entidad ||--o{ stg_pobreza_multidimencional_datos : "cat_entidad_id"
 ```
 
 **Vista analítica**: `vw_pobreza_multidimencional` — JOIN de `datos` + `cat_entidad`, expone todas las columnas de métricas con `nombre_municipio` y `nombre_entidad`.
