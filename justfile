@@ -289,14 +289,16 @@ db-dump pipeline: (_load-env pipeline)
     mkdir -p dumps/{{pipeline}}
     ts=$(date +%Y%m%d_%H%M%S)
     filename="${DB_NAME}_${ts}.dump"
+    echo "Dumping ${DB_NAME} (${DB_HOST}:${DB_PORT}) ..."
     docker run --rm --network host \
       -e PGPASSWORD="$DB_PASSWORD" \
       -v "$(pwd)/dumps/{{pipeline}}:/dumps" \
       postgis/postgis:17-3.5 \
       pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" \
-      -Fc --no-owner --no-acl \
+      -Fc --no-owner --no-acl --verbose \
       -f "/dumps/${filename}" "$DB_NAME"
-    echo "Saved: dumps/{{pipeline}}/${filename}"
+    size=$(du -sh "dumps/{{pipeline}}/${filename}" | cut -f1)
+    echo "Saved: dumps/{{pipeline}}/${filename} (${size})"
 
 [group('database')]
 [doc("Dump comprimido de todos los pipelines con DB activa")]
