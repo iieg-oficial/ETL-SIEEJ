@@ -274,6 +274,50 @@ pipeline-deploy pipeline:
     just create-db {{pipeline}}
     just flyway-migrate {{pipeline}}
 
+[group('database')]
+[doc("Resumen de estado de todos los pipelines (env, db, datos)")]
+summary:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    printf "%-28s  %-4s  %-4s  %s\n" "pipeline" "env" "db" "size"
+    printf '%0.s─' {1..52}; echo
+    total=0 with_env=0 with_db=0
+    for pipeline_dir in core/pipelines/*/; do
+        pipeline=$(basename "$pipeline_dir")
+        [[ "$pipeline" == __* ]] && continue
+        total=$((total + 1))
+        env_file=""
+        [ -f "core/pipelines/$pipeline/.env" ] && env_file="core/pipelines/$pipeline/.env"
+        [ -z "$env_file" ] && [ -f "migrations/$pipeline/.env" ] && env_file="migrations/$pipeline/.env"
+        if [ -z "$env_file" ]; then
+            printf "%-28s  %-4s  %-4s  %s\n" "$pipeline" "no" "-" "-"
+            continue
+        fi
+        DB_HOST=$(grep '^DB_HOST=' "$env_file" | cut -d= -f2-)
+        DB_PORT=$(grep '^DB_PORT=' "$env_file" | cut -d= -f2-)
+        DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
+        DB_USER=$(grep '^DB_USER=' "$env_file" | cut -d= -f2-)
+        DB_PASSWORD=$(grep '^DB_PASSWORD=' "$env_file" | cut -d= -f2-)
+        if echo "$DB_HOST$DB_PORT$DB_NAME$DB_USER$DB_PASSWORD" | grep -q '<'; then
+            printf "%-28s  %-4s  %-4s  %s\n" "$pipeline" "unset" "-" "-"
+            continue
+        fi
+        with_env=$((with_env + 1))
+        db_exists=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
+          -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" 2>/dev/null | tr -d '[:space:]') || true
+        if [ "$db_exists" != "1" ]; then
+            printf "%-28s  %-4s  %-4s  %s\n" "$pipeline" "yes" "no" "-"
+            continue
+        fi
+        with_db=$((with_db + 1))
+        size=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
+          -tc "SELECT COALESCE(pg_size_pretty(SUM(pg_total_relation_size(schemaname||'.'||tablename))), '0 bytes') \
+               FROM pg_tables WHERE schemaname = 'public';" 2>/dev/null | xargs) || true
+        printf "%-28s  %-4s  %-4s  %s\n" "$pipeline" "yes" "yes" "$size"
+    done
+    printf '%0.s─' {1..52}; echo
+    printf "total: %s  |  env: %s  |  db: %s\n" "$total" "$with_env" "$with_db"
+
 [private]
 _load-env pipeline:
     @test -f core/pipelines/{{pipeline}}/.env \

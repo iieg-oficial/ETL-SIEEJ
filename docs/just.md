@@ -118,6 +118,7 @@ Available recipes:
 
   [database]
     create-db pipeline    # Crear base de datos de un pipeline leyendo credenciales de su .env
+    summary               # Resumen de estado de todos los pipelines (env, db, size)
 
   [flyway]
     flyway-config pipeline       # Generar flyway.conf desde flyway.conf.example
@@ -251,6 +252,34 @@ Crea la base de datos del pipeline leyendo las credenciales de su `.env`. Es ide
 ```bash
 just create-db censos_economicos
 ```
+
+### summary
+
+Muestra el estado de todos los pipelines en una sola tabla: si tiene `.env` configurado, si la base de datos existe y el tamaño en disco de sus tablas.
+
+```bash
+just summary
+```
+
+```
+pipeline                      env     db    size
+────────────────────────────────────────────────────
+censo_poblacion               yes     yes   3176 kB
+censos_economicos             yes     yes   75 MB
+centros_educativos            yes     no    -
+inpc                          unset   -     -
+repd                          no      -     -
+────────────────────────────────────────────────────
+total: 11  |  env: 9  |  db: 6
+```
+
+| Valor en `env` | Significado |
+| :--- | :--- |
+| `yes` | `.env` existe y todas las variables están configuradas |
+| `unset` | `.env` existe pero hay variables con placeholders sin llenar (`<valor>`) |
+| `no` | No existe el archivo `.env` |
+
+El tamaño (`size`) usa `pg_total_relation_size` sobre el schema `public`, que incluye tablas, índices y TOAST. Un pipeline con DB pero sin datos cargados mostrará unos pocos bytes de overhead del sistema.
 
 ---
 
