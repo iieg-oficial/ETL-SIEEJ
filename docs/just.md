@@ -20,6 +20,7 @@
 - [Comandos de desarrollo](#comandos-de-desarrollo)
 - [Comandos de configuración](#comandos-de-configuración)
 - [Comandos de base de datos](#comandos-de-base-de-datos)
+- [Comandos de dumps](#comandos-de-dumps)
 - [Comandos Flyway](#comandos-flyway)
 - [Comandos de deploy](#comandos-de-deploy)
 
@@ -118,6 +119,9 @@ Available recipes:
 
   [database]
     create-db pipeline    # Crear base de datos de un pipeline leyendo credenciales de su .env
+    db-dump pipeline      # Dump comprimido de la base de datos de un pipeline
+    db-dump-all           # Dump comprimido de todos los pipelines con DB activa
+    db-list dump          # Listar contenido de un dump (sin restaurar)
     summary               # Resumen de estado de todos los pipelines (env, db, size)
 
   [flyway]
@@ -280,6 +284,45 @@ total: 11  |  env: 9  |  db: 6
 | `no` | No existe el archivo `.env` |
 
 El tamaño (`size`) usa `pg_total_relation_size` sobre el schema `public`, que incluye tablas, índices y TOAST. Un pipeline con DB pero sin datos cargados mostrará unos pocos bytes de overhead del sistema.
+
+---
+
+## Comandos de dumps
+
+Los dumps usan `pg_dump` v17 vía Docker (`postgis/postgis:17-3.5`), lo que evita incompatibilidades de versión con el cliente local. Son compatibles con servidores PostgreSQL 17 o anteriores.
+
+Los archivos se guardan en `dumps/{pipeline}/` (ignorado por git).
+
+### db-dump
+
+Genera un dump comprimido en formato custom (`-Fc`) de la base de datos de un pipeline. Excluye propietarios y privilegios para que pueda restaurarse con cualquier usuario.
+
+```bash
+just db-dump censos_economicos
+# Saved: dumps/censos_economicos/censos_economicos_20260504_120000.dump
+```
+
+### db-dump-all
+
+Ejecuta `db-dump` para todos los pipelines que tengan `.env` configurado sin placeholders.
+
+```bash
+just db-dump-all
+```
+
+### db-list
+
+Lista el contenido de un dump sin restaurarlo. Útil para verificar que el dump incluye tablas, vistas, tablas foráneas, etc.
+
+```bash
+just db-list dumps/censos_economicos/censos_economicos_20260504_120000.dump
+```
+
+```bash
+# Filtrar por tipo de objeto
+just db-list dumps/.../archivo.dump | grep "VIEW"
+just db-list dumps/.../archivo.dump | awk '{print $6}' | sort | uniq -c | sort -rn
+```
 
 ---
 
