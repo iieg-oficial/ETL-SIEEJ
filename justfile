@@ -275,6 +275,48 @@ pipeline-deploy pipeline:
     just flyway-migrate {{pipeline}}
 
 [group('database')]
+[doc("Dump comprimido de la base de datos de un pipeline")]
+db-dump pipeline: (_load-env pipeline)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    env_file="core/pipelines/{{pipeline}}/.env"
+    [ -f "$env_file" ] || env_file="migrations/{{pipeline}}/.env"
+    DB_HOST=$(grep '^DB_HOST=' "$env_file" | cut -d= -f2-)
+    DB_PORT=$(grep '^DB_PORT=' "$env_file" | cut -d= -f2-)
+    DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
+    DB_USER=$(grep '^DB_USER=' "$env_file" | cut -d= -f2-)
+    DB_PASSWORD=$(grep '^DB_PASSWORD=' "$env_file" | cut -d= -f2-)
+    mkdir -p dumps/{{pipeline}}
+    out="dumps/{{pipeline}}/${DB_NAME}_$(date +%Y%m%d_%H%M%S).dump"
+    PGPASSWORD="$DB_PASSWORD" pg_dump \
+      -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" \
+      -Fc --no-owner --no-acl \
+      -f "$out" "$DB_NAME"
+    echo "Saved: $out"
+
+[group('database')]
+[doc("Dump comprimido de todos los pipelines con DB activa")]
+db-dump-all:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for pipeline_dir in core/pipelines/*/; do
+        pipeline=$(basename "$pipeline_dir")
+        [[ "$pipeline" == __* ]] && continue
+        env_file=""
+        [ -f "core/pipelines/$pipeline/.env" ] && env_file="core/pipelines/$pipeline/.env"
+        [ -z "$env_file" ] && [ -f "migrations/$pipeline/.env" ] && env_file="migrations/$pipeline/.env"
+        if [ -z "$env_file" ]; then
+            echo "Skipped (no .env): $pipeline"
+            continue
+        fi
+        if grep -q '<' "$env_file"; then
+            echo "Skipped (unset): $pipeline"
+            continue
+        fi
+        just db-dump "$pipeline"
+    done
+
+[group('database')]
 [doc("Resumen de estado de todos los pipelines (env, db, datos)")]
 summary:
     #!/usr/bin/env bash
