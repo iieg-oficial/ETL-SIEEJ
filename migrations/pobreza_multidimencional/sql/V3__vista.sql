@@ -16,22 +16,22 @@ SELECT
     -- Pobreza
     d.pobreza_porcentaje,
     d.pobreza_personas,
-    d.pobreza_carencias_promedio,
+    d.pobreza_promedio,
 
     -- Pobreza extrema
     d.pobreza_ext_porcentaje,
     d.pobreza_ext_personas,
-    d.pobreza_ext_carencias_promedio,
+    d.pobreza_ext_promedio,
 
     -- Pobreza moderada
     d.pobreza_mod_porcentaje,
     d.pobreza_mod_personas,
-    d.pobreza_mod_carencias_promedio,
+    d.pobreza_mod_promedio,
 
     -- Vulnerables
     d.vul_carencia_porcentaje,
     d.vul_carencia_personas,
-    d.vul_carencia_carencias_promedio,
+    d.vul_carencia_promedio,
     d.vul_ingreso_porcentaje,
     d.vul_ingreso_personas,
 

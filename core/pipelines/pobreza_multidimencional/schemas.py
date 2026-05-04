@@ -49,22 +49,22 @@ class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     # Pobreza total
     pobreza_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     pobreza_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    pobreza_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Pobreza extrema
     pobreza_ext_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     pobreza_ext_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    pobreza_ext_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_ext_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Pobreza moderada
     pobreza_mod_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     pobreza_mod_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    pobreza_mod_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    pobreza_mod_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Vulnerables por carencia social
     vul_carencia_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     vul_carencia_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    vul_carencia_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    vul_carencia_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Vulnerables por ingreso (sin carencias_promedio en fuente)
     vul_ingreso_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
@@ -77,52 +77,52 @@ class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     # Rezago educativo
     rez_edu_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     rez_edu_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    rez_edu_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    rez_edu_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Carencia por acceso a servicios de salud
     car_salud_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     car_salud_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    car_salud_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    car_salud_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Carencia por acceso a seguridad social
     car_seg_soc_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     car_seg_soc_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    car_seg_soc_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    car_seg_soc_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Carencia por calidad y espacios de la vivienda
     car_viv_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     car_viv_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    car_viv_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    car_viv_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Carencia por acceso a servicios básicos de la vivienda
     car_sbv_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     car_sbv_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    car_sbv_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    car_sbv_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Carencia por acceso a la alimentación
     car_ali_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     car_ali_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    car_ali_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    car_ali_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Población con al menos una carencia social
     al_1_car_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     al_1_car_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    al_1_car_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    al_1_car_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Población con tres o más carencias sociales
     tres_mas_car_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     tres_mas_car_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    tres_mas_car_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    tres_mas_car_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Ingreso < línea de pobreza
     lpi_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     lpi_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    lpi_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    lpi_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     # Ingreso < línea de pobreza extrema
     lpei_porcentaje: Mapped[Optional[float]] = mapped_column(Float)
     lpei_personas: Mapped[Optional[int]] = mapped_column(Integer)
-    lpei_carencias_promedio: Mapped[Optional[float]] = mapped_column(Float)
+    lpei_promedio: Mapped[Optional[float]] = mapped_column(Float)
 
     created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
     updated_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now(), onupdate=func.now())

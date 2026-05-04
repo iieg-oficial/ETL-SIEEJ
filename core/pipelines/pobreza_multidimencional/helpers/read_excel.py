@@ -80,7 +80,7 @@ def wide_to_tidy(df_wide: pd.DataFrame) -> pd.DataFrame:
             row[f"{prefix}_porcentaje"] = df_wide[f"{prefix}_porcentaje_{year}"]
             row[f"{prefix}_personas"] = df_wide[f"{prefix}_personas_{year}"]
             if has_car_prom:
-                row[f"{prefix}_carencias_promedio"] = df_wide[f"{prefix}_carencias_promedio_{year}"]
+                row[f"{prefix}_promedio"] = df_wide[f"{prefix}_promedio_{year}"]
 
         frames.append(row)
 
