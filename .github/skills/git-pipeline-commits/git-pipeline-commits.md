@@ -1,41 +1,41 @@
 ---
 name: git-pipeline-commits
-description: Define la convención de commits para la implementación de pipelines ETL en este proyecto.
+description: Use when preparing atomic commits for a pipeline implementation with the repository commit convention.
 ---
 
 # Skill: Git Pipeline Commits
 
 ## Purpose
-Invocar en la Fase 8 para generar commits atómicos y con mensajes consistentes antes de abrir el Pull Request.
+Use this skill in the DEA Git phase to create atomic commits with consistent conventional messages.
 
 ## Steps
 
-1. Verificar que los archivos a commitear no incluyan `.env`, datos crudos (`.csv`, `.xlsx`), `.pyc` ni archivos generados no deseados. Revisar con `git status` y comparar con `.gitignore`.
-2. Ejecutar `ruff check` sobre los archivos Python del commit: `ruff check <archivos>`.
-3. Hacer `git add` de los archivos específicos del cambio. Nunca `git add .`.
-4. Escribir el mensaje de commit siguiendo la convención de la tabla de abajo.
-5. Ejecutar el commit y revisar el output del pre-commit. Si Ruff falla, corregir los errores y repetir desde el paso 2.
-6. Repetir por cada funcionalidad hasta tener todos los cambios commiteados.
+1. Verify that the files to commit do not include `.env`, raw data (`.csv`, `.xlsx`), `.pyc`, or unwanted generated files. Review `git status` and compare against `.gitignore`.
+2. Run `ruff check` on the Python files included in the commit.
+3. Stage only the files that belong to the current change set. Never use `git add .`.
+4. Write the commit message using the convention from the table below.
+5. Run the commit and review the pre-commit output. If Ruff fails, fix the errors and repeat from step 2.
+6. Repeat per feature until the branch is fully committed.
 
 ## Template
 
-Tipos de commit válidos y ejemplos aplicados al contexto ETL:
+Valid commit types and ETL-oriented examples:
 
-| Tipo       | Cuándo usar                                           | Ejemplo de mensaje                                          |
+| Type       | When to use it                                        | Example message                                            |
 |------------|-------------------------------------------------------|------------------------------------------------------------|
-| `feat`     | Nuevo archivo de pipeline o funcionalidad             | `feat({flujo}): add extract stage`                         |
-| `feat`     | Nuevo DAG de Airflow                                  | `feat({flujo}): add airflow dag bootstrap and update`      |
-| `feat`     | Nueva migración Flyway                                | `feat({flujo}): add V1 catalogs migration`                  |
-| `feat`     | Nuevo schemas.py                                      | `feat({flujo}): add sqlalchemy models`                      |
-| `fix`      | Corrección de bug en un stage                         | `fix({flujo}): handle null values in transform stage`      |
-| `fix`      | Corrección de migración                               | `fix({flujo}): correct column type in V3 migration`         |
-| `chore`    | Actualización de dependencias, .env.example, config   | `chore({flujo}): update requirements and env example`      |
-| `docs`     | README del pipeline                                   | `docs({flujo}): add pipeline readme and er diagram`         |
-| `test`     | Script de prueba o reporte de testing                 | `test({flujo}): add eda script and report`                  |
-| `refactor` | Reestructuración sin cambio de comportamiento         | `refactor({flujo}): split load stage into helpers`          |
+| `feat`     | New pipeline file or feature                          | `feat({flujo}): add extract stage`                         |
+| `feat`     | New Airflow DAG                                       | `feat({flujo}): add airflow dag bootstrap and update`      |
+| `feat`     | New Flyway migration                                  | `feat({flujo}): add V1 catalogs migration`                 |
+| `feat`     | New `schemas.py`                                      | `feat({flujo}): add sqlalchemy models`                     |
+| `fix`      | Stage bug fix                                         | `fix({flujo}): handle null values in transform stage`      |
+| `fix`      | Migration fix                                         | `fix({flujo}): correct column type in V3 migration`        |
+| `chore`    | Dependencies, `.env.example`, or config updates       | `chore({flujo}): update requirements and env example`      |
+| `docs`     | Pipeline README                                       | `docs({flujo}): add pipeline readme and er diagram`        |
+| `test`     | Validation script or testing report                   | `test({flujo}): add eda script and report`                 |
+| `refactor` | Behavior-preserving restructuring                     | `refactor({flujo}): split load stage into helpers`         |
 
-**Reglas del mensaje:**
-- Formato: `{tipo}({scope}): {descripcion imperativa en ingles}`
-- El scope es el nombre del flujo, no el componente.
-- Descripción en minúsculas, sin punto final, máximo 72 caracteres.
-- El proyecto usa commitlint; un mensaje fuera del formato bloqueará el push.
+**Message rules:**
+- Format: `{tipo}({scope}): {imperative description in English}`.
+- The scope is the pipeline name, not the component.
+- Keep the description lowercase, with no trailing period, and at most 72 characters.
+- The project uses commitlint, so an invalid message format will block the push.

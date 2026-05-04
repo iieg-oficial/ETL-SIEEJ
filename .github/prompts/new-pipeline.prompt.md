@@ -1,62 +1,38 @@
 ---
-agent: Data Engineer Agent
-description: Orquesta la creación completa de un nuevo pipeline ETL coordinando los agentes DEA, EDA, DB, ETL, TEST, DOCS y GIT en 9 fases secuenciales.
+description: "Use when starting a new ETL pipeline workflow and the team needs guided intake, strict planning, and missing-detail collection before implementation begins."
+agent: "Data Engineer Agent"
+argument-hint: "<pipeline_name> <source_urls_or_notes>"
+tools: [vscode/askQuestions]
 ---
 
 # Nuevo Pipeline ETL
 
-## Contexto del usuario
+Este prompt debe iniciar siempre en modo planificación estricta.
 
-Antes de iniciar, completar la siguiente tabla con la información del pipeline a implementar:
+## Parámetros esperados
 
-| Variable             | Valor                                                          |
-|----------------------|----------------------------------------------------------------|
-| `{flujo}`            | Nombre interno del pipeline en `snake_case` (p.ej. `repd`)    |
-| `{fuente}`           | URL de descarga o descripción de la fuente de datos            |
-| `{frecuencia}`       | Mensual / Anual / Trimestral / On-demand / Otra                |
-| `{tipo_update}`      | `solo-inserciones` o `scd`                                     |
-| `{contexto_adicional}` | Cualquier detalle relevante: credenciales, nivel geográfico, tablas destino esperadas, etc. |
+| Parámetro | Requerido | Descripción |
+|-----------|-----------|-------------|
+| `flujo` | Sí | Nombre interno del pipeline en `snake_case`. |
+| `fuentes` | Sí | URL(s), ruta(s) o instrucciones exactas para obtener los datos. |
+| `tipo_fuente` | Sí | API, archivo descargable, scraping, base de datos externa u otro. |
+| `formato_fuente` | Sí | CSV, XLSX, JSON, ZIP, HTML, endpoint, tabla, etc. |
+| `frecuencia` | Sí | Mensual, trimestral, anual, semanal, diaria, on-demand u otra. |
+| `tipo_update` | Sí | `solo-inserciones` o `scd`. |
+| `nivel_geografico` | No | Nacional, estatal, municipal o sin componente geográfico. |
+| `filtro_geografico` | No | Por ejemplo, solo Jalisco o todos los estados. |
+| `tablas_destino` | No | Tabla principal esperada y catálogos conocidos. |
+| `credenciales` | No | Token, API key, usuario/contraseña o ninguna. |
+| `schedule_dag` | No | Cron, on-demand o decisión pendiente. |
+| `reglas_negocio` | No | Transformaciones, filtros, deduplicación, vigencias, catálogos, etc. |
+| `notas` | No | Restricciones, dependencias, acuerdos o riesgos conocidos. |
 
----
+## Reglas de arranque
 
-## Instrucciones al agente principal (DEA)
-
-Eres el **Data Engineer Agent (DEA)**, el coordinador central de este proceso.
-
-**Reglas globales que debes seguir durante toda la sesión:**
-
-1. **Esperar confirmación del usuario** entre fases antes de delegar al siguiente agente. No avanzar sin aprobación explícita.
-2. **Preguntar ante ambigüedad.** Si alguna variable del contexto es insuficiente para tomar una decisión técnica, pregunta al usuario antes de proceder.
-3. **No mezclar responsabilidades.** Cada agente tiene un rol delimitado. Tú coordinas; los agentes especializados ejecutan.
-4. **Indicar el agente activo.** Al inicio de cada bloque de trabajo, declara explícitamente: `[Agente activo: {ALIAS} — Fase {N}]`.
-5. **Reportar avance.** Al completar cada fase, presenta un resumen del output producido antes de solicitar aprobación para continuar.
-
----
-
-## Plan de ejecución
-
-| Fase | Agente | Tarea                                                                 | Confirmar |
-|:----:|--------|-----------------------------------------------------------------------|:---------:|
-| 0    | DEA    | Revisar contexto del prompt. Identificar información faltante. Generar esqueleto del pipeline. | ✅ |
-| 1    | EDA    | Ejecutar análisis exploratorio. Generar `eda_{flujo}.py` y `reporte_eda.json`. | ✅ |
-| 2    | DB     | Generar migraciones Flyway V1–V4, `schemas.py` y diagrama ER.        | ✅ |
-| 3    | DEA    | Sintetizar reporte EDA + esquema DB en plan ETL. Presentar al usuario y esperar aprobación. | ✅ |
-| 4    | GIT    | Crear issue en GitHub y rama `{numero_issue}-pipeline-{flujo}`.       | ✅ |
-| 5    | ETL    | Implementar stages (extract, transform, load), DAG y `.env.example`. | ✅ |
-| 6    | TEST   | Ejecutar pipeline en modo bootstrap. Generar reporte de pruebas.      | ✅ |
-| 7    | DOCS   | Generar `README.md` del pipeline.                                     | ✅ |
-| 8    | GIT    | Commits atómicos por funcionalidad y apertura del Pull Request.       | ✅ |
-
----
-
-## Agentes disponibles
-
-| Alias | Archivo                                      |
-|-------|----------------------------------------------|
-| DEA   | `.github/agents/data-engineer.agent.md`      |
-| EDA   | `.github/agents/eda.agent.md`                |
-| DB    | `.github/agents/db.agent.md`                 |
-| ETL   | `.github/agents/etl.agent.md`                |
-| TEST  | `.github/agents/testing.agent.md`            |
-| DOCS  | `.github/agents/docs.agent.md`               |
-| GIT   | `.github/agents/git.agent.md`                |
+1. Antes de delegar, crear archivos o ejecutar Git, entra a Fase 0: planificación.
+2. Si falta cualquier dato requerido o hay ambigüedad, usa `#tool:vscode/askQuestions` en una sola tanda estructurada.
+3. No infieras reglas de negocio, frecuencia, estrategia de update, nivel geográfico, nombres de tablas, credenciales o decisiones operativas sin confirmación explícita.
+4. Presenta un resumen de intake con datos confirmados, datos faltantes y riesgos antes de continuar.
+5. Solo después de la aprobación del usuario puedes pasar a EDA, DB, ETL, documentación o Git.
+6. DEA mantiene la orquestación completa. EDA, DB, ETL y DOCS solo ejecutan su especialidad.
+7. El issue y el pull request deben salir de los skills `issue-template` y `pull-request-template`, cada uno usando su propio `template.md` local.

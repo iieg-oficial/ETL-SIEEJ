@@ -1,24 +1,24 @@
 ---
 name: dag-airflow
-description: Genera el DAG de Airflow del pipeline con sus operadores bootstrap y update.
+description: Use when generating the Airflow DAG file for a pipeline with bootstrap and update flows.
 ---
 
 # Skill: DAG Airflow
 
 ## Purpose
-Invocar en la Fase 5 para generar el archivo DAG que orquesta los stages del pipeline en Airflow 3.x.
+Use this skill during ETL implementation to generate the DAG file for Airflow 3.x.
 
 ## Steps
 
-1. Definir el `dag_id` con el formato `etl_{flujo}_bootstrap` y `etl_{flujo}_update`.
-2. Configurar `schedule_interval` según la frecuencia del pipeline (`None` para bootstrap, cron para update).
-3. Definir `default_args` con `owner`, `retries` y `retry_delay` por separado para bootstrap y update.
-4. Crear las funciones `run_bootstrap()` y `run_update()` que instancian `Pipeline` con sus stages correspondientes.
-5. Encadenar los stages con `>>` en el orden: `extract >> transform >> load`.
-6. Agregar la función `main()` al final para ejecución local en modo bootstrap sin Airflow.
-7. Usar el patrón `sys.path.append` al inicio para resolver imports del proyecto.
-8. Guardar en `./dags/etl_{flujo}.py`.
+1. Define `dag_id` values as `etl_{flujo}_bootstrap` and `etl_{flujo}_update`.
+2. Configure `schedule_interval` from the approved frequency (`None` for bootstrap, cron for update).
+3. Define separate `default_args` for bootstrap and update.
+4. Create `run_bootstrap()` and `run_update()` to instantiate `Pipeline` with the correct stages.
+5. Chain the stages as `extract >> transform >> load`.
+6. Add `main()` for local bootstrap execution without Airflow.
+7. Use the established import-resolution pattern at the top of the file.
+8. Save the result to `./dags/etl_{flujo}.py`.
 
 ## Template
 
-→ Ver `template.py` en esta carpeta.
+See `template.py` in this folder.

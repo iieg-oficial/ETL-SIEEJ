@@ -1,25 +1,25 @@
 ---
 name: estructura-pipeline
-description: Crea la estructura de carpetas y archivos base para un nuevo pipeline ETL en el proyecto.
+description: Use when creating the base folder structure and scaffold files for a new ETL pipeline.
 ---
 
-# Skill: Estructura de Pipeline
+# Skill: Pipeline Structure
 
 ## Purpose
-Invocar al inicio del desarrollo (Fase 0 y Fase 5) para generar el esqueleto completo del pipeline antes de escribir cualquier lógica.
+Use this skill at the start of the workflow to scaffold the pipeline before implementation begins.
 
 ## Steps
 
-1. Crear la carpeta raíz del pipeline: `./core/pipelines/{flujo}/`
-2. Crear las subcarpetas: `eda/`, `stages/`, `helpers/`, `assets/`
-3. Crear los archivos base vacíos: `__init__.py`, `attributes.py`, `schemas.py`, `constants.py`, `config.py`, `.env.example`
-4. Crear `__init__.py` vacío en cada subcarpeta.
-5. Crear la carpeta de migraciones: `./migrations/{flujo}/sql/` y copiar un `flyway.conf.example` desde otro pipeline como referencia.
-6. Confirmar la estructura generada listando el árbol de archivos antes de continuar.
+1. Create the pipeline root folder: `./core/pipelines/{flujo}/`.
+2. Create the `eda/`, `stages/`, `helpers/`, and `assets/` subfolders.
+3. Create the base files: `__init__.py`, `attributes.py`, `schemas.py`, `constants.py`, `config.py`, and `.env.example`.
+4. Create an empty `__init__.py` in each subfolder.
+5. Create the migrations folder `./migrations/{flujo}/sql/` and copy a `flyway.conf.example` from another pipeline as reference.
+6. Confirm the generated structure before continuing.
 
 ## Template
 
-Árbol esperado al finalizar el pipeline completo:
+Expected tree once the pipeline is fully implemented:
 
 ```
 core/pipelines/{flujo}/
@@ -62,4 +62,4 @@ migrations/{flujo}/
     └── V3__view_{flujo}.sql
 ```
 
-> **Nota:** Algunos pipelines legacy usan `consts.py` en lugar de `constants.py`. Los nuevos pipelines deben usar `constants.py`.
+> **Note:** Some legacy pipelines use `consts.py` instead of `constants.py`. New pipelines must use `constants.py`.

@@ -4,20 +4,20 @@ applyTo: "**/*.py"
 
 # Python Instructions
 
-> Aplican a: DEA, EDA, ETL, TEST
+> Applies to: DEA, EDA, ETL, and Python code generated in this repository
 
 ## Rules
 
-- Seguir PEP8. Funciones atómicas y reutilizables con docstrings en inglés.
-- Tipado estricto en argumentos y valor de retorno de todas las funciones.
-- Manejo de excepciones con `try/except` explícito. Usar `logging`, nunca `print`.
-- Imports al inicio del archivo en orden: stdlib → third-party → local. Nunca dentro de funciones.
-- Sin hardcoding de valores: usar constantes `UPPER_CASE` definidas en `constants.py` o `consts.py` del pipeline.
-- Nomenclatura: `snake_case` para variables y funciones, `PascalCase` para clases, `UPPER_CASE` para constantes.
-- Antes de crear un helper, verificar si existe en `core/utils/`. Si no existe, crearlo en `helpers/` del pipeline.
-- Archivos en UTF-8. Usar `normalize_text` de `core/utils/normalize.py` para nombres de variables y columnas; no incluir tildes, ñ ni caracteres especiales en identificadores.
-- Sin comentarios decorativos (p.ej. `#=== Título ===`). Comentarios breves, puntuales y en inglés.
-- **Entorno:** siempre usar conda `etl` (Python 3.12) para ejecutar scripts Python. Activar con `conda activate etl` antes de correr cualquier script. No usar `python` o `python3` del sistema sin verificar que pertenece al entorno `etl`.
-- Agregar dependencias a `requirements.txt` con versión fijada.
-- Respetar `line-length = 120` definido en `pyproject.toml` (Ruff). Ejecutar `ruff check` antes de cada commit.
-- Los archivos de stage heredan de `core.pipeline.Stage` (ABC). Implementar `source()`, `action()`, `finalization()`.
+- Follow PEP8. Write atomic, reusable functions with English docstrings.
+- Use strict typing for function arguments and return values.
+- Handle exceptions explicitly with `try/except`. Use `logging`, never `print`.
+- Keep imports at the top of the file in this order: standard library, third-party, local. Never import inside functions.
+- Do not hardcode fixed values. Use `UPPER_CASE` constants defined in the pipeline `constants.py` or `consts.py`.
+- Use `snake_case` for variables and functions, `PascalCase` for classes, and `UPPER_CASE` for constants.
+- Before creating a new helper, check whether it already exists in `core/utils/`. If not, create it in the pipeline `helpers/` package.
+- Keep files in UTF-8. Use `normalize_text` from `core/utils/normalize.py` for variable and column names. Do not use accents, `ñ`, or special characters in identifiers.
+- Do not add decorative comments such as `#=== Title ===`. Keep comments short, precise, and in English.
+- **Environment:** always use the `etl` conda environment (Python 3.12) for Python scripts. Activate `etl` or use `conda run -n etl`. Never use system `python` or `python3` unless you have verified it points to the `etl` environment.
+- Add new dependencies to `requirements.txt` with pinned versions.
+- Respect `line-length = 120` from `pyproject.toml` and run `ruff check` before each commit.
+- Stage files must inherit from `core.pipeline.Stage` (ABC) and implement `source()`, `action()`, and `finalization()`.

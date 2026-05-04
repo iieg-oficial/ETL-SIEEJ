@@ -4,18 +4,18 @@ applyTo: "**/dags/*.py,**/stages/*.py"
 
 # Bootstrap & Update Instructions
 
-> Aplican a: DEA, ETL
+> Applies to: DEA and ETL work on DAG and stage files
 
 ## Rules
 
-- **Bootstrap**: primera ejecución del pipeline. Procesa la totalidad de los datos históricos disponibles desde la fuente. El DAG correspondiente lleva el sufijo `_bootstrap` y se ejecuta `On Demand`.
-- **Update**: ejecuciones subsecuentes. Solo procesa registros nuevos o modificados desde la última ejecución exitosa. El DAG correspondiente lleva el sufijo `_update` y tiene un `schedule_interval` definido.
-- Cada `Stage` debe aceptar el parámetro `mode: str` (`"bootstrap"` o `"update"`) y ramificar su lógica según corresponda.
-- **Update tipo solo-inserciones**: la fuente solo agrega datos nuevos. Implementar con `INSERT ... ON CONFLICT DO NOTHING` a través de `bulk_ops.insert_records` o `bulk_ops.bulk_insert`.
-- **Update tipo SCD (Slowly Changing Dimension)**: la fuente puede mezclar registros nuevos con actualizaciones a registros existentes.
-  - Generar un hash de las columnas monitoreadas (todas las columnas significativas, excluir `id` y timestamps).
-  - Comparar el hash con el hash almacenado en BD para detectar cambios.
-  - Al detectar un cambio: marcar el registro vigente con `valid_to = fecha_actual` e `is_current = False`, insertar el nuevo registro con `valid_from = fecha_actual`, `valid_to = NULL` e `is_current = True`.
-  - La vista de integración (`V4`) filtra siempre por `is_current = True`.
-- Definir dos `DAG` distintos en el mismo archivo: uno para bootstrap y otro para update. Cada uno con sus propios `default_args`.
-- La función `main()` al final del archivo ejecuta el modo `bootstrap` completo para pruebas locales sin Airflow.
+- **Bootstrap**: the first pipeline execution. It processes the full historical dataset available from the source. The corresponding DAG uses the `_bootstrap` suffix and runs on demand.
+- **Update**: subsequent executions. It processes only new or changed records since the last successful run. The corresponding DAG uses the `_update` suffix and has a defined `schedule_interval`.
+- Every `Stage` must accept `mode: str` with `"bootstrap"` or `"update"` and branch its logic accordingly.
+- **Append-only update**: when the source only adds new rows, implement it with `INSERT ... ON CONFLICT DO NOTHING` through `bulk_ops.insert_records` or `bulk_ops.bulk_insert`.
+- **SCD update**: when the source can contain both new rows and updates to existing rows:
+  - Generate a hash for the monitored columns, excluding `id` and timestamps.
+  - Compare the incoming hash with the stored database hash to detect changes.
+  - When a change is detected, close the current row with `valid_to = current_date` and `is_current = False`, then insert the new row with `valid_from = current_date`, `valid_to = NULL`, and `is_current = True`.
+  - The integration view (`V4`) must always filter on `is_current = True`.
+- Define two DAGs in the same file: one for bootstrap and one for update. Each DAG must have its own `default_args`.
+- The `main()` function at the end of the file must execute the full bootstrap flow for local testing without Airflow.

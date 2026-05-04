@@ -1,83 +1,24 @@
----
-name: copilot-instructions
-description: Always-on instructions for the ETL SIEEJ project.
----
+# ETL SIEEJ Copilot Instructions
 
-# ETL SIEEJ — Copilot Instructions
+This repository builds ETL pipelines for SIEEJ. Keep pipeline contracts, Flyway migrations, SQLAlchemy models, and Airflow DAGs aligned.
 
-## Project Overview
+## Repository Defaults
 
-**ETL SIEEJ** is the data pipeline system for the _Sistema de Información Estratégica del Estado de Jalisco_, developed by IIEG (Instituto de Información Estadística y Geográfica de Jalisco). It ingests data from public sources, transforms them using pipeline-specific business rules, and loads them into a PostgreSQL/PostGIS database for analysis and consumption.
+- `.github` is the only active Copilot customization source in this repository. Ignore `.claude/` unless the task explicitly targets it.
+- Use `conda run -n etl` for Python commands and local pipeline execution.
+- Use `just --list` before inventing custom workflow commands.
+- Prefer existing helpers in `core/` and `utils/` before adding new helpers.
+- Keep internal customization guidance in English. User-facing GitHub templates may stay in Spanish.
 
-Each pipeline runs in two modes:
-- **`bootstrap`** — full historical load (first load or full rebuild).
-- **`update`** — incremental load on a cron schedule.
+## Responsibility Split
 
----
+- DEA owns orchestration, approvals, issue creation, branch creation, commits, and pull requests.
+- EDA owns source inspection and `reporte_eda.json`.
+- DB owns migrations, `attributes.py`, `schemas.py`, and ER output.
+- ETL owns stage implementation, DAG updates, `.env.example`, and bootstrap validation until the flow passes.
+- DOCS owns `README.md` generation.
 
-## Tech Stack
+## Context Hygiene
 
-| Layer | Technology | Version |
-|-------|-----------|---------|
-| Orchestration | Apache Airflow (CeleryExecutor) | 3.x |
-| Language | Python | 3.12 |
-| Database | PostgreSQL + PostGIS | 17 |
-| ORM | SQLAlchemy | 2.x |
-| Migrations | Flyway | latest |
-| Data processing | Pandas | 2.x |
-| Config/validation | pydantic-settings | 2.x |
-| Linter | Ruff | `line-length = 120` |
-| Task runner | just | latest |
-| Containers | Docker + Docker Compose | ≥ 20.10 |
-
----
-
-## Global Rules
-
-### Python Environment
-**Always use the conda `etl` environment (Python 3.12) to run any Python script.** Activate it before running:
-
-```bash
-conda activate etl
-python dags/etl_{flujo}.py
-```
-
-Or invoke the interpreter directly:
-
-```bash
-conda run -n etl python dags/etl_{flujo}.py
-```
-
-Never use system `python` or `python3` without verifying it belongs to the `etl` environment.
-
----
-
-## Justfile Automations
-
-The `justfile` centralizes all repetitive tasks for development, Docker, and Flyway. **Always check `just --list` first** — it shows every available recipe with its description and parameters before writing custom shell commands.
-
-```bash
-just --list   # show all available recipes
-```
-
-Key recipe groups:
-
-| Group | Recipe | Description |
-|-------|--------|-------------|
-| **development** | `just build-dev` | Spin up a local PostGIS container for testing (default: user/pass/db = `test`, port `5432`) |
-| | `just create-cvegeo-db` | Create and seed the `cvegeo` database (required before pipelines that use geographic codes) |
-| | `just setup` | Install pre-commit hooks after cloning the repo |
-| | `just stop-dev` | Stop and remove the local dev container |
-| **docker** | `just up` | Start all Docker Compose services (Airflow stack) |
-| | `just down` | Stop all services |
-| | `just down-volumes` | Stop all services and remove volumes (destructive) |
-| | `just ps` | Show status of running services |
-| | `just logs [service]` | Tail logs for a service |
-| | `just restart <service>` | Restart a specific service |
-| | `just rebuild <service>` | Rebuild and restart a specific service |
-| **flyway** | `just flyway-config <pipeline>` | Copy `flyway.conf.example` → `flyway.conf` for a pipeline |
-| | `just flyway-migrate <pipeline>` | Apply pending migrations for a pipeline |
-| | `just flyway-info <pipeline>` | Show migration status |
-| | `just flyway-validate <pipeline>` | Validate applied migrations against scripts |
-| | `just flyway-clean <pipeline>` | Drop all objects managed by Flyway (destructive) |
-| | `just flyway-reset <pipeline>` | Clean + migrate (full rebuild of schema) |
+- Treat `.claude/`, `data/`, `logs/`, `.ruff_cache/`, `config/airflow.cfg`, and `plugins/` as low-value context unless the task explicitly targets them.
+- Prefer narrow local reads and searches over broad repository exploration.

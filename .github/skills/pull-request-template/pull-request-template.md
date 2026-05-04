@@ -1,27 +1,27 @@
 ---
 name: pull-request-template
-description: Abre el Pull Request del pipeline usando el template estandarizado del proyecto.
+description: Use when DEA needs to create the pull request for a pipeline from the local skill template.
 ---
 
 # Skill: Pull Request Template
 
 ## Purpose
-Invocar en la Fase 8, después de hacer todos los commits, para abrir el PR que cierra el ciclo de desarrollo del pipeline.
+Use this skill in the final DEA Git phase after commits are ready.
 
 ## Steps
 
-1. Leer el template en `.github/pull_request_template.md` para conocer las secciones requeridas.
-2. Completar el título del PR con el formato: `feat({flujo}): pipeline {nombre del flujo}`.
-3. Llenar la descripción con los cambios realizados por fase (qué se generó en cada fase).
-4. Referenciar el issue correspondiente con `Closes #{numero}` en la sección de issue.
-5. Completar el checklist de tipo de cambio (`feat`) y el de tareas completadas.
-6. Agregar notas relevantes para el reviewer (pasos manuales pendientes, credenciales, migraciones a aplicar).
-7. Asignar reviewers si aplica y abrir el PR desde la rama del pipeline hacia `develop`.
+1. Read `template.md` in this folder first.
+2. Fill the PR title as `feat({flujo}): pipeline {nombre del flujo}` unless the user requests a different conventional type.
+3. Describe only implemented artifacts and validated results.
+4. Reference the related issue with `Closes #{numero}`.
+5. Keep the change-type and completed-task checklists aligned with the actual work.
+6. Add reviewer notes only when they are concrete and necessary.
+7. Open the pull request from the pipeline branch into `develop`.
 
 ## Template
 
-→ Ver `template.md` en esta carpeta.
+See `template.md` in this folder.
 
 ## References
 
-- Template de PR: `.github/pull_request_template.md`
+- Canonical PR template for sync reference: `.github/pull_request_template.md`

@@ -1,27 +1,27 @@
 ---
 name: issue-template
-description: Crea el GitHub Issue estandarizado para un nuevo pipeline ETL usando el template del proyecto.
+description: Use when DEA needs to create the tracking issue for a new ETL pipeline from the local skill template.
 ---
 
 # Skill: Issue Template
 
 ## Purpose
-Invocar en la Fase 4 para registrar el pipeline en el tracker del proyecto antes de comenzar el desarrollo.
+Use this skill during the DEA Git phase to draft the pipeline issue and create the branch seed.
 
 ## Steps
 
-1. Leer el template en `.github/ISSUE_TEMPLATE/new-pipeline.md` para conocer las secciones requeridas.
-2. Completar el título con el formato: `[PIPELINE] {Nombre del flujo en mayúsculas}`.
-3. Llenar cada sección del template con la información del contexto del prompt (fuente, frecuencia, tablas destino, credenciales necesarias).
-4. Asignar las etiquetas `new-pipeline` y `feat` (definidas en `.github/labels.yaml`).
-5. Crear el issue vía API de GitHub y capturar el número asignado.
-6. Usar el número de issue para construir el nombre de la rama: `{numero}-pipeline-{flujo}`.
+1. Read `template.md` in this folder first.
+2. Fill every section only with confirmed planning data.
+3. Keep the title format as `[PIPELINE] {Nombre del flujo}`.
+4. Keep the labels `new-pipeline, feat` unless the user explicitly requests otherwise.
+5. Create the issue and capture the assigned number.
+6. Use the issue number to build the branch name: `{numero}-pipeline-{flujo}`.
 
 ## Template
 
-→ Ver `template.md` en esta carpeta.
+See `template.md` in this folder.
 
 ## References
 
-- Template de issue: `.github/ISSUE_TEMPLATE/new-pipeline.md`
-- Labels disponibles: `.github/labels.yaml`
+- Canonical issue template for sync reference: `.github/ISSUE_TEMPLATE/new-pipeline.md`
+- Available labels: `.github/labels.yaml`

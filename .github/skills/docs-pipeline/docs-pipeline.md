@@ -1,23 +1,23 @@
 ---
 name: docs-pipeline
-description: Genera el README interno del pipeline con toda la información de implementación.
+description: Use when generating the internal pipeline README from implemented artifacts.
 ---
 
-# Skill: Documentación de Pipeline
+# Skill: Pipeline Documentation
 
 ## Purpose
-Invocar en la Fase 7 para generar el `README.md` que documenta el pipeline para futuros desarrolladores.
+Use this skill during the documentation phase to build the pipeline `README.md`.
 
 ## Steps
 
-1. Leer `./core/pipelines/{flujo}/eda/reporte_eda.json` para extraer información de la fuente (URL, formato, frecuencia).
-2. Leer las migraciones `V1`–`V4` en `./migrations/{flujo}/sql/` para documentar el esquema de BD y las tablas.
-3. Leer `./dags/etl_{flujo}.py` para documentar el nombre del DAG, el `schedule_interval` y el orden de stages.
-4. Leer `./core/pipelines/{flujo}/.env.example` para listar las variables de entorno requeridas.
-5. Incluir el diagrama ER desde `./core/pipelines/{flujo}/assets/er_{flujo}.png` si existe.
-6. Construir el README siguiendo `template.md` de esta carpeta.
-7. Guardar en `./core/pipelines/{flujo}/README.md`.
+1. Read `./core/pipelines/{flujo}/eda/reporte_eda.json` for source details.
+2. Read the `V1` to `V4` migrations in `./migrations/{flujo}/sql/` to document the schema and tables.
+3. Read `./dags/etl_{flujo}.py` to document the DAG name, schedule, and stage order.
+4. Read `./core/pipelines/{flujo}/.env.example` to list required environment variables.
+5. Include the ER diagram from `./core/pipelines/{flujo}/assets/er_{flujo}.png` when it exists.
+6. Build the README from `template.md` in this folder.
+7. Save it to `./core/pipelines/{flujo}/README.md`.
 
 ## Template
 
-→ Ver `template.md` en esta carpeta.
+See `template.md` in this folder.

@@ -1,24 +1,24 @@
 ---
 name: sqlalchemy-models
-description: Genera el archivo schemas.py con los modelos SQLAlchemy 2.x del pipeline, en sincronía con las migraciones Flyway.
+description: Use when generating `schemas.py` with SQLAlchemy 2.x models that match the Flyway migrations.
 ---
 
 # Skill: SQLAlchemy Models
 
 ## Purpose
-Invocar después de aplicar las migraciones Flyway (Fase 2) para generar los modelos ORM que usarán los stages de carga.
+Use this skill after Flyway migrations are defined or applied to generate the ORM models used by the load stages.
 
 ## Steps
 
-1. Verificar que `./core/pipelines/{flujo}/attributes.py` exista con `{Flujo}Tables(StrEnum)` (uno por nombre de tabla, usando `auto()`). Si no existe, crearlo antes de continuar.
-2. Leer las migraciones de catálogos y la tabla principal para extraer nombres de tablas y definiciones de columnas.
-3. Crear la clase `{Flujo}Base(DeclarativeBase)` con el método `columns()` que devuelve los nombres de columna.
-4. Crear una clase por cada tabla catálogo (`cat_`) con sus columnas tipadas usando `Mapped` y `mapped_column`.
-5. Crear la clase de la tabla principal (`stg_`) con sus columnas y las claves foráneas correspondientes.
-6. Importar `{Flujo}Tables as T` desde `attributes.py` y usar `T.NOMBRE_TABLA` en `__tablename__` (nunca strings literales).
-7. Definir las relaciones entre modelos con `relationship()` desde `stg_` hacia cada catálogo.
-8. Guardar en `./core/pipelines/{flujo}/schemas.py`.
+1. Verify that `./core/pipelines/{flujo}/attributes.py` exists with `{Flujo}Tables(StrEnum)` using one member per table name and `auto()`. Create it first if needed.
+2. Read the catalog migrations and the main table migration to extract table names and column definitions.
+3. Create `{Flujo}Base(DeclarativeBase)` with a `columns()` helper that returns column names.
+4. Create one class per catalog table (`cat_`) with typed columns using `Mapped` and `mapped_column`.
+5. Create the main staging class (`stg_`) with its columns and foreign keys.
+6. Import `{Flujo}Tables as T` from `attributes.py` and use `T.TABLE_NAME` in `__tablename__`, never string literals.
+7. Define relationships from the staging model to each catalog with `relationship()`.
+8. Save the result to `./core/pipelines/{flujo}/schemas.py`.
 
 ## Template
 
-→ Ver `template.py` en esta carpeta.
+See `template.py` in this folder.

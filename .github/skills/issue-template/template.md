@@ -6,7 +6,61 @@ labels: 'new-pipeline, feat'
 assignees: ''
 ---
 
-## Descripción
+<!-- Keep this local skill template synchronized with .github/ISSUE_TEMPLATE/new-pipeline.md. -->
+
+## 📊 Información del Pipeline
+
+<!-- Write the confirmed internal pipeline name in snake_case. -->
+
+**Nombre del pipeline:**
+
+<!-- Mark only the real source type. Add acquisition details in notes when needed. -->
+
+**Fuente de datos:**
+- [ ] API
+- [ ] Base de datos
+- [ ] Web Scraping
+- [ ] Archivo (CSV/Excel)
+- [ ] Otro: ___
+
+<!-- Select the actual operating frequency or state that it is still pending approval. -->
+
+**Frecuencia de ejecución:**
+- [ ] Mensual
+- [ ] Quincenal
+- [ ] Semanal
+- [ ] Diaria
+- [ ] On-demand
+- [ ] Otra: ___
+
+---
+
+## 🗃️ Tablas destino
+
+<!-- Include the expected staging table and only the catalog tables that are actually known. -->
+
+**Staging:**
+- [ ] `stg_`
+
+**Catálogos:**
+- [ ] `cat_`
+- [ ] `cat_`
+- [ ] `cat_`
+
+---
+
+## 📝 Información adicional
+
+<!-- Check only the credentials that are truly required for extraction. -->
+
+**Credenciales necesarias:**
+- [ ] API Key
+- [ ] Usuario/Contraseña BD
+- [ ] Token
+- [ ] Otro: ___
+
+**Notas:**
+<!-- Add concrete restrictions, dependencies, geography filters, business rules, or unresolved decisions. -->
 
 {Breve descripción del pipeline: qué datos contiene, de dónde provienen y por qué se necesitan.}
 

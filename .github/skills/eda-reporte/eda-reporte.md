@@ -1,21 +1,21 @@
 ---
 name: eda-reporte
-description: Genera el reporte JSON estandarizado como output del análisis exploratorio de datos.
+description: Use when serializing EDA results into the standardized JSON report consumed by DEA and DB.
 ---
 
-# Skill: EDA Reporte
+# Skill: EDA Report
 
 ## Purpose
-Invocar al finalizar el script EDA para serializar los resultados en un JSON estructurado que será consumido por los agentes DB y DEA.
+Use this skill after the EDA script runs to serialize the results into a structured JSON report for DEA and DB.
 
 ## Steps
 
-1. Ejecutar el script EDA capturando los resultados en variables Python (no imprimir únicamente en consola).
-2. Construir el diccionario de reporte siguiendo el schema definido en `template.py` de esta carpeta.
-3. Serializar con `json.dump(reporte, f, indent=2, ensure_ascii=False)`.
-4. Guardar en `./core/pipelines/{flujo}/eda/reporte_eda.json`.
-5. Imprimir un resumen de los campos más relevantes (flujo, filas, columnas detectadas como catálogo) para confirmar que el reporte se generó correctamente.
+1. Run the EDA script while capturing results in Python variables instead of relying only on console output.
+2. Build the report dictionary from the schema in `template.py` in this folder.
+3. Serialize with `json.dump(reporte, f, indent=2, ensure_ascii=False)`.
+4. Save it to `./core/pipelines/{flujo}/eda/reporte_eda.json`.
+5. Print or return a short confirmation summary with the most relevant fields.
 
 ## Template
 
-→ Ver `template.py` en esta carpeta.
+See `template.py` in this folder.
