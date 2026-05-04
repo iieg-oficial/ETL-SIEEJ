@@ -9,7 +9,7 @@ from core.pipelines.stage import Stage
 from core.utils.files import clean_directory
 
 
-class PobrezaMultidimencionalTransform(Stage):
+class PobrezaMultidimensionalTransform(Stage):
     """Transforma el XLSX wide → tidy (municipio × año) y extrae el catálogo de entidades."""
 
     def __init__(self, mode: str = "bootstrap"):

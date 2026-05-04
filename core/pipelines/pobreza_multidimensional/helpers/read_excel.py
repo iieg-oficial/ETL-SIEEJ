@@ -1,6 +1,6 @@
 import pandas as pd
 
-from core.pipelines.pobreza_multidimencional.consts import (
+from core.pipelines.pobreza_multidimensional.consts import (
     DATA_YEARS,
     EXCEL_COL_NAMES,
     EXCEL_SHEET,

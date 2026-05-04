@@ -5,14 +5,14 @@
 -- Años: 2010, 2015, 2020  |  Registros esperados: ~7,458 (2,486 municipios × 3)
 -- =======================================================================
 
-CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimencional_datos (
+CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimensional_datos (
     id               SERIAL PRIMARY KEY,
 
     -- Identificadores geográficos
     cve_mun          VARCHAR(5)   NOT NULL,  -- clave INEGI 5 dígitos (ej. "01001")
     nombre_municipio VARCHAR(150),
     cat_entidad_id   INTEGER      NOT NULL
-        REFERENCES public.stg_pobreza_multidimencional_cat_entidad(id),
+        REFERENCES public.stg_pobreza_multidimensional_cat_entidad(id),
 
     -- Temporalidad
     anio             SMALLINT     NOT NULL,  -- 2010 | 2015 | 2020
@@ -99,15 +99,15 @@ CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimencional_datos (
     created_at  TIMESTAMP DEFAULT now(),
     updated_at  TIMESTAMP DEFAULT now(),
 
-    CONSTRAINT uq_pobreza_multidimencional_datos_cve_anio
+    CONSTRAINT uq_pobreza_multidimensional_datos_cve_anio
         UNIQUE (cve_mun, anio)
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS ix_pobreza_multidimencional_datos_cve_anio
-    ON public.stg_pobreza_multidimencional_datos (cve_mun, anio);
+CREATE UNIQUE INDEX IF NOT EXISTS ix_pobreza_multidimensional_datos_cve_anio
+    ON public.stg_pobreza_multidimensional_datos (cve_mun, anio);
 
-CREATE INDEX IF NOT EXISTS ix_pobreza_multidimencional_datos_anio
-    ON public.stg_pobreza_multidimencional_datos (anio);
+CREATE INDEX IF NOT EXISTS ix_pobreza_multidimensional_datos_anio
+    ON public.stg_pobreza_multidimensional_datos (anio);
 
-CREATE INDEX IF NOT EXISTS ix_pobreza_multidimencional_datos_entidad
-    ON public.stg_pobreza_multidimencional_datos (cat_entidad_id);
+CREATE INDEX IF NOT EXISTS ix_pobreza_multidimensional_datos_entidad
+    ON public.stg_pobreza_multidimensional_datos (cat_entidad_id);

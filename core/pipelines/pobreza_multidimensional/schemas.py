@@ -9,18 +9,18 @@ class PobrezaMultidimensionalBase(DeclarativeBase):
     pass
 
 
-class CatEntidad(PobrezaMultidimencionalBase):
+class CatEntidad(PobrezaMultidimensionalBase):
     """Catálogo de entidades federativas."""
 
-    __tablename__ = "stg_pobreza_multidimencional_cat_entidad"
-    __table_args__ = (UniqueConstraint("cve_ent", name="uq_pobreza_multidimencional_cat_entidad_cve"),)
+    __tablename__ = "stg_pobreza_multidimensional_cat_entidad"
+    __table_args__ = (UniqueConstraint("cve_ent", name="uq_pobreza_multidimensional_cat_entidad_cve"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     cve_ent: Mapped[str] = mapped_column(String(2), nullable=False)
     nombre_entidad: Mapped[str] = mapped_column(String(100), nullable=False)
 
 
-class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
+class PobrezaMultidimensionalDatos(PobrezaMultidimensionalBase):
     """Indicadores de pobreza municipal CONEVAL — una fila por municipio × año."""
 
     __tablename__ = "stg_pobreza_multidimensional_datos"
@@ -28,11 +28,11 @@ class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
         UniqueConstraint(
             "cve_mun",
             "anio",
-            name="uq_pobreza_multidimencional_datos_cve_anio",
+            name="uq_pobreza_multidimensional_datos_cve_anio",
         ),
-        Index("ix_pobreza_multidimencional_datos_cve_anio", "cve_mun", "anio", unique=True),
-        Index("ix_pobreza_multidimencional_datos_anio", "anio"),
-        Index("ix_pobreza_multidimencional_datos_entidad", "cat_entidad_id"),
+        Index("ix_pobreza_multidimensional_datos_cve_anio", "cve_mun", "anio", unique=True),
+        Index("ix_pobreza_multidimensional_datos_anio", "anio"),
+        Index("ix_pobreza_multidimensional_datos_entidad", "cat_entidad_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

@@ -7,15 +7,15 @@ from core.pipelines.pobreza_multidimensional.config import settings
 from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
 from core.pipelines.pobreza_multidimensional.schemas import (
     CatEntidad,
-    PobrezaMultidimencionalBase,
-    PobrezaMultidimencionalDatos,
+    PobrezaMultidimensionalBase,
+    PobrezaMultidimensionalDatos,
 )
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence
 from core.utils.files import clean_directory
 
 
-class PobrezaMultidimencionalLoad(Stage):
+class PobrezaMultidimensionalLoad(Stage):
     """Carga catálogo de entidades y datos tidy de pobreza municipal en la BD."""
 
     def __init__(self, mode: str = "bootstrap"):
@@ -28,7 +28,7 @@ class PobrezaMultidimencionalLoad(Stage):
             raise ValueError("Load no recibió datos de Transform")
         self.db = Database(PIPELINE_NAME, settings.database_url)
         self.db.connect()
-        PobrezaMultidimencionalBase.metadata.create_all(self.db.engine)
+        PobrezaMultidimensionalBase.metadata.create_all(self.db.engine)
         return input_data
 
     def action(self, input_data: Optional[Any] = None) -> dict:
@@ -58,7 +58,7 @@ class PobrezaMultidimencionalLoad(Stage):
             df["cat_entidad_id"] = df["cat_entidad_id"].astype(int)
 
             # 4) Preparar registros para la tabla principal
-            cols_db = [c.key for c in PobrezaMultidimencionalDatos.__table__.columns if c.key != "id"]
+            cols_db = [c.key for c in PobrezaMultidimensionalDatos.__table__.columns if c.key != "id"]
             # Seleccionar solo las columnas que existen en el DataFrame
             available = [c for c in cols_db if c in df.columns]
             records = df[available].to_dict("records")
@@ -67,13 +67,13 @@ class PobrezaMultidimencionalLoad(Stage):
             bulk_insert(
                 session,
                 records,
-                PobrezaMultidimencionalDatos,
-                chunk_size=settings.POBREZA_MULTIDIMENCIONAL_LOAD_BATCH_SIZE,
+                PobrezaMultidimensionalDatos,
+                chunk_size=settings.POBREZA_MULTIDIMENSIONAL_LOAD_BATCH_SIZE,
             )
-            sync_id_sequence(session, PobrezaMultidimencionalDatos)
+            sync_id_sequence(session, PobrezaMultidimensionalDatos)
 
         row_count = len(df)
-        self.logger.info(f"Cargados {row_count} registros en {PobrezaMultidimencionalDatos.__tablename__}")
+        self.logger.info(f"Cargados {row_count} registros en {PobrezaMultidimensionalDatos.__tablename__}")
         return {"row_count": row_count}
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:

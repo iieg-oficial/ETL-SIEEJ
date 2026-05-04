@@ -14,9 +14,9 @@ except ImportError:
     _AIRFLOW_AVAILABLE = False
 
 from core.pipeline import Pipeline
-from core.pipelines.pobreza_multidimensional.stages.extract import PobrezaMultidimencionalExtract
-from core.pipelines.pobreza_multidimensional.stages.load import PobrezaMultidimencionalLoad
-from core.pipelines.pobreza_multidimensional.stages.transform import PobrezaMultidimencionalTransform
+from core.pipelines.pobreza_multidimensional.stages.extract import PobrezaMultidimensionalExtract
+from core.pipelines.pobreza_multidimensional.stages.load import PobrezaMultidimensionalLoad
+from core.pipelines.pobreza_multidimensional.stages.transform import PobrezaMultidimensionalTransform
 
 
 def run_bootstrap() -> None:
@@ -24,9 +24,9 @@ def run_bootstrap() -> None:
     Pipeline(
         name="pobreza_multidimensional",
         stages=[
-            PobrezaMultidimencionalExtract(mode="bootstrap"),
-            PobrezaMultidimencionalTransform(mode="bootstrap"),
-            PobrezaMultidimencionalLoad(mode="bootstrap"),
+            PobrezaMultidimensionalExtract(mode="bootstrap"),
+            PobrezaMultidimensionalTransform(mode="bootstrap"),
+            PobrezaMultidimensionalLoad(mode="bootstrap"),
         ],
     ).run(mode="bootstrap")
 

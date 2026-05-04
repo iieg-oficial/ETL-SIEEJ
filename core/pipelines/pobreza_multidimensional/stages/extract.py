@@ -5,14 +5,14 @@ from typing import Any, Optional
 
 import requests
 
-from core.pipelines.pobreza_multidimencional.config import settings
-from core.pipelines.pobreza_multidimencional.consts import PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.config import settings
+from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
 from core.pipelines.stage import Stage
 
 XLSX_FILENAME = settings.XLSX_FILENAME
 
 
-class PobrezaMultidimencionalExtract(Stage):
+class PobrezaMultidimensionalExtract(Stage):
     """Descarga el ZIP de CONEVAL y extrae el XLSX de indicadores municipales."""
 
     def __init__(self, mode: str = "bootstrap"):
@@ -20,9 +20,9 @@ class PobrezaMultidimencionalExtract(Stage):
         self.mode = mode
 
     def source(self, input_data: Optional[Any] = None) -> dict:
-        url = settings.POBREZA_MULTIDIMENCIONAL_SOURCE_URL
+        url = settings.POBREZA_MULTIDIMENSIONAL_SOURCE_URL
         if not url:
-            raise ValueError("POBREZA_MULTIDIMENCIONAL_SOURCE_URL no configurada")
+            raise ValueError("POBREZA_MULTIDIMENSIONAL_SOURCE_URL no configurada")
         self.logger.info(f"Fuente: {url}")
         return {"url": url}
 

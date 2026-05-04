@@ -1,4 +1,4 @@
-from core.pipelines.pobreza_multidimencional.helpers.read_excel import (
+from core.pipelines.pobreza_multidimensional.helpers.read_excel import (
     cast_numeric,
     read_excel,
     wide_to_tidy,

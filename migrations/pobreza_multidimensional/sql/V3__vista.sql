@@ -56,6 +56,6 @@ SELECT
     d.lpei_porcentaje,           d.lpei_personas,
 
     d.created_at
-FROM public.stg_pobreza_multidimencional_datos d
-JOIN public.stg_pobreza_multidimencional_cat_entidad e
+FROM public.stg_pobreza_multidimensional_datos d
+JOIN public.stg_pobreza_multidimensional_cat_entidad e
     ON d.cat_entidad_id = e.id;
