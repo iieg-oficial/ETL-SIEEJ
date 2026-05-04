@@ -14,6 +14,12 @@ from core.utils.logger import get_console_logger
 logger = get_console_logger(__name__)
 
 
+def fetch_zip(url: str, timeout: int = 120) -> zipfile.ZipFile:
+    response = requests.get(url, timeout=timeout)
+    response.raise_for_status()
+    return zipfile.ZipFile(io.BytesIO(response.content))
+
+
 def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
     response = requests.get(url, stream=True)
     response.raise_for_status()

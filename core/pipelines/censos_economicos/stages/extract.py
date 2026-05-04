@@ -5,7 +5,7 @@ import pandas as pd
 
 from core.pipelines.stage import Stage
 from core.pipelines.censos_economicos.constants import CE_YEARS_CONFIG, INEGI_STATE_SLUGS, PIPELINE_NAME
-from core.utils.http import fetch_zip
+from core.utils.files import fetch_zip
 from core.utils.logger import get_logger
 
 
