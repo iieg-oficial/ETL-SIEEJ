@@ -3,8 +3,8 @@ from typing import Any, Optional
 
 import pandas as pd
 
-from core.pipelines.pobreza_multidimencional.consts import PIPELINE_NAME
-from core.pipelines.pobreza_multidimencional.helpers import read_excel, wide_to_tidy
+from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.helpers import read_excel, wide_to_tidy
 from core.pipelines.stage import Stage
 from core.utils.files import clean_directory
 

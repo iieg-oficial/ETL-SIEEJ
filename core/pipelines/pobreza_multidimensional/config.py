@@ -5,7 +5,7 @@ from core.config import BaseConfig, env_path
 
 
 class Settings(BaseConfig):
-    model_config = SettingsConfigDict(env_file=env_path("pobreza_multidimencional"))
+    model_config = SettingsConfigDict(env_file=env_path("pobreza_multidimensional"))
 
     # Fuente de datos (ZIP con XLSX adentro)
     POBREZA_MULTIDIMENCIONAL_SOURCE_URL: str = Field(
@@ -13,7 +13,7 @@ class Settings(BaseConfig):
     )
 
     # Carga
-    POBREZA_MULTIDIMENCIONAL_LOAD_BATCH_SIZE: int = Field(default=2000)
+    POBREZA_MULTIDIMENSIONAL_LOAD_BATCH_SIZE: int = Field(default=2000)
 
 
 settings = Settings()

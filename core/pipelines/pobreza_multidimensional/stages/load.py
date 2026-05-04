@@ -3,9 +3,9 @@ from typing import Any, Optional
 import pandas as pd
 
 from core.db import Database
-from core.pipelines.pobreza_multidimencional.config import settings
-from core.pipelines.pobreza_multidimencional.consts import PIPELINE_NAME
-from core.pipelines.pobreza_multidimencional.schemas import (
+from core.pipelines.pobreza_multidimensional.config import settings
+from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.schemas import (
     CatEntidad,
     PobrezaMultidimencionalBase,
     PobrezaMultidimencionalDatos,

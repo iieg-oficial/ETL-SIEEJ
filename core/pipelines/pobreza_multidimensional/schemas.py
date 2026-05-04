@@ -5,7 +5,7 @@ from sqlalchemy import Float, Index, Integer, SmallInteger, String, UniqueConstr
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class PobrezaMultidimencionalBase(DeclarativeBase):
+class PobrezaMultidimensionalBase(DeclarativeBase):
     pass
 
 
@@ -23,7 +23,7 @@ class CatEntidad(PobrezaMultidimencionalBase):
 class PobrezaMultidimencionalDatos(PobrezaMultidimencionalBase):
     """Indicadores de pobreza municipal CONEVAL — una fila por municipio × año."""
 
-    __tablename__ = "stg_pobreza_multidimencional_datos"
+    __tablename__ = "stg_pobreza_multidimensional_datos"
     __table_args__ = (
         UniqueConstraint(
             "cve_mun",

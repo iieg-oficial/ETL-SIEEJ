@@ -14,15 +14,15 @@ except ImportError:
     _AIRFLOW_AVAILABLE = False
 
 from core.pipeline import Pipeline
-from core.pipelines.pobreza_multidimencional.stages.extract import PobrezaMultidimencionalExtract
-from core.pipelines.pobreza_multidimencional.stages.load import PobrezaMultidimencionalLoad
-from core.pipelines.pobreza_multidimencional.stages.transform import PobrezaMultidimencionalTransform
+from core.pipelines.pobreza_multidimensional.stages.extract import PobrezaMultidimencionalExtract
+from core.pipelines.pobreza_multidimensional.stages.load import PobrezaMultidimencionalLoad
+from core.pipelines.pobreza_multidimensional.stages.transform import PobrezaMultidimencionalTransform
 
 
 def run_bootstrap() -> None:
     """Ejecuta la ingestión completa de indicadores de pobreza municipal CONEVAL 2010/2015/2020."""
     Pipeline(
-        name="pobreza_multidimencional",
+        name="pobreza_multidimensional",
         stages=[
             PobrezaMultidimencionalExtract(mode="bootstrap"),
             PobrezaMultidimencionalTransform(mode="bootstrap"),
@@ -39,7 +39,7 @@ default_args = {
 
 if _AIRFLOW_AVAILABLE:
     with DAG(
-        "etl_pobreza_multidimencional_bootstrap",
+        "etl_pobreza_multidimensional_bootstrap",
         default_args=default_args,
         description=(
             "Pobreza Multidimensional Bootstrap — CONEVAL indicadores municipales "
@@ -48,7 +48,7 @@ if _AIRFLOW_AVAILABLE:
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
-        tags=["etl", "pobreza_multidimencional", "bootstrap", "on-demand", "coneval"],
+        tags=["etl", "pobreza_multidimensional", "bootstrap", "on-demand", "coneval"],
     ) as dag_bootstrap:
         PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
 

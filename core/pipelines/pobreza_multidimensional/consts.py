@@ -1,4 +1,4 @@
-PIPELINE_NAME = "pobreza_multidimencional"
+PIPELINE_NAME = "pobreza_multidimensional"
 
 # Nombre de la hoja del XLSX a procesar
 EXCEL_SHEET = "Concentrado municipal"

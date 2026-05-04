@@ -3,7 +3,7 @@
 -- Catálogo de entidades federativas CONEVAL.
 -- =======================================================================
 
-CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimencional_cat_entidad (
+CREATE TABLE IF NOT EXISTS public.stg_pobreza_multidimensional_cat_entidad (
     id      SERIAL PRIMARY KEY,
     cve_ent VARCHAR(2)  NOT NULL,
     nombre_entidad  VARCHAR(100) NOT NULL,
