@@ -9,7 +9,7 @@ from core.pipelines.pobreza_multidimencional.config import settings
 from core.pipelines.pobreza_multidimencional.consts import PIPELINE_NAME
 from core.pipelines.stage import Stage
 
-XLSX_FILENAME = "Concentrado_indicadores_de_pobreza_2020.xlsx"
+XLSX_FILENAME = settings.XLSX_FILENAME
 
 
 class PobrezaMultidimencionalExtract(Stage):
