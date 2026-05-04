@@ -34,10 +34,11 @@ PIPELINE_NAME = settings.PIPELINE_NAME
 
 
 class CensosEconomicosLoader(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", skip_cleanup: bool = False):
         super().__init__(PIPELINE_NAME, "load")
         self.logger = get_logger(f"{PIPELINE_NAME}.load")
         self.db = Database(settings.DB_NAME, settings.database_url)
+        self.skip_cleanup = skip_cleanup
 
     def source(self, input_data: Optional[Any] = None) -> dict:
         transform_dir = Path(f"data/transform/{PIPELINE_NAME}")
@@ -182,7 +183,8 @@ class CensosEconomicosLoader(Stage):
         return input_data
 
     def finalization(self, input_data: Any) -> Any:
-        cleanup_pipeline_data(PIPELINE_NAME)
+        if not self.skip_cleanup:
+            cleanup_pipeline_data(PIPELINE_NAME)
         self.db.disconnect()
         self.logger.info("[finalization] Load complete")
         return input_data

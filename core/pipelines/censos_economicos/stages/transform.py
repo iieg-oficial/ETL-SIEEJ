@@ -52,23 +52,23 @@ class CensosEconomicosTransformer(Stage):
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
 
     def source(self, input_data: Optional[Any] = None) -> dict:
+        if input_data is not None:
+            return input_data
+
         extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
-        years_needed = list(CE_YEARS_CONFIG.keys())
         result = {}
 
-        for year in years_needed:
-            data_pkl = extract_dir / f"{year}_data.pkl"
+        for year in CE_YEARS_CONFIG:
             act_pkl = extract_dir / f"{year}_cat_actividad.pkl"
+            entity_pkls = sorted(extract_dir.glob(f"{year}_*_data.pkl"))
 
-            if data_pkl.exists() and act_pkl.exists():
-                self.logger.info(f"[source] Year {year}: loading from pkl")
+            if act_pkl.exists() and entity_pkls:
+                self.logger.info(f"[source] Year {year}: {len(entity_pkls)} entity pkls found")
+                dfs = [pd.read_pickle(p) for p in entity_pkls]
                 result[year] = {
-                    "data": pd.read_pickle(data_pkl),
+                    "data": pd.concat(dfs, ignore_index=True),
                     "cat_actividad": pd.read_pickle(act_pkl),
                 }
-            elif input_data and year in input_data:
-                self.logger.info(f"[source] Year {year}: using extract output")
-                result[year] = input_data[year]
             else:
                 self.logger.warning(f"[source] Year {year}: no data found")
 
