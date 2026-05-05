@@ -1,0 +1,185 @@
+{
+  "flujo": "etef",
+  "fecha_analisis": "2026-05-05",
+  "fuente": {
+    "url": "https://www.inegi.org.mx/contenidos/programas/exporta_ef/datosabiertos/conjunto_de_datos_eef_trimestral_csv.zip",
+    "tipo": "zip_csv",
+    "nombre_csv": "conjunto_de_datos/eef_trimestral_tr_cifra_2007_2025.csv",
+    "encoding": "utf-8",
+    "separador": ","
+  },
+  "resumen": {
+    "total_filas": 65664,
+    "total_columnas": 10,
+    "periodo_min": "2007-I",
+    "periodo_max": "2025-IV",
+    "nivel_geografico": "nacional",
+    "filtro_geografico": null
+  },
+  "columnas": [
+    {
+      "nombre_original": "PROD_EST",
+      "nombre_interno": "prod_est",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 1,
+      "es_llave_natural": false,
+      "es_mutable": false,
+      "es_catalogo": true
+    },
+    {
+      "nombre_original": "COBERTURA",
+      "nombre_interno": "cobertura",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 1,
+      "es_llave_natural": false,
+      "es_mutable": false,
+      "es_catalogo": true
+    },
+    {
+      "nombre_original": "ANIO",
+      "nombre_interno": "anio",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 19,
+      "es_llave_natural": true,
+      "es_mutable": false,
+      "es_catalogo": false
+    },
+    {
+      "nombre_original": "MES",
+      "nombre_interno": "mes",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 4,
+      "es_llave_natural": false,
+      "es_mutable": false,
+      "es_catalogo": true
+    },
+    {
+      "nombre_original": "TRIMESTRE",
+      "nombre_interno": "trimestre",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 4,
+      "es_llave_natural": true,
+      "es_mutable": false,
+      "es_catalogo": false
+    },
+    {
+      "nombre_original": "CVE_ENT",
+      "nombre_interno": "cve_ent",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 32,
+      "es_llave_natural": true,
+      "es_mutable": false,
+      "es_catalogo": false
+    },
+    {
+      "nombre_original": "CODIGO_SCIAN",
+      "nombre_interno": "codigo_scian",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 27,
+      "es_llave_natural": true,
+      "es_mutable": false,
+      "es_catalogo": false
+    },
+    {
+      "nombre_original": "VAL_USD",
+      "nombre_interno": "val_usd",
+      "tipo_dato": "str",
+      "nulos_count": 32929,
+      "nulos_pct": 50.1477,
+      "cardinalidad": 26074,
+      "es_llave_natural": false,
+      "es_mutable": true,
+      "es_catalogo": false
+    },
+    {
+      "nombre_original": "ESTATUS_CIFRA",
+      "nombre_interno": "estatus_cifra",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 4,
+      "es_llave_natural": false,
+      "es_mutable": true,
+      "es_catalogo": true
+    },
+    {
+      "nombre_original": "ESTATUS",
+      "nombre_interno": "estatus",
+      "tipo_dato": "str",
+      "nulos_count": 0,
+      "nulos_pct": 0.0,
+      "cardinalidad": 3,
+      "es_llave_natural": false,
+      "es_mutable": true,
+      "es_catalogo": true
+    }
+  ],
+  "llave_natural": ["anio", "trimestre", "cve_ent", "codigo_scian"],
+  "columnas_mutables": ["val_usd", "estatus_cifra", "estatus"],
+  "catalogos": [
+    {
+      "nombre_columna": "prod_est",
+      "nombre_tabla": "stg_etef_cat_prod_est",
+      "valores_unicos": 1,
+      "muestra": [
+        "Exportaciones Trimestrales por Entidad Federativa. Entidad y Subsector"
+      ]
+    },
+    {
+      "nombre_columna": "cobertura",
+      "nombre_tabla": "stg_etef_cat_cobertura",
+      "valores_unicos": 1,
+      "muestra": ["Estatal"]
+    },
+    {
+      "nombre_columna": "mes",
+      "nombre_tabla": "stg_etef_cat_mes",
+      "valores_unicos": 4,
+      "muestra": ["01-03", "04-06", "07-09", "10-12"]
+    },
+    {
+      "nombre_columna": "estatus_cifra",
+      "nombre_tabla": "stg_etef_cat_estatus_cifra",
+      "valores_unicos": 4,
+      "muestra": [
+        "Confidencial",
+        "Disponible",
+        "No disponible",
+        "No significativo"
+      ]
+    },
+    {
+      "nombre_columna": "estatus",
+      "nombre_tabla": "stg_etef_cat_estatus",
+      "valores_unicos": 3,
+      "muestra": [
+        "Cifras Definitivas.",
+        "Cifras Preliminares.",
+        "Cifras Revisadas."
+      ]
+    }
+  ],
+  "scd2": {
+    "estrategia": "row_hash",
+    "columnas_hash": ["val_usd", "estatus_cifra", "estatus"],
+    "columnas_scd": ["row_hash", "valid_from", "valid_to", "is_current"]
+  },
+  "notas": [
+    "El nombre del CSV dentro del ZIP puede variar entre publicaciones de INEGI; el extractor debe detectarlo dinámicamente.",
+    "El pipeline anterior filtraba CVE_ENT=14 (Jalisco). La nueva versión es nacional sin filtro geográfico."
+  ]
+}
