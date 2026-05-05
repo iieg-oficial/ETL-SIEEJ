@@ -100,9 +100,11 @@ class DenueLoad(Stage):
         df[Establecimientos.actualizacion_id.key] = df["fecha_actualizacion"].map(actualizaciones_map)
 
         df["cve_geo_id"] = df.apply(
-            lambda row: int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['clave_localidad']):04}")
-            if pd.notna(row["cve_mun"]) and pd.notna(row["clave_localidad"])
-            else None,
+            lambda row: (
+                int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['clave_localidad']):04}")
+                if pd.notna(row["cve_mun"]) and pd.notna(row["clave_localidad"])
+                else None
+            ),
             axis=1,
         )
         df[Establecimientos.localidad_id.key] = df["cve_geo_id"].map(localidades_map)
