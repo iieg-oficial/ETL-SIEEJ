@@ -22,9 +22,8 @@ class CatCodigoScian(EtefBase):
     __table_args__ = (UniqueConstraint("codigo", name="uq_etef_cat_codigo_scian_codigo"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    codigo: Mapped[str] = mapped_column(String(3))
+    codigo: Mapped[str] = mapped_column(String(10))
     descripcion: Mapped[Optional[str]] = mapped_column(String(255))
-    version: Mapped[Optional[str]] = mapped_column(String(10))
 
 
 # ----- Tabla principal -----
@@ -46,7 +45,6 @@ class EtefDatos(EtefBase):
         Index("ix_etef_datos_anio_trimestre", "anio", "trimestre"),
         Index("ix_etef_datos_cve_ent", "cve_ent"),
         Index("ix_etef_datos_codigo_scian_id", "codigo_scian_id"),
-        Index("ix_etef_datos_llave", "anio", "trimestre", "cve_ent", "codigo_scian_id"),
         Index("ix_etef_datos_is_current", "is_current"),
         Index("ix_etef_datos_row_hash", "row_hash"),
     )
@@ -68,8 +66,7 @@ class EtefDatos(EtefBase):
     valid_to: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True))
     is_current: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
     # Auditoría
-    created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
-    updated_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
 
 
 # Registro de catálogos para iteración dinámica en load.py
