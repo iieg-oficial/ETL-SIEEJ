@@ -22,8 +22,5 @@ class Settings(BaseConfig):
     # Carga
     ETEF_LOAD_BATCH_SIZE: int = Field(default=5000)
 
-    # Filtro geográfico: Jalisco = 14
-    ETEF_FILTER_CVE_ENT: int = Field(default=14)
-
 
 settings = Settings()
