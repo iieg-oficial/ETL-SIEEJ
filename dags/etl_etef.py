@@ -60,7 +60,7 @@ with DAG(
         "retry_delay": timedelta(minutes=5),
     },
     description="ETEF Update — Carga trimestral de nuevos datos",
-    schedule="0 0 1 */3 *",  # 1er día de cada trimestre (1 ene, 1 abr, 1 jul, 1 oct)
+    schedule="@quarterly",
     start_date=datetime(2024, 1, 1),
     catchup=False,
     tags=["etl", "etef", "update"],
