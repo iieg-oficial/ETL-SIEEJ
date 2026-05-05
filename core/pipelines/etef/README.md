@@ -1,192 +1,281 @@
-# Pipeline: ETEF (Exportaciones — EEF Trimestral)
+# Pipeline: ETEF — Exportaciones Trimestrales por Entidad Federativa
 
-Exportaciones trimestrales por entidad federativa y subsector SCIAN, publicadas por INEGI desde 2007. Datos filtrados a **Jalisco (CVE_ENT=14)**.
+Exportaciones trimestrales de la Industria Manufacturera, Maquiladora y de Servicios de Exportación
+(IMMEX) por entidad federativa y subsector SCIAN, publicadas por INEGI desde 2007.
+Cobertura **nacional (32 estados)**; actualización trimestral con estrategia **SCD2**.
+
+---
 
 ## Fuente
 
-Publicación de INEGI con datos de exportaciones trimestrales. La fuente es un ZIP que contiene CSV con histórico completo 2007–2025, actualizado cada trimestre.
-
-| Atributo | Valor |
+| Campo | Valor |
 |---|---|
+| **Proveedor** | INEGI |
 | **URL** | `https://www.inegi.org.mx/contenidos/programas/exporta_ef/datosabiertos/conjunto_de_datos_eef_trimestral_csv.zip` |
-| **Formato** | ZIP → CSV (UTF-8) |
-| **Registros aprox.** | 65,664 (histórico 2007–2025, todas las entidades) |
-| **Llave natural** | `(ANIO, TRIMESTRE, CVE_ENT, CODIGO_SCIAN)` |
+| **Formato** | ZIP → CSV (UTF-8, separador `,`) |
+| **Registros** | ~65,664 (histórico 2007-I a 2025-IV, todas las entidades) |
 | **Periodicidad** | Trimestral |
-| **Comportamiento** | `sobreescribe` — el ZIP contiene todo 2007–2025; re-ingestión completa |
+| **Credenciales** | No requeridas (archivo público) |
 
-## Estructura
+El ZIP contiene el CSV `conjunto_de_datos/eef_trimestral_tr_cifra_2007_2025.csv` con el
+histórico completo. La fuente es detección dinámica: si el nombre cambia, se selecciona
+cualquier CSV en `conjunto_de_datos/`.
 
-```
-etef/
-├── .env.example          # Variables de entorno
-├── config.py             # Settings (BD, fuente, batch size, filtro geográfico)
-├── consts.py             # Constantes: NULL_VALUES, COLUMN_RENAME_MAP, CATALOG_COLUMNS
-├── schemas.py            # Modelos SQLAlchemy: CatCodigoScian, EtefDatos
-└── stages/
-    ├── extract.py        # Descarga ZIP, extrae CSV
-    ├── transform.py      # Lee CSV, limpia, filtra Jalisco, extrae catálogos
-    └── load.py           # Inserta catálogos y datos con resolución de FKs
-```
-
-Archivos relacionados:
-
-- `dags/etl_etef.py` — DAG de Airflow (bootstrap + update trimestral)
-- `migrations/etef/sql/` — 4 migraciones Flyway (catálogos, cvegeo FDW, tabla, vista)
-- `migrations/etef/flyway.conf.example` — Config de ejemplo
+---
 
 ## Esquema de base de datos
 
-```
-+--------------------------------------+     +-----------------------------------+
-| stg_etef_cat_codigo_scian            |     | stg_etef_datos                    |
-|--------------------------------------|     |-----------------------------------|
-| id SERIAL PK                         |<----| id SERIAL PK                      |
-| codigo VARCHAR(3) UNIQUE             |     | anio INTEGER                      |
-| descripcion VARCHAR(255)             |     | trimestre VARCHAR(2)              |
-| version VARCHAR(10)                  |     | mes VARCHAR(5)                    |
-+--------------------------------------+     | cve_ent INTEGER (filter = 14)     |
-                                             | codigo_scian_id INTEGER FK        |
-                                             | val_usd NUMERIC(15,2) [50% NULL] |
-                                             | estatus_cifra VARCHAR(20)        |
-                                             | estatus VARCHAR(30)              |
-                                             | created_at / updated_at TIMESTAMP|
-                                             | UNIQUE (anio, trimestre, ...     |
-                                             | cve_ent, codigo_scian_id)        |
-                                             +-----------------------------------+
+### Tablas catálogo
 
-Vista analítica:
-  vw_etef_datos — JOIN a catálogos SCIAN + cvegeo para nom_ent
-```
+| Tabla | Descripción |
+|---|---|
+| `stg_etef_cat_codigo_scian` | 27 subsectores SCIAN; columnas: `id`, `codigo` (UNIQUE), `descripcion`, `version` |
 
-**Catálogos**: 
-- `stg_etef_cat_codigo_scian` — 27 subsectores SCIAN 2007 (códigos 000, 111, 112, ..., 339)
-- Sincronizados vía `INSERT ... ON CONFLICT DO NOTHING`
+### Tabla principal
 
-**Georreferencia**: 
-- Relacionada con `cvegeo_municipalities` vía `cve_ent` (entidad)
-- Filtrado manual a **Jalisco (CVE_ENT=14)** en el stage de Transform
+| Tabla | Descripción |
+|---|---|
+| `stg_etef_datos` | Exportaciones con SCD2. Llave natural: `(anio, trimestre, cve_ent, codigo_scian_id)`. Columnas mutables: `val_usd`, `estatus_cifra`, `estatus`. |
 
-**Estrategia de actualización**: 
-- `bootstrap_only` — El ZIP reemplaza todo 2007–2025 en cada carga trimestral
-- No hay SCD2 (registros no cambian históricamente; es un snapshot re-ingestado)
-
-## Arquitectura
-
-Sigue el patrón de 3 etapas `Stage` → `Pipeline`:
+Columnas de `stg_etef_datos`:
 
 ```
-EtefExtractor → EtefTransformer → EtefLoader
+id              SERIAL PK
+anio            INTEGER
+trimestre       VARCHAR(2)          -- e.g. "T1", "T2", "T3", "T4"
+mes             VARCHAR(5)
+prod_est        VARCHAR(150)
+cobertura       VARCHAR(50)
+cve_ent         INTEGER             -- clave INEGI de entidad federativa
+codigo_scian_id INTEGER FK → stg_etef_cat_codigo_scian.id
+val_usd         NUMERIC(15,2)       -- ~50% nulos (cifras no disponibles)
+estatus_cifra   VARCHAR(20)
+estatus         VARCHAR(30)
+-- SCD2
+row_hash        VARCHAR(64)         -- SHA-256 de val_usd|estatus_cifra|estatus
+valid_from      TIMESTAMPTZ
+valid_to        TIMESTAMPTZ         -- NULL cuando is_current = TRUE
+is_current      BOOLEAN
+-- Auditoría
+created_at      TIMESTAMP
+updated_at      TIMESTAMP
 ```
 
-### Flujo entre etapas
+Índices clave:
 
-| Etapa | Entrada | Salida |
-|-------|---------|--------|
-| **Extract** | Ninguna | `{"file_path": "data/extract/etef/eef_trimestral_tr_cifra_2007_2025.csv"}` |
-| **Transform** | `file_path` | `{"df": <DataFrame>, "catalogs": {"codigo_scian": [...]}, "row_count": N}` |
-| **Load** | df + catalogs | `{"mode": "bootstrap", "records_inserted": N, "catalogs_synced": 1}` |
+- `uq_etef_datos_llave_activa` — UNIQUE parcial `(anio, trimestre, cve_ent, codigo_scian_id)` WHERE `is_current = TRUE`
+- `ix_etef_datos_anio_trimestre`, `ix_etef_datos_cve_ent`, `ix_etef_datos_codigo_scian_id`
+- `ix_etef_datos_is_current`, `ix_etef_datos_row_hash`
 
-## Flujo del pipeline
+### Vista de integración
+
+| Vista | Descripción |
+|---|---|
+| `vw_etef_datos` | Expone únicamente registros activos (`is_current = TRUE`). JOIN con `stg_etef_cat_codigo_scian` (subsector) y `cvegeo_municipalities` (nombre de entidad vía FDW). |
+
+La vista incluye: `anio`, `trimestre`, `mes`, `prod_est`, `cobertura`, `cve_ent`, `cvegeo`,
+`nom_ent`, `codigo_scian`, `subsector`, `version_scian`, `val_usd`, `estatus_cifra`,
+`estatus`, columnas SCD2 y auditoría.
+
+---
+
+## Estrategia SCD2
+
+### Qué se versiona
+
+| Columna mutable | Tipo | Descripción |
+|---|---|---|
+| `val_usd` | NUMERIC | Valor de exportación en USD. INEGI publica revisiones históricas. |
+| `estatus_cifra` | VARCHAR | Estado de la cifra (p.ej. "Definitiva", "Preliminar"). |
+| `estatus` | VARCHAR | Estatus del registro en la fuente. |
+
+### Cálculo del hash
+
+En `transform.py`:
+
+```python
+hash_input = df[["val_usd", "estatus_cifra", "estatus"]].fillna("").astype(str).agg("|".join, axis=1)
+df["row_hash"] = hash_input.apply(lambda s: hashlib.sha256(s.encode("utf-8")).hexdigest())
+```
+
+Se concatenan las tres columnas mutables con `|` como separador y se aplica SHA-256.
+
+### Cuándo se abre/cierra una versión
+
+En `load.py` (modo `update`):
+
+1. Se cargan todos los registros activos (`is_current = TRUE`) a memoria.
+2. Para cada fila del DataFrame transformado:
+   - **Llave no encontrada** → INSERT nuevo registro (`is_current=True`, `valid_to=NULL`).
+   - **Llave encontrada, hash igual** → Sin cambios (skip).
+   - **Llave encontrada, hash diferente** → Se **cierra** la versión activa (`is_current=False`, `valid_to=NOW()`) y se inserta una nueva versión activa.
+3. El índice parcial `uq_etef_datos_llave_activa` garantiza que solo exista una versión `is_current=TRUE` por llave natural.
+
+### Modo bootstrap
+
+Inserta todos los registros históricos como versión inicial con `is_current=True` y `valid_from=NOW()`.
+No hay versiones cerradas en el bootstrap.
+
+---
+
+## Implementación ETL
+
+| Modo | Implementado | Estrategia |
+|---|:---:|---|
+| Bootstrap | ✅ | Carga completa 2007-I a 2025-IV |
+| Update | ✅ | SCD2 (cerrar versión cambiada + nueva versión) |
 
 ### Extract
-1. Descarga ZIP desde la URL de INEGI (timeout 180s)
-2. Extrae el archivo `eef_trimestral_tr_cifra_2007_2025.csv` del ZIP
-3. Elimina el ZIP local
-4. Retorna ruta al CSV: `data/extract/etef/eef_trimestral_*_*.csv`
+
+1. Descarga el ZIP desde `ETEF_SOURCE_URL` (timeout 180 s).
+2. Detecta dinámicamente el CSV dentro del ZIP (prefiere `conjunto_de_datos/`).
+3. Escribe el CSV en `data/extract/etef/etef_<timestamp>.csv`.
+4. Elimina el ZIP local.
 
 ### Transform
-1. Lee CSV en UTF-8
-2. Normaliza headers a `snake_case` y aplica `COLUMN_RENAME_MAP`
-3. Limpia valores en `NULL_VALUES` (`"NO APLICA"`, `"NA"`, `""`, etc.)
-4. **Filtra a Jalisco**: `cve_ent == 14` (reduce ~65K → ~4–5K registros)
-5. Convierte tipos: `anio` → int, `val_usd` → float
-6. Extrae valores únicos de `codigo_scian` → catálogo
-7. Crea `llave_natural` concatenando `(anio|trimestre|cve_ent|codigo_scian)`
-8. Sanitiza NaN/NaT residuales a None
+
+1. Lee el CSV completo (UTF-8) en un `DataFrame` con dtype `str`.
+2. Normaliza headers a `snake_case` vía `normalize_col` y aplica `COLUMN_RENAME_MAP`.
+3. Sustituye valores en `NULL_VALUES` (`"NO APLICA"`, `"NA"`, `"N/A"`, `""`, etc.) por `None`.
+4. Convierte tipos: `anio` → `Int64`, `cve_ent` → `Int64`, `val_usd` → `float`.
+5. Calcula `row_hash` SHA-256 sobre columnas mutables (`val_usd|estatus_cifra|estatus`).
+6. Extrae valores únicos del catálogo `codigo_scian`.
+7. Construye columna `llave_natural` para trazabilidad en logs.
+8. Sanitiza `NaN`/`NaT` residuales a `None`.
 
 ### Load
-1. Crea/verifica tablas SQLAlchemy
-2. Sincroniza catálogo `codigo_scian` (insert on conflict)
-3. Construye mapa `codigo → id`
-4. Resuelve IDs de catálogo en el DataFrame
-5. Bulk insert de registros en `stg_etef_datos` (batch size: 5000 por defecto)
-6. Sincroniza secuencias SERIAL
 
-## Periodicidad
+1. Crea/verifica las tablas SQLAlchemy contra la BD.
+2. Sincroniza catálogo `codigo_scian` (INSERT … ON CONFLICT DO NOTHING).
+3. Construye mapa `codigo → id` y resuelve `codigo_scian_id` en el DataFrame.
+4. **Bootstrap**: `bulk_insert` directo (batches de `ETEF_LOAD_BATCH_SIZE`).
+5. **Update**: SCD2 — cierra versiones modificadas y hace `bulk_insert` de nuevas versiones.
+6. Sincroniza secuencias SERIAL de todas las tablas.
 
-- **Bootstrap DAG** (`etl_etef_bootstrap`): 
-  - Schedule: `None` (manual/on-demand)
-  - Carga completa 2007–2025
-  - Tags: `["etl", "etef", "bootstrap", "on-demand"]`
+---
 
-- **Update DAG** (`etl_etef_update`):
-  - Schedule: `"0 0 1 */3 *"` — 1er día de cada trimestre a las 00:00
-  - Carga trimestral (re-ingestión completa del ZIP)
-  - Tags: `["etl", "etef", "update"]`
+## Migraciones Flyway
 
-## Configuración
-
-Variables en `.env` (ver `.env.example` y `config.py`):
-
-| Variable | Default | Descripción |
+| Versión | Archivo | Descripción |
 |---|---|---|
-| `ETEF_DB_HOST` | `localhost` | Host de la BD (Docker: `host.docker.internal`) |
-| `ETEF_DB_PORT` | `5432` | Puerto PostgreSQL |
-| `ETEF_DB_USER` | `bi_iieg` | Usuario BD |
-| `ETEF_DB_PASS` | `changeme` | Contraseña (no usar en producción) |
-| `ETEF_DB_NAME` | `etef` | Nombre de la BD |
-| `ETEF_SOURCE_URL` | URL INEGI | ZIP del INEGI (no cambiar) |
-| `ETEF_LOAD_BATCH_SIZE` | `5000` | Registros por batch en INSERT |
-| `ETEF_FILTER_CVE_ENT` | `14` | Filtro geográfico (Jalisco) |
+| V1 | `V1__catalogos.sql` | Crea `stg_etef_cat_codigo_scian` con índice en `codigo`. |
+| V2 | `V2__cvegeo.sql` | Instala `postgres_fdw`, define `cvegeo_server` y foreign table `cvegeo_municipalities`. |
+| V3 | `V3__tabla_principal.sql` | Crea `stg_etef_datos` (sin SCD2 aún) con 4 índices analíticos. |
+| V4 | `V4__vista.sql` | Vista `vw_etef_datos` sin columnas SCD2 (versión pre-SCD2). |
+| V5 | `V5__scd2_etef.sql` | Agrega `prod_est`, `cobertura`, `row_hash`, `valid_from`, `valid_to`, `is_current`; reemplaza UNIQUE plano por índice parcial `uq_etef_datos_llave_activa`. |
+| V6 | `V6__vista_scd2_etef.sql` | Reemplaza `vw_etef_datos` para incluir columnas SCD2 y filtrar `is_current = TRUE`. |
 
-Para migraciones Flyway:
+Aplicar migraciones:
 
 ```bash
-# Configurar Flyway
-just flyway-config etef
-# Editar migrations/etef/flyway.conf con credenciales reales
+# Copiar y configurar credenciales
+cp migrations/etef/flyway.conf.example migrations/etef/flyway.conf
+# Editar migrations/etef/flyway.conf con host, user, pass reales
 
-# Aplicar migraciones
-just flyway-reset etef
+# Aplicar todas las migraciones
+just migrate etef
 
-# Verificar
+# Verificar estado
 just flyway-info etef
 ```
 
-## Migraciones
+---
 
-- **V1** `catalogos` — Tabla `stg_etef_cat_codigo_scian` con 27 códigos SCIAN
-- **V2** `cvegeo` — Extensión `postgres_fdw`, server, foreign table a `cvegeo.municipalities`
-- **V3** `tabla_principal` — Tabla `stg_etef_datos` con 4 índices (anio+trimestre, cve_ent, codigo_scian_id, llave natural)
-- **V4** `vista` — Vista `vw_etef_datos` con nombres humanos (subsector + entidad desde cvegeo)
+## Variables de entorno
 
-## Utilidades reutilizadas
+Definidas en `.env.example`. Crear `.env` local (no commitear).
 
-- `core.utils.bulk_ops.insert_records` — Sincronización de catálogos
-- `core.utils.bulk_ops.bulk_insert` — Bulk insert de datos principales
-- `core.utils.bulk_ops.get_mapping` — Caché `name → id` para resolución de FKs
-- `core.utils.bulk_ops.sync_id_sequence` — Sincronización de secuencias SERIAL
-- `core.utils.clean.list_values_to_null` — Limpieza de valores nulos
-- `core.utils.normalize.normalize_col` — Normalización de headers a snake_case
-- `core.utils.files.clean_directory` — Limpieza de directorios temporales
+| Variable | Default | Descripción |
+|---|---|---|
+| `ETEF_DB_HOST` | `localhost` | Host PostgreSQL (Docker: `host.docker.internal`) |
+| `ETEF_DB_PORT` | `5432` | Puerto PostgreSQL |
+| `ETEF_DB_USER` | `bi_iieg` | Usuario de BD |
+| `ETEF_DB_PASS` | `changeme` | Contraseña (reemplazar en producción) |
+| `ETEF_DB_NAME` | `etef` | Nombre de la base de datos |
+| `ETEF_SOURCE_URL` | URL INEGI | ZIP público de INEGI (no modificar salvo cambio de fuente) |
+| `ETEF_LOAD_BATCH_SIZE` | `5000` | Registros por lote en INSERT |
 
-## Ejecución local
+---
+
+## DAGs de Airflow
+
+| DAG ID | Schedule | Modo | Descripción |
+|---|---|---|---|
+| `etl_etef_bootstrap` | `None` (on-demand) | bootstrap | Carga inicial histórica 2007-I a 2025-IV. Ejecutar manualmente una sola vez. |
+| `etl_etef_update` | `@quarterly` | update | Actualización trimestral con SCD2. Se activa automáticamente cada trimestre. |
+
+Ambos DAGs usan `PythonOperator` con 1 tarea (`run_bootstrap` / `run_update`) que ejecuta
+`Pipeline(stages=[EtefExtractor, EtefTransformer, EtefLoader]).run(mode=…)`.
+
+---
+
+## Estructura de archivos
+
+```
+core/pipelines/etef/
+├── .env.example            # Variables de entorno (plantilla)
+├── README.md               # Este archivo
+├── attributes.py           # EtefTables (StrEnum), MUTABLE_COLUMNS, HASH_COLUMNS, NATURAL_KEY_COLUMNS
+├── config.py               # Settings: DB, URL fuente, batch size
+├── consts.py               # PIPELINE_NAME, NULL_VALUES, COLUMN_RENAME_MAP, CATALOG_COLUMNS
+├── schemas.py              # SQLAlchemy: CatCodigoScian, EtefDatos, CATALOG_MODELS
+├── eda/
+│   └── reporte_eda.json    # Reporte EDA: 65,664 filas, 10 columnas, 2007-I a 2025-IV
+└── stages/
+    ├── extract.py          # Descarga ZIP, extrae CSV dinámicamente
+    ├── transform.py        # Limpieza, hash SCD2, extracción de catálogos
+    └── load.py             # Bootstrap bulk insert + SCD2 update
+
+dags/
+└── etl_etef.py             # DAGs: etl_etef_bootstrap (None) + etl_etef_update (@quarterly)
+
+migrations/etef/
+├── flyway.conf.example
+└── sql/
+    ├── V1__catalogos.sql
+    ├── V2__cvegeo.sql
+    ├── V3__tabla_principal.sql
+    ├── V4__vista.sql
+    ├── V5__scd2_etef.sql
+    └── V6__vista_scd2_etef.sql
+```
+
+---
+
+## Ejecución
+
+### Bootstrap (primera vez)
 
 ```bash
-# Activar environment
-conda activate etl
+# 1. Aplicar migraciones
+just migrate etef
 
-# Ejecutar DAG bootstrap como script (sin Airflow)
-python dags/etl_etef.py
+# 2. Copiar y configurar variables de entorno
+cp core/pipelines/etef/.env.example core/pipelines/etef/.env
+# Editar .env con credenciales reales
 
-# O con Airflow (después de just up)
-just up
-just logs airflow-dag-processor
+# 3. Ejecutar bootstrap (requiere PostgreSQL activo)
+conda run -n etl python dags/etl_etef.py
 ```
+
+### Update trimestral
+
+```bash
+# Ejecutar manualmente (o esperar el trigger @quarterly en Airflow)
+conda run -n etl python -c "
+from core.pipelines.etef.stages.extract import EtefExtractor
+from core.pipelines.etef.stages.transform import EtefTransformer
+from core.pipelines.etef.stages.load import EtefLoader
+from core.pipeline import Pipeline
+Pipeline('etef', [EtefExtractor('update'), EtefTransformer('update'), EtefLoader('update')]).run('update')
+"
+```
+
+---
 
 ## Notas
 
-- **VAL_USD es 50% nulo**: Registros con estatus "No disponible" tienen val_usd=NULL (preservado correctamente)
-- **Filtro manual a Jalisco**: Se aplica en Transform, no en la BD. Permite reutilizar el pipeline para otras entidades si es necesario
-- **Re-ingestión completa**: Cada carga borra e inserta todo 2007–2025 (estrategia `bootstrap_only`); no hay deduplicación ni versionado
+- **VAL_USD ~50% nulo**: Registros con cifras no disponibles tienen `val_usd=NULL`; se preservan correctamente.
+- **Sin filtro geográfico**: El pipeline carga los 32 estados. No existe `ETEF_FILTER_CVE_ENT` en `config.py`.
+- **Detección dinámica del CSV**: Si INEGI cambia el nombre del archivo dentro del ZIP, el extractor selecciona automáticamente el primer `.csv` disponible.
+- **Bloqueador de validación**: PostgreSQL debe estar corriendo para que la etapa Load complete. En el entorno local sin BD disponible, Extract y Transform pasan correctamente pero Load falla al intentar conectarse. Ejecutar `just up` antes del bootstrap para levantar la BD.
