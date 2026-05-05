@@ -51,7 +51,7 @@ class EtefDatos(EtefBase):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     anio: Mapped[int]
-    trimestre: Mapped[str] = mapped_column(String(2))
+    trimestre: Mapped[str] = mapped_column(String(3))
     mes: Mapped[str] = mapped_column(String(5))
     prod_est: Mapped[Optional[str]] = mapped_column(String(150))
     cobertura: Mapped[Optional[str]] = mapped_column(String(50))

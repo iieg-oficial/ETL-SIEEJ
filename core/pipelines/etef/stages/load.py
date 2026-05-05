@@ -164,7 +164,7 @@ class EtefLoader(Stage):
     def _load_catalogs(self, session, catalog_values: dict[str, list[str]]) -> None:
         for cat_key, values in catalog_values.items():
             model = CATALOG_MODELS[cat_key]
-            records = [{"codigo": v, "descripcion": None, "version": None} for v in values]
+            records = [{"codigo": v, "descripcion": None} for v in values]
             insert_records(session, records, model, conflict_keys=["codigo"])
             self.logger.info(f"Catálogo '{cat_key}': {len(records)} valores sincronizados")
 

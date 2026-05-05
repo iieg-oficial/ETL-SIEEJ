@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS stg_etef_datos (
     id              SERIAL          PRIMARY KEY,
     anio            INTEGER         NOT NULL,
-    trimestre       VARCHAR(2)      NOT NULL,
+    trimestre       VARCHAR(3)      NOT NULL,
     mes             VARCHAR(5)      NOT NULL,
     prod_est        VARCHAR(150),
     cobertura       VARCHAR(50),
