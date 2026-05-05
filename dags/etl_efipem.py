@@ -15,7 +15,7 @@ from core.pipelines.efipem.stages.transform import EfipemTransformer
 
 
 def run_bootstrap():
-    """Ejecuta la carga inicial completa de EFIPEM (Jalisco)."""
+    """Ejecuta la carga inicial completa de EFIPEM (cobertura nacional)."""
     pipeline = Pipeline(
         name="efipem",
         stages=[
@@ -28,7 +28,7 @@ def run_bootstrap():
 
 
 def run_update():
-    """Ejecuta carga incremental (re-ingesta total: la fuente sobreescribe)."""
+    """Ejecuta carga incremental SCD2: cierra versiones modificadas e inserta nuevas."""
     pipeline = Pipeline(
         name="efipem",
         stages=[
@@ -53,7 +53,7 @@ default_args_bootstrap = {
 with DAG(
     "etl_efipem_bootstrap",
     default_args=default_args_bootstrap,
-    description="EFIPEM Bootstrap - Carga inicial Jalisco (On Demand)",
+    description="EFIPEM Bootstrap - Carga inicial nacional (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
     schedule=None,
@@ -79,7 +79,7 @@ default_args_update = {
 with DAG(
     "etl_efipem_update",
     default_args=default_args_update,
-    description="EFIPEM Update - Re-ingesta trimestral (fuente sobreescribe)",
+    description="EFIPEM Update - Re-ingesta trimestral SCD2",
     schedule="0 2 15 2,5,8,11 *",
     start_date=datetime(2024, 1, 1),
     catchup=False,

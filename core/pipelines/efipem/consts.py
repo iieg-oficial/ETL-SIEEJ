@@ -20,8 +20,11 @@ COLUMN_RENAME_MAP = {
 # depender de 'clasificador'.
 CATALOG_COLUMNS = ["trimestre", "tema", "clasificador", "estatus"]
 
-# Filtrar solo entidad Jalisco (cve_ent = 14)
-JALISCO_CVE_ENT = "14"
+# Columnas mutables para SCD2 (el hash se calcula sobre estas)
+MUTABLE_COLUMNS = ["valor", "estatus"]
+
+# Llave natural del registro (define unicidad por versión activa)
+NATURAL_KEY_COLUMNS = ["anio", "trimestre_id", "cve_ent", "tema_id", "clasificador_id", "concepto_id"]
 
 # Normalizacion de guiones en CLASIFICADOR: el CSV mezcla em-dash y hyphen.
 # Canonicamos todos a em-dash con espacios: " – "

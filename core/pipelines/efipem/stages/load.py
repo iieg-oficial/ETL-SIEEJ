@@ -1,8 +1,9 @@
 import pandas as pd
 
+from datetime import datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import text
+from sqlalchemy import update
 
 from core.db import Database
 from core.pipelines.efipem.config import settings
@@ -33,9 +34,7 @@ class EfipemLoader(Stage):
         self.db: Database | None = None
         self._catalog_caches: dict[str, dict[str, int]] = {}
         self._concepto_cache: dict[tuple[int, str], int] = {}
-        self._entidad_id_by_cve_ent: dict[str, int] = {}
 
-    # Conecta a la BD y verifica tablas
     def source(self, input_data: Optional[Any] = None) -> dict:
         if not input_data:
             raise ValueError("Load no recibio datos de Transform.")
@@ -48,7 +47,6 @@ class EfipemLoader(Stage):
 
         return input_data
 
-    # Carga catalogos, resuelve FKs y persiste registros
     def action(self, input_data: Optional[Any] = None) -> dict:
         df: pd.DataFrame = input_data["df"]
         catalog_values: dict[str, list[str]] = input_data["catalogs"]
@@ -57,28 +55,127 @@ class EfipemLoader(Stage):
         with self.db.get_session() as session:
             self._load_catalogs(session, catalog_values)
             self._load_conceptos(session, concepto_pairs)
-            self._load_entidad_cache(session)
 
         df = self._resolve_ids(df)
 
-        stats = self._load_records(df)
-        return stats
+        now = datetime.now(timezone.utc)
+        records_inserted = 0
+        records_closed = 0
 
-    # Sincroniza secuencias, limpia carpeta y desconecta
-    def finalization(self, input_data: Optional[Any] = None) -> dict:
+        if self.mode == "bootstrap":
+            records_inserted = self._load_bootstrap(df, now)
+        else:
+            records_inserted, records_closed = self._load_update(df, now)
+
         with self.db.get_session() as session:
+            sync_id_sequence(session, FinanzasTrimestral)
             for model in CATALOG_MODELS.values():
                 sync_id_sequence(session, model)
             sync_id_sequence(session, CatConcepto)
-            sync_id_sequence(session, FinanzasTrimestral)
 
+        return {
+            "mode": self.mode,
+            "records_inserted": records_inserted,
+            "records_closed": records_closed,
+            "catalogs_synced": len(catalog_values),
+        }
+
+    def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(self.work_dir, self.logger)
-
-        self.db.disconnect()
+        if self.db:
+            self.db.disconnect()
         self.logger.info(f"Etapa Load completa. Estadisticas: {input_data}")
         return input_data
 
-    # Inserta valores en catalogos simples y construye caches name->id
+    def _build_record(self, row: dict, now: datetime) -> dict:
+        return {
+            "anio": int(row["anio"]),
+            "trimestre_id": int(row["trimestre_id"]),
+            "cve_ent": int(row["cve_ent"]),
+            "tema_id": int(row["tema_id"]),
+            "clasificador_id": int(row["clasificador_id"]),
+            "concepto_id": int(row["concepto_id"]),
+            "valor": int(row["valor"]),
+            "estatus_id": int(row["estatus_id"]),
+            "row_hash": row["row_hash"],
+            "is_current": True,
+            "valid_from": now,
+            "valid_to": None,
+        }
+
+    def _load_bootstrap(self, df: pd.DataFrame, now: datetime) -> int:
+        records = [self._build_record(row, now) for row in df.to_dict(orient="records")]
+        with self.db.get_session() as session:
+            bulk_insert(session, records, FinanzasTrimestral, chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE)
+        self.logger.info(f"Bootstrap: {len(records)} registros insertados")
+        return len(records)
+
+    def _load_update(self, df: pd.DataFrame, now: datetime) -> tuple[int, int]:
+        with self.db.get_session() as session:
+            active_rows = (
+                session.query(
+                    FinanzasTrimestral.id,
+                    FinanzasTrimestral.anio,
+                    FinanzasTrimestral.trimestre_id,
+                    FinanzasTrimestral.cve_ent,
+                    FinanzasTrimestral.tema_id,
+                    FinanzasTrimestral.clasificador_id,
+                    FinanzasTrimestral.concepto_id,
+                    FinanzasTrimestral.row_hash,
+                )
+                .filter(FinanzasTrimestral.is_current == True)  # noqa: E712
+                .all()
+            )
+
+        active_index: dict[tuple, tuple[int, str]] = {
+            (r.anio, r.trimestre_id, r.cve_ent, r.tema_id, r.clasificador_id, r.concepto_id): (r.id, r.row_hash)
+            for r in active_rows
+        }
+        self.logger.info(f"Registros activos en BD: {len(active_index)}")
+
+        ids_to_close: list[int] = []
+        records_to_insert: list[dict] = []
+
+        for row in df.to_dict(orient="records"):
+            key = (
+                int(row["anio"]),
+                int(row["trimestre_id"]),
+                int(row["cve_ent"]),
+                int(row["tema_id"]),
+                int(row["clasificador_id"]),
+                int(row["concepto_id"]),
+            )
+            incoming_hash: str = row["row_hash"]
+
+            if key not in active_index:
+                records_to_insert.append(self._build_record(row, now))
+            else:
+                db_id, db_hash = active_index[key]
+                if incoming_hash != db_hash:
+                    ids_to_close.append(db_id)
+                    records_to_insert.append(self._build_record(row, now))
+
+        self.logger.info(
+            f"Update: {len(ids_to_close)} registros a cerrar, {len(records_to_insert)} registros a insertar"
+        )
+
+        with self.db.get_session() as session:
+            if ids_to_close:
+                session.execute(
+                    update(FinanzasTrimestral)
+                    .where(FinanzasTrimestral.id.in_(ids_to_close))
+                    .values(valid_to=now, is_current=False)
+                )
+            if records_to_insert:
+                bulk_insert(
+                    session,
+                    records_to_insert,
+                    FinanzasTrimestral,
+                    chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE,
+                )
+
+        return len(records_to_insert), len(ids_to_close)
+
     def _load_catalogs(self, session, catalog_values: dict[str, list[str]]) -> None:
         for cat_key, values in catalog_values.items():
             model = CATALOG_MODELS[cat_key]
@@ -91,7 +188,6 @@ class EfipemLoader(Stage):
         for cat_key, model in CATALOG_MODELS.items():
             self._catalog_caches[cat_key] = get_mapping(session, model, "name", "id")
 
-    # Inserta conceptos (clasificador_id, name) y construye cache
     def _load_conceptos(self, session, concepto_pairs: list[tuple[str, str]]) -> None:
         clasificador_map = self._catalog_caches["clasificador"]
         records = []
@@ -109,29 +205,16 @@ class EfipemLoader(Stage):
         self._concepto_cache = {(r[0], r[1]): r[2] for r in rows}
         self.logger.info(f"Catalogo 'concepto': {len(self._concepto_cache)} entradas en cache")
 
-    # Carga mapping cve_ent -> cvegeo_states.id (FDW)
-    def _load_entidad_cache(self, session) -> None:
-        rows = session.execute(text("SELECT cve_ent, id FROM cvegeo_states")).all()
-        # cve_ent en cvegeo_states es INTEGER; lo normalizamos a str zfill(2) para match
-        self._entidad_id_by_cve_ent = {str(r[0]).zfill(2): r[1] for r in rows}
-        self.logger.info(f"Cache entidades cvegeo: {len(self._entidad_id_by_cve_ent)} entradas")
-
-    # Agrega columnas *_id resolviendo catalogos y entidad
     def _resolve_ids(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in CATALOG_COLUMNS:
             cache = self._catalog_caches[col]
             df[f"{col}_id"] = df[col].map(cache)
 
-        # concepto_id depende de (clasificador_id, concepto)
         df["concepto_id"] = df.apply(
             lambda row: self._concepto_cache.get((row["clasificador_id"], row["concepto"])),
             axis=1,
         )
 
-        # entidad_id via cvegeo FDW
-        df["entidad_id"] = df["cve_ent"].map(self._entidad_id_by_cve_ent)
-
-        # Validar que no haya FKs nulos en campos obligatorios
         required_fk = ["trimestre_id", "tema_id", "clasificador_id", "concepto_id", "estatus_id"]
         for col in required_fk:
             null_count = df[col].isna().sum()
@@ -140,35 +223,3 @@ class EfipemLoader(Stage):
                 raise ValueError(f"FK '{col}' tiene {null_count} valores nulos. Muestra: {sample}")
 
         return df
-
-    # Bootstrap/update: para EFIPEM la fuente sobreescribe => TRUNCATE + bulk_insert
-    def _load_records(self, df: pd.DataFrame) -> dict:
-        records = [
-            {
-                "anio": int(row["anio"]),
-                "trimestre_id": int(row["trimestre_id"]),
-                "cve_ent": row["cve_ent"],
-                "entidad_id": int(row["entidad_id"]) if pd.notna(row["entidad_id"]) else None,
-                "tema_id": int(row["tema_id"]),
-                "clasificador_id": int(row["clasificador_id"]),
-                "concepto_id": int(row["concepto_id"]),
-                "valor": int(row["valor"]),
-                "estatus_id": int(row["estatus_id"]),
-            }
-            for _, row in df.iterrows()
-        ]
-
-        batch_size = settings.EFIPEM_LOAD_BATCH_SIZE
-
-        with self.db.get_session() as session:
-            if self.mode == "update":
-                self.logger.info("Modo update: TRUNCATE de stg_efipem_finanzas_trimestral")
-                session.execute(text(f"TRUNCATE TABLE {FinanzasTrimestral.__tablename__} RESTART IDENTITY"))
-
-            bulk_insert(session, records, FinanzasTrimestral, chunk_size=batch_size)
-            self.logger.info(f"Insertados {len(records)} registros en {FinanzasTrimestral.__tablename__}.")
-
-        return {
-            "mode": self.mode,
-            "inserted": len(records),
-        }

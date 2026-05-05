@@ -11,7 +11,6 @@ class Settings(BaseConfig):
         default="https://www.inegi.org.mx/contenidos/programas/finanzas/datosabiertos/conjunto_de_datos_efipem_trimestral_csv.zip"
     )
     EFIPEM_LOAD_BATCH_SIZE: int = Field(default=5000)
-    EFIPEM_CVE_ENT_FILTER: str = Field(default="14")
 
 
 settings = Settings()

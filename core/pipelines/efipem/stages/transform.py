@@ -1,13 +1,15 @@
+import hashlib
+
 import pandas as pd
 
 from pathlib import Path
 from typing import Any, Optional
 
-from core.pipelines.efipem.config import settings
 from core.pipelines.efipem.consts import (
     CATALOG_COLUMNS,
     CLASIFICADOR_NORMALIZATION,
     COLUMN_RENAME_MAP,
+    MUTABLE_COLUMNS,
     NULL_VALUES,
     PIPELINE_NAME,
 )
@@ -28,10 +30,9 @@ class EfipemTransformer(Stage):
         self.logger.info(f"Archivo fuente: {input_data['file_path']}")
         return input_data
 
-    # Lee el CSV, filtra Jalisco, normaliza y extrae catalogos
+    # Lee el CSV, normaliza y extrae catalogos
     def action(self, input_data: Optional[Any] = None) -> dict:
         file_path = input_data["file_path"]
-        cve_ent_filter = settings.EFIPEM_CVE_ENT_FILTER
 
         self.logger.info(f"Leyendo CSV: {file_path}")
         df = pd.read_csv(file_path, dtype=str, encoding="utf-8")
@@ -44,18 +45,8 @@ class EfipemTransformer(Stage):
         # Limpiar valores nulos
         df = list_values_to_null(df, rm_list=NULL_VALUES)
 
-        # Zero-pad CVEGEO y CVE_ENT a 2 digitos (vienen como "1", "2", ... en el CSV)
-        for col in ["cvegeo", "cve_ent"]:
-            if col in df.columns:
-                df[col] = df[col].str.strip().str.zfill(2)
-
-        # Filtrar solo la entidad solicitada (Jalisco)
-        before = len(df)
-        df = df[df["cve_ent"] == cve_ent_filter].copy()
-        self.logger.info(f"Filtro cve_ent='{cve_ent_filter}': {before} -> {len(df)} registros")
-
-        if df.empty:
-            raise ValueError(f"No hay registros tras filtrar cve_ent='{cve_ent_filter}'")
+        # cve_ent a entero (el CSV lo trae como "1", "2", ..., "32")
+        df["cve_ent"] = pd.to_numeric(df["cve_ent"].str.strip(), errors="coerce").astype("Int64")
 
         # Normalizar clasificador (unificar guiones em-dash / hyphen)
         df["clasificador"] = df["clasificador"].str.strip()
@@ -64,6 +55,14 @@ class EfipemTransformer(Stage):
         # Tipar numericos
         df["anio"] = df["anio"].astype(int)
         df["valor"] = df["valor"].astype("int64")
+
+        # Calcular row_hash SHA-256 sobre columnas mutables (antes de resolver IDs)
+        def _row_hash(row: pd.Series) -> str:
+            raw = "|".join(str(row[c]) if pd.notna(row[c]) else "" for c in MUTABLE_COLUMNS)
+            return hashlib.sha256(raw.encode()).hexdigest()
+
+        df["row_hash"] = df.apply(_row_hash, axis=1)
+        self.logger.info(f"row_hash calculado. Registros totales: {len(df)}")
 
         # Extraer catalogos simples (name-only)
         catalogs: dict[str, list[str]] = {}
