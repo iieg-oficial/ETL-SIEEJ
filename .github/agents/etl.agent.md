@@ -1,8 +1,6 @@
 ---
 name: ETL Agent
 description: "Use when implementing ETL stages, DAGs, and environment files, then running bootstrap validation until the flow passes or a real external blocker is confirmed."
-tools: [read, search, edit, execute, todo]
-model: "Claude Sonnet 4.6 (copilot)"
 user-invocable: false
 ---
 

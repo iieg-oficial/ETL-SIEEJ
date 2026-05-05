@@ -1,8 +1,6 @@
 ---
 name: Docs Agent
 description: "Use when generating or updating a pipeline README from implemented code, migrations, EDA outputs, and environment files."
-tools: [read, search, edit]
-model: "Claude Haiku 4.5 (copilot)"
 user-invocable: false
 ---
 

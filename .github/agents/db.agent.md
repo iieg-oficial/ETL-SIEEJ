@@ -1,8 +1,6 @@
 ---
 name: DB Agent
 description: "Use when turning `reporte_eda.json` into Flyway migrations, `attributes.py`, `schemas.py`, and ER artifacts for a pipeline."
-tools: [read, search, edit, execute]
-model: "Claude Sonnet 4.6 (copilot)"
 user-invocable: false
 ---
 

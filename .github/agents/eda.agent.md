@@ -1,8 +1,6 @@
 ---
 name: EDA Agent
 description: "Use when analyzing source data, creating `eda_{flujo}.py`, and producing `reporte_eda.json` for a new pipeline."
-tools: [read, search, execute, edit]
-model: "Claude Sonnet 4.6 (copilot)"
 user-invocable: false
 ---
 

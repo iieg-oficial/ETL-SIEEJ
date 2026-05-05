@@ -2,7 +2,6 @@
 description: "Use when starting a new ETL pipeline workflow and the team needs guided intake, strict planning, and missing-detail collection before implementation begins."
 agent: "Data Engineer Agent"
 argument-hint: "<pipeline_name> <source_urls_or_notes>"
-tools: [vscode/askQuestions]
 ---
 
 # Nuevo Pipeline ETL
@@ -30,9 +29,9 @@ Este prompt debe iniciar siempre en modo planificación estricta.
 ## Reglas de arranque
 
 1. Antes de delegar, crear archivos o ejecutar Git, entra a Fase 0: planificación.
-2. Si falta cualquier dato requerido o hay ambigüedad, usa `#tool:vscode/askQuestions` en una sola tanda estructurada.
+2. Si falta cualquier dato requerido o hay ambigüedad, lanza una sola tanda estructurada de preguntas con la herramienta de askQuestions.
 3. No infieras reglas de negocio, frecuencia, estrategia de update, nivel geográfico, nombres de tablas, credenciales o decisiones operativas sin confirmación explícita.
 4. Presenta un resumen de intake con datos confirmados, datos faltantes y riesgos antes de continuar.
-5. Solo después de la aprobación del usuario puedes pasar a EDA, DB, ETL, documentación o Git.
-6. DEA mantiene la orquestación completa. EDA, DB, ETL y DOCS solo ejecutan su especialidad.
+5. Una vez aprobado el plan por el usuario, **continúa inmediatamente** con el Workflow del Data Engineer Agent (EDA → DB → ETL → DOCS → Git). No te detengas ni pidas permiso entre subfases salvo en los puntos explícitos del agente.
+6. DEA mantiene la orquestación completa y ejecuta directamente Git (issue, branch, commits, PR). EDA, DB, ETL y DOCS solo ejecutan su especialidad y se invocan vía subagent.
 7. El issue y el pull request deben salir de los skills `issue-template` y `pull-request-template`, cada uno usando su propio `template.md` local.
