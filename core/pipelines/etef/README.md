@@ -189,7 +189,7 @@ Definidas en `.env.example`. Crear `.env` local (no commitear).
 |---|---|---|
 | `ETEF_DB_HOST` | `localhost` | Host PostgreSQL (Docker: `host.docker.internal`) |
 | `ETEF_DB_PORT` | `5432` | Puerto PostgreSQL |
-| `ETEF_DB_USER` | `bi_iieg` | Usuario de BD |
+| `ETEF_DB_USER` | `iieg` | Usuario de BD |
 | `ETEF_DB_PASS` | `changeme` | Contraseña (reemplazar en producción) |
 | `ETEF_DB_NAME` | `etef` | Nombre de la base de datos |
 | `ETEF_SOURCE_URL` | URL INEGI | ZIP público de INEGI (no modificar salvo cambio de fuente) |
