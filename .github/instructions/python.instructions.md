@@ -4,73 +4,22 @@ description: Convenciones globales de estilo y estructura para código Python.
 applyTo: "**/*.py"
 ---
 
-# Python — Instrucciones globales
+# Python Instructions
 
-## Reglas generales
+> Applies to: DEA, EDA, ETL, and Python code generated in this repository
 
-- Priorizar código simple, claro, mantenible y modular.
-- Evitar sobreingeniería.
-- Mantener consistencia en nombres, estructura y estilo en todo el proyecto.
-- Antes de agregar archivos o módulos nuevos, respetar la estructura ya definida del repositorio.
-- Toda lectura y escritura de archivos debe manejarse en UTF-8.
-- No usar `print()` para depuración o seguimiento; usar `logging`.
-- Separar responsabilidades: no mezclar acceso a datos, validación, lógica de negocio y presentación en un mismo archivo.
+## Rules
 
-## Lenguaje y entorno
-
-- Versión objetivo: Python 3.12+.
-- Antes de ejecutar o probar código, verificar que se usa el entorno virtual correcto del proyecto.
-
-## Imports
-
-- Mantener imports solamente en la parte superior del archivo.
-- No usar imports dentro de funciones, salvo que exista una razón técnica clara (ej: dependencia opcional o circular).
-- Ordenar imports: stdlib → terceros → locales, separados por línea en blanco.
-
-## Convenciones de nombres
-
-- `snake_case` para variables, funciones, módulos y archivos.
-- `PascalCase` para clases.
-- `UPPER_CASE` para constantes.
-- Nombres descriptivos; evitar abreviaciones crípticas.
-
-## Funciones
-
-- Toda función debe incluir type hints en parámetros y retorno.
-- Toda función debe tener docstring clara y breve con:
-  - descripción
-  - args
-  - returns
-- Preferir funciones atómicas, reutilizables y con una sola responsabilidad.
-- Evitar funciones demasiado largas (guideline: si supera ~40 líneas, considerar dividir).
-- Evitar código duplicado; extraer lógica repetida a funciones reutilizables.
-
-## Comentarios y logging
-
-- Comentar únicamente bloques concretos cuando aporte claridad real.
-- Los comentarios deben ser simples, cortos y usando `#`.
-- No usar `print()` para seguimiento; usar `logging` con niveles apropiados (debug, info, warning, error).
-- Mantener los mensajes de log sencillos, directos y consistentes.
-
-## Manejo de errores
-
-- Manejar errores de forma explícita y clara.
-- Capturar excepciones específicas, no usar `except Exception` genérico salvo en capas superiores.
-- Incluir contexto útil en los mensajes de error.
-
-## Estilo de implementación
-
-- Escribir primero código legible antes que código "inteligente".
-- Preferir claridad sobre abreviaciones.
-- Mantener cada archivo enfocado en una responsabilidad concreta.
-- Si una solución se puede resolver de forma simple o compleja, elegir la simple.
-- Al generar código nuevo, seguir el patrón existente del proyecto antes de proponer estructuras distintas.
-
-## Qué evitar
-
-- No usar `print()` para logging o depuración.
-- No usar imports dentro de funciones sin razón técnica clara.
-- No mezclar múltiples responsabilidades en un mismo archivo.
-- No generar código innecesariamente abstracto.
-- No agregar dependencias nuevas sin justificación clara.
-- No ignorar errores silenciosamente (`except: pass`).
+- Follow PEP8. Write atomic, reusable functions with English docstrings.
+- Use strict typing for function arguments and return values.
+- Handle exceptions explicitly with `try/except`. Use `logging`, never `print`.
+- Keep imports at the top of the file in this order: standard library, third-party, local. Never import inside functions.
+- Do not hardcode fixed values. Use `UPPER_CASE` constants defined in the pipeline `constants.py` or `consts.py`.
+- Use `snake_case` for variables and functions, `PascalCase` for classes, and `UPPER_CASE` for constants.
+- Before creating a new helper, check whether it already exists in `core/utils/`. If not, create it in the pipeline `helpers/` package.
+- Keep files in UTF-8. Use `normalize_text` from `core/utils/normalize.py` for variable and column names. Do not use accents, `ñ`, or special characters in identifiers.
+- Do not add decorative comments such as `#=== Title ===`. Keep comments short, precise, and in English.
+- **Environment:** always use the `etl` conda environment (Python 3.12) for Python scripts. Activate `etl` or use `conda run -n etl`. Never use system `python` or `python3` unless you have verified it points to the `etl` environment.
+- Add new dependencies to `requirements.txt` with pinned versions.
+- Respect `line-length = 120` from `pyproject.toml` and run `ruff check` before each commit.
+- Stage files must inherit from `core.pipeline.Stage` (ABC) and implement `source()`, `action()`, and `finalization()`.

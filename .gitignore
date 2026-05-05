@@ -35,3 +35,6 @@ dumps/*
 
 # Claude local settings
 .claude/settings.local.json
+
+# Old files
+*.old
