@@ -1,4 +1,6 @@
 ---
+name: python
+description: Convenciones globales de estilo y estructura para código Python.
 applyTo: "**/*.py"
 ---
 

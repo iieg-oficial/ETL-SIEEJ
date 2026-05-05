@@ -1,1 +1,1 @@
-commitea y empuja siguiendo las reglas establecidas en .claude/rules/git-rules.md
+commitea y empuja siguiendo las reglas establecidas en .claude/rules/commits.md

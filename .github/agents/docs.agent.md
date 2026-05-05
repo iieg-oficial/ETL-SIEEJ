@@ -21,6 +21,6 @@ You only own pipeline documentation.
 - Do not modify ETL, schema, or Git artifacts.
 - If an artifact is missing, document that fact explicitly.
 
-## Output
+## Reglas que DEBE cumplir
 
 Return the README path and a short note about any documented gaps.

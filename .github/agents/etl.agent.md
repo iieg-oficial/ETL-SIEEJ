@@ -25,6 +25,6 @@ You own ETL implementation and validation.
 - Reuse project helpers before creating pipeline-specific helpers.
 - Keep `bootstrap` and `update` behavior explicit in every stage.
 
-## Output
+## Reglas que DEBE cumplir
 
 Return the modified ETL artifact paths, bootstrap validation status, per-stage results, and any remaining external blockers.

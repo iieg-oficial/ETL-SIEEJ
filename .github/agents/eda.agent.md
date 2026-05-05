@@ -23,6 +23,6 @@ You only own source inspection and EDA artifacts.
 - Do not use notebooks.
 - Do not store downloaded source data inside `eda/`.
 
-## Output
+## Restricciones
 
 Return the EDA script path, report path, and a short findings summary.
