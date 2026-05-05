@@ -1,117 +1,41 @@
 ---
 name: git-pipeline-commits
-description: Secuencia canónica de commits atómicos para un pipeline ETL SIEEJ nuevo, siguiendo Conventional Commits con scope = nombre del pipeline. Úsalo al cerrar un pipeline y preparar el PR hacia `develop`.
-argument-hint: <pipeline>
+description: Use when preparing atomic commits for a pipeline implementation with the repository commit convention.
 ---
 
-# Skill: Commits de un Pipeline
+# Skill: Git Pipeline Commits
 
-Plantilla de commits atómicos y seguros. Las reglas de convención están en `.github/instructions/commits.instructions.md`; este skill **solo provee la secuencia exacta** para el caso "crear un pipeline nuevo".
+## Purpose
+Use this skill in the DEA Git phase to create atomic commits with consistent conventional messages.
 
-## Precondiciones
+## Steps
 
-- Estar en una rama del issue (creada desde GitHub, no localmente).
-- `conda activate etl` activo.
-- Ruff sin errores:
-  ```bash
-  ruff check core/pipelines/{pipeline}/ dags/etl_{pipeline}.py
-  ruff check --fix core/pipelines/{pipeline}/ dags/etl_{pipeline}.py  # si hay errores
-  ```
-- Ningún archivo sensible staged (ver sección "Archivos prohibidos").
+1. Verify that the files to commit do not include `.env`, raw data (`.csv`, `.xlsx`), `.pyc`, or unwanted generated files. Review `git status` and compare against `.gitignore`.
+2. Run `ruff check` on the Python files included in the commit.
+3. Stage only the files that belong to the current change set. Never use `git add .`.
+4. Write the commit message using the convention from the table below.
+5. Run the commit and review the pre-commit output. If Ruff fails, fix the errors and repeat from step 2.
+6. Repeat per feature until the branch is fully committed.
 
-## Secuencia canónica de commits
+## Template
 
-Scope = nombre del pipeline (`{pipeline}`). Un commit = un cambio lógico.
+Valid commit types and ETL-oriented examples:
 
-```bash
-# 1. Migraciones (orden: V1 catálogos, V2 cvegeo, V3 tabla, V4 vista)
-git add migrations/{pipeline}/sql/ migrations/{pipeline}/flyway.conf.example
-git commit -m "feat({pipeline}): add initial Flyway migrations"
+| Type       | When to use it                                        | Example message                                            |
+|------------|-------------------------------------------------------|------------------------------------------------------------|
+| `feat`     | New pipeline file or feature                          | `feat({flujo}): add extract stage`                         |
+| `feat`     | New Airflow DAG                                       | `feat({flujo}): add airflow dag bootstrap and update`      |
+| `feat`     | New Flyway migration                                  | `feat({flujo}): add V1 catalogs migration`                 |
+| `feat`     | New `schemas.py`                                      | `feat({flujo}): add sqlalchemy models`                     |
+| `fix`      | Stage bug fix                                         | `fix({flujo}): handle null values in transform stage`      |
+| `fix`      | Migration fix                                         | `fix({flujo}): correct column type in V3 migration`        |
+| `chore`    | Dependencies, `.env.example`, or config updates       | `chore({flujo}): update requirements and env example`      |
+| `docs`     | Pipeline README                                       | `docs({flujo}): add pipeline readme and er diagram`        |
+| `test`     | Validation script or testing report                   | `test({flujo}): add eda script and report`                 |
+| `refactor` | Behavior-preserving restructuring                     | `refactor({flujo}): split load stage into helpers`         |
 
-# 2. Config y constantes
-git add core/pipelines/{pipeline}/__init__.py \
-        core/pipelines/{pipeline}/config.py \
-        core/pipelines/{pipeline}/consts.py
-git commit -m "feat({pipeline}): add config and constants"
-
-# 3. Schemas SQLAlchemy
-git add core/pipelines/{pipeline}/schemas.py
-git commit -m "feat({pipeline}): add SQLAlchemy schemas"
-
-# 4. Extract stage
-git add core/pipelines/{pipeline}/stages/__init__.py \
-        core/pipelines/{pipeline}/stages/extract.py
-git commit -m "feat({pipeline}): add extract stage"
-
-# 5. Transform stage
-git add core/pipelines/{pipeline}/stages/transform.py
-git commit -m "feat({pipeline}): add transform stage"
-
-# 6. Load stage
-git add core/pipelines/{pipeline}/stages/load.py
-git commit -m "feat({pipeline}): add load stage"
-
-# 7. DAG de Airflow
-git add dags/etl_{pipeline}.py
-git commit -m "feat({pipeline}): add bootstrap and update DAGs"
-
-# 8. Documentación
-git add core/pipelines/{pipeline}/README.md \
-        core/pipelines/{pipeline}/.env.example
-git commit -m "docs({pipeline}): add README and env example"
-```
-
-Si la periodicidad es > 3 meses, el paso 7 es `"feat({pipeline}): add bootstrap DAG"` (sin update).
-
-## Archivos prohibidos (nunca staged)
-
-Verificar con `git status` antes de cada commit. Si aparece uno:
-
-```bash
-git reset HEAD <archivo>
-```
-
-| Patrón | Razón |
-|---|---|
-| `core/pipelines/{pipeline}/.env` | Credenciales reales |
-| `migrations/{pipeline}/flyway.conf` | Credenciales Flyway |
-| `data/**` | Datos descargados |
-| `logs/**` | Logs locales |
-| `*.pyc`, `__pycache__/` | Bytecode Python |
-| `.ipynb_checkpoints/` | Jupyter temp |
-| `tmp/**` | Exploración temporal |
-
-## Variantes según tipo de cambio
-
-| Tipo de PR | Tipo | Ejemplos |
-|---|---|---|
-| Pipeline nuevo | `feat` | `feat({pipeline}): add extract stage` |
-| Bug en pipeline existente | `fix` | `fix({pipeline}): handle null municipios` |
-| Cambio de funcionalidad | `update` | `update({pipeline}): switch to monthly cron` |
-| Refactor sin cambio funcional | `refactor` | `refactor({pipeline}): extract hash to utils` |
-| Solo documentación | `docs` | `docs({pipeline}): update ERD diagram` |
-| Dependencias / config | `chore` | `chore({pipeline}): upgrade pandas to 2.2` |
-| Cambios transversales a core | `feat(core)` / `feat(utils)` | `feat(core): add sync_id_sequence util` |
-
-## Preparar el push y el PR
-
-```bash
-# Revisión final
-git log --oneline $(git merge-base HEAD develop)..HEAD
-
-# Subida (confirmar antes de ejecutar)
-git push -u origin <nombre-rama>
-```
-
-Abrir PR hacia `develop` y completar el checklist de `CONTRIBUTING.md`. **Nunca** `--force` en ramas compartidas. **Nunca** push directo a `main`/`develop`.
-
-## Checklist antes del push
-
-- [ ] `ruff check` pasa sin errores.
-- [ ] `just flyway-reset {pipeline}` y `just flyway-validate {pipeline}` OK.
-- [ ] El pipeline corre end-to-end en bootstrap (`python dags/etl_{pipeline}.py`).
-- [ ] `.env` y `flyway.conf` NO están staged.
-- [ ] Cada commit tiene mensaje convencional `<tipo>({pipeline}): <descripción>`.
-- [ ] Orden lógico: migrations → config → schemas → stages → DAG → docs.
-- [ ] Sin commits `WIP` ni `debug`.
-- [ ] Primera línea ≤ 72 caracteres.
+**Message rules:**
+- Format: `{tipo}({scope}): {imperative description in English}`.
+- The scope is the pipeline name, not the component.
+- Keep the description lowercase, with no trailing period, and at most 72 characters.
+- The project uses commitlint, so an invalid message format will block the push.
