@@ -14,23 +14,21 @@ except ImportError:
     _AIRFLOW_AVAILABLE = False
 
 from core.pipeline import Pipeline
-from core.pipelines.pobreza_multidimensional.consts import DATA_YEARS
 from core.pipelines.pobreza_multidimensional.stages.extract import PobrezaMultidimensionalExtract
 from core.pipelines.pobreza_multidimensional.stages.load import PobrezaMultidimensionalLoad
 from core.pipelines.pobreza_multidimensional.stages.transform import PobrezaMultidimensionalTransform
 
 
 def run_bootstrap() -> None:
-    """Ejecuta el pipeline de bootstrap para todos los años configurados."""
-    for year in DATA_YEARS:
-        Pipeline(
-            name="pobreza_multidimensional",
-            stages=[
-                PobrezaMultidimensionalExtract(year=year),
-                PobrezaMultidimensionalTransform(year=year),
-                PobrezaMultidimensionalLoad(year=year),
-            ],
-        ).run(mode="bootstrap")
+    """Ejecuta la ingestión completa de indicadores de pobreza municipal CONEVAL 2010/2015/2020."""
+    Pipeline(
+        name="pobreza_multidimensional",
+        stages=[
+            PobrezaMultidimensionalExtract(mode="bootstrap"),
+            PobrezaMultidimensionalTransform(mode="bootstrap"),
+            PobrezaMultidimensionalLoad(mode="bootstrap"),
+        ],
+    ).run(mode="bootstrap")
 
 
 default_args = {
@@ -43,7 +41,10 @@ if _AIRFLOW_AVAILABLE:
     with DAG(
         "etl_pobreza_multidimensional_bootstrap",
         default_args=default_args,
-        description=("Pobreza Multidimensional Bootstrap — CONEVAL MMP 2016/2018/2020/2022 (on demand)"),
+        description=(
+            "Pobreza Multidimensional Bootstrap — CONEVAL indicadores municipales "
+            "2010/2015/2020 (on demand, cada ~2 años)"
+        ),
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,

@@ -1,33 +1,30 @@
-from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
 
 from core.db import Database
 from core.pipelines.pobreza_multidimensional.config import settings
-from core.pipelines.pobreza_multidimensional.consts import CATALOG_CSV_DIR, PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
 from core.pipelines.pobreza_multidimensional.schemas import (
     CatEntidad,
-    CatParentesco,
     PobrezaMultidimensionalBase,
     PobrezaMultidimensionalDatos,
 )
 from core.pipelines.stage import Stage
-from core.utils.bulk_ops import insert_records, sync_id_sequence, upsert_records
+from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence
 from core.utils.files import clean_directory
 
 
 class PobrezaMultidimensionalLoad(Stage):
-    """Carga catálogos, resuelve cvegeo y persiste los microdatos MMP."""
+    """Carga catálogo de entidades y datos tidy de pobreza municipal en la BD."""
 
-    def __init__(self, year: int):
+    def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "load")
-        self.year = year
+        self.mode = mode
         self.db: Optional[Database] = None
 
     def source(self, input_data: Optional[Any] = None) -> dict:
-        if not input_data or "df" not in input_data:
+        if not input_data:
             raise ValueError("Load no recibió datos de Transform")
         self.db = Database(PIPELINE_NAME, settings.database_url)
         self.db.connect()
@@ -36,103 +33,51 @@ class PobrezaMultidimensionalLoad(Stage):
 
     def action(self, input_data: Optional[Any] = None) -> dict:
         df: pd.DataFrame = input_data["df"]
-        year: int = input_data["year"]
+        catalogs: dict = input_data["catalogs"]
 
         with self.db.get_session() as session:
-            # 1. Poblar catálogos desde los CSV de ENIGH (idempotente)
-            self._load_catalogs(session)
+            # 1) Sincronizar catálogo de entidades
+            insert_records(
+                session,
+                catalogs["entidad"],
+                CatEntidad,
+                conflict_keys=["cve_ent"],
+            )
+            sync_id_sequence(session, CatEntidad)
 
-            # 2. Resolver municipio_id a partir de ubica_geo (cvegeo)
-            municipio_cache = self._load_cvegeo_mapping(session)
-            df["municipio_id"] = df["ubica_geo"].map(municipio_cache)
+            # 2) Construir mapa cve_ent → cat_entidad_id
+            entidad_map: dict[str, int] = get_mapping(session, CatEntidad, "cve_ent", "id")
 
-            unmatched = df[df["municipio_id"].isna() & df["ubica_geo"].notna()]
-            if not unmatched.empty:
-                self.logger.warning(f"[{year}] {len(unmatched)} registros sin match en cvegeo_municipalities")
+            # 3) Resolver cat_entidad_id en el DataFrame
+            df["cat_entidad_id"] = df["cve_ent"].map(entidad_map)
+            missing = df["cat_entidad_id"].isna().sum()
+            if missing > 0:
+                self.logger.warning(f"{missing} filas sin cat_entidad_id — se omitirán")
+                df = df.dropna(subset=["cat_entidad_id"])
 
-            # 3. Upsert datos principales (idempotente por llave natural)
-            # replace NaN→None: df.where() no convierte NaN en columnas numéricas
-            records = df.replace({np.nan: None}).to_dict("records")
-            upsert_records(
+            df["cat_entidad_id"] = df["cat_entidad_id"].astype(int)
+
+            # 4) Preparar registros para la tabla principal
+            cols_db = [c.key for c in PobrezaMultidimensionalDatos.__table__.columns if c.key != "id"]
+            # Seleccionar solo las columnas que existen en el DataFrame
+            available = [c for c in cols_db if c in df.columns]
+            records = df[available].to_dict("records")
+
+            # 5) Bulk insert
+            bulk_insert(
                 session,
                 records,
                 PobrezaMultidimensionalDatos,
-                conflict_keys=["folioviv", "foliohog", "numren", "anio"],
                 chunk_size=settings.POBREZA_MULTIDIMENSIONAL_LOAD_BATCH_SIZE,
             )
             sync_id_sequence(session, PobrezaMultidimensionalDatos)
 
-        self.logger.info(f"[{year}] {len(df)} registros cargados")
-        return {"row_count": len(df), "year": year}
+        row_count = len(df)
+        self.logger.info(f"Cargados {row_count} registros en {PobrezaMultidimensionalDatos.__tablename__}")
+        return {"row_count": row_count}
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(self.work_dir, self.logger)
-        if self.db and self.db.is_connected:
+        if self.db:
             self.db.disconnect()
         return input_data
-
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
-    def _load_catalogs(self, session) -> None:
-        """Inserta registros de catálogos desde los CSV de ENIGH."""
-        self._load_catalog_csv(
-            session,
-            csv_file=Path(CATALOG_CSV_DIR) / "cat_entidades_federativas.csv",
-            model=CatEntidad,
-        )
-        self._load_catalog_csv(
-            session,
-            csv_file=Path(CATALOG_CSV_DIR) / "cat_parentesco.csv",
-            model=CatParentesco,
-        )
-
-    def _load_catalog_csv(self, session, csv_file: Path, model) -> None:
-        """Lee un CSV de catálogo ENIGH e inserta sus filas en la BD."""
-        if not csv_file.exists():
-            self.logger.warning(f"Catálogo no encontrado: {csv_file}")
-            return
-
-        # Los CSV tienen una fila de título antes de la cabecera real
-        raw = pd.read_csv(csv_file, header=None, dtype=str, encoding="utf-8")
-
-        # Detectar fila de cabecera (la que contiene "Código")
-        header_row = None
-        for i, row in raw.iterrows():
-            if any("digo" in str(v) for v in row.values):
-                header_row = i
-                break
-
-        if header_row is None:
-            self.logger.warning(f"No se encontró cabecera en {csv_file}")
-            return
-
-        df = pd.read_csv(
-            csv_file,
-            skiprows=header_row + 1,
-            header=0,
-            names=["codigo", "nombre"],
-            dtype=str,
-            encoding="utf-8",
-        )
-        df = df.dropna(subset=["codigo", "nombre"])
-        df["codigo"] = pd.to_numeric(df["codigo"], errors="coerce")
-        df = df.dropna(subset=["codigo"])
-        df["codigo"] = df["codigo"].astype(int)
-        df["nombre"] = df["nombre"].str.strip()
-
-        records = df.to_dict("records")
-        insert_records(session, records, model, conflict_keys=["codigo"])
-        self.logger.info(f"Catálogo '{model.__tablename__}': {len(records)} registros")
-
-    def _load_cvegeo_mapping(self, session) -> dict:
-        """Retorna mapa {cvegeo_int → municipio_id} desde la foreign table."""
-        from sqlalchemy import text
-
-        result = session.execute(
-            text("SELECT id, cvegeo FROM cvegeo_municipalities WHERE cvegeo IS NOT NULL")
-        ).fetchall()
-        mapping = {row.cvegeo: row.id for row in result}
-        self.logger.info(f"Mapa cvegeo cargado: {len(mapping)} municipios")
-        return mapping
