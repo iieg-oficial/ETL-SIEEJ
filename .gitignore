@@ -26,8 +26,12 @@ plugins/*
 data/*
 !data/.gitkeep
 
+# Dumps
+dumps/*
+!dumps/.gitkeep
+
 # Migrations
 **/flyway.conf
 
-# Old files
-*.old
+# Claude local settings
+.claude/settings.local.json

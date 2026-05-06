@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from sqlalchemy import Index, Numeric, String, UniqueConstraint, func
+from sqlalchemy import Index, Numeric, String, TIMESTAMP, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -176,7 +176,7 @@ class AsgImssDatos(AsgImssBase):
 
     # Auditoría
     record_hash: Mapped[str] = mapped_column(String(64), unique=True)
-    created_at: Mapped[Optional[datetime]] = mapped_column(server_default=func.now())
+    created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
 
 
 # ---------------------------------------------------------------------------

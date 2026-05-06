@@ -30,7 +30,7 @@ from core.pipelines.asg_imss.schemas import (
     CatTamanioPatron,
 )
 from core.pipelines.stage import Stage
-from core.utils.bulk_ops import insert_records, upsert_records
+from core.utils.bulk_ops import insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
 
 
@@ -97,6 +97,23 @@ class AsgImssLoader(Stage):
                 self.logger.warning(f"  {catalog}: {values}")
             self.logger.warning("Actualizar los CATALOG_* correspondientes en consts.py.")
             self.logger.warning("=" * 60)
+
+        with self.db.get_session() as session:
+            sync_id_sequence(session, AsgImssDatos)
+            for model in [
+                CatDelegacion,
+                CatSubdelegacion,
+                CatEntidadMunicipio,
+                CatSector1,
+                CatSector2,
+                CatSector4,
+                CatTamanioPatron,
+                CatSexo,
+                CatRangoEdad,
+                CatRangoSalarial,
+                CatRangoUma,
+            ]:
+                sync_id_sequence(session, model)
 
         self.logger.info(f"Carga completa. Total upserted: {total_upserted:,}")
         return {"row_count": total_upserted, "unknown_catalog_values": unknown_static_values}
