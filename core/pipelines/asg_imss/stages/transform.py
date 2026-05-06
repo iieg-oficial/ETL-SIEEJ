@@ -214,6 +214,7 @@ class AsgImssTransformer(Stage):
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
         clean_directory(extract_dir, self.logger)
+        clean_directory(self.work_dir, self.logger)
         row_count = input_data.get("row_count", 0) if input_data else 0
         self.logger.info(f"Transform finalizado. Filas procesadas: {row_count:,}")
         return input_data
