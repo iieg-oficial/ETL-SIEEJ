@@ -1,13 +1,14 @@
 import calendar
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
 import requests
 
 from core.pipelines.asg_imss.config import settings
-from core.pipelines.asg_imss.consts import DOWNLOAD_HEADERS, PIPELINE_NAME, SOURCE_URL_TEMPLATE
+from core.constants.http import BROWSER_HEADERS
+from core.pipelines.asg_imss.consts import PIPELINE_NAME, SOURCE_URL_TEMPLATE
 from core.pipelines.stage import Stage
 
 
@@ -18,9 +19,7 @@ def _last_day_of_month(year: int, month: int) -> date:
 
 def _previous_month_end() -> date:
     today = date.today()
-    first_of_current = today.replace(day=1)
-    last_of_prev = first_of_current.replace(day=1) - __import__("datetime").timedelta(days=1)
-    return last_of_prev
+    return today.replace(day=1) - timedelta(days=1)
 
 
 def _generate_month_end_dates(start: date, end: date) -> list[date]:
@@ -80,7 +79,7 @@ class AsgImssExtractor(Stage):
                     self.logger.info(
                         f"Descargando {date_str} (intento {attempt}/{settings.ASG_DOWNLOAD_MAX_RETRIES}): {url}"
                     )
-                    response = requests.get(url, headers=DOWNLOAD_HEADERS, timeout=settings.ASG_DOWNLOAD_TIMEOUT)
+                    response = requests.get(url, headers=BROWSER_HEADERS, timeout=settings.ASG_DOWNLOAD_TIMEOUT)
                     response.raise_for_status()
 
                     if not response.content:

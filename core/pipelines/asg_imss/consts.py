@@ -2,10 +2,6 @@ PIPELINE_NAME = "asg_imss"
 
 SOURCE_URL_TEMPLATE = "http://datos.imss.gob.mx/sites/default/files/asg-{date}.csv"
 
-JALISCO_CVE_ENTIDAD = 14
-
-DOWNLOAD_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
-
 # Campos usados para calcular el record_hash (SHA-256)
 HASH_FIELDS = [
     "fecha_corte",

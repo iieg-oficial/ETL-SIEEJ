@@ -4,25 +4,16 @@ from typing import Any, Optional
 
 import pandas as pd
 
+from core.constants.geo import JALISCO_CVE_ENTIDAD
 from core.pipelines.asg_imss.consts import (
     HASH_FIELDS,
-    JALISCO_CVE_ENTIDAD,
     METRIC_FLOAT_COLUMNS,
     METRIC_INT_COLUMNS,
     PIPELINE_NAME,
 )
 from core.pipelines.stage import Stage
-from core.utils.files import clean_directory
+from core.utils.files import clean_directory, detect_encoding
 from core.utils.records import compute_record_hash
-
-
-def _read_csv_with_encoding_fallback(file_path: Path, **kwargs) -> pd.DataFrame:
-    for encoding in ("utf-8", "latin-1"):
-        try:
-            return pd.read_csv(file_path, encoding=encoding, **kwargs)
-        except UnicodeDecodeError:
-            continue
-    return pd.read_csv(file_path, encoding="utf-8", encoding_errors="replace", **kwargs)
 
 
 def _extract_sector2_catalogs(df: pd.DataFrame) -> list[dict]:
@@ -96,7 +87,7 @@ class AsgImssTransformer(Stage):
             pkl_path = self.work_dir / f"asg-{date_str}.pkl"
 
             self.logger.info(f"Transformando: {csv_path.name}")
-            df = _read_csv_with_encoding_fallback(csv_path, sep="|", dtype=str, low_memory=False)
+            df = pd.read_csv(csv_path, encoding=detect_encoding(str(csv_path)), sep="|", dtype=str, low_memory=False)
             self.logger.info(f"  Leídas {len(df):,} filas — columnas: {list(df.columns)}")
 
             # Normalizar nombre de columna con ñ
