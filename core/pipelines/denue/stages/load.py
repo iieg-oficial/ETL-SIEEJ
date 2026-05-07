@@ -145,12 +145,6 @@ class DenueLoad(Stage):
         return {"data": input_data, "records_before": records_before}
 
     def finalization(self, input_data: Any) -> Any:
-        for pkl in [
-            Path(f"data/extract/{PIPELINE_NAME}/denue_extracted_{self.entidad}.pkl"),
-            Path(f"data/transform/{PIPELINE_NAME}/denue_df_{self.entidad}.pkl"),
-            Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs_{self.entidad}.pkl"),
-        ]:
-            pkl.unlink(missing_ok=True)
         if input_data is None:
             return None
         try:

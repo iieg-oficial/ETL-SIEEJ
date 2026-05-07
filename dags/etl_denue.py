@@ -12,6 +12,7 @@ from core.pipelines.denue.stages.extract import DenueExtract
 from core.pipelines.denue.stages.transform import DenueTransform
 from core.pipelines.denue.stages.load import DenueLoad
 from core.pipelines.denue.constants import ENTIDADES_MEXICO
+from core.utils.files import cleanup_pipeline_data
 
 
 def run_bootstrap():
@@ -25,6 +26,7 @@ def run_bootstrap():
             ],
         )
         pipeline.run(mode="bootstrap")
+    cleanup_pipeline_data("denue")
 
 
 def run_update():
@@ -38,6 +40,7 @@ def run_update():
             ],
         )
         pipeline.run(mode="update")
+    cleanup_pipeline_data("denue")
 
 
 default_args = {
