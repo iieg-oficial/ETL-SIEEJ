@@ -28,12 +28,13 @@ JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
 JOIN cat_modalidad              mo  ON s.modalidad_id               = mo.id
-CROSS JOIN LATERAL unnest(
-    ARRAY['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-          'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-    ARRAY[s.enero,s.febrero,s.marzo,s.abril,s.mayo,s.junio,
-          s.julio,s.agosto,s.septiembre,s.octubre,s.noviembre,s.diciembre]
-) AS t(mes text, conteo int)
+CROSS JOIN LATERAL (
+    SELECT
+        unnest(ARRAY['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']) AS mes,
+        unnest(ARRAY[s.enero,s.febrero,s.marzo,s.abril,s.mayo,s.junio,
+                     s.julio,s.agosto,s.septiembre,s.octubre,s.noviembre,s.diciembre]) AS conteo
+) t
 WHERE t.conteo IS NOT NULL AND t.conteo > 0
 
 UNION ALL
@@ -56,12 +57,13 @@ JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
 JOIN cat_modalidad              mo  ON s.modalidad_id               = mo.id
-CROSS JOIN LATERAL unnest(
-    ARRAY['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-          'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-    ARRAY[s.enero,s.febrero,s.marzo,s.abril,s.mayo,s.junio,
-          s.julio,s.agosto,s.septiembre,s.octubre,s.noviembre,s.diciembre]
-) AS t(mes text, conteo int)
+CROSS JOIN LATERAL (
+    SELECT
+        unnest(ARRAY['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']) AS mes,
+        unnest(ARRAY[s.enero,s.febrero,s.marzo,s.abril,s.mayo,s.junio,
+                     s.julio,s.agosto,s.septiembre,s.octubre,s.noviembre,s.diciembre]) AS conteo
+) t
 WHERE t.conteo IS NOT NULL AND t.conteo > 0;
 
 -- =============================================================================

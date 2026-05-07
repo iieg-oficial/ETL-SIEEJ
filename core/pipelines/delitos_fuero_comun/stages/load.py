@@ -34,7 +34,8 @@ UPDATE_COLS: list[str] = [
 def _prepare_records(df: pd.DataFrame, model, exclude_cols: tuple[str, ...]) -> list[dict]:
     cols = [c.key for c in model.__table__.columns if c.key not in exclude_cols]
     available = [c for c in cols if c in df.columns]
-    clean = df[available].where(pd.notna(df[available]), other=None)
+    # Convert to object dtype to ensure pd.NA / NaN becomes Python None
+    clean = df[available].astype(object).where(pd.notna(df[available]), other=None)
     return clean.to_dict("records")
 
 
