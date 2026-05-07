@@ -31,15 +31,16 @@ PIPELINE_NAME = settings.PIPELINE_NAME
 
 
 class DenueLoad(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", entidad: int = None):
         super().__init__(PIPELINE_NAME, "load")
         self.mode = mode
+        self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.load")
         self.db = Database(settings.DB_NAME, settings.database_url)
 
     def source(self, input_data: Optional[Any] = None) -> Any:
-        pkl_df = Path(f"data/transform/{PIPELINE_NAME}/denue_df.pkl")
-        pkl_catalogs = Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs.pkl")
+        pkl_df = Path(f"data/transform/{PIPELINE_NAME}/denue_df_{self.entidad}.pkl")
+        pkl_catalogs = Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs_{self.entidad}.pkl")
         self.logger.info("[source] Checking for pkl files")
         if pkl_df.exists() and pkl_catalogs.exists():
             self.logger.info("[source] Loading from pkl files")

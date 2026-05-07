@@ -11,30 +11,33 @@ from core.pipeline import Pipeline
 from core.pipelines.denue.stages.extract import DenueExtract
 from core.pipelines.denue.stages.transform import DenueTransform
 from core.pipelines.denue.stages.load import DenueLoad
+from core.pipelines.denue.constants import ENTIDADES_MEXICO
 
 
 def run_bootstrap():
-    pipeline = Pipeline(
-        name="denue",
-        stages=[
-            DenueExtract(mode="bootstrap"),
-            DenueTransform(mode="bootstrap"),
-            DenueLoad(mode="bootstrap"),
-        ],
-    )
-    pipeline.run(mode="bootstrap")
+    for entidad in ENTIDADES_MEXICO:
+        pipeline = Pipeline(
+            name="denue",
+            stages=[
+                DenueExtract(mode="bootstrap", entidad=entidad),
+                DenueTransform(mode="bootstrap", entidad=entidad),
+                DenueLoad(mode="bootstrap", entidad=entidad),
+            ],
+        )
+        pipeline.run(mode="bootstrap")
 
 
 def run_update():
-    pipeline = Pipeline(
-        name="denue",
-        stages=[
-            DenueExtract(mode="update"),
-            DenueTransform(mode="update"),
-            DenueLoad(mode="update"),
-        ],
-    )
-    pipeline.run(mode="update")
+    for entidad in ENTIDADES_MEXICO:
+        pipeline = Pipeline(
+            name="denue",
+            stages=[
+                DenueExtract(mode="update", entidad=entidad),
+                DenueTransform(mode="update", entidad=entidad),
+                DenueLoad(mode="update", entidad=entidad),
+            ],
+        )
+        pipeline.run(mode="update")
 
 
 default_args = {

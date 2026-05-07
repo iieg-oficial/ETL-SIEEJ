@@ -16,14 +16,15 @@ PIPELINE_NAME = settings.PIPELINE_NAME
 
 
 class DenueTransform(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", entidad: int = None):
         super().__init__(PIPELINE_NAME, "transform")
         self.mode = mode
+        self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
         extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
-        pkl_path = extract_dir / "denue_extracted.pkl"
+        pkl_path = extract_dir / f"denue_extracted_{self.entidad}.pkl"
         self.logger.info(f"[source] Checking for pkl at {pkl_path}")
         if pkl_path.exists():
             self.logger.info("[source] Loading from pkl")
@@ -109,8 +110,8 @@ class DenueTransform(Stage):
 
     def finalization(self, input_data: Any) -> Any:
         if not input_data["df"].empty:
-            df_pkl = self.work_dir / "denue_df.pkl"
-            catalogs_pkl = self.work_dir / "denue_catalogs.pkl"
+            df_pkl = self.work_dir / f"denue_df_{self.entidad}.pkl"
+            catalogs_pkl = self.work_dir / f"denue_catalogs_{self.entidad}.pkl"
             input_data["df"].to_pickle(df_pkl)
             pd.Series(input_data["catalogs"]).to_pickle(catalogs_pkl)
             self.logger.info(f"[finalization] {len(input_data['df'])} rows saved to {df_pkl}")
