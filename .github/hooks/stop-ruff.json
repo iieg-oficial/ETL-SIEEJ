@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "bash .github/hooks/scripts/ruff_changed_python.sh"
+      }
+    ]
+  }
+}

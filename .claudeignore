@@ -4,3 +4,5 @@
 *.txt
 .venv/
 .ruff_cache/
+assets/
+config/

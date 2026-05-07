@@ -3,7 +3,7 @@ import requests
 
 from io import BytesIO
 from zipfile import ZipFile
-from requests.exceptions import ConnectionError, HTTPError, Timeout
+from requests.exceptions import ChunkedEncodingError, ConnectionError, HTTPError, Timeout
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from core.utils.logger import get_console_logger
@@ -44,7 +44,7 @@ def _csv_to_dataframe(csv_content: bytes) -> pd.DataFrame:
 @retry(
     stop=stop_after_attempt(5),
     wait=wait_exponential(multiplier=2, min=2, max=30),
-    retry=retry_if_exception_type((ConnectionError, Timeout, HTTPError)),
+    retry=retry_if_exception_type((ConnectionError, Timeout, HTTPError, ChunkedEncodingError)),
     before_sleep=lambda state: logger.warning(f"Retry attempt {state.attempt_number} for download"),
 )
 def download_denue_csv(url: str) -> pd.DataFrame:

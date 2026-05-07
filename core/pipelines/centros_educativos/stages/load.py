@@ -212,7 +212,10 @@ class CentrosEducativosLoad(Stage):
 
         self.logger.info("[_map_foreign_keys] Mapping geographic locations")
         df["cve_geo_id"] = df.apply(
-            lambda row: int(f"{row['entidad_id']:02}{row['municipio_id']:03}{row['localidad_id']:04}"), axis=1
+            lambda row: int(f"{row['entidad_id']:02}{row['municipio_id']:03}{row['localidad_id']:04}")
+            if pd.notna(row["entidad_id"]) and pd.notna(row["municipio_id"]) and pd.notna(row["localidad_id"])
+            else None,
+            axis=1,
         )
         df[Centros.localidades_id.key] = df["cve_geo_id"].map(localidades_map)
 

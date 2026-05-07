@@ -1,179 +1,136 @@
-import os
-import time
-import zipfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any, Optional
 
-import requests
+import pandas as pd
 
-from core.pipelines.censos_economicos.config import settings
-from core.pipelines.censos_economicos.consts import CE_YEARS_CONFIG, PIPELINE_NAME, RETRYABLE_STATUS_CODES
 from core.pipelines.stage import Stage
+from core.pipelines.censos_economicos.constants import CE_YEARS_CONFIG, INEGI_STATE_SLUGS, PIPELINE_NAME
+from core.utils.files import fetch_zip
+from core.utils.logger import get_logger
 
 
-class CEExtractor(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+def catalog_pkl_paths(work_dir: Path, year: int) -> dict:
+    return {
+        "cat_actividad": work_dir / f"{year}_cat_actividad.pkl",
+        "cat_estrato": work_dir / f"{year}_cat_estrato.pkl",
+    }
+
+
+def entity_pkl_path(work_dir: Path, year: int, slug: str) -> Path:
+    return work_dir / f"{year}_{slug}_data.pkl"
+
+
+class CensosEconomicosExtractor(Stage):
+    def __init__(self, mode: str = "bootstrap", slugs: Optional[list[str]] = None):
         super().__init__(PIPELINE_NAME, "extract")
-        self.mode = mode
+        self.logger = get_logger(f"{PIPELINE_NAME}.extract")
+        self._slugs = slugs
 
-    def source(self, input_data: Optional[Any] = None) -> list[dict]:
-        """Identifica ZIPs pendientes de descarga. Omite slugs ya extraidos."""
-        downloads = []
+    def _target_slugs(self) -> list[str]:
+        return self._slugs if self._slugs is not None else list(INEGI_STATE_SLUGS.values())
 
-        for year in settings.years_list:
-            year_config = CE_YEARS_CONFIG.get(year)
-            if year_config is None:
-                self.logger.warning(f"Sin configuracion para el anio censal {year}, omitiendo.")
-                continue
+    def source(self, input_data: Optional[Any] = None) -> dict:
+        target = self._target_slugs()
+        result = {}
 
-            url_template = year_config["url_template"]
-            data_csv_pattern = year_config["data_csv_pattern"]
+        for year in CE_YEARS_CONFIG:
+            catalogs = catalog_pkl_paths(self.work_dir, year)
+            catalogs_ok = all(p.exists() for p in catalogs.values())
 
-            for key, slug in year_config["slugs"].items():
-                slug_dir = self.work_dir / str(year) / slug
-                expected_csv = slug_dir / data_csv_pattern.format(slug=slug)
+            to_download = []
+            cached = []
+            for slug in target:
+                ep = entity_pkl_path(self.work_dir, year, slug)
+                if ep.exists() and catalogs_ok:
+                    self.logger.info(f"[source] {year}/{slug}: cached")
+                    cached.append(slug)
+                else:
+                    to_download.append(slug)
 
-                if expected_csv.exists():
-                    self.logger.info(f"Omitiendo {year}/{slug} - ya extraido.")
-                    continue
+            result[year] = {"to_download": to_download, "cached": cached}
 
-                downloads.append(
-                    {
-                        "year": year,
-                        "key": key,
-                        "slug": slug,
-                        "url": url_template.format(slug=slug),
-                        "slug_dir": str(slug_dir),
-                    }
-                )
+        return result
 
-        self.logger.info(f"Se encontraron {len(downloads)} archivos ZIP por descargar.")
-        return downloads
+    def action(self, input_data: dict) -> dict:
+        result = {}
 
-    def action(self, input_data: Optional[Any] = None) -> list[dict]:
-        """Descarga y extrae ZIPs concurrentemente con reintentos."""
-        downloads = input_data or []
-        if not downloads:
-            self.logger.info("Nada que descargar.")
-            return downloads
+        for year, info in input_data.items():
+            to_download = info["to_download"]
+            cached = info["cached"]
+            year_config = CE_YEARS_CONFIG[year]
+            catalogs = catalog_pkl_paths(self.work_dir, year)
 
-        max_workers = settings.CE_DOWNLOAD_MAX_WORKERS
-        self.logger.info(f"Descargando {len(downloads)} archivos ZIP con {max_workers} workers.")
-        failures: list[dict] = []
+            entity_data: dict[str, pd.DataFrame] = {}
+            cat_actividad = None
+            cat_estrato = None
 
-        with ThreadPoolExecutor(max_workers=max_workers) as pool:
-            future_to_item = {pool.submit(self._download_one, item): item for item in downloads}
+            for slug in cached:
+                entity_data[slug] = pd.read_pickle(entity_pkl_path(self.work_dir, year, slug))
 
-            for future in as_completed(future_to_item):
-                item = future_to_item[future]
+            if all(p.exists() for p in catalogs.values()):
+                cat_actividad = pd.read_pickle(catalogs["cat_actividad"])
+                cat_estrato = pd.read_pickle(catalogs["cat_estrato"])
+
+            for slug in to_download:
+                url = year_config["url_template"].format(slug=slug)
+                self.logger.info(f"[action] Downloading {year}/{slug}")
+
                 try:
-                    future.result()
+                    z = fetch_zip(url)
                 except Exception as e:
-                    self.logger.error(f"Fallo despues de reintentos: {item['slug']} - {e}")
-                    failures.append({"slug": item["slug"], "error": str(e)})
-
-        if failures:
-            slugs = ", ".join(f["slug"] for f in failures)
-            raise RuntimeError(f"{len(failures)} descargas fallaron: {slugs}")
-
-        self.logger.info(f"Los {len(downloads)} archivos se descargaron y extrajeron correctamente.")
-        return downloads
-
-    def finalization(self, input_data: Optional[Any] = None) -> dict:
-        """Escanea directorios extraidos y construye inventario para la etapa Transform."""
-        inventory: dict[str, dict] = {"years": {}}
-
-        for year in settings.years_list:
-            year_config = CE_YEARS_CONFIG.get(year)
-            if year_config is None:
-                continue
-
-            year_entries = []
-            data_csv_pattern = year_config["data_csv_pattern"]
-
-            for key, slug in year_config["slugs"].items():
-                slug_dir = self.work_dir / str(year) / slug
-                data_csv = slug_dir / data_csv_pattern.format(slug=slug)
-
-                if not data_csv.exists():
-                    self.logger.warning(f"CSV de datos no encontrado para {year}/{slug}: {data_csv}")
+                    self.logger.warning(f"[action] Failed {year}/{slug}: {e}")
                     continue
 
-                catalog_paths = {}
-                for catalog_key in ["catalog_actividad", "catalog_entidad_municipio", "catalog_estrato", "diccionario"]:
-                    cat_path = slug_dir / year_config[catalog_key]
-                    if cat_path.exists():
-                        catalog_paths[catalog_key] = str(cat_path)
+                with z:
+                    data_csv = year_config["data_csv_pattern"].format(slug=slug)
+                    with z.open(data_csv) as f:
+                        df = pd.read_csv(f, encoding="utf-8-sig", index_col=False)
+                    entity_data[slug] = df
+                    self.logger.info(f"[action] {len(df)} rows from {year}/{slug}")
 
-                year_entries.append(
-                    {
-                        "year": year,
-                        "key": key,
-                        "slug": slug,
-                        "slug_dir": str(slug_dir),
-                        "data_csv": str(data_csv),
-                        "catalogs": catalog_paths,
-                        "url": year_config["url_template"].format(slug=slug),
-                    }
-                )
+                    if cat_actividad is None:
+                        with z.open(year_config["catalog_actividad"]) as f:
+                            cat_actividad = pd.read_csv(f, encoding="utf-8-sig", index_col=False)
+                        with z.open(year_config["catalog_estrato"]) as f:
+                            cat_estrato = pd.read_csv(f, encoding="utf-8-sig", index_col=False)
+                        self.logger.info(f"[action] Catalogs loaded from {year}/{slug}")
 
-            inventory["years"][year] = year_entries
-            self.logger.info(f"Anio {year}: {len(year_entries)} entradas de slug en el inventario.")
+            if not entity_data:
+                self.logger.warning(f"[action] No data for year {year}")
+                continue
 
-        return inventory
+            result[year] = {
+                "entity_data": entity_data,
+                "to_save": to_download,
+                "cat_actividad": cat_actividad,
+                "cat_estrato": cat_estrato,
+            }
 
-    def _download_one(self, item: dict) -> None:
-        year = item["year"]
-        slug = item["slug"]
-        url = item["url"]
-        slug_dir = item["slug_dir"]
+        return result
 
-        os.makedirs(slug_dir, exist_ok=True)
-        zip_path = os.path.join(slug_dir, f"ce_{slug}_{year}.zip")
+    def finalization(self, input_data: dict) -> dict:
+        output = {}
 
-        max_retries = settings.CE_DOWNLOAD_MAX_RETRIES
-        backoff = settings.CE_DOWNLOAD_RETRY_BACKOFF
-        timeout = settings.CE_DOWNLOAD_TIMEOUT
+        for year, year_data in input_data.items():
+            catalogs = catalog_pkl_paths(self.work_dir, year)
 
-        last_error: Exception | None = None
-        for attempt in range(1, max_retries + 1):
-            try:
-                self.logger.info(f"[{slug}] Descargando (intento {attempt}/{max_retries})")
-                response = requests.get(url, timeout=timeout, stream=True)
+            if not all(p.exists() for p in catalogs.values()) and year_data["cat_actividad"] is not None:
+                year_data["cat_actividad"].to_pickle(catalogs["cat_actividad"])
+                year_data["cat_estrato"].to_pickle(catalogs["cat_estrato"])
 
-                if response.status_code in RETRYABLE_STATUS_CODES:
-                    raise requests.RequestException(f"HTTP {response.status_code}")
+            for slug in year_data.get("to_save", []):
+                if slug in year_data["entity_data"]:
+                    ep = entity_pkl_path(self.work_dir, year, slug)
+                    year_data["entity_data"][slug].to_pickle(ep)
 
-                response.raise_for_status()
+            dfs = list(year_data["entity_data"].values())
+            if not dfs:
+                continue
 
-                with open(zip_path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        f.write(chunk)
+            output[year] = {
+                "data": pd.concat(dfs, ignore_index=True),
+                "cat_actividad": year_data["cat_actividad"],
+            }
+            self.logger.info(f"[finalization] Year {year}: {len(dfs)} entities ready")
 
-                self.logger.info(f"[{slug}] Extrayendo")
-                with zipfile.ZipFile(zip_path, "r") as zf:
-                    zf.extractall(slug_dir)
-
-                os.remove(zip_path)
-                self.logger.info(f"[{slug}] Listo")
-                return
-
-            except (requests.RequestException, requests.ConnectionError, requests.Timeout) as e:
-                last_error = e
-                if attempt < max_retries:
-                    wait = backoff * (2 ** (attempt - 1))
-                    self.logger.warning(f"[{slug}] Intento {attempt} fallo: {e}. Reintentando en {wait}s.")
-                    time.sleep(wait)
-                    if os.path.exists(zip_path):
-                        os.remove(zip_path)
-
-            except zipfile.BadZipFile as e:
-                last_error = e
-                if os.path.exists(zip_path):
-                    os.remove(zip_path)
-                if attempt < max_retries:
-                    wait = backoff * (2 ** (attempt - 1))
-                    self.logger.warning(f"[{slug}] ZIP corrupto en intento {attempt}: {e}. Reintentando en {wait}s.")
-                    time.sleep(wait)
-
-        raise RuntimeError(f"[{slug}] Los {max_retries} intentos fallaron: {last_error}")
+        return output

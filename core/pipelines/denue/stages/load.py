@@ -24,22 +24,23 @@ from core.utils.bulk_ops import (
     sync_id_sequence,
     upsert_records,
 )
-from core.utils.files import cleanup_pipeline_data
+
 from core.utils.logger import get_logger
 
 PIPELINE_NAME = settings.PIPELINE_NAME
 
 
 class DenueLoad(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", entidad: int = None):
         super().__init__(PIPELINE_NAME, "load")
         self.mode = mode
+        self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.load")
         self.db = Database(settings.DB_NAME, settings.database_url)
 
     def source(self, input_data: Optional[Any] = None) -> Any:
-        pkl_df = Path(f"data/transform/{PIPELINE_NAME}/denue_df.pkl")
-        pkl_catalogs = Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs.pkl")
+        pkl_df = Path(f"data/transform/{PIPELINE_NAME}/denue_df_{self.entidad}.pkl")
+        pkl_catalogs = Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs_{self.entidad}.pkl")
         self.logger.info("[source] Checking for pkl files")
         if pkl_df.exists() and pkl_catalogs.exists():
             self.logger.info("[source] Loading from pkl files")
@@ -100,9 +101,11 @@ class DenueLoad(Stage):
         df[Establecimientos.actualizacion_id.key] = df["fecha_actualizacion"].map(actualizaciones_map)
 
         df["cve_geo_id"] = df.apply(
-            lambda row: int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['clave_localidad']):04}")
-            if pd.notna(row["cve_mun"]) and pd.notna(row["clave_localidad"])
-            else None,
+            lambda row: (
+                int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['clave_localidad']):04}")
+                if pd.notna(row["cve_mun"]) and pd.notna(row["clave_localidad"])
+                else None
+            ),
             axis=1,
         )
         df[Establecimientos.localidad_id.key] = df["cve_geo_id"].map(localidades_map)
@@ -133,7 +136,7 @@ class DenueLoad(Stage):
                     records,
                     Establecimientos,
                     conflict_keys=[Establecimientos.id.key, Establecimientos.actualizacion_id.key],
-                    chunk_size=40_000,
+                    chunk_size=settings.CHUNK_SIZE,
                 )
         except Exception:
             self.db.disconnect()
@@ -142,7 +145,6 @@ class DenueLoad(Stage):
         return {"data": input_data, "records_before": records_before}
 
     def finalization(self, input_data: Any) -> Any:
-        cleanup_pipeline_data(PIPELINE_NAME)
         if input_data is None:
             return None
         try:

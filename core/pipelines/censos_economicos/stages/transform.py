@@ -1,188 +1,158 @@
+from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
 
-from core.pipelines.censos_economicos.consts import KEY_COLUMNS, PIPELINE_NAME
 from core.pipelines.stage import Stage
-from core.utils.clean import list_values_to_null
-from core.utils.normalize import lowercase_headers
+from core.pipelines.censos_economicos.config import settings
+from core.pipelines.censos_economicos.constants import (
+    CE_YEARS_CONFIG,
+    CLASIFICADOR_TEXT_TO_ID,
+    GEO_LEVEL_ESTATAL,
+    GEO_LEVEL_MUNICIPAL,
+    GEO_LEVEL_NACIONAL,
+    GEO_RENAME_2019,
+    GEO_RENAME_2024,
+    NULL_VALUES,
+    RENAME_COLS_BY_YEAR,
+)
+from core.utils import list_values_to_null
+from core.utils.logger import get_logger
+
+PIPELINE_NAME = settings.PIPELINE_NAME
 
 
-class CETransformer(Stage):
+def classify_geo(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    ent = df["entidad"].fillna("").astype(str).str.strip()
+    mun = df["municipio"].fillna("").astype(str).str.strip()
+
+    mask_mun = mun != ""
+    mask_ent = (ent != "") & ~mask_mun
+    mask_nac = ~mask_mun & ~mask_ent
+
+    return df[mask_nac].copy(), df[mask_ent].copy(), df[mask_mun].copy()
+
+
+def add_geo_ids(df_est: pd.DataFrame, df_mun: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    df_est = df_est.copy()
+    df_est["cve_ent"] = pd.to_numeric(df_est["entidad"], errors="coerce").astype("Int64")
+    df_est = df_est.drop(columns=["entidad", "municipio"])
+
+    df_mun = df_mun.copy()
+    df_mun["cve_ent"] = pd.to_numeric(df_mun["entidad"], errors="coerce").astype("Int64")
+    df_mun["cve_mun"] = pd.to_numeric(df_mun["municipio"], errors="coerce").astype("Int64")
+    df_mun = df_mun.drop(columns=["entidad", "municipio"])
+
+    return df_est, df_mun
+
+
+class CensosEconomicosTransformer(Stage):
     def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "transform")
-        self.mode = mode
+        self.logger = get_logger(f"{PIPELINE_NAME}.transform")
 
     def source(self, input_data: Optional[Any] = None) -> dict:
-        """Recibe y valida el inventario de la etapa Extract."""
-        if not input_data or not input_data.get("years"):
-            raise ValueError("La etapa Transform recibio un inventario vacio de Extract.")
+        if input_data is not None:
+            return input_data
 
-        total_entries = sum(len(entries) for entries in input_data["years"].values())
-        self.logger.info(f"Inventario recibido con {total_entries} entradas en {len(input_data['years'])} anio(s).")
-        return input_data
+        extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
+        result = {}
 
-    def action(self, input_data: Optional[Any] = None) -> dict:
-        """Limpia CSVs de catalogos y valida encabezados de CSVs de datos."""
-        inventory = input_data
-        catalogs_by_year: dict[int, dict] = {}
-        data_entries: list[dict] = []
+        for year in CE_YEARS_CONFIG:
+            act_pkl = extract_dir / f"{year}_cat_actividad.pkl"
+            entity_pkls = sorted(extract_dir.glob(f"{year}_*_data.pkl"))
 
-        for year, entries in inventory["years"].items():
-            # Buscar primer slug con catalogos (tipicamente "nac" -- los catalogos son identicos en todos los ZIPs)
-            catalog_source = None
-            for entry in entries:
-                if entry.get("catalogs"):
-                    catalog_source = entry
-                    break
-
-            year_catalogs = {}
-            if catalog_source:
-                cats = catalog_source["catalogs"]
-
-                if "catalog_actividad" in cats:
-                    year_catalogs["actividad"] = self._clean_actividad(cats["catalog_actividad"])
-
-                if "catalog_entidad_municipio" in cats:
-                    year_catalogs["entidad_municipio"] = self._clean_entidad_municipio(
-                        cats["catalog_entidad_municipio"]
-                    )
-
-                if "catalog_estrato" in cats:
-                    year_catalogs["estrato"] = self._clean_estrato(cats["catalog_estrato"])
-
-                if "diccionario" in cats:
-                    year_catalogs["diccionario"] = self._clean_diccionario(cats["diccionario"], year)
+            if act_pkl.exists() and entity_pkls:
+                self.logger.info(f"[source] Year {year}: {len(entity_pkls)} entity pkls found")
+                dfs = [pd.read_pickle(p) for p in entity_pkls]
+                result[year] = {
+                    "data": pd.concat(dfs, ignore_index=True),
+                    "cat_actividad": pd.read_pickle(act_pkl),
+                }
             else:
-                self.logger.warning(f"No se encontraron archivos de catalogo para el anio {year}.")
+                self.logger.warning(f"[source] Year {year}: no data found")
 
-            catalogs_by_year[year] = year_catalogs
+        return result
 
-            # Validar encabezados de CSVs de datos y recolectar entradas para la etapa Load
-            for entry in entries:
-                data_csv = entry["data_csv"]
-                try:
-                    df_header = pd.read_csv(data_csv, nrows=0, dtype=str)
-                    df_header.columns = [c.strip().lower() for c in df_header.columns]
-                    missing_keys = [k for k in KEY_COLUMNS if k not in df_header.columns]
-                    if missing_keys:
-                        self.logger.warning(f"CSV de datos {data_csv} sin columnas clave: {missing_keys}")
-                except Exception as e:
-                    self.logger.error(f"Error al validar encabezados de {data_csv}: {e}")
-                    continue
-
-                data_entries.append(
-                    {
-                        "year": entry["year"],
-                        "slug": entry["slug"],
-                        "data_csv": entry["data_csv"],
-                        "slug_dir": entry["slug_dir"],
-                        "url": entry["url"],
-                    }
-                )
-
-        self.logger.info(
-            f"Catalogos limpiados para {len(catalogs_by_year)} anio(s). "
-            f"Validados {len(data_entries)} CSV(s) de datos para carga."
-        )
-
-        return {
-            "catalogs": catalogs_by_year,
-            "data_entries": data_entries,
-            "years": list(inventory["years"].keys()),
-        }
-
-    def finalization(self, input_data: Optional[Any] = None) -> dict:
-        """Pasa los datos limpios a la etapa Load."""
-        return input_data
-
-    def _read_and_clean(self, path: str) -> pd.DataFrame:
-        """Pipeline comun de lectura y limpieza de CSV."""
-        df = pd.read_csv(path, dtype=str, keep_default_na=False)
-        lowercase_headers(df)
-        df.columns = df.columns.str.strip()
-        df = list_values_to_null(df)
+    def _cast_data_cols(self, df: pd.DataFrame, data_cols: list[str]) -> pd.DataFrame:
+        for col in data_cols:
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
-    def _clean_actividad(self, path: str) -> list[dict]:
-        self.logger.info(f"Limpiando catalogo de actividades: {path}")
-        df = self._read_and_clean(path)
+    def _process_catalog_actividad(self, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.copy()
+        df.columns = df.columns.str.lower()
+        if "unnamed: 3" in df.columns:
+            df = df.drop(columns=["unnamed: 3"])
+        df = df.rename(columns={"desc_codigo": "descripcion"})
+        df = df.dropna(subset=["descripcion"])
+        df["clasificador_codigo"] = df["clasificador_codigo"].str.strip().str.lower().map(CLASIFICADOR_TEXT_TO_ID)
+        df = df.dropna(subset=["clasificador_codigo"])
+        df["clasificador_codigo"] = df["clasificador_codigo"].astype("Int64")
+        return df
 
-        records = []
-        for _, row in df.iterrows():
-            codigo = row.get("codigo")
-            if not codigo:
-                continue
-            records.append(
-                {
-                    "codigo": codigo,
-                    "descripcion": row.get("desc_codigo"),
-                    "clasificador": row.get("clasificador_codigo"),
-                }
-            )
+    def _process_year(self, year: int, raw: dict) -> dict:
+        self.logger.info(f"[_process_year] Processing {year}")
+        df = raw["data"].copy()
 
-        self.logger.info(f"Se limpiaron {len(records)} codigos de actividad.")
-        return records
+        df.columns = df.columns.str.lower()
 
-    def _clean_entidad_municipio(self, path: str) -> list[dict]:
-        self.logger.info(f"Limpiando catalogo de entidad-municipio: {path}")
-        df = self._read_and_clean(path)
+        geo_rename = GEO_RENAME_2024 if year == 2024 else GEO_RENAME_2019
+        if geo_rename:
+            df = df.rename(columns=geo_rename)
 
-        records = []
-        for _, row in df.iterrows():
-            cvegeo = row.get("cvegeo")
-            if not cvegeo:
-                continue
-            records.append(
-                {
-                    "cvegeo": cvegeo,
-                    "cve_ent": row.get("e03"),
-                    "nom_ent": row.get("nom_ent"),
-                    "nom_abr": row.get("nom_abr"),
-                    "cve_mun": row.get("e04"),
-                    "nom_mun": row.get("nom_mun"),
-                }
-            )
+        # Classify before list_values_to_null: mixed-type columns (int/str) are
+        # corrupted by str.strip() inside list_values_to_null, turning ints to NaN.
+        df_nac, df_est, df_mun = classify_geo(df)
+        self.logger.info(f"[_process_year] {year}: nac={len(df_nac)}, est={len(df_est)}, mun={len(df_mun)}")
 
-        self.logger.info(f"Se limpiaron {len(records)} entradas geograficas.")
-        return records
+        df_nac = df_nac.drop(columns=["entidad", "municipio"])
+        df_est, df_mun = add_geo_ids(df_est, df_mun)
 
-    def _clean_estrato(self, path: str) -> list[dict]:
-        self.logger.info(f"Limpiando catalogo de estratos: {path}")
-        df = self._read_and_clean(path)
+        rename_cols = RENAME_COLS_BY_YEAR[year]
+        data_cols = list(rename_cols.values())
 
-        records = []
-        for _, row in df.iterrows():
-            id_estrato = row.get("id_estrato") or ""
-            records.append(
-                {
-                    "id_estrato": id_estrato,
-                    "descripcion": row.get("desc_estrato"),
-                }
-            )
+        frames = {}
+        for key, frame in [
+            (GEO_LEVEL_NACIONAL, df_nac),
+            (GEO_LEVEL_ESTATAL, df_est),
+            (GEO_LEVEL_MUNICIPAL, df_mun),
+        ]:
+            frame = list_values_to_null(frame, rm_list=NULL_VALUES)
+            frame = frame.rename(columns=rename_cols)
+            self._cast_data_cols(frame, data_cols)
+            frames[key] = frame
 
-        self.logger.info(f"Se limpiaron {len(records)} entradas de estrato.")
-        return records
+        cat_actividad = self._process_catalog_actividad(raw["cat_actividad"])
 
-    def _clean_diccionario(self, path: str, year: int) -> list[dict]:
-        self.logger.info(f"Limpiando diccionario de datos: {path}")
-        df = self._read_and_clean(path)
+        return {
+            GEO_LEVEL_NACIONAL: frames[GEO_LEVEL_NACIONAL],
+            GEO_LEVEL_ESTATAL: frames[GEO_LEVEL_ESTATAL],
+            GEO_LEVEL_MUNICIPAL: frames[GEO_LEVEL_MUNICIPAL],
+            "cat_actividad": cat_actividad,
+        }
 
-        records = []
-        for _, row in df.iterrows():
-            col_name = row.get("columna")
-            if not col_name:
-                continue
-            records.append(
-                {
-                    "anio": year,
-                    "nombre_columna": col_name,
-                    "descripcion": row.get("descripcion"),
-                    "tipo_dato": row.get("tipo_dato"),
-                    "longitud": row.get("longitud"),
-                    "codigos_validos": row.get("codigo_valido"),
-                }
-            )
+    def action(self, input_data: dict) -> dict:
+        if not input_data:
+            self.logger.info("[action] No data to transform")
+            return {}
 
-        self.logger.info(f"Se limpiaron {len(records)} entradas de diccionario para el anio {year}.")
-        return records
+        result = {}
+        for year, raw in input_data.items():
+            result[year] = self._process_year(year, raw)
+
+        return result
+
+    def finalization(self, input_data: dict) -> dict:
+        if not input_data:
+            self.logger.info("[finalization] Nothing to save")
+            return input_data
+
+        for year, year_data in input_data.items():
+            for key, df in year_data.items():
+                pkl_path = self.work_dir / f"{year}_{key}.pkl"
+                df.to_pickle(pkl_path)
+            self.logger.info(f"[finalization] Year {year} saved to {self.work_dir}")
+
+        return input_data

@@ -6,12 +6,59 @@ import zipfile
 from pathlib import Path
 from datetime import datetime
 
+import chardet
 import pandas as pd
 import requests
 
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger(__name__)
+
+_FALLBACK_ENCODINGS = ("utf-8", "latin-1", "cp1252", "iso-8859-1", "utf-16")
+
+
+def detect_encoding(file_path: str, sample_size: int = 10000) -> str:
+    """Detect file encoding using chardet, with fallback to common encodings on low confidence.
+
+    Args:
+        file_path: Path to the file.
+        sample_size: Number of bytes to sample for detection.
+
+    Returns:
+        Detected encoding string, defaulting to 'utf-8'.
+    """
+    try:
+        with open(file_path, "rb") as f:
+            raw_data = f.read(sample_size)
+
+        result = chardet.detect(raw_data)
+        encoding = result["encoding"]
+        confidence = result["confidence"]
+
+        logger.info(f"Detected encoding: {encoding} (confidence: {confidence:.2%})")
+
+        if confidence < 0.7:
+            logger.info(f"Low confidence ({confidence:.2%}), trying common encodings...")
+            for fallback in _FALLBACK_ENCODINGS:
+                try:
+                    with open(file_path, "r", encoding=fallback) as f:
+                        f.read(1000)
+                    logger.info(f"Using fallback encoding: {fallback}")
+                    return fallback
+                except UnicodeDecodeError:
+                    continue
+
+        return encoding if encoding else "utf-8"
+
+    except OSError as e:
+        logger.warning(f"Error detecting encoding for {file_path}: {e}, defaulting to utf-8")
+        return "utf-8"
+
+
+def fetch_zip(url: str, timeout: int = 120) -> zipfile.ZipFile:
+    response = requests.get(url, timeout=timeout)
+    response.raise_for_status()
+    return zipfile.ZipFile(io.BytesIO(response.content))
 
 
 def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
