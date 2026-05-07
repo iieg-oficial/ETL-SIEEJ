@@ -102,7 +102,9 @@ class DenueExtract(Stage):
         dfs = []
 
         for item in input_data:
-            self.logger.info(f"[action] Downloading entidad {item['entidad_id']} - {item['fecha_actualizacion']}")
+            self.logger.info(
+                f"[action] Downloading entidad {item['entidad_id']}, from date: {item['fecha_actualizacion']}"
+            )
             df = download_denue_csv(item["url"])
             df = df.reindex(columns=columns_to_keep)
             df = df.rename(columns=RENAME_HEADER)
