@@ -79,7 +79,7 @@ class DenueTransform(Stage):
             return {"df": input_data, "catalogs": {}}
 
         self.logger.info(f"[action] Starting transformation of {len(input_data)} rows")
-        df = input_data.copy()
+        df = input_data
 
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])
 
@@ -97,6 +97,17 @@ class DenueTransform(Stage):
         for col in TITLE_COLS:
             if col in df.columns:
                 title_col(df, col)
+
+        for col in [
+            "per_ocu",
+            "tipo_uni_eco",
+            "nombre_actividad_economica",
+            "municipio",
+            "localidad",
+            "nombre_asentamiento",
+        ]:
+            if col in df.columns:
+                df[col] = df[col].astype("category")
 
         df["rango_personal_id"] = df["per_ocu"].map(
             lambda x: next((v for k, v in RANGO_PERSONAL_MAP.items() if isinstance(x, str) and k in x), None)
