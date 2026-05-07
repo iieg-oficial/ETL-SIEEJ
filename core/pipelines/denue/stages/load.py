@@ -24,7 +24,7 @@ from core.utils.bulk_ops import (
     sync_id_sequence,
     upsert_records,
 )
-from core.utils.files import cleanup_pipeline_data
+
 from core.utils.logger import get_logger
 
 PIPELINE_NAME = settings.PIPELINE_NAME
@@ -145,7 +145,12 @@ class DenueLoad(Stage):
         return {"data": input_data, "records_before": records_before}
 
     def finalization(self, input_data: Any) -> Any:
-        cleanup_pipeline_data(PIPELINE_NAME)
+        for pkl in [
+            Path(f"data/extract/{PIPELINE_NAME}/denue_extracted_{self.entidad}.pkl"),
+            Path(f"data/transform/{PIPELINE_NAME}/denue_df_{self.entidad}.pkl"),
+            Path(f"data/transform/{PIPELINE_NAME}/denue_catalogs_{self.entidad}.pkl"),
+        ]:
+            pkl.unlink(missing_ok=True)
         if input_data is None:
             return None
         try:
