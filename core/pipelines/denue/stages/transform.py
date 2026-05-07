@@ -16,14 +16,15 @@ PIPELINE_NAME = settings.PIPELINE_NAME
 
 
 class DenueTransform(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", entidad: int = None):
         super().__init__(PIPELINE_NAME, "transform")
         self.mode = mode
+        self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
         extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
-        pkl_path = extract_dir / "denue_extracted.pkl"
+        pkl_path = extract_dir / f"denue_extracted_{self.entidad}.pkl"
         self.logger.info(f"[source] Checking for pkl at {pkl_path}")
         if pkl_path.exists():
             self.logger.info("[source] Loading from pkl")
@@ -78,7 +79,7 @@ class DenueTransform(Stage):
             return {"df": input_data, "catalogs": {}}
 
         self.logger.info(f"[action] Starting transformation of {len(input_data)} rows")
-        df = input_data.copy()
+        df = input_data
 
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])
 
@@ -97,6 +98,17 @@ class DenueTransform(Stage):
             if col in df.columns:
                 title_col(df, col)
 
+        for col in [
+            "per_ocu",
+            "tipo_uni_eco",
+            "nombre_actividad_economica",
+            "municipio",
+            "localidad",
+            "nombre_asentamiento",
+        ]:
+            if col in df.columns:
+                df[col] = df[col].astype("category")
+
         df["rango_personal_id"] = df["per_ocu"].map(
             lambda x: next((v for k, v in RANGO_PERSONAL_MAP.items() if isinstance(x, str) and k in x), None)
         )
@@ -109,8 +121,8 @@ class DenueTransform(Stage):
 
     def finalization(self, input_data: Any) -> Any:
         if not input_data["df"].empty:
-            df_pkl = self.work_dir / "denue_df.pkl"
-            catalogs_pkl = self.work_dir / "denue_catalogs.pkl"
+            df_pkl = self.work_dir / f"denue_df_{self.entidad}.pkl"
+            catalogs_pkl = self.work_dir / f"denue_catalogs_{self.entidad}.pkl"
             input_data["df"].to_pickle(df_pkl)
             pd.Series(input_data["catalogs"]).to_pickle(catalogs_pkl)
             self.logger.info(f"[finalization] {len(input_data['df'])} rows saved to {df_pkl}")
