@@ -136,7 +136,7 @@ class DenueLoad(Stage):
                     records,
                     Establecimientos,
                     conflict_keys=[Establecimientos.id.key, Establecimientos.actualizacion_id.key],
-                    chunk_size=40_000,
+                    chunk_size=settings.CHUNK_SIZE,
                 )
         except Exception:
             self.db.disconnect()
