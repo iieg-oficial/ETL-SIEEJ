@@ -121,8 +121,8 @@ class AsgImssLoader(Stage):
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         if self.db:
             self.db.disconnect()
-
-        clean_directory(self.work_dir, self.logger)
+        transform_dir = Path(f"data/transform/{PIPELINE_NAME}")
+        clean_directory(transform_dir, self.logger)
         self.logger.info(f"Pipeline {PIPELINE_NAME} load finalizado.")
         return input_data
 

@@ -85,14 +85,14 @@ class AsgImssExtractor(Stage):
                     if not response.content:
                         raise ValueError("Respuesta vacía")
 
-                    # Detectar encoding
+                    # Detectar encoding: intentar utf-8, luego latin-1; error si ninguno aplica
                     try:
                         content = response.content.decode("utf-8")
                     except UnicodeDecodeError:
                         try:
                             content = response.content.decode("latin-1")
                         except UnicodeDecodeError:
-                            content = response.content.decode("utf-8", errors="replace")
+                            raise ValueError("No se detectó encoding válido (utf-8 o latin-1)")
 
                     file_path.write_text(content, encoding="utf-8")
                     self.logger.info(f"Guardado: {file_path.name} ({len(content):,} chars)")

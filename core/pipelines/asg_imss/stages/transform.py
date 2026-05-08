@@ -12,7 +12,7 @@ from core.pipelines.asg_imss.consts import (
     PIPELINE_NAME,
 )
 from core.pipelines.stage import Stage
-from core.utils.files import clean_directory, detect_encoding
+from core.utils.files import clean_directory
 from core.utils.records import compute_record_hash
 
 
@@ -87,7 +87,15 @@ class AsgImssTransformer(Stage):
             pkl_path = self.work_dir / f"asg-{date_str}.pkl"
 
             self.logger.info(f"Transformando: {csv_path.name}")
-            df = pd.read_csv(csv_path, encoding=detect_encoding(str(csv_path)), sep="|", dtype=str, low_memory=False)
+            for _enc in ("utf-8", "latin-1"):
+                try:
+                    df = pd.read_csv(csv_path, encoding=_enc, sep="|", dtype=str, low_memory=False)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                self.logger.error(f"No se detectó encoding válido (utf-8 o latin-1) en {csv_path.name}, omitiendo.")
+                continue
             self.logger.info(f"  Leídas {len(df):,} filas — columnas: {list(df.columns)}")
 
             # Normalizar nombre de columna con ñ
@@ -205,7 +213,6 @@ class AsgImssTransformer(Stage):
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
         clean_directory(extract_dir, self.logger)
-        clean_directory(self.work_dir, self.logger)
         row_count = input_data.get("row_count", 0) if input_data else 0
         self.logger.info(f"Transform finalizado. Filas procesadas: {row_count:,}")
         return input_data
