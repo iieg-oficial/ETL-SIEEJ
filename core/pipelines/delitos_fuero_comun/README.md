@@ -118,7 +118,7 @@ Lee los CSVs con encoding `latin1` y renombra las columnas al esquema interno. N
 
 Conecta a la base de datos y garantiza que el esquema exista (`metadata.create_all`). Carga los cinco catálogos con `insert_records` (ON CONFLICT DO NOTHING) y sincroniza secuencias. Construye mapas `{texto → id}` para resolver FKs antes de cargar el staging.
 
-- **Bootstrap**: `bulk_insert` en lotes de `LOAD_BATCH_SIZE` (default 5 000) para ambas tablas de staging.  
+- **Bootstrap**: `bulk_insert` en lotes de `LOAD_BATCH_SIZE` (default 5 000) para ambas tablas de staging.
 - **Update**: `upsert_records` en `stg_delitos_fuero_comun_2026` usando la NK como clave de conflicto; actualiza columnas mensuales y `updated_at`.
 
 ---

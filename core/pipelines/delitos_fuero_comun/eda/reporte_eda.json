@@ -20,11 +20,7 @@
         "total_columnas": 21,
         "anio_min": "2026",
         "anio_max": "2026",
-        "meses_con_datos": [
-          "Enero",
-          "Febrero",
-          "Marzo"
-        ],
+        "meses_con_datos": ["Enero", "Febrero", "Marzo"],
         "meses_sin_datos": [
           "Abril",
           "Mayo",
@@ -617,23 +613,14 @@
   ],
   "geografia": {
     "nivel": "municipal",
-    "columnas_geo": [
-      "clave_ent",
-      "entidad",
-      "cve_municipio",
-      "municipio"
-    ]
+    "columnas_geo": ["clave_ent", "entidad", "cve_municipio", "municipio"]
   },
   "catalogos": [
     {
       "nombre_columna": "cve_municipio",
       "nombre_tabla": "cat_municipio",
       "columna_original": "Cve. Municipio",
-      "columnas_relacionadas": [
-        "Clave_Ent",
-        "Entidad",
-        "Municipio"
-      ],
+      "columnas_relacionadas": ["Clave_Ent", "Entidad", "Municipio"],
       "valores_unicos_hist": 2486,
       "valores_unicos_2026": 2510,
       "valores_unicos_combinados": 2827,
@@ -698,10 +685,7 @@
         "Violación",
         "Violación a la intimidad sexual"
       ],
-      "solo_en_hist": [
-        "Violación equiparada",
-        "Violación simple"
-      ]
+      "solo_en_hist": ["Violación equiparada", "Violación simple"]
     },
     {
       "nombre_columna": "subtipo_delito",
@@ -862,10 +846,7 @@
         "Violación",
         "Violación a la intimidad sexual"
       ],
-      "solo_en_hist": [
-        "Violación equiparada",
-        "Violación simple"
-      ]
+      "solo_en_hist": ["Violación equiparada", "Violación simple"]
     },
     "subtipo_delito": {
       "solo_en_2026": [
@@ -974,13 +955,7 @@
         "2999",
         "29999"
       ],
-      "solo_cve_en_hist": [
-        "14998",
-        "22998",
-        "26998",
-        "30998",
-        "9998"
-      ]
+      "solo_cve_en_hist": ["14998", "22998", "26998", "30998", "9998"]
     }
   },
   "notas": [
