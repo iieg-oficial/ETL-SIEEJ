@@ -35,9 +35,7 @@ class CatMunicipio(DelitosFueroComunBase):
 
 class CatBienJuridicoAfectado(DelitosFueroComunBase):
     __tablename__ = T.CAT_BIEN_JURIDICO_AFECTADO
-    __table_args__ = (
-        UniqueConstraint("bien_juridico_afectado", name="uq_cat_bien_juridico_afectado"),
-    )
+    __table_args__ = (UniqueConstraint("bien_juridico_afectado", name="uq_cat_bien_juridico_afectado"),)
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     bien_juridico_afectado: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -45,9 +43,7 @@ class CatBienJuridicoAfectado(DelitosFueroComunBase):
     registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(
         back_populates="bien_juridico_afectado_rel"
     )
-    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(
-        back_populates="bien_juridico_afectado_rel"
-    )
+    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(back_populates="bien_juridico_afectado_rel")
 
 
 class CatTipoDelito(DelitosFueroComunBase):
@@ -58,12 +54,8 @@ class CatTipoDelito(DelitosFueroComunBase):
     tipo_delito: Mapped[str] = mapped_column(String(200), nullable=False)
 
     subtipos: Mapped[list["CatSubtipoDelito"]] = relationship(back_populates="tipo_delito_rel")
-    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(
-        back_populates="tipo_delito_rel"
-    )
-    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(
-        back_populates="tipo_delito_rel"
-    )
+    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(back_populates="tipo_delito_rel")
+    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(back_populates="tipo_delito_rel")
 
 
 class CatSubtipoDelito(DelitosFueroComunBase):
@@ -72,18 +64,12 @@ class CatSubtipoDelito(DelitosFueroComunBase):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     subtipo_delito: Mapped[str] = mapped_column(String(200), nullable=False)
-    tipo_delito_id: Mapped[int] = mapped_column(
-        ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False
-    )
+    tipo_delito_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False)
 
     tipo_delito_rel: Mapped["CatTipoDelito"] = relationship(back_populates="subtipos")
     modalidades: Mapped[list["CatModalidad"]] = relationship(back_populates="subtipo_delito_rel")
-    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(
-        back_populates="subtipo_delito_rel"
-    )
-    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(
-        back_populates="subtipo_delito_rel"
-    )
+    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(back_populates="subtipo_delito_rel")
+    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(back_populates="subtipo_delito_rel")
 
 
 class CatModalidad(DelitosFueroComunBase):
@@ -92,19 +78,11 @@ class CatModalidad(DelitosFueroComunBase):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     modalidad: Mapped[str] = mapped_column(String(200), nullable=False)
-    subtipo_delito_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=True
-    )
+    subtipo_delito_id: Mapped[Optional[int]] = mapped_column(ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=True)
 
-    subtipo_delito_rel: Mapped[Optional["CatSubtipoDelito"]] = relationship(
-        back_populates="modalidades"
-    )
-    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(
-        back_populates="modalidad_rel"
-    )
-    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(
-        back_populates="modalidad_rel"
-    )
+    subtipo_delito_rel: Mapped[Optional["CatSubtipoDelito"]] = relationship(back_populates="modalidades")
+    registros_hist: Mapped[list["StgDelitosFueroComunHistorico"]] = relationship(back_populates="modalidad_rel")
+    registros_2026: Mapped[list["StgDelitosFueroComun2026"]] = relationship(back_populates="modalidad_rel")
 
 
 class StgDelitosFueroComunHistorico(DelitosFueroComunBase):
@@ -135,15 +113,9 @@ class StgDelitosFueroComunHistorico(DelitosFueroComunBase):
     bien_juridico_afectado_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_BIEN_JURIDICO_AFECTADO}.id"), nullable=False
     )
-    tipo_delito_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False
-    )
-    subtipo_delito_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=False
-    )
-    modalidad_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_MODALIDAD}.id"), nullable=False
-    )
+    tipo_delito_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False)
+    subtipo_delito_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=False)
+    modalidad_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_MODALIDAD}.id"), nullable=False)
     enero: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     febrero: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     marzo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -162,9 +134,7 @@ class StgDelitosFueroComunHistorico(DelitosFueroComunBase):
         back_populates="registros_hist",
         foreign_keys=[cve_municipio],
     )
-    bien_juridico_afectado_rel: Mapped["CatBienJuridicoAfectado"] = relationship(
-        back_populates="registros_hist"
-    )
+    bien_juridico_afectado_rel: Mapped["CatBienJuridicoAfectado"] = relationship(back_populates="registros_hist")
     tipo_delito_rel: Mapped["CatTipoDelito"] = relationship(back_populates="registros_hist")
     subtipo_delito_rel: Mapped["CatSubtipoDelito"] = relationship(back_populates="registros_hist")
     modalidad_rel: Mapped["CatModalidad"] = relationship(back_populates="registros_hist")
@@ -198,15 +168,9 @@ class StgDelitosFueroComun2026(DelitosFueroComunBase):
     bien_juridico_afectado_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_BIEN_JURIDICO_AFECTADO}.id"), nullable=False
     )
-    tipo_delito_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False
-    )
-    subtipo_delito_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=False
-    )
-    modalidad_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CAT_MODALIDAD}.id"), nullable=False
-    )
+    tipo_delito_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_TIPO_DELITO}.id"), nullable=False)
+    subtipo_delito_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_SUBTIPO_DELITO}.id"), nullable=False)
+    modalidad_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_MODALIDAD}.id"), nullable=False)
     enero: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     febrero: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     marzo: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
@@ -226,9 +190,7 @@ class StgDelitosFueroComun2026(DelitosFueroComunBase):
         back_populates="registros_2026",
         foreign_keys=[cve_municipio],
     )
-    bien_juridico_afectado_rel: Mapped["CatBienJuridicoAfectado"] = relationship(
-        back_populates="registros_2026"
-    )
+    bien_juridico_afectado_rel: Mapped["CatBienJuridicoAfectado"] = relationship(back_populates="registros_2026")
     tipo_delito_rel: Mapped["CatTipoDelito"] = relationship(back_populates="registros_2026")
     subtipo_delito_rel: Mapped["CatSubtipoDelito"] = relationship(back_populates="registros_2026")
     modalidad_rel: Mapped["CatModalidad"] = relationship(back_populates="registros_2026")

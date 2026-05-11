@@ -32,8 +32,18 @@ RENAME: dict[str, str] = {
 }
 
 MONTH_COLS: list[str] = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
 ]
 
 
@@ -86,26 +96,12 @@ class DelitosTransform(Stage):
             .drop_duplicates(subset=["cve_municipio"])
             .to_dict("records")
         )
-        bien_juridico = (
-            combined[["bien_juridico_afectado"]]
-            .drop_duplicates()
-            .to_dict("records")
-        )
-        tipo = (
-            combined[["tipo_delito"]]
-            .drop_duplicates()
-            .to_dict("records")
-        )
+        bien_juridico = combined[["bien_juridico_afectado"]].drop_duplicates().to_dict("records")
+        tipo = combined[["tipo_delito"]].drop_duplicates().to_dict("records")
         subtipo = (
-            combined[["subtipo_delito", "tipo_delito"]]
-            .drop_duplicates(subset=["subtipo_delito"])
-            .to_dict("records")
+            combined[["subtipo_delito", "tipo_delito"]].drop_duplicates(subset=["subtipo_delito"]).to_dict("records")
         )
-        modalidad = (
-            combined[["modalidad", "subtipo_delito"]]
-            .drop_duplicates(subset=["modalidad"])
-            .to_dict("records")
-        )
+        modalidad = combined[["modalidad", "subtipo_delito"]].drop_duplicates(subset=["modalidad"]).to_dict("records")
 
         return {
             "municipio": municipio,

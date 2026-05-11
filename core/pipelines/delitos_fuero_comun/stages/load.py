@@ -21,12 +21,26 @@ from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_i
 from core.utils.files import clean_directory
 
 NK_COLS: list[str] = [
-    "anio", "cve_municipio", "bien_juridico_afectado_id",
-    "tipo_delito_id", "subtipo_delito_id", "modalidad_id",
+    "anio",
+    "cve_municipio",
+    "bien_juridico_afectado_id",
+    "tipo_delito_id",
+    "subtipo_delito_id",
+    "modalidad_id",
 ]
 UPDATE_COLS: list[str] = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
     "updated_at",
 ]
 
@@ -61,14 +75,18 @@ class DelitosLoad(Stage):
         with self.db.get_session() as session:
             # 1. Load catalogs (always, to register new entries on update)
             insert_records(
-                session, catalogs["bien_juridico_afectado"],
-                CatBienJuridicoAfectado, conflict_keys=["bien_juridico_afectado"],
+                session,
+                catalogs["bien_juridico_afectado"],
+                CatBienJuridicoAfectado,
+                conflict_keys=["bien_juridico_afectado"],
             )
             sync_id_sequence(session, CatBienJuridicoAfectado)
 
             insert_records(
-                session, catalogs["tipo_delito"],
-                CatTipoDelito, conflict_keys=["tipo_delito"],
+                session,
+                catalogs["tipo_delito"],
+                CatTipoDelito,
+                conflict_keys=["tipo_delito"],
             )
             sync_id_sequence(session, CatTipoDelito)
 
@@ -89,8 +107,10 @@ class DelitosLoad(Stage):
             sync_id_sequence(session, CatModalidad)
 
             insert_records(
-                session, catalogs["municipio"],
-                CatMunicipio, conflict_keys=["cve_municipio"],
+                session,
+                catalogs["municipio"],
+                CatMunicipio,
+                conflict_keys=["cve_municipio"],
             )
             sync_id_sequence(session, CatMunicipio)
 
@@ -121,8 +141,11 @@ class DelitosLoad(Stage):
                 df_26["updated_at"] = datetime.utcnow()
                 records_2026 = _prepare_records(df_26, StgDelitosFueroComun2026, ("id", "created_at"))
                 upsert_records(
-                    session, records_2026, StgDelitosFueroComun2026,
-                    conflict_keys=NK_COLS, update_keys=UPDATE_COLS,
+                    session,
+                    records_2026,
+                    StgDelitosFueroComun2026,
+                    conflict_keys=NK_COLS,
+                    update_keys=UPDATE_COLS,
                     chunk_size=settings.LOAD_BATCH_SIZE,
                 )
 
