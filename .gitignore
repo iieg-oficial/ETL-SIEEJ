@@ -38,3 +38,6 @@ dumps/*
 
 # Old files
 *.old
+
+# EDA reports - work in progress
+**/eda/reporte_eda.json
