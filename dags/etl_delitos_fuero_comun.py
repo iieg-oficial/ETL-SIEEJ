@@ -15,7 +15,7 @@ except ImportError:
 
 from core.pipeline import Pipeline
 from core.pipelines.delitos_fuero_comun.stages.extract import DelitosExtract
-from core.pipelines.delitos_fuero_comun.stages.load import DelitosLoad
+from core.pipelines.delitos_fuero_comun.constants.load import DelitosLoad
 from core.pipelines.delitos_fuero_comun.constants.transform import DelitosTransform
 
 
