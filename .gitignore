@@ -38,3 +38,6 @@ dumps/*
 
 # Old files
 *.old
+
+# Delitos fuero comun - work in progress
+core/pipelines/delitos_fuero_comun/stages/load.py
