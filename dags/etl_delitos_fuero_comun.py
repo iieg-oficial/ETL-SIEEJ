@@ -16,7 +16,7 @@ except ImportError:
 from core.pipeline import Pipeline
 from core.pipelines.delitos_fuero_comun.stages.extract import DelitosExtract
 from core.pipelines.delitos_fuero_comun.stages.load import DelitosLoad
-from core.pipelines.delitos_fuero_comun.stages.transform import DelitosTransform
+from core.pipelines.delitos_fuero_comun.constants.transform import DelitosTransform
 
 
 def run_bootstrap() -> None:
