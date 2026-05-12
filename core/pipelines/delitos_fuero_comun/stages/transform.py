@@ -4,47 +4,9 @@ from typing import Any, Optional
 import pandas as pd
 
 from core.pipelines.delitos_fuero_comun.config import PIPELINE_NAME
+from core.pipelines.delitos_fuero_comun.constants import MONTH_COLS, RENAME
 from core.pipelines.stage import Stage
 from core.utils.files import clean_directory
-
-RENAME: dict[str, str] = {
-    "Año": "anio",
-    "Clave_Ent": "clave_ent",
-    "Entidad": "entidad",
-    "Cve. Municipio": "cve_municipio",
-    "Municipio": "municipio",
-    "Bien jurídico afectado": "bien_juridico_afectado",
-    "Tipo de delito": "tipo_delito",
-    "Subtipo de delito": "subtipo_delito",
-    "Modalidad": "modalidad",
-    "Enero": "enero",
-    "Febrero": "febrero",
-    "Marzo": "marzo",
-    "Abril": "abril",
-    "Mayo": "mayo",
-    "Junio": "junio",
-    "Julio": "julio",
-    "Agosto": "agosto",
-    "Septiembre": "septiembre",
-    "Octubre": "octubre",
-    "Noviembre": "noviembre",
-    "Diciembre": "diciembre",
-}
-
-MONTH_COLS: list[str] = [
-    "enero",
-    "febrero",
-    "marzo",
-    "abril",
-    "mayo",
-    "junio",
-    "julio",
-    "agosto",
-    "septiembre",
-    "octubre",
-    "noviembre",
-    "diciembre",
-]
 
 
 class DelitosTransform(Stage):

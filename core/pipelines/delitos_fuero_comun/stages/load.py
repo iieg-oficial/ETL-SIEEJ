@@ -6,6 +6,7 @@ import pandas as pd
 
 from core.db import Database
 from core.pipelines.delitos_fuero_comun.config import PIPELINE_NAME, settings
+from core.pipelines.delitos_fuero_comun.constants import NK_COLS, UPDATE_COLS
 from core.pipelines.delitos_fuero_comun.schemas import (
     CatBienJuridicoAfectado,
     CatModalidad,
@@ -19,30 +20,6 @@ from core.pipelines.delitos_fuero_comun.schemas import (
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
-
-NK_COLS: list[str] = [
-    "anio",
-    "cve_municipio",
-    "bien_juridico_afectado_id",
-    "tipo_delito_id",
-    "subtipo_delito_id",
-    "modalidad_id",
-]
-UPDATE_COLS: list[str] = [
-    "enero",
-    "febrero",
-    "marzo",
-    "abril",
-    "mayo",
-    "junio",
-    "julio",
-    "agosto",
-    "septiembre",
-    "octubre",
-    "noviembre",
-    "diciembre",
-    "updated_at",
-]
 
 
 def _prepare_records(df: pd.DataFrame, model, exclude_cols: tuple[str, ...]) -> list[dict]:
