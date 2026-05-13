@@ -1,0 +1,66 @@
+RENAME_HEADER_BASE = {
+    "Anio": "anio",
+    "Idestado": "entidad_id",
+    "Nomestado": "entidad",
+    "Idddr": "distrito_des_rural_id",
+    "Nomddr": "dis_des_rural",
+    "Idcader": "ctr_apoyo_des_rural_id",
+    "Nomcader": "ctr_apoyo_des_rural",
+    "Idmunicipio": "municipio_id",
+    "Nommunicipio": "municipio",
+    "Idciclo": "tipo_ciclo_id",
+    "Nomcicloproductivo": "tipo_ciclo",
+    "Idmodalidad": "modalidad_id",
+    "Nommodalidad": "modalidad",
+    "Idunidadmedida": "unidad_med_id",
+    "Nomunidad": "unidad_med",
+    "Idcultivo": "cultivo_id",
+    "Sembrada": "sup_sembrada",
+    "Cosechada": "sup_cosechada",
+    "Siniestrada": "sup_siniestrada",
+    "Volumenproduccion": "volumen_produccion",
+    "Rendimiento": "rendimiento",
+    "Valorproduccion": "valor_produccion",
+}
+
+NULL_VALUES = [
+    "no especificado",
+    "sin información",
+    "sin informacion",
+    "sin información",
+    "*",
+    "****",
+    "---",
+    "n/a",
+    "na",
+    "nan",
+    "null",
+    "ninguno",
+    "sin dato",
+    "nd",
+    "s/d",
+    "s/n",
+    "ne",
+]
+
+
+TITLE_COLS = [
+    "cultivo",
+    "unidad_med",
+    "modalidad",
+    "tipo_ciclo",
+    "ctr_apoyo_des_rural",
+    "dis_des_rural",
+    "municipio",
+    "entidad",
+]
+
+FLOAT_COLS = [
+    "sup_sembrada",
+    "sup_cosechada",
+    "sup_siniestrada",
+    "volumen_produccion",
+    "rendimiento",
+    "precio_med_rural",
+    "valor_produccion",
+]
