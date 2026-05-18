@@ -131,8 +131,22 @@ class CatRangoUma(AsgImssBase):
 class AsgImssDatos(AsgImssBase):
     __tablename__ = "stg_asg_imss_datos"
     __table_args__ = (
-        UniqueConstraint("record_hash", name="uq_asg_imss_datos_record_hash"),
-        Index("ix_asg_imss_datos_record_hash", "record_hash", unique=True),
+        UniqueConstraint(
+            "fecha_corte",
+            "cve_delegacion",
+            "cve_subdelegacion",
+            "cve_entidad",
+            "cve_municipio",
+            "sector_economico_1",
+            "sector_economico_2",
+            "sector_economico_4",
+            "tamanio_patron",
+            "sexo",
+            "rango_edad",
+            "rango_salarial",
+            "rango_uma",
+            name="uq_asg_imss_datos_natural_key",
+        ),
         Index("ix_asg_imss_datos_fecha_corte", "fecha_corte"),
     )
 
@@ -175,7 +189,6 @@ class AsgImssDatos(AsgImssBase):
     masa_sal_tpc: Mapped[float] = mapped_column(Numeric(16, 2), default=0)
 
     # Auditoría
-    record_hash: Mapped[str] = mapped_column(String(64), unique=True)
     created_at: Mapped[Optional[datetime]] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now())
 
 
