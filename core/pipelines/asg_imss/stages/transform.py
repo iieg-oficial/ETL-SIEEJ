@@ -9,10 +9,12 @@ from core.constants.geo import JALISCO_CVE_ENTIDAD
 from core.pipelines.asg_imss.consts import (
     METRIC_FLOAT_COLUMNS,
     METRIC_INT_COLUMNS,
+    NULL_VALUES,
     PIPELINE_NAME,
 )
 from core.pipelines.stage import Stage
-from core.utils.files import clean_directory
+from core.utils.files import clean_directory, detect_encoding
+from core.utils.normalize import strip_accents
 
 # Static catalog columns with str keys
 _STR_CATALOG_COLS: dict[str, str] = {
@@ -131,7 +133,10 @@ def _parse_catalog_dict(xlsx_path: Path) -> dict:
         cve, desc = row[0], row[1]
         if cve is None:
             continue
-        tamanio_patron[str(cve).strip().upper()] = str(desc).strip()
+        cve_str = str(cve).strip().upper()
+        if len(cve_str) > 5:
+            continue
+        tamanio_patron[cve_str] = str(desc).strip()
 
     # sexo
     sexo: dict[int, str] = {}
@@ -152,7 +157,10 @@ def _parse_catalog_dict(xlsx_path: Path) -> dict:
         cve, desc = row[0], row[1]
         if cve is None:
             continue
-        rango_edad[str(cve).strip()] = str(desc).strip()
+        cve_str = str(cve).strip()
+        if len(cve_str) > 5:
+            continue
+        rango_edad[cve_str] = str(desc).strip()
 
     # Rango salario
     rango_salarial: dict[str, str] = {}
@@ -161,7 +169,10 @@ def _parse_catalog_dict(xlsx_path: Path) -> dict:
         cve, desc = row[0], row[1]
         if cve is None:
             continue
-        rango_salarial[str(cve).strip()] = str(desc).strip()
+        cve_str = str(cve).strip()
+        if len(cve_str) > 5:
+            continue
+        rango_salarial[cve_str] = str(desc).strip()
 
     # Rango UMA (sheet column is named "rango_salarial" but contains rango_uma codes)
     rango_uma: dict[str, str] = {}
@@ -170,7 +181,10 @@ def _parse_catalog_dict(xlsx_path: Path) -> dict:
         cve, desc = row[0], row[1]
         if cve is None:
             continue
-        rango_uma[str(cve).strip()] = str(desc).strip()
+        cve_str = str(cve).strip()
+        if len(cve_str) > 5:
+            continue
+        rango_uma[cve_str] = str(desc).strip()
 
     wb.close()
     return {
@@ -526,11 +540,14 @@ class AsgImssTransformer(Stage):
             pkl_path = self.work_dir / f"asg-{date_str}.pkl"
 
             self.logger.info(f"Transformando: {csv_path.name}")
-            df = pd.read_csv(csv_path, encoding=detect_encoding(str(csv_path)), sep="|", dtype=str, low_memory=False)
+            _csv_kwargs = dict(sep="|", dtype=str, low_memory=False, keep_default_na=False, na_values=NULL_VALUES)
+            try:
+                df = pd.read_csv(csv_path, encoding="utf-8", **_csv_kwargs)
+            except UnicodeDecodeError:
+                df = pd.read_csv(csv_path, encoding=detect_encoding(str(csv_path)), **_csv_kwargs)
+            df.columns = [strip_accents(c) for c in df.columns]
+            df.rename(columns={"tamano_patron": "tamanio_patron"}, inplace=True)
             self.logger.info(f"  Leídas {len(df):,} filas — columnas: {list(df.columns)}")
-
-            # Normalize column name that contains ñ
-            df.rename(columns={"tamaño_patron": "tamanio_patron"}, inplace=True)
 
             # Filter to Jalisco
             if "cve_entidad" not in df.columns:
