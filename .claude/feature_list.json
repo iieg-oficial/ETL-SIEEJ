@@ -1,0 +1,147 @@
+{
+  "project": "ETL-SIEEJ",
+  "pipeline": null,
+  "issue": null,
+  "branch": null,
+  "rules": {
+    "one_phase_at_a_time": true,
+    "require_verification_to_close": true,
+    "phase_order": "sequential",
+    "valid_status": ["pending", "in_progress", "done", "blocked"]
+  },
+  "phases": [
+    {
+      "id": 0,
+      "name": "schema_discovery",
+      "title": "Phase 0 — Sources & Schema Discovery",
+      "description": "Explorar la fuente de datos, proponer RENAME_HEADER, estructura de tablas y esquema. Confirmar con el usuario antes de escribir cualquier archivo.",
+      "acceptance": [
+        "Fuente de datos identificada y explorada con pandas",
+        "RENAME_HEADER propuesto con nombres snake_case",
+        "Estructura de tablas y tipos de columnas confirmada por el usuario",
+        "Pipeline name, source type (iterable/non-iterable), schedule del DAG confirmados",
+        "Catálogos estáticos identificados"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 1,
+      "name": "schemas",
+      "title": "Phase 1 — Schemas",
+      "description": "Crear constants.py, attributes, schemas.py y archivos .env.",
+      "acceptance": [
+        "constants.py creado con NULL_VALUES, RENAME_HEADER y demás constantes",
+        "attributes.py o attributes/ creado con enum auto()",
+        "schemas.py creado con modelos SQLAlchemy 2.0",
+        ".env y .env.example creados con URLs como variables de entorno"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "name": "extract",
+      "title": "Phase 2 — Extract",
+      "description": "Implementar stages/extract.py.",
+      "acceptance": [
+        "URLs leídas desde .env, nunca hardcodeadas",
+        "Datos guardados como pickle en data/extract/{pipeline}/",
+        "Guard contra respuesta no-200 (raise on error)",
+        "Guard contra DataFrame vacío",
+        "Rutas de archivo incluyen parámetro iterable si aplica"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "name": "transform",
+      "title": "Phase 3 — Transform",
+      "description": "Implementar stages/transform.py.",
+      "acceptance": [
+        "Columnas float casteadas con pd.to_numeric antes de list_values_to_null",
+        "Columnas datetime convertidas antes de list_values_to_null",
+        "Catálogos construidos sin duplicados",
+        "FKs mapeados con normalize_col() antes de .map()",
+        "Guard contra DataFrame vacío"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "name": "load",
+      "title": "Phase 4 — Load",
+      "description": "Implementar stages/load.py.",
+      "acceptance": [
+        "df.astype(object).where(df.notna(), None) antes de cada insert",
+        "SERIAL id excluido de columnas INSERT",
+        "Catálogos cargados antes que la tabla principal",
+        "sync_id_sequence llamado tras insertar catálogos",
+        "Estrategia correcta: upsert_records (iterable) o insert_records (no-iterable)",
+        "cleanup_pipeline_data llamado en finalization()"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "name": "dag",
+      "title": "Phase 5 — DAG",
+      "description": "Crear dags/etl_{pipeline}.py.",
+      "acceptance": [
+        "DAG creado con schedule y start_date confirmados en Phase 0",
+        "bootstrap y/o incremental según tipo de fuente",
+        "retries y retry_delay configurados"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 6,
+      "name": "migrations",
+      "title": "Phase 6 — Migrations",
+      "description": "Crear migraciones Flyway en migrations/{pipeline}/sql/.",
+      "acceptance": [
+        "V1__foreign_tables.sql creado con postgres_fdw y foreign tables",
+        "V2__catalogs_{pipeline}.sql creado si hay catálogos",
+        "V3__tables_{pipeline}.sql creado con tipos que coinciden con schemas.py",
+        "V4__views_{pipeline}.sql creado con JOIN a cvegeo",
+        "flyway.conf y flyway.conf.example creados"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "name": "cleanup",
+      "title": "Phase 7 — Cleanup & Code Quality",
+      "description": "Verificar que el código cumple las convenciones antes de ejecutar el pipeline.",
+      "acceptance": [
+        "No hay constantes UPPERCASE definidas fuera de constants.py (ni en stages/, schemas.py, mappings.py)",
+        "No hay funciones helper definidas fuera de helpers/ (los stages solo contienen métodos de clase)",
+        "Importaciones siguen el orden: stdlib → third-party → internal (core.*), con línea en blanco entre grupos",
+        "Ninguna función nueva en el pipeline reimplementa lógica ya existente en core/utils/"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 8,
+      "name": "verification",
+      "title": "Phase 8 — Verification",
+      "description": "Ejecutar el pipeline completo y verificar todos los checklists.",
+      "acceptance": [
+        "just flyway-reset {pipeline} termina con exit code 0",
+        "python dags/etl_{pipeline}.py termina sin excepciones",
+        "Registros insertados > 0",
+        "Todos los checklists de CHECKPOINTS.md marcados"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 9,
+      "name": "readme",
+      "title": "Phase 9 — README",
+      "description": "Generar la documentación del pipeline.",
+      "acceptance": [
+        "README.md creado en core/pipelines/{pipeline}/",
+        "Documenta fuente de datos, tablas generadas y schedule"
+      ],
+      "status": "pending"
+    }
+  ]
+}
