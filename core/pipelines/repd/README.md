@@ -10,7 +10,9 @@ El pipeline consume un archivo Excel (.xlsx) descargado directamente desde la AP
 - **Formato**: XLSX, hoja "DATOS", header en fila 13, 18 columnas, ~37,000 registros
 - **Llave natural**: Folio Estatal de Busqueda (FEB), UUID unico por caso
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ```
 +---------------------------+     +-----------------------------------+

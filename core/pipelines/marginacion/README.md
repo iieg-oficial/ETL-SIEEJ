@@ -2,9 +2,9 @@
 
 Pipeline ETL para el índice y grado de marginación municipal, por localidad y estatal, publicado por CONAPO.
 
-## Esquema
+## ERD
 
-<img src="assets/erd.png" width="600" height="900">
+![ERD](assets/erd.svg)
 
 ## Diccionario de variables
 

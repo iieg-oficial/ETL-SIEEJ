@@ -2,6 +2,10 @@
 
 Pipeline ETL para los datos de asegurados al IMSS publicados en el portal de datos abiertos del IMSS (ASG — Asegurados por Género). Descarga, transforma y carga mensualmente los registros de trabajadores asegurados en Jalisco.
 
+## ERD
+
+![ERD](assets/erd.svg)
+
 ## Fuente
 
 El IMSS publica mensualmente archivos CSV con el universo de asegurados permanentes y eventuales, desglosados por delegación, municipio, sector económico, tamaño del patrón, sexo, rango de edad, rango salarial y rango UMA. El archivo nacional contiene ~4.6 millones de filas; este pipeline filtra únicamente los registros de Jalisco (`cve_entidad == 14`), que representan ~449 mil filas por mes.

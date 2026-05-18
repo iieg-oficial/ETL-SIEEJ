@@ -10,7 +10,9 @@ El pipeline consume archivos Excel publicados mensualmente en el portal de la Se
 - **Cobertura histórica**: A partir de mayo de 2017
 - **Frecuencia de publicación**: Mensual. Cada archivo representa el estado del padrón en ese período
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ### Catálogos estáticos (IDs predefinidos)
 

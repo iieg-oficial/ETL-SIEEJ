@@ -2,6 +2,10 @@
 
 Pipeline ETL para la descarga y carga de datos agrícolas del SIAP (Servicio de Información Agroalimentaria y Pesquera).
 
+## ERD
+
+![ERD](assets/erd.svg)
+
 ## Fuente de datos
 
 - **Organismo:** SIAP — Secretaría de Agricultura y Desarrollo Rural

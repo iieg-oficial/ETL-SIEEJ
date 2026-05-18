@@ -11,9 +11,9 @@ Pipeline ETL para datos de población y vivienda de Jalisco provenientes de los 
 | Censo de Población y Vivienda 2020 | ZIP → CSV (ITER) | Localidad |
 
 
-## Esquema de base de datos
+## ERD
 
-![ERD](assets/erd_censo.svg)
+![ERD](assets/erd.svg)
 
 ## Flujo del pipeline
 

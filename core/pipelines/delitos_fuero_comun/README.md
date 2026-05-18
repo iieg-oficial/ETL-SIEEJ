@@ -20,9 +20,9 @@
 
 ---
 
-## Esquema de Base de Datos
+## ERD
 
-> Diagrama ER no disponible — el archivo `assets/er_delitos_fuero_comun.png` no existe en este pipeline.
+![ERD](assets/erd.svg)
 
 ### Tablas catálogo (migración V1)
 

@@ -17,4 +17,4 @@ Directorio Nacional de Unidades Económicas (DENUE) - establecimientos activos e
 
 ## ERD
 
-<img src="assets/erd.png" width="600" height="400">
+![ERD](assets/erd.svg)
