@@ -124,8 +124,6 @@ class AsgImssLoader(Stage):
         if self.db:
             self.db.disconnect()
 
-        clean_directory(self.work_dir, self.logger)
-
         unknown_catalog_values = input_data.get("unknown_catalog_values", {}) if input_data else {}
         if unknown_catalog_values:
             self.logger.warning("=" * 60)
@@ -135,6 +133,9 @@ class AsgImssLoader(Stage):
             if self.mode == "update":
                 self.logger.warning("Actualizar los CATALOG_* correspondientes en consts.py.")
             self.logger.warning("=" * 60)
+
+        transform_dir = Path(f"data/transform/{PIPELINE_NAME}")
+        clean_directory(transform_dir, self.logger)
 
         self.logger.info(f"Pipeline {PIPELINE_NAME} load finalizado.")
         return input_data

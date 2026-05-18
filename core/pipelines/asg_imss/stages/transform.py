@@ -12,7 +12,7 @@ from core.pipelines.asg_imss.consts import (
     PIPELINE_NAME,
 )
 from core.pipelines.stage import Stage
-from core.utils.files import clean_directory, detect_encoding
+from core.utils.files import clean_directory
 
 # Static catalog columns with str keys
 _STR_CATALOG_COLS: dict[str, str] = {
@@ -526,15 +526,7 @@ class AsgImssTransformer(Stage):
             pkl_path = self.work_dir / f"asg-{date_str}.pkl"
 
             self.logger.info(f"Transformando: {csv_path.name}")
-            df = pd.read_csv(
-                csv_path,
-                encoding=detect_encoding(str(csv_path)),
-                sep="|",
-                dtype=str,
-                low_memory=False,
-                keep_default_na=False,
-                na_values=["NO APLICA", "N/A", "null", "nan", "", "NULL", "None"],
-            )
+            df = pd.read_csv(csv_path, encoding=detect_encoding(str(csv_path)), sep="|", dtype=str, low_memory=False)
             self.logger.info(f"  Leídas {len(df):,} filas — columnas: {list(df.columns)}")
 
             # Normalize column name that contains ñ
@@ -608,7 +600,6 @@ class AsgImssTransformer(Stage):
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
         clean_directory(extract_dir, self.logger)
-        clean_directory(self.work_dir, self.logger)
         row_count = input_data.get("row_count", 0) if input_data else 0
         self.logger.info(f"Transform finalizado. Filas procesadas: {row_count:,}")
         return input_data
