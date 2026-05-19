@@ -10,7 +10,9 @@ El pipeline consume la API REST del SIGED, consultada por entidad federativa:
 - **Cobertura histórica**: Instantánea — representa el estado actual del padrón al momento de la descarga
 - **Frecuencia de publicación**: Continua. La API refleja el estado vigente del padrón en cada consulta
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ### Catálogos estáticos (IDs predefinidos)
 

@@ -9,7 +9,9 @@ El pipeline consume archivos Excel almacenados en una carpeta compartida de Goog
 - **Archivo histórico**: Un único `.xlsx` (~50,000 registros) con incidentes de años anteriores. Usa coordenadas WGS84 y carece de algunas columnas presentes en las actualizaciones (violencia, calle, cruce).
 - **Archivos de actualización**: Archivos `.xlsx` mensuales enviados por la Fiscalía vía correo electrónico. Deben subirse a la carpeta de Drive con el formato de nombre `dd-mm-yyyy.xlsx` (ej. `01-12-2025.xlsx`). Estos archivos usan coordenadas UTM Zona 13N que se convierten durante la transformación.
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ```
 ┌──────────────────┐     ┌───────────────────┐

@@ -2,9 +2,9 @@
 
 Pipeline ETL para el Índice de Intensidad Migratoria México–Estados Unidos (IIM) publicado por CONAPO.
 
-## Esquema
+## ERD
 
-<img src="assets/erd.png" width="300" height="900">
+![ERD](assets/erd.svg)
 
 ## Diccionario de variables
 

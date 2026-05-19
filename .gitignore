@@ -1,3 +1,8 @@
+# Agent progress files (local only, never committed)
+.claude/progress/impl_phase_*.md
+.claude/progress/review_phase_*.md
+.claude/progress/history.md
+
 # Python
 __pycache__/
 *.pyc
@@ -38,3 +43,6 @@ dumps/*
 
 # Old files
 *.old
+
+# EDA reports - work in progress
+**/eda/reporte_eda.json

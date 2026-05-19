@@ -63,7 +63,6 @@ SELECT
     d.masa_sal_tpu,
     d.masa_sal_tpc,
 
-    d.record_hash,
     d.created_at
 
 FROM public.stg_asg_imss_datos                         d

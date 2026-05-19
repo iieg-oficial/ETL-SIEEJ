@@ -35,7 +35,9 @@ Archivos relacionados:
 - `migrations/pobreza_multidimencional/sql/` — Migraciones Flyway V1–V3
 - `migrations/pobreza_multidimencional/flyway.conf.example` — Config de ejemplo
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ```mermaid
 erDiagram
