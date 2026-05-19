@@ -12,7 +12,9 @@ El pipeline consume la API de series del INEGI, consultada por tipo de ubicació
 - **Ubicaciones**: 55 ciudades, 32 entidades federativas y nivel nacional
 - **Categorías**: 9 objetos de gasto (índice general + 8 subcategorías)
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ### Catálogos
 

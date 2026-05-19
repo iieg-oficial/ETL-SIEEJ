@@ -4,9 +4,9 @@
 
 Los datos de producción ganadera son publicados anualmente por el Servicio de Información Agroalimentaria y Pesquera ([SIAP](https://nube.agricultura.gob.mx/datosAbiertos/Pecuario.php)) y reportan volumen, valor y precio de los productos ganaderos por especie, municipio y distrito de desarrollo rural a nivel nacional.
 
-## Esquema
+## ERD
 
-<img src="assets/erd.png" width="600" height="500">
+![ERD](assets/erd.svg)
 
 ## Diccionario de variables
 

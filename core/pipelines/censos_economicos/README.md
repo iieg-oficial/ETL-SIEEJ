@@ -1,8 +1,8 @@
 # sieej
 
-## Esquema
+## ERD
 
-<img src="assets/er_censos_economicos.png" width="1500" height="10000">
+<img src="assets/erd.svg">
 
 ## Diccionario de variables
 

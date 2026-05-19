@@ -37,7 +37,9 @@ Archivos relacionados fuera del directorio:
 - `migrations/efipem/sql/` — Migraciones Flyway V1–V4
 - `migrations/efipem/flyway.conf.example` — Config de ejemplo con placeholders FDW
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ```
 +-----------------------------+          +-----------------------------------+

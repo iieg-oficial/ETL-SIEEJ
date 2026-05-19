@@ -11,7 +11,9 @@
 
 
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ### Catálogos estáticos (IDs provenientes de la API)
 

@@ -23,7 +23,9 @@ cualquier CSV en `conjunto_de_datos/`.
 
 ---
 
-## Esquema de base de datos
+## ERD
+
+![ERD](assets/erd.svg)
 
 ### Tablas catálogo
 
