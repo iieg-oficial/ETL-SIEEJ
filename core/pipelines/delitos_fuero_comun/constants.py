@@ -1,6 +1,6 @@
 NK_COLS: list[str] = [
     "anio",
-    "cve_municipio",
+    "cvegeo_municipality_id",
     "bien_juridico_afectado_id",
     "tipo_delito_id",
     "subtipo_delito_id",

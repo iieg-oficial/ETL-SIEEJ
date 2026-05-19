@@ -2,7 +2,6 @@ from enum import auto, StrEnum
 
 
 class DelitosFueroComunTables(StrEnum):
-    CAT_MUNICIPIO = auto()
     CAT_BIEN_JURIDICO_AFECTADO = auto()
     CAT_TIPO_DELITO = auto()
     CAT_SUBTIPO_DELITO = auto()
@@ -17,7 +16,7 @@ COLUMNS_STG: dict[str, dict[str, object]] = {
     "anio": {"dtype": "Int16", "nullable": False},
     "clave_ent": {"dtype": "str", "nullable": False},
     "entidad": {"dtype": "str", "nullable": False},
-    "cve_municipio": {"dtype": "str", "nullable": False},
+    "cvegeo_municipality_id": {"dtype": "Int32", "nullable": False},
     "municipio": {"dtype": "str", "nullable": False},
     "bien_juridico_afectado_id": {"dtype": "Int32", "nullable": False},
     "tipo_delito_id": {"dtype": "Int32", "nullable": False},

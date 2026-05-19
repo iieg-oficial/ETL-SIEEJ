@@ -12,10 +12,10 @@
 CREATE OR REPLACE VIEW v_delitos_serie_historica AS
 SELECT
     s.anio,
-    m.cve_municipio,
-    m.clave_ent,
-    m.entidad,
-    m.municipio,
+    LPAD(cm.cvegeo::text, 5, '0')  AS cve_municipio,
+    s.clave_ent,
+    s.entidad,
+    s.municipio,
     bja.bien_juridico_afectado,
     td.tipo_delito,
     sd.subtipo_delito,
@@ -23,7 +23,7 @@ SELECT
     t.mes,
     t.conteo
 FROM stg_delitos_fuero_comun_2015_2025 s
-JOIN cat_municipio              m   USING (cve_municipio)
+JOIN cvegeo_municipalities      cm  ON s.cvegeo_municipality_id  = cm.id
 JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
@@ -41,10 +41,10 @@ UNION ALL
 
 SELECT
     s.anio,
-    m.cve_municipio,
-    m.clave_ent,
-    m.entidad,
-    m.municipio,
+    LPAD(cm.cvegeo::text, 5, '0')  AS cve_municipio,
+    s.clave_ent,
+    s.entidad,
+    s.municipio,
     bja.bien_juridico_afectado,
     td.tipo_delito,
     sd.subtipo_delito,
@@ -52,7 +52,7 @@ SELECT
     t.mes,
     t.conteo
 FROM stg_delitos_fuero_comun_2026 s
-JOIN cat_municipio              m   USING (cve_municipio)
+JOIN cvegeo_municipalities      cm  ON s.cvegeo_municipality_id  = cm.id
 JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
@@ -216,10 +216,10 @@ CREATE OR REPLACE VIEW v_delitos_comparables_general AS
 -- -----------------------------------------------------------------------
 SELECT
     s.anio,
-    m.cve_municipio,
-    m.clave_ent,
-    m.entidad,
-    m.municipio,
+    LPAD(cm.cvegeo::text, 5, '0')  AS cve_municipio,
+    s.clave_ent,
+    s.entidad,
+    s.municipio,
     bja.bien_juridico_afectado,
     td.tipo_delito,
     sd.subtipo_delito,
@@ -227,7 +227,7 @@ SELECT
     t.mes,
     t.conteo
 FROM stg_delitos_fuero_comun_2015_2025 s
-JOIN cat_municipio              m   USING (cve_municipio)
+JOIN cvegeo_municipalities      cm  ON s.cvegeo_municipality_id  = cm.id
 JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
@@ -248,10 +248,10 @@ UNION ALL
 -- -----------------------------------------------------------------------
 SELECT
     s.anio,
-    m.cve_municipio,
-    m.clave_ent,
-    m.entidad,
-    m.municipio,
+    LPAD(cm.cvegeo::text, 5, '0')  AS cve_municipio,
+    s.clave_ent,
+    s.entidad,
+    s.municipio,
     bja.bien_juridico_afectado,
     CASE
         -- Tentativas de vida/integridad → categoría histórica
@@ -298,7 +298,7 @@ SELECT
     t.mes,
     t.conteo
 FROM stg_delitos_fuero_comun_2026 s
-JOIN cat_municipio              m   USING (cve_municipio)
+JOIN cvegeo_municipalities      cm  ON s.cvegeo_municipality_id  = cm.id
 JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
 JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
 JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id

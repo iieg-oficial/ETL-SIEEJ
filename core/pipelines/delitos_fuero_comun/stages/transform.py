@@ -53,11 +53,6 @@ class DelitosTransform(Stage):
     def _extract_catalogs(self, dfs: list[pd.DataFrame]) -> dict:
         combined = pd.concat(dfs, ignore_index=True)
 
-        municipio = (
-            combined[["cve_municipio", "clave_ent", "entidad", "municipio"]]
-            .drop_duplicates(subset=["cve_municipio"])
-            .to_dict("records")
-        )
         bien_juridico = combined[["bien_juridico_afectado"]].drop_duplicates().to_dict("records")
         tipo = combined[["tipo_delito"]].drop_duplicates().to_dict("records")
         subtipo = (
@@ -66,7 +61,6 @@ class DelitosTransform(Stage):
         modalidad = combined[["modalidad", "subtipo_delito"]].drop_duplicates(subset=["modalidad"]).to_dict("records")
 
         return {
-            "municipio": municipio,
             "bien_juridico_afectado": bien_juridico,
             "tipo_delito": tipo,
             "subtipo_delito": subtipo,
