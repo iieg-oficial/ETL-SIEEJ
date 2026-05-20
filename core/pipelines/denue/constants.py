@@ -30,4 +30,4 @@ TITLE_COLS: Final[List[str]] = [
 
 DATE_COLS: Final[List[str]] = ["fecha_alta"]
 
-ENTIDADES_MEXICO: Final[List[int]] = list(range(14, 15))
+ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))
