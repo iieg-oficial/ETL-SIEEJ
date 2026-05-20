@@ -29,3 +29,16 @@ TIPO_ESTABLECIMIENTO_MAP: Dict[str, int] = {
     "Fijo": 1,
     "Semifijo": 2,
 }
+
+SECTOR_RANGO_MAP: Dict[str, str] = {
+    "31": "31-33",
+    "32": "31-33",
+    "33": "31-33",
+    "48": "48-49",
+    "49": "48-49",
+}
+
+
+def get_sector_codigo(codigo_actividad: str) -> str:
+    prefix = codigo_actividad[:2]
+    return SECTOR_RANGO_MAP.get(prefix, prefix)

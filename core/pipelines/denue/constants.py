@@ -4,8 +4,7 @@ RENAME_HEADER: Final[dict] = {
     "id": "id",
     "nom_estab": "nombre_establecimiento",
     "raz_social": "razon_social",
-    "codigo_act": "actividad_economica_id",
-    "nombre_act": "nombre_actividad_economica",
+    "codigo_act": "codigo_actividad",
     "per_ocu": "per_ocu",
     "tipoUniEco": "tipo_uni_eco",
     "latitud": "latitud",
@@ -15,7 +14,7 @@ RENAME_HEADER: Final[dict] = {
     "ageb": "ageb",
     "cve_mun": "cve_mun",
     "municipio": "municipio",
-    "cve_loc": "clave_localidad",
+    "cve_loc": "localidad_id",
     "localidad": "localidad",
 }
 
@@ -27,9 +26,8 @@ TITLE_COLS: Final[List[str]] = [
     "nombre_asentamiento",
     "municipio",
     "localidad",
-    "nombre_actividad_economica",
 ]
 
 DATE_COLS: Final[List[str]] = ["fecha_alta"]
 
-ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))
+ENTIDADES_MEXICO: Final[List[int]] = list(range(14, 15))
