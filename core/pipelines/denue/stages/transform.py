@@ -7,9 +7,9 @@ from core.pipelines.denue.attributes import DenueTables as T
 from core.pipelines.denue.config import settings
 from core.pipelines.denue.constants import NULL_VALUES, TITLE_COLS, DATE_COLS
 from core.pipelines.denue.mappings import RANGO_PERSONAL_MAP, TIPO_ESTABLECIMIENTO_MAP, get_sector_codigo
+from core.pipelines.denue.helpers.scian import load_scian_lookups
 from core.utils import df_to_records
 from core.utils.clean import list_values_to_null
-from core.utils.files import load_csv_lookups
 from core.utils.logger import get_logger
 from core.utils.normalize import title_col
 
@@ -23,10 +23,6 @@ class DenueTransform(Stage):
         self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
         self.scian_lookups = None
-
-    def _load_scian_lookups(self) -> dict[str, dict[str, str]]:
-        scian_path = self.work_dir.parents[1] / "extract" / PIPELINE_NAME / settings.SCIAN_CSV_NAME
-        return load_csv_lookups(scian_path, "nivel", "codigo", "descripcion")
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
         extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
@@ -153,7 +149,8 @@ class DenueTransform(Stage):
 
         df = df[df["nombre_establecimiento"].notna()]
 
-        self.scian_lookups = self._load_scian_lookups()
+        extract_dir = self.work_dir.parents[1] / "extract" / PIPELINE_NAME
+        self.scian_lookups = load_scian_lookups(extract_dir, settings.SCIAN_CSV_NAME)
 
         self.logger.info(f"[action] {len(df)} rows after transformation")
         return {"df": df, "catalogs": self._build_catalogs(df)}
