@@ -6,9 +6,14 @@ from typing import Any, Optional
 
 import requests
 
-from core.pipelines.asg_imss.config import settings
+from core.pipelines.asg_imss_old.config import settings
 from core.constants.http import BROWSER_HEADERS
-from core.pipelines.asg_imss.consts import CATALOG_DICT_FILENAME, CATALOG_DICT_URL, PIPELINE_NAME, SOURCE_URL_TEMPLATE
+from core.pipelines.asg_imss_old.consts import (
+    CATALOG_DICT_FILENAME,
+    CATALOG_DICT_URL,
+    PIPELINE_NAME,
+    SOURCE_URL_TEMPLATE,
+)
 from core.pipelines.stage import Stage
 
 

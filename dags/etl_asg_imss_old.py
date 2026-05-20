@@ -9,9 +9,9 @@ from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
 from core.pipeline import Pipeline
-from core.pipelines.asg_imss.stages.extract import AsgImssExtractor
-from core.pipelines.asg_imss.stages.load import AsgImssLoader
-from core.pipelines.asg_imss.stages.transform import AsgImssTransformer
+from core.pipelines.asg_imss_old.stages.extract import AsgImssExtractor
+from core.pipelines.asg_imss_old.stages.load import AsgImssLoader
+from core.pipelines.asg_imss_old.stages.transform import AsgImssTransformer
 
 
 def run_bootstrap():

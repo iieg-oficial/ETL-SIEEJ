@@ -6,9 +6,9 @@ import pandas as pd
 from sqlalchemy import select
 
 from core.db import Database
-from core.pipelines.asg_imss.config import settings
-from core.pipelines.asg_imss.consts import PIPELINE_NAME
-from core.pipelines.asg_imss.schemas import (
+from core.pipelines.asg_imss_old.config import settings
+from core.pipelines.asg_imss_old.consts import PIPELINE_NAME
+from core.pipelines.asg_imss_old.schemas import (
     AsgImssBase,
     AsgImssDatos,
     CatDelegacion,

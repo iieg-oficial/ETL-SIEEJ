@@ -6,7 +6,7 @@ import openpyxl
 import pandas as pd
 
 from core.constants.geo import JALISCO_CVE_ENTIDAD
-from core.pipelines.asg_imss.consts import (
+from core.pipelines.asg_imss_old.consts import (
     METRIC_FLOAT_COLUMNS,
     METRIC_INT_COLUMNS,
     NULL_VALUES,
