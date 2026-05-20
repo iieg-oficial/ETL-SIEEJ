@@ -23,7 +23,7 @@ def driver_configuration(url: str = "https://www.inegi.org.mx/app/descarga/?ti=6
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
-    driver.set_page_load_timeout(30)
+    driver.set_page_load_timeout(50)
     driver.get(url)
     logger.info("Web driver initialized")
     return driver
