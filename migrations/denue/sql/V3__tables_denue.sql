@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS establecimientos (
+CREATE TABLE IF NOT EXISTS stg_establecimientos (
     id INTEGER NOT NULL,
-    actualizacion_id INTEGER NOT NULL REFERENCES actualizaciones(id),
+    actualizacion_id INTEGER NOT NULL REFERENCES cat_actualizaciones(id),
     nombre_establecimiento TEXT NOT NULL,
     razon_social TEXT,
     latitud FLOAT,
@@ -8,9 +8,13 @@ CREATE TABLE IF NOT EXISTS establecimientos (
     fecha_alta DATE,
     nombre_asentamiento TEXT,
     ageb TEXT,
-    localidad_id INTEGER REFERENCES localidades(id),
-    actividad_economica_id INTEGER REFERENCES actividades_economicas(id),
-    rango_personal_id INTEGER REFERENCES rangos_personal(id),
-    tipo_establecimiento_id INTEGER REFERENCES tipos_establecimientos(id),
+    localidad_id INTEGER REFERENCES cat_localidades(id),
+    sector_id INTEGER REFERENCES cat_sectores(id),
+    subsector_id INTEGER REFERENCES cat_subsectores(id),
+    rama_id INTEGER REFERENCES cat_ramas(id),
+    subrama_id INTEGER REFERENCES cat_subramas(id),
+    clase_actividad_id INTEGER REFERENCES cat_clases_actividad(id),
+    rango_personal_id INTEGER REFERENCES cat_rangos_personal(id),
+    tipo_establecimiento_id INTEGER REFERENCES cat_tipos_establecimientos(id),
     PRIMARY KEY (id, actualizacion_id)
 );
