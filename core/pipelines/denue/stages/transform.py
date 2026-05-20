@@ -6,9 +6,10 @@ from core.pipelines.stage import Stage
 from core.pipelines.denue.attributes import DenueTables as T
 from core.pipelines.denue.config import settings
 from core.pipelines.denue.constants import NULL_VALUES, TITLE_COLS, DATE_COLS
-from core.pipelines.denue.mappings import RANGO_PERSONAL_MAP, TIPO_ESTABLECIMIENTO_MAP
+from core.pipelines.denue.mappings import RANGO_PERSONAL_MAP, TIPO_ESTABLECIMIENTO_MAP, get_sector_codigo
 from core.utils import df_to_records
 from core.utils.clean import list_values_to_null
+from core.utils.files import load_csv_lookups
 from core.utils.logger import get_logger
 from core.utils.normalize import title_col
 
@@ -21,6 +22,11 @@ class DenueTransform(Stage):
         self.mode = mode
         self.entidad = entidad
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
+        self.scian_lookups = None
+
+    def _load_scian_lookups(self) -> dict[str, dict[str, str]]:
+        scian_path = self.work_dir.parents[1] / "extract" / PIPELINE_NAME / settings.SCIAN_CSV_NAME
+        return load_csv_lookups(scian_path, "nivel", "codigo", "descripcion")
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
         extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
@@ -41,16 +47,16 @@ class DenueTransform(Stage):
         )
         self.logger.info(f"[_build_catalogs] {len(actualizaciones)} unique actualizaciones")
 
-        localidades_df = df.drop_duplicates(subset=["clave_localidad", "cve_mun", "entidad_id"]).dropna(
-            subset=["clave_localidad", "cve_mun", "entidad_id"]
+        localidades_df = df.drop_duplicates(subset=["localidad_id", "cve_mun", "entidad_id"]).dropna(
+            subset=["localidad_id", "cve_mun", "entidad_id"]
         )
         localidades = []
         for _, row in localidades_df.iterrows():
-            cve_geo_id = int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['clave_localidad']):04}")
+            cve_geo_id = int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['localidad_id']):04}")
             localidades.append(
                 {
                     "cve_geo_id": cve_geo_id,
-                    "clave_localidad": int(row["clave_localidad"]),
+                    "localidad_id": int(row["localidad_id"]),
                     "municipio_id": int(row["cve_mun"]),
                     "entidad_id": int(row["entidad_id"]),
                     "localidad": row["localidad"],
@@ -58,19 +64,57 @@ class DenueTransform(Stage):
             )
         self.logger.info(f"[_build_catalogs] {len(localidades)} unique localidades")
 
-        actividades_df = df.drop_duplicates(subset=["actividad_economica_id"]).dropna(
-            subset=["actividad_economica_id", "nombre_actividad_economica"]
+        codigos = df["codigo_actividad"].dropna().astype(int).astype(str).unique()
+
+        sectores_set = {}
+        subsectores_set = {}
+        ramas_set = {}
+        subramas_set = {}
+        clases_set = {}
+
+        for codigo in codigos:
+            if len(codigo) < 6:
+                continue
+
+            sector_cod = get_sector_codigo(codigo)
+            subsector_cod = codigo[:3]
+            rama_cod = codigo[:4]
+            subrama_cod = codigo[:5]
+
+            if sector_cod not in sectores_set and sector_cod in self.scian_lookups["sector"]:
+                sectores_set[sector_cod] = {"codigo": sector_cod, "sector": self.scian_lookups["sector"][sector_cod]}
+
+            if subsector_cod not in subsectores_set and subsector_cod in self.scian_lookups["subsector"]:
+                subsectores_set[subsector_cod] = {
+                    "codigo": subsector_cod,
+                    "subsector": self.scian_lookups["subsector"][subsector_cod],
+                }
+
+            if rama_cod not in ramas_set and rama_cod in self.scian_lookups["rama"]:
+                ramas_set[rama_cod] = {"codigo": rama_cod, "rama": self.scian_lookups["rama"][rama_cod]}
+
+            if subrama_cod not in subramas_set and subrama_cod in self.scian_lookups["subrama"]:
+                subramas_set[subrama_cod] = {
+                    "codigo": subrama_cod,
+                    "subrama": self.scian_lookups["subrama"][subrama_cod],
+                }
+
+            if codigo not in clases_set and codigo in self.scian_lookups["clase"]:
+                clases_set[codigo] = {"codigo": codigo, "clase": self.scian_lookups["clase"][codigo]}
+
+        self.logger.info(
+            f"[_build_catalogs] SCIAN: {len(sectores_set)} sectores, {len(subsectores_set)} subsectores, "
+            f"{len(ramas_set)} ramas, {len(subramas_set)} subramas, {len(clases_set)} clases"
         )
-        actividades = [
-            {"id": r["actividad_economica_id"], "nombre_actividad_economica": r["nombre_actividad_economica"]}
-            for r in df_to_records(actividades_df, ["actividad_economica_id", "nombre_actividad_economica"])
-        ]
-        self.logger.info(f"[_build_catalogs] {len(actividades)} unique actividades economicas")
 
         return {
-            T.ACTUALIZACIONES: actualizaciones,
-            T.LOCALIDADES: localidades,
-            T.ACTIVIDADES_ECONOMICAS: actividades,
+            T.CAT_ACTUALIZACIONES: actualizaciones,
+            T.CAT_LOCALIDADES: localidades,
+            T.CAT_SECTORES: list(sectores_set.values()),
+            T.CAT_SUBSECTORES: list(subsectores_set.values()),
+            T.CAT_RAMAS: list(ramas_set.values()),
+            T.CAT_SUBRAMAS: list(subramas_set.values()),
+            T.CAT_CLASES_ACTIVIDAD: list(clases_set.values()),
         }
 
     def action(self, input_data: pd.DataFrame) -> Any:
@@ -83,9 +127,9 @@ class DenueTransform(Stage):
 
         df["fecha_actualizacion"] = pd.to_datetime(df["fecha_actualizacion"])
 
-        df["actividad_economica_id"] = pd.to_numeric(df["actividad_economica_id"], errors="coerce")
+        df["codigo_actividad"] = pd.to_numeric(df["codigo_actividad"], errors="coerce")
         df["cve_mun"] = pd.to_numeric(df["cve_mun"], errors="coerce")
-        df["clave_localidad"] = pd.to_numeric(df["clave_localidad"], errors="coerce")
+        df["localidad_id"] = pd.to_numeric(df["localidad_id"], errors="coerce")
         df["latitud"] = pd.to_numeric(df["latitud"], errors="coerce")
         df["longitud"] = pd.to_numeric(df["longitud"], errors="coerce")
 
@@ -98,14 +142,7 @@ class DenueTransform(Stage):
             if col in df.columns:
                 title_col(df, col)
 
-        for col in [
-            "per_ocu",
-            "tipo_uni_eco",
-            "nombre_actividad_economica",
-            "municipio",
-            "localidad",
-            "nombre_asentamiento",
-        ]:
+        for col in ["per_ocu", "tipo_uni_eco", "municipio", "localidad", "nombre_asentamiento"]:
             if col in df.columns:
                 df[col] = df[col].astype("category")
 
@@ -115,6 +152,8 @@ class DenueTransform(Stage):
         df["tipo_establecimiento_id"] = df["tipo_uni_eco"].map(TIPO_ESTABLECIMIENTO_MAP)
 
         df = df[df["nombre_establecimiento"].notna()]
+
+        self.scian_lookups = self._load_scian_lookups()
 
         self.logger.info(f"[action] {len(df)} rows after transformation")
         return {"df": df, "catalogs": self._build_catalogs(df)}

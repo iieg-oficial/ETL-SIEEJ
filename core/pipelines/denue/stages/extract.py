@@ -12,8 +12,9 @@ from core.pipelines.denue.constants import RENAME_HEADER
 from core.pipelines.denue.helpers.date_utils import parse_periodo
 from core.pipelines.denue.helpers.file_processor import download_denue_csv
 from core.pipelines.denue.helpers.web_driver import driver_configuration
-from core.pipelines.denue.schemas import Actualizaciones
+from core.pipelines.denue.schemas import CatActualizaciones
 from core.utils.bulk_ops import get_last_update
+from core.utils.gdrive import download_public_file
 from core.utils.logger import get_logger
 
 PIPELINE_NAME = settings.PIPELINE_NAME
@@ -35,7 +36,7 @@ class DenueExtract(Stage):
         db.connect()
         try:
             with db.get_session() as session:
-                last_date = get_last_update(session, Actualizaciones, Actualizaciones.fecha_actualizacion.key)
+                last_date = get_last_update(session, CatActualizaciones, CatActualizaciones.fecha_actualizacion.key)
         finally:
             db.disconnect()
         if last_date:
@@ -43,7 +44,17 @@ class DenueExtract(Stage):
             return last_date
         return self.start_date
 
+    def _download_scian(self) -> None:
+        scian_path = self.work_dir / settings.SCIAN_CSV_NAME
+        if scian_path.exists():
+            return
+        self.logger.info("[_download_scian] Downloading SCIAN CSV from Drive")
+        download_public_file(settings.SCIAN_FILE_ID, scian_path)
+        self.logger.info(f"[_download_scian] Saved to {scian_path}")
+
     def source(self, input_data: Optional[Any] = None) -> list[dict]:
+        self._download_scian()
+
         pkl_path = self.work_dir / f"denue_extracted_{self.entidad}.pkl"
         if pkl_path.exists():
             self.logger.info(f"[source] pkl found for entidad {self.entidad}, skipping extract")
