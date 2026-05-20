@@ -8,7 +8,7 @@ from core.pipelines.denue.config import settings
 from core.pipelines.denue.constants import NULL_VALUES, TITLE_COLS, DATE_COLS
 from core.pipelines.denue.mappings import RANGO_PERSONAL_MAP, TIPO_ESTABLECIMIENTO_MAP
 from core.utils import df_to_records
-from core.utils.clean import drop_duplicates_col, list_values_to_null
+from core.utils.clean import list_values_to_null
 from core.utils.logger import get_logger
 from core.utils.normalize import title_col
 
@@ -41,7 +41,7 @@ class DenueTransform(Stage):
         )
         self.logger.info(f"[_build_catalogs] {len(actualizaciones)} unique actualizaciones")
 
-        localidades_df = drop_duplicates_col(df, "localidad").dropna(
+        localidades_df = df.drop_duplicates(subset=["clave_localidad", "cve_mun", "entidad_id"]).dropna(
             subset=["clave_localidad", "cve_mun", "entidad_id"]
         )
         localidades = []

@@ -57,10 +57,6 @@ class DenueLoad(Stage):
             session, TIPOS_ESTABLECIMIENTOS, TiposEstablecimientos, conflict_keys=[TiposEstablecimientos.id.key]
         )
 
-        self.logger.info("[_load_catalogs] Syncing sequences for dynamic tables")
-        for model in [Actualizaciones, Localidades]:
-            sync_id_sequence(session, model)
-
         self.logger.info(f"[_load_catalogs] Loading {len(catalogs[T.ACTUALIZACIONES])} actualizaciones")
         insert_records(
             session,
@@ -79,6 +75,10 @@ class DenueLoad(Stage):
             ActividadesEconomicas,
             conflict_keys=[ActividadesEconomicas.id.key],
         )
+
+        self.logger.info("[_load_catalogs] Syncing sequences for dynamic tables")
+        for model in [Actualizaciones, Localidades]:
+            sync_id_sequence(session, model)
 
     def _map_foreign_keys(self, session, df: pd.DataFrame) -> pd.DataFrame:
         self.logger.info("[_map_foreign_keys] Building actualizaciones mapping")
