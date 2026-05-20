@@ -1,4 +1,7 @@
-# denue
+## Breve Descripción
+El **DENUE** (Directorio Estadístico Nacional de Unidades Económicas) es una herramienta que permite ubicar, de manera exacta y en mapas digitales, los establecimientos de todos los sectores de actividad del país (con excepción del sector agropecuario).
+
+## ERD
 
 ![ERD](assets/erd.svg)
 
@@ -27,5 +30,5 @@
 ## Actualizacion
 
 - **Frecuencia**: Semestral
-- **Modo**: Manual
+- **¿Tiene update automático?**: Sí 
 - INEGI publica snapshots del DENUE dos veces al anio (generalmente mayo y noviembre)
