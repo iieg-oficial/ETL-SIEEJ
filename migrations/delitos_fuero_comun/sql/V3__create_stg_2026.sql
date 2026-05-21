@@ -2,7 +2,7 @@
 -- V3__create_stg_2026.sql  |  Pipeline: delitos_fuero_comun
 -- Current-year staging table 2026 (bootstrap + monthly update).
 -- Expected rows: ~286,140  |  Year: 2026  |  Level: municipal
--- NK: (anio, cvegeo_municipality_id, bien_juridico_afectado_id, tipo_delito_id,
+-- NK: (anio, cvegeo, bien_juridico_afectado_id, tipo_delito_id,
 --      subtipo_delito_id, modalidad_id)
 -- =============================================================================
 
@@ -12,11 +12,8 @@ CREATE TABLE IF NOT EXISTS stg_delitos_fuero_comun_2026 (
     -- Temporal key
     anio                      SMALLINT     NOT NULL,
 
-    -- Geographic identifiers (text stored for query convenience)
-    clave_ent                 VARCHAR(2)   NOT NULL,
-    entidad                   VARCHAR(200) NOT NULL,
-    cvegeo_municipality_id    INTEGER      NOT NULL,
-    municipio                 VARCHAR(200) NOT NULL,
+    -- Geographic identifier — logical FK to cvegeo_municipalities.cvegeo
+    cvegeo                    INTEGER      NOT NULL,
 
     -- Catalog FKs
     bien_juridico_afectado_id INTEGER      NOT NULL
@@ -47,7 +44,7 @@ CREATE TABLE IF NOT EXISTS stg_delitos_fuero_comun_2026 (
 
     CONSTRAINT uq_stg_delitos_2026_nk UNIQUE (
         anio,
-        cvegeo_municipality_id,
+        cvegeo,
         bien_juridico_afectado_id,
         tipo_delito_id,
         subtipo_delito_id,
@@ -58,8 +55,8 @@ CREATE TABLE IF NOT EXISTS stg_delitos_fuero_comun_2026 (
 CREATE INDEX IF NOT EXISTS ix_stg_delitos_2026_anio
     ON stg_delitos_fuero_comun_2026 (anio);
 
-CREATE INDEX IF NOT EXISTS ix_stg_delitos_2026_municipio
-    ON stg_delitos_fuero_comun_2026 (cvegeo_municipality_id);
+CREATE INDEX IF NOT EXISTS ix_stg_delitos_2026_cvegeo
+    ON stg_delitos_fuero_comun_2026 (cvegeo);
 
 CREATE INDEX IF NOT EXISTS ix_stg_delitos_2026_tipo
     ON stg_delitos_fuero_comun_2026 (tipo_delito_id, subtipo_delito_id);

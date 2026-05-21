@@ -5,9 +5,9 @@
 -- Municipality reference: shared cvegeo_municipalities (FDW → cvegeo DB).
 -- =============================================================================
 
--- ---------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- FDW: expose cvegeo_municipalities from the shared cvegeo database
--- ---------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
 DROP SERVER IF EXISTS cvegeo_server CASCADE;
@@ -38,9 +38,9 @@ CREATE FOREIGN TABLE cvegeo_municipalities (
 SERVER cvegeo_server
 OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
 
--- ---------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 -- Local catalog tables
--- ---------------------------------------------------------------------------
+-- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS cat_bien_juridico_afectado (
     id                     SERIAL       PRIMARY KEY,
     bien_juridico_afectado VARCHAR(200) NOT NULL,
