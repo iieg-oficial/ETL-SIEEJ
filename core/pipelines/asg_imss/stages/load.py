@@ -1,261 +1,452 @@
-import math
-from pathlib import Path
+"""Load stages para el pipeline asg_imss.
+
+* `AsgImssCatalogLoader` inserta los 12 catálogos en orden topológico
+  (delegacion → subdelegacion, entidad → municipio, sector_1 → sector_2 →
+  sector_4, y los catálogos simples).
+* `AsgImssDataLoader` resuelve FK por clave (auto-poblando catálogos con
+  descripcion='SIN DESCRIPCION' cuando falta) e inserta en `stg_asg_imss`
+  en lotes de BATCH_SIZE.
+
+El `AsgImssDataLoader` mantiene una conexión DB y cachés de lookup
+abiertas entre invocaciones de `execute()` (un mes por invocación). El
+orquestador llama `setup()` antes del bucle y `teardown()` al final.
+"""
+
 from typing import Any, Optional
 
 import pandas as pd
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from core.db import Database
-from core.pipelines.asg_imss.config import settings
-from core.pipelines.asg_imss.consts import PIPELINE_NAME
+from core.pipelines.asg_imss.attributes import (
+    CSV_FK_TO_STG_COLUMN,
+    METRIC_FLOAT_COLUMNS,
+    METRIC_INT_COLUMNS,
+)
+from core.pipelines.asg_imss.config import PIPELINE_NAME, settings
 from core.pipelines.asg_imss.schemas import (
-    AsgImssBase,
-    AsgImssDatos,
     CatDelegacion,
-    CatEntidadMunicipio,
+    CatEntidad,
+    CatMunicipio,
     CatRangoEdad,
-    CatRangoSalarial,
+    CatRangoSalario,
     CatRangoUma,
     CatSector1,
     CatSector2,
     CatSector4,
     CatSexo,
     CatSubdelegacion,
-    CatTamanioPatron,
+    CatTamanoRegistroPatronal,
+    StgAsgImss,
 )
 from core.pipelines.stage import Stage
-from core.utils.bulk_ops import insert_records, sync_id_sequence, upsert_records
-from core.utils.files import clean_directory
+from core.utils.bulk_ops import bulk_insert, insert_records, sync_id_sequence
 
 
-class AsgImssLoader(Stage):
+# ---------------------------------------------------------------------------
+# Catalog Loader
+# ---------------------------------------------------------------------------
+
+
+class AsgImssCatalogLoader(Stage):
+    """Carga los 12 catálogos del XLSX en orden topológico."""
+
+    def __init__(self, mode: str = "bootstrap"):
+        super().__init__(PIPELINE_NAME, "load")
+        self.mode = mode
+
+    def source(self, input_data: Optional[Any] = None) -> dict:
+        if not input_data:
+            raise ValueError("AsgImssCatalogLoader requiere catálogos parseados.")
+        return input_data
+
+    def action(self, input_data: Optional[Any] = None) -> dict:
+        catalogs: dict[str, list[dict]] = input_data
+        db = Database(PIPELINE_NAME, settings.database_url)
+        db.connect()
+
+        try:
+            with db.get_session() as session:
+                # 1. delegacion
+                insert_records(session, catalogs.get("delegacion", []), CatDelegacion, ["clave"])
+                session.flush()
+                deleg_map = {row.clave: row.id for row in session.query(CatDelegacion).all()}
+
+                # 2. subdelegacion (necesita delegacion_id)
+                sub_records = [
+                    {
+                        "clave": r["clave"],
+                        "descripcion": r["descripcion"],
+                        "delegacion_id": deleg_map[r["delegacion_clave"]],
+                    }
+                    for r in catalogs.get("subdelegacion", [])
+                    if r["delegacion_clave"] in deleg_map
+                ]
+                insert_records(
+                    session,
+                    sub_records,
+                    CatSubdelegacion,
+                    ["delegacion_id", "clave"],
+                )
+
+                # 3. entidad
+                insert_records(session, catalogs.get("entidad", []), CatEntidad, ["clave"])
+                session.flush()
+                ent_map = {row.clave: row.id for row in session.query(CatEntidad).all()}
+
+                # 4. municipio
+                mun_records = [
+                    {
+                        "clave": r["clave"],
+                        "descripcion": r["descripcion"],
+                        "entidad_id": ent_map[r["entidad_clave"]],
+                    }
+                    for r in catalogs.get("municipio", [])
+                    if r["entidad_clave"] in ent_map
+                ]
+                insert_records(session, mun_records, CatMunicipio, ["entidad_id", "clave"])
+
+                # 5. sector_1
+                insert_records(session, catalogs.get("sector_1", []), CatSector1, ["clave"])
+                session.flush()
+                s1_map = {row.clave: row.id for row in session.query(CatSector1).all()}
+
+                # 6. sector_2
+                s2_records = [
+                    {
+                        "clave": r["clave"],
+                        "descripcion": r["descripcion"],
+                        "sector_1_id": s1_map[r["sector_1_clave"]],
+                    }
+                    for r in catalogs.get("sector_2", [])
+                    if r["sector_1_clave"] in s1_map
+                ]
+                insert_records(session, s2_records, CatSector2, ["clave"])
+                session.flush()
+                s2_map = {row.clave: row.id for row in session.query(CatSector2).all()}
+
+                # 7. sector_4
+                s4_records = [
+                    {
+                        "clave": r["clave"],
+                        "descripcion": r["descripcion"],
+                        "sector_2_id": s2_map[r["sector_2_clave"]],
+                    }
+                    for r in catalogs.get("sector_4", [])
+                    if r["sector_2_clave"] in s2_map
+                ]
+                insert_records(session, s4_records, CatSector4, ["clave"])
+
+                # 8-12. catálogos simples
+                simple_map = {
+                    "tamano_registro_patronal": CatTamanoRegistroPatronal,
+                    "sexo": CatSexo,
+                    "rango_edad": CatRangoEdad,
+                    "rango_salario": CatRangoSalario,
+                    "rango_uma": CatRangoUma,
+                }
+                for key, model in simple_map.items():
+                    insert_records(session, catalogs.get(key, []), model, ["clave"])
+
+                # Sync sequences
+                for model in [
+                    CatDelegacion,
+                    CatSubdelegacion,
+                    CatEntidad,
+                    CatMunicipio,
+                    CatSector1,
+                    CatSector2,
+                    CatSector4,
+                    CatTamanoRegistroPatronal,
+                    CatSexo,
+                    CatRangoEdad,
+                    CatRangoSalario,
+                    CatRangoUma,
+                ]:
+                    sync_id_sequence(session, model)
+
+            self.logger.info("✅ Catálogos cargados.")
+            return {"status": "ok"}
+        finally:
+            db.disconnect()
+
+    def finalization(self, input_data: Optional[Any] = None) -> dict:
+        return input_data
+
+
+# ---------------------------------------------------------------------------
+# Data Loader (stateful: connect/disconnect externo)
+# ---------------------------------------------------------------------------
+
+# Mapeos CSV col → (modelo, "simple"|"sub"|"municipio"|"sector"|"nullable_sector")
+# describe la estrategia para resolver/insertar FK por clave.
+_CATALOG_RESOLVER: dict[str, dict] = {
+    "cve_subdelegacion": {"model": CatSubdelegacion, "kind": "subdelegacion"},
+    "cve_municipio": {"model": CatMunicipio, "kind": "municipio"},
+    "sector_economico_4": {"model": CatSector4, "kind": "sector_4"},
+    "tamano_patron": {"model": CatTamanoRegistroPatronal, "kind": "simple"},
+    "sexo": {"model": CatSexo, "kind": "simple"},
+    "rango_edad": {"model": CatRangoEdad, "kind": "simple"},
+    "rango_salarial": {"model": CatRangoSalario, "kind": "simple"},
+    "rango_uma": {"model": CatRangoUma, "kind": "simple"},
+}
+
+
+class AsgImssDataLoader(Stage):
+    """Carga datos mensuales en `stg_asg_imss` resolviendo FKs por clave."""
+
     def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "load")
         self.mode = mode
         self.db: Optional[Database] = None
+        # Cachés en memoria
+        self._cache_simple: dict[str, dict[str, int]] = {}
+        self._cache_subdelegacion: dict[tuple[int, str], int] = {}
+        self._cache_municipio: dict[tuple[int, str], int] = {}
+        self._auto_inserted_counter: dict[str, int] = {}
 
-    def source(self, input_data: Optional[Any] = None) -> dict:
-        if not input_data:
-            raise ValueError("Load no recibió datos de Transform.")
-
+    # ---------- Lifecycle externo ----------
+    def setup(self) -> None:
         self.db = Database(PIPELINE_NAME, settings.database_url)
         self.db.connect()
-        AsgImssBase.metadata.create_all(self.db.engine)
-        self.logger.info("Tablas verificadas/creadas.")
-        return input_data
+        self._load_caches()
 
-    def action(self, input_data: Optional[Any] = None) -> dict:
-        files: list[dict] = input_data.get("files", [])
-        catalogs: dict[str, list[dict]] = input_data.get("catalogs", {})
-        unknown_catalog_values: dict[str, list] = input_data.get("unknown_catalog_values", {})
-        total_upserted = 0
+    def teardown(self) -> None:
+        if self.db is not None:
+            self.db.disconnect()
+            self.db = None
+        if self._auto_inserted_counter:
+            self.logger.info(f"Catálogos auto-poblados: {self._auto_inserted_counter}")
 
+    def _load_caches(self) -> None:
+        assert self.db is not None
         with self.db.get_session() as session:
-            if self.mode == "bootstrap":
-                self._load_all_catalogs(session, catalogs)
-            else:
-                # Update mode: detect and insert placeholder entries for new static catalog values
-                detected_unknowns = self._detect_unknown_static_values(session, files)
-                if detected_unknowns:
-                    self._insert_placeholder_catalog_values(session, detected_unknowns)
-                    unknown_catalog_values = detected_unknowns
-
-        for item in files:
-            pkl_path = Path(item["file_path"])
-            if not pkl_path.exists():
-                self.logger.warning(f"Pickle no encontrado: {pkl_path}")
-                continue
-
-            self.logger.info(f"Cargando: {pkl_path.name}")
-            df: pd.DataFrame = pd.read_pickle(pkl_path)
-
-            records = [
-                {k: (None if isinstance(v, float) and math.isnan(v) else v) for k, v in r.items()}
-                for r in df.to_dict("records")
-            ]
-
-            with self.db.get_session() as session:
-                upsert_records(
-                    session,
-                    records,
-                    AsgImssDatos,
-                    conflict_keys=[
-                        "fecha_corte",
-                        "cve_delegacion",
-                        "cve_subdelegacion",
-                        "cve_entidad",
-                        "cve_municipio",
-                        "sector_economico_1",
-                        "sector_economico_2",
-                        "sector_economico_4",
-                        "tamanio_patron",
-                        "sexo",
-                        "rango_edad",
-                        "rango_salarial",
-                        "rango_uma",
-                    ],
-                    chunk_size=settings.ASG_LOAD_BATCH_SIZE,
-                )
-
-            total_upserted += len(records)
-            self.logger.info(f"  {pkl_path.name}: {len(records):,} registros upserted.")
-
-        with self.db.get_session() as session:
-            sync_id_sequence(session, AsgImssDatos)
             for model in [
                 CatDelegacion,
-                CatSubdelegacion,
-                CatEntidadMunicipio,
+                CatEntidad,
                 CatSector1,
                 CatSector2,
                 CatSector4,
-                CatTamanioPatron,
+                CatTamanoRegistroPatronal,
                 CatSexo,
                 CatRangoEdad,
-                CatRangoSalarial,
+                CatRangoSalario,
                 CatRangoUma,
             ]:
-                sync_id_sequence(session, model)
+                self._cache_simple[model.__tablename__] = {r.clave: r.id for r in session.query(model).all()}
+            self._cache_subdelegacion = {
+                (r.delegacion_id, r.clave): r.id for r in session.query(CatSubdelegacion).all()
+            }
+            self._cache_municipio = {(r.entidad_id, r.clave): r.id for r in session.query(CatMunicipio).all()}
+        self.logger.info(
+            "Cachés de catálogos cargadas: "
+            + ", ".join(f"{k}={len(v)}" for k, v in self._cache_simple.items())
+            + f", subdelegacion={len(self._cache_subdelegacion)}"
+            + f", municipio={len(self._cache_municipio)}"
+        )
 
-        self.logger.info(f"Carga completa. Total upserted: {total_upserted:,}")
-        return {"row_count": total_upserted, "unknown_catalog_values": unknown_catalog_values}
+    # ---------- Resolución de FKs ----------
+    def _insert_simple_cat(self, session, model, clave: str) -> int:
+        stmt = (
+            pg_insert(model)
+            .values(clave=clave, descripcion="SIN DESCRIPCION")
+            .on_conflict_do_nothing(index_elements=["clave"])
+            .returning(model.id)
+        )
+        result = session.execute(stmt).scalar()
+        if result is None:
+            # Conflicto: alguien lo insertó antes (o estaba ya); leer id
+            result = session.query(model.id).filter(model.clave == clave).scalar()
+        self.logger.warning(f"Clave nueva en {model.__tablename__}='{clave}' → SIN DESCRIPCION")
+        self._auto_inserted_counter[model.__tablename__] = self._auto_inserted_counter.get(model.__tablename__, 0) + 1
+        self._cache_simple[model.__tablename__][clave] = result
+        return result
 
-    def finalization(self, input_data: Optional[Any] = None) -> dict:
-        if self.db:
-            self.db.disconnect()
+    def _resolve_simple(self, session, model, clave: str) -> int:
+        cache = self._cache_simple[model.__tablename__]
+        if clave in cache:
+            return cache[clave]
+        return self._insert_simple_cat(session, model, clave)
 
-        unknown_catalog_values = input_data.get("unknown_catalog_values", {}) if input_data else {}
-        if unknown_catalog_values:
-            self.logger.warning("=" * 60)
-            self.logger.warning("VALORES SIN DESCRIPCIÓN EN CATÁLOGOS:")
-            for catalog, values in unknown_catalog_values.items():
-                self.logger.warning(f"  {catalog}: {values}")
-            if self.mode == "update":
-                self.logger.warning("Actualizar los CATALOG_* correspondientes en consts.py.")
-            self.logger.warning("=" * 60)
+    def _resolve_subdelegacion(self, session, delegacion_id: int, clave: str) -> int:
+        key = (delegacion_id, clave)
+        if key in self._cache_subdelegacion:
+            return self._cache_subdelegacion[key]
+        stmt = (
+            pg_insert(CatSubdelegacion)
+            .values(
+                clave=clave,
+                descripcion="SIN DESCRIPCION",
+                delegacion_id=delegacion_id,
+            )
+            .on_conflict_do_nothing(index_elements=["delegacion_id", "clave"])
+            .returning(CatSubdelegacion.id)
+        )
+        result = session.execute(stmt).scalar()
+        if result is None:
+            result = (
+                session.query(CatSubdelegacion.id)
+                .filter(
+                    CatSubdelegacion.delegacion_id == delegacion_id,
+                    CatSubdelegacion.clave == clave,
+                )
+                .scalar()
+            )
+        self.logger.warning(f"Clave nueva en cat_subdelegacion=({delegacion_id},'{clave}') → SIN DESCRIPCION")
+        self._auto_inserted_counter["cat_subdelegacion"] = self._auto_inserted_counter.get("cat_subdelegacion", 0) + 1
+        self._cache_subdelegacion[key] = result
+        return result
 
-        transform_dir = Path(f"data/transform/{PIPELINE_NAME}")
-        clean_directory(transform_dir, self.logger)
+    def _resolve_municipio(self, session, entidad_id: int, clave: str) -> int:
+        key = (entidad_id, clave)
+        if key in self._cache_municipio:
+            return self._cache_municipio[key]
+        stmt = (
+            pg_insert(CatMunicipio)
+            .values(clave=clave, descripcion="SIN DESCRIPCION", entidad_id=entidad_id)
+            .on_conflict_do_nothing(index_elements=["entidad_id", "clave"])
+            .returning(CatMunicipio.id)
+        )
+        result = session.execute(stmt).scalar()
+        if result is None:
+            result = (
+                session.query(CatMunicipio.id)
+                .filter(
+                    CatMunicipio.entidad_id == entidad_id,
+                    CatMunicipio.clave == clave,
+                )
+                .scalar()
+            )
+        self.logger.warning(f"Clave nueva en cat_municipio=({entidad_id},'{clave}') → SIN DESCRIPCION")
+        self._auto_inserted_counter["cat_municipio"] = self._auto_inserted_counter.get("cat_municipio", 0) + 1
+        self._cache_municipio[key] = result
+        return result
 
-        self.logger.info(f"Pipeline {PIPELINE_NAME} load finalizado.")
+    def _resolve_sector(self, session, model, parent_id: Optional[int], clave: str) -> int:
+        """Inserta sector con descripcion='SIN DESCRIPCION'. Requiere parent_id."""
+        cache = self._cache_simple[model.__tablename__]
+        if clave in cache:
+            return cache[clave]
+        values = {"clave": clave, "descripcion": "SIN DESCRIPCION"}
+        if model is CatSector2:
+            if parent_id is None:
+                raise ValueError(f"sector_2 '{clave}' sin parent sector_1")
+            values["sector_1_id"] = parent_id
+        elif model is CatSector4:
+            if parent_id is None:
+                raise ValueError(f"sector_4 '{clave}' sin parent sector_2")
+            values["sector_2_id"] = parent_id
+        stmt = pg_insert(model).values(**values).on_conflict_do_nothing(index_elements=["clave"]).returning(model.id)
+        result = session.execute(stmt).scalar()
+        if result is None:
+            result = session.query(model.id).filter(model.clave == clave).scalar()
+        self.logger.warning(f"Clave nueva en {model.__tablename__}='{clave}' → SIN DESCRIPCION")
+        self._auto_inserted_counter[model.__tablename__] = self._auto_inserted_counter.get(model.__tablename__, 0) + 1
+        cache[clave] = result
+        return result
+
+    # ---------- Stage hooks ----------
+    def source(self, input_data: Optional[Any] = None) -> dict:
+        if not input_data or "dataframe" not in input_data:
+            raise ValueError("AsgImssDataLoader requiere 'dataframe'.")
+        if self.db is None:
+            raise RuntimeError("AsgImssDataLoader no inicializado. Llamar setup() antes.")
         return input_data
 
-    def _load_all_catalogs(self, session, catalogs: dict[str, list[dict]]) -> None:
-        """Load all catalog tables from catalog data produced by the transform stage."""
-        self.logger.info("Cargando catálogos...")
+    def action(self, input_data: Optional[Any] = None) -> dict:
+        df: pd.DataFrame = input_data["dataframe"]
+        target_date = input_data["target_date"]
+        if df.empty:
+            self.logger.warning(f"DataFrame vacío para {target_date}; nada que cargar.")
+            return {"rows_inserted": 0, "target_date": target_date}
 
-        tamanio_patron = catalogs.get("tamanio_patron", [])
-        if tamanio_patron:
-            insert_records(session, tamanio_patron, CatTamanioPatron, conflict_keys=["cve"])
-            self.logger.info(f"  CatTamanioPatron: {len(tamanio_patron)} registros.")
+        assert self.db is not None
+        rows_inserted = 0
+        with self.db.get_session() as session:
+            # Resolución de FKs (vectorizada por columna)
+            resolved: dict[str, list[Optional[int]]] = {}
 
-        sexo = catalogs.get("sexo", [])
-        if sexo:
-            insert_records(session, sexo, CatSexo, conflict_keys=["cve"])
-            self.logger.info(f"  CatSexo: {len(sexo)} registros.")
+            # Catálogos simples que van directamente a stg
+            for csv_col in [
+                "tamano_patron",
+                "sexo",
+                "rango_edad",
+                "rango_salarial",
+                "rango_uma",
+            ]:
+                model = _CATALOG_RESOLVER[csv_col]["model"]
+                ids: list[Optional[int]] = []
+                for v in df[csv_col].tolist():
+                    ids.append(self._resolve_simple(session, model, v))
+                resolved[CSV_FK_TO_STG_COLUMN[csv_col]] = ids
 
-        rango_edad = catalogs.get("rango_edad", [])
-        if rango_edad:
-            insert_records(session, rango_edad, CatRangoEdad, conflict_keys=["cve"])
-            self.logger.info(f"  CatRangoEdad: {len(rango_edad)} registros.")
+            # delegacion — intermedio para resolver subdelegacion (NO va a stg)
+            deleg_ids: list[int] = []
+            for v in df["cve_delegacion"].tolist():
+                deleg_ids.append(self._resolve_simple(session, CatDelegacion, v))
 
-        rango_salarial = catalogs.get("rango_salarial", [])
-        if rango_salarial:
-            insert_records(session, rango_salarial, CatRangoSalarial, conflict_keys=["cve"])
-            self.logger.info(f"  CatRangoSalarial: {len(rango_salarial)} registros.")
+            # Subdelegacion (depende de delegacion_id)
+            sub_ids: list[Optional[int]] = []
+            for deleg_id, clave in zip(deleg_ids, df["cve_subdelegacion"].tolist()):
+                sub_ids.append(self._resolve_subdelegacion(session, deleg_id, clave))
+            resolved["subdelegacion_id"] = sub_ids
 
-        rango_uma = catalogs.get("rango_uma", [])
-        if rango_uma:
-            insert_records(session, rango_uma, CatRangoUma, conflict_keys=["cve"])
-            self.logger.info(f"  CatRangoUma: {len(rango_uma)} registros.")
+            # entidad — intermedio para resolver municipio (NO va a stg)
+            ent_ids: list[int] = []
+            for v in df["cve_entidad"].tolist():
+                ent_ids.append(self._resolve_simple(session, CatEntidad, v))
 
-        delegaciones = catalogs.get("delegacion", [])
-        if delegaciones:
-            insert_records(session, delegaciones, CatDelegacion, conflict_keys=["cve_delegacion"])
-            self.logger.info(f"  CatDelegacion: {len(delegaciones)} registros.")
+            # Municipio (depende de entidad_id)
+            mun_ids: list[Optional[int]] = []
+            for ent_id, clave in zip(ent_ids, df["cve_municipio"].tolist()):
+                mun_ids.append(self._resolve_municipio(session, ent_id, clave))
+            resolved["municipio_id"] = mun_ids
 
-        subdelegaciones = catalogs.get("subdelegacion", [])
-        if subdelegaciones:
-            insert_records(
-                session, subdelegaciones, CatSubdelegacion, conflict_keys=["cve_delegacion", "cve_subdelegacion"]
-            )
-            self.logger.info(f"  CatSubdelegacion: {len(subdelegaciones)} registros.")
+            # sector_1 y sector_2 — intermedios para resolver sector_4 (NO van a stg)
+            s1_ids: list[Optional[int]] = []
+            for v in df["sector_economico_1"].tolist():
+                if v == "" or v is None:
+                    s1_ids.append(None)
+                else:
+                    s1_ids.append(self._resolve_sector(session, CatSector1, None, v))
 
-        entidades_municipio = catalogs.get("entidad_municipio", [])
-        if entidades_municipio:
-            insert_records(session, entidades_municipio, CatEntidadMunicipio, conflict_keys=["cve_municipio"])
-            self.logger.info(f"  CatEntidadMunicipio: {len(entidades_municipio)} registros.")
+            s2_ids: list[Optional[int]] = []
+            for s1_id, v in zip(s1_ids, df["sector_economico_2"].tolist()):
+                if v == "" or v is None:
+                    s2_ids.append(None)
+                else:
+                    s2_ids.append(self._resolve_sector(session, CatSector2, s1_id, v))
 
-        sectores_1 = catalogs.get("sector_1", [])
-        if sectores_1:
-            insert_records(session, sectores_1, CatSector1, conflict_keys=["cve_sector_1"])
-            self.logger.info(f"  CatSector1: {len(sectores_1)} registros.")
+            s4_ids: list[Optional[int]] = []
+            for s2_id, v in zip(s2_ids, df["sector_economico_4"].tolist()):
+                if v == "" or v is None:
+                    s4_ids.append(None)
+                else:
+                    s4_ids.append(self._resolve_sector(session, CatSector4, s2_id, v))
+            resolved["sector_4_id"] = s4_ids
 
-        sectores_2 = catalogs.get("sector_2", [])
-        if sectores_2:
-            insert_records(session, sectores_2, CatSector2, conflict_keys=["cve_sector_1", "cve_sector_2"])
-            self.logger.info(f"  CatSector2: {len(sectores_2)} registros.")
+            session.flush()
 
-        sectores_4 = catalogs.get("sector_4", [])
-        if sectores_4:
-            insert_records(session, sectores_4, CatSector4, conflict_keys=["cve_sector_2", "cve_sector_4"])
-            self.logger.info(f"  CatSector4: {len(sectores_4)} registros.")
+            # Construcción de registros para bulk insert
+            metric_cols = METRIC_INT_COLUMNS + METRIC_FLOAT_COLUMNS
+            metrics = {c: df[c].tolist() for c in metric_cols}
 
-        session.flush()
+            records: list[dict] = []
+            n = len(df)
+            for i in range(n):
+                rec = {"fecha_corte": target_date}
+                for fk_col, ids in resolved.items():
+                    rec[fk_col] = ids[i]
+                for c in metric_cols:
+                    rec[c] = metrics[c][i]
+                records.append(rec)
 
-    def _detect_unknown_static_values(self, session, files: list[dict]) -> dict[str, list]:
-        """Scans transformed pickles for static catalog values not present in the DB."""
-        _CVE_CAST: dict[str, type] = {
-            "tamanio_patron": str,
-            "sexo": int,
-            "rango_edad": str,
-            "rango_salarial": str,
-            "rango_uma": str,
-        }
-        _catalog_model = {
-            "tamanio_patron": CatTamanioPatron,
-            "sexo": CatSexo,
-            "rango_edad": CatRangoEdad,
-            "rango_salarial": CatRangoSalarial,
-            "rango_uma": CatRangoUma,
-        }
-        known: dict[str, set] = {
-            col: set(session.scalars(select(model.cve)).all()) for col, model in _catalog_model.items()
-        }
-        found: dict[str, set] = {k: set() for k in known}
+            # Bulk insert con batch
+            bulk_insert(session, records, StgAsgImss, chunk_size=settings.BATCH_SIZE)
+            rows_inserted = len(records)
 
-        for item in files:
-            pkl_path = Path(item["file_path"])
-            if not pkl_path.exists():
-                continue
-            df: pd.DataFrame = pd.read_pickle(pkl_path)
-            for col, cast in _CVE_CAST.items():
-                if col in df.columns:
-                    for raw_val in df[col].dropna().unique():
-                        try:
-                            val = cast(raw_val)
-                        except (ValueError, TypeError):
-                            continue
-                        if val not in known[col]:
-                            found[col].add(val)
+        self.logger.info(f"✅ {target_date}: {rows_inserted:,} filas insertadas.")
+        return {"rows_inserted": rows_inserted, "target_date": target_date}
 
-        return {k: sorted(v, key=str) for k, v in found.items() if v}
-
-    def _insert_placeholder_catalog_values(self, session, unknown_values: dict[str, list]) -> None:
-        """Insert placeholder entries for newly discovered static catalog values (update mode)."""
-        self.logger.info("Insertando valores nuevos en catálogos estáticos (sin descripción)...")
-        _catalog_map: dict[str, tuple] = {
-            "tamanio_patron": (CatTamanioPatron, str),
-            "sexo": (CatSexo, int),
-            "rango_edad": (CatRangoEdad, str),
-            "rango_salarial": (CatRangoSalarial, str),
-            "rango_uma": (CatRangoUma, str),
-        }
-        for col, values in unknown_values.items():
-            if col not in _catalog_map:
-                continue
-            model, cve_cast = _catalog_map[col]
-            records = [{"cve": cve_cast(v), "descripcion": "[SIN DESCRIPCIÓN]"} for v in values]
-            insert_records(session, records, model, conflict_keys=["cve"])
-            self.logger.info(f"  {model.__tablename__}: {len(records)} nuevos valores insertados.")
-        session.flush()
+    def finalization(self, input_data: Optional[Any] = None) -> dict:
+        return input_data
