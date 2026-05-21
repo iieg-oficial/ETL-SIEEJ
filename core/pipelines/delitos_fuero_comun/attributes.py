@@ -14,10 +14,7 @@ class DelitosFueroComunTables(StrEnum):
 # dtype follows pandas nullable-integer convention (Int16/Int32 for nullable ints).
 COLUMNS_STG: dict[str, dict[str, object]] = {
     "anio": {"dtype": "Int16", "nullable": False},
-    "clave_ent": {"dtype": "str", "nullable": False},
-    "entidad": {"dtype": "str", "nullable": False},
-    "cvegeo_municipality_id": {"dtype": "Int32", "nullable": False},
-    "municipio": {"dtype": "str", "nullable": False},
+    "cvegeo": {"dtype": "Int32", "nullable": False},
     "bien_juridico_afectado_id": {"dtype": "Int32", "nullable": False},
     "tipo_delito_id": {"dtype": "Int32", "nullable": False},
     "subtipo_delito_id": {"dtype": "Int32", "nullable": False},

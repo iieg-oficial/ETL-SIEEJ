@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
-from sqlalchemy import text
 
 from core.db import Database
 from core.pipelines.delitos_fuero_comun.config import PIPELINE_NAME, settings
@@ -20,14 +19,6 @@ from core.pipelines.delitos_fuero_comun.schemas import (
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
-
-
-def _build_cvegeo_map(session) -> dict[str, int]:
-    """Query cvegeo_municipalities (FDW) and return {cve_municipio_5digits: id}."""
-    rows = session.execute(
-        text("SELECT LPAD(cvegeo::text, 5, '0') AS cve_mun5, id FROM cvegeo_municipalities")
-    ).fetchall()
-    return {row.cve_mun5: row.id for row in rows}
 
 
 def _prepare_records(df: pd.DataFrame, model, exclude_cols: tuple[str, ...]) -> list[dict]:
@@ -92,7 +83,6 @@ class DelitosLoad(Stage):
             sync_id_sequence(session, CatModalidad)
 
             # 2. Build full ID maps
-            cvegeo_map: dict[str, int] = _build_cvegeo_map(session)
             bja_map: dict[str, int] = get_mapping(session, CatBienJuridicoAfectado, "bien_juridico_afectado", "id")
             tipo_map_full: dict[str, int] = get_mapping(session, CatTipoDelito, "tipo_delito", "id")
             subtipo_map_full: dict[str, int] = get_mapping(session, CatSubtipoDelito, "subtipo_delito", "id")
@@ -101,9 +91,7 @@ class DelitosLoad(Stage):
             # 3. Load historical staging (bootstrap only)
             rows_hist = 0
             if df_historico is not None:
-                df_hist = self._resolve_ids(
-                    df_historico, cvegeo_map, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full
-                )
+                df_hist = self._resolve_ids(df_historico, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
                 records_hist = _prepare_records(df_hist, StgDelitosFueroComunHistorico, ("id", "created_at"))
                 bulk_insert(session, records_hist, StgDelitosFueroComunHistorico, chunk_size=settings.LOAD_BATCH_SIZE)
                 sync_id_sequence(session, StgDelitosFueroComunHistorico)
@@ -111,7 +99,7 @@ class DelitosLoad(Stage):
                 self.logger.info(f"Histórico cargado: {rows_hist} filas")
 
             # 4. Load 2026 staging
-            df_26 = self._resolve_ids(df_2026, cvegeo_map, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
+            df_26 = self._resolve_ids(df_2026, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
             rows_2026 = 0
 
             if self.mode == "bootstrap":
@@ -144,18 +132,15 @@ class DelitosLoad(Stage):
     def _resolve_ids(
         self,
         df: pd.DataFrame,
-        cvegeo_map: dict[str, int],
         bja_map: dict[str, int],
         tipo_map: dict[str, int],
         subtipo_map: dict[str, int],
         modalidad_map: dict[str, int],
     ) -> pd.DataFrame:
         df = df.copy()
-        df["cve_municipio"] = df["cve_municipio"].str.zfill(5)
-        df["cvegeo_municipality_id"] = df["cve_municipio"].map(cvegeo_map)
         df["bien_juridico_afectado_id"] = df["bien_juridico_afectado"].map(bja_map)
         df["tipo_delito_id"] = df["tipo_delito"].map(tipo_map)
         df["subtipo_delito_id"] = df["subtipo_delito"].map(subtipo_map)
         df["modalidad_id"] = df["modalidad"].map(modalidad_map)
-        df = df.drop(columns=["cve_municipio", "bien_juridico_afectado", "tipo_delito", "subtipo_delito", "modalidad"])
+        df = df.drop(columns=["bien_juridico_afectado", "tipo_delito", "subtipo_delito", "modalidad"])
         return df

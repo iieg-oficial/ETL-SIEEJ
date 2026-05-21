@@ -70,7 +70,7 @@ class StgDelitosFueroComunHistorico(DelitosFueroComunBase):
     __table_args__ = (
         UniqueConstraint(
             "anio",
-            "cvegeo_municipality_id",
+            "cvegeo",
             "bien_juridico_afectado_id",
             "tipo_delito_id",
             "subtipo_delito_id",
@@ -78,16 +78,13 @@ class StgDelitosFueroComunHistorico(DelitosFueroComunBase):
             name="uq_stg_delitos_2015_2025_nk",
         ),
         Index("ix_stg_delitos_2015_2025_anio", "anio"),
-        Index("ix_stg_delitos_2015_2025_municipio", "cvegeo_municipality_id"),
+        Index("ix_stg_delitos_2015_2025_cvegeo", "cvegeo"),
         Index("ix_stg_delitos_2015_2025_tipo", "tipo_delito_id", "subtipo_delito_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     anio: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    clave_ent: Mapped[str] = mapped_column(String(2), nullable=False)
-    entidad: Mapped[str] = mapped_column(String(200), nullable=False)
-    cvegeo_municipality_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    municipio: Mapped[str] = mapped_column(String(200), nullable=False)
+    cvegeo: Mapped[int] = mapped_column(Integer, nullable=False)
     bien_juridico_afectado_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_BIEN_JURIDICO_AFECTADO}.id"), nullable=False
     )
@@ -119,7 +116,7 @@ class StgDelitosFueroComun2026(DelitosFueroComunBase):
     __table_args__ = (
         UniqueConstraint(
             "anio",
-            "cvegeo_municipality_id",
+            "cvegeo",
             "bien_juridico_afectado_id",
             "tipo_delito_id",
             "subtipo_delito_id",
@@ -127,16 +124,13 @@ class StgDelitosFueroComun2026(DelitosFueroComunBase):
             name="uq_stg_delitos_2026_nk",
         ),
         Index("ix_stg_delitos_2026_anio", "anio"),
-        Index("ix_stg_delitos_2026_municipio", "cvegeo_municipality_id"),
+        Index("ix_stg_delitos_2026_cvegeo", "cvegeo"),
         Index("ix_stg_delitos_2026_tipo", "tipo_delito_id", "subtipo_delito_id"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     anio: Mapped[int] = mapped_column(SmallInteger, nullable=False)
-    clave_ent: Mapped[str] = mapped_column(String(2), nullable=False)
-    entidad: Mapped[str] = mapped_column(String(200), nullable=False)
-    cvegeo_municipality_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    municipio: Mapped[str] = mapped_column(String(200), nullable=False)
+    cvegeo: Mapped[int] = mapped_column(Integer, nullable=False)
     bien_juridico_afectado_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_BIEN_JURIDICO_AFECTADO}.id"), nullable=False
     )
