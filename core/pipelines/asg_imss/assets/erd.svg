@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1289.7" height="1272.5" style="font-family: system-ui, -apple-system, sans-serif;">
+  <defs>
+    <pattern id="erd-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#d1d5db" />
+    </pattern>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c4cad4" />
+    </marker>
+    <marker id="arr-hi" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#FF8300" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f9fafb" />
+  <rect width="100%" height="100%" fill="url(#erd-dots)" />
+  <g class="erd-rel" data-from="cat_entidad" data-to="cat_municipio">
+    <path d="M 557.1 976.3 C 627.1 976.3 738.4 982.5 808.4 982.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 557.1 976.3 C 627.1 976.3 738.4 982.5 808.4 982.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="577.1" y="964.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="788.4" y="970.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sector_1" data-to="cat_sector_2">
+    <path d="M 370.5 707.1 C 440.5 707.1 504.1 1049.3 574.1 1049.3" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 370.5 707.1 C 440.5 707.1 504.1 1049.3 574.1 1049.3" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="390.5" y="695.1" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="554.1" y="1037.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sector_2" data-to="cat_sector_4">
+    <path d="M 574.1 986.3 C 504.1 986.3 392.8 931.1 322.8 931.1" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 574.1 986.3 C 504.1 986.3 392.8 931.1 322.8 931.1" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="554.1" y="974.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="342.8" y="919.1" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_delegacion" data-to="cat_subdelegacion">
+    <path d="M 1150.2 351.0 C 1220.2 351.0 1256.3 798.6 1186.3 798.6" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 1150.2 351.0 C 1220.2 351.0 1256.3 798.6 1186.3 798.6" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="1170.2" y="339.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="1206.3" y="786.6" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_delegacion" data-to="stg_asg_imss">
+    <path d="M 931.2 351.0 C 861.2 351.0 452.29999999999995 586.5 522.3 586.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 931.2 351.0 C 861.2 351.0 452.29999999999995 586.5 522.3 586.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="911.2" y="339.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="574.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_subdelegacion" data-to="stg_asg_imss">
+    <path d="M 967.3 735.6 C 897.3 735.6 811.3 607.5 741.3 607.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 967.3 735.6 C 897.3 735.6 811.3 607.5 741.3 607.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="947.3" y="723.6" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="761.3" y="595.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_entidad" data-to="stg_asg_imss">
+    <path d="M 557.1 976.3 C 627.1 976.3 452.29999999999995 628.5 522.3 628.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 557.1 976.3 C 627.1 976.3 452.29999999999995 628.5 522.3 628.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="577.1" y="964.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="616.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_municipio" data-to="stg_asg_imss">
+    <path d="M 808.4 919.5 C 738.4 919.5 811.3 649.5 741.3 649.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 808.4 919.5 C 738.4 919.5 811.3 649.5 741.3 649.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="788.4" y="907.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="761.3" y="637.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sector_1" data-to="stg_asg_imss">
+    <path d="M 370.5 707.1 C 440.5 707.1 452.29999999999995 670.5 522.3 670.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 370.5 707.1 C 440.5 707.1 452.29999999999995 670.5 522.3 670.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="390.5" y="695.1" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="658.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sector_2" data-to="stg_asg_imss">
+    <path d="M 574.1 986.3 C 504.1 986.3 452.29999999999995 691.5 522.3 691.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 574.1 986.3 C 504.1 986.3 452.29999999999995 691.5 522.3 691.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="554.1" y="974.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="679.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sector_4" data-to="stg_asg_imss">
+    <path d="M 322.8 868.1 C 392.8 868.1 452.29999999999995 712.5 522.3 712.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 322.8 868.1 C 392.8 868.1 452.29999999999995 712.5 522.3 712.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="342.8" y="856.1" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="700.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_tamano_registro_patronal" data-to="stg_asg_imss">
+    <path d="M 387.9 305.7 C 457.9 305.7 811.3 733.5 741.3 733.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 387.9 305.7 C 457.9 305.7 811.3 733.5 741.3 733.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="407.9" y="293.7" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="761.3" y="721.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_sexo" data-to="stg_asg_imss">
+    <path d="M 758.3 190.3 C 688.3 190.3 452.29999999999995 754.5 522.3 754.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 758.3 190.3 C 688.3 190.3 452.29999999999995 754.5 522.3 754.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="738.3" y="178.3" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="742.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_rango_edad" data-to="stg_asg_imss">
+    <path d="M 1010.7 538.8 C 940.7 538.8 811.3 775.5 741.3 775.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 1010.7 538.8 C 940.7 538.8 811.3 775.5 741.3 775.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="990.7" y="526.8" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="761.3" y="763.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_rango_salario" data-to="stg_asg_imss">
+    <path d="M 623.5 112.0 C 693.5 112.0 811.3 796.5 741.3 796.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 623.5 112.0 C 693.5 112.0 811.3 796.5 741.3 796.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="643.5" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="761.3" y="784.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_rango_uma" data-to="stg_asg_imss">
+    <path d="M 279.0 501.7 C 349.0 501.7 452.29999999999995 817.5 522.3 817.5" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 279.0 501.7 C 349.0 501.7 452.29999999999995 817.5 522.3 817.5" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="299.0" y="489.7" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="502.29999999999995" y="805.5" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-node" data-table="cat_delegacion" transform="translate(931.2, 299.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatDelegacion</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_entidad" transform="translate(338.1, 924.3)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatEntidad</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_municipio" transform="translate(808.4, 867.5)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="132" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="132" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatMunicipio</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+    <line x1="10" y1="105" x2="209" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">entidad_id</text>
+    <text x="211" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+  </g>
+  <g class="erd-node" data-table="cat_rango_edad" transform="translate(1010.7, 486.8)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatRangoEdad</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_rango_salario" transform="translate(404.5, 60.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatRangoSalario</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_rango_uma" transform="translate(60.0, 449.7)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatRangoUma</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_sector_1" transform="translate(151.5, 655.1)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatSector1</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_sector_2" transform="translate(574.1, 934.3)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="132" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="132" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatSector2</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+    <line x1="10" y1="105" x2="209" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sector_1_id</text>
+    <text x="211" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+  </g>
+  <g class="erd-node" data-table="cat_sector_4" transform="translate(103.8, 816.1)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="132" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="132" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatSector4</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+    <line x1="10" y1="105" x2="209" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sector_2_id</text>
+    <text x="211" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+  </g>
+  <g class="erd-node" data-table="cat_sexo" transform="translate(758.3, 138.3)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatSexo</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="cat_subdelegacion" transform="translate(967.3, 683.6)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="132" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="132" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatSubdelegacion</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+    <line x1="10" y1="105" x2="209" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">delegacion_id</text>
+    <text x="211" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+  </g>
+  <g class="erd-node" data-table="cat_tamano_registro_patronal" transform="translate(168.9, 253.7)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="111" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="111" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatTamanoRegistroPatronal</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">clave</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text</text>
+  </g>
+  <g class="erd-node" data-table="stg_asg_imss" transform="translate(522.3, 492.5)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="219" height="720" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="219" height="720" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="219" height="36" fill="#5C2472" />
+    <rect y="29" width="219" height="7" fill="#5C2472" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">StgAsgImss</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="211" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="209" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_corte</text>
+    <text x="211" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date</text>
+    <line x1="10" y1="84" x2="209" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">delegacion_id</text>
+    <text x="211" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="105" x2="209" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">subdelegacion_id</text>
+    <text x="211" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="126" x2="209" y2="126" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="137.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">entidad_id</text>
+    <text x="211" y="137.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="147" x2="209" y2="147" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="158.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">municipio_id</text>
+    <text x="211" y="158.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="168" x2="209" y2="168" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="179.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sector_1_id</text>
+    <text x="211" y="179.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="189" x2="209" y2="189" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="200.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sector_2_id</text>
+    <text x="211" y="200.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="210" x2="209" y2="210" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="221.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sector_4_id</text>
+    <text x="211" y="221.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="231" x2="209" y2="231" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="242.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">tamano_registro_patronal_id</text>
+    <text x="211" y="242.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="252" x2="209" y2="252" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="263.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">sexo_id</text>
+    <text x="211" y="263.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="273" x2="209" y2="273" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="284.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">rango_edad_id</text>
+    <text x="211" y="284.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="294" x2="209" y2="294" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="305.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">rango_salario_id</text>
+    <text x="211" y="305.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="315" x2="209" y2="315" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="326.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#9a3412" font-weight="400" dominant-baseline="middle">rango_uma_id</text>
+    <text x="211" y="326.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="336" x2="209" y2="336" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="347.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">asegurados</text>
+    <text x="211" y="347.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="357" x2="209" y2="357" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="368.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">no_trabajadores</text>
+    <text x="211" y="368.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="378" x2="209" y2="378" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="389.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">ta</text>
+    <text x="211" y="389.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="399" x2="209" y2="399" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="410.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">teu</text>
+    <text x="211" y="410.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="420" x2="209" y2="420" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="431.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tec</text>
+    <text x="211" y="431.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="441" x2="209" y2="441" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="452.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tpu</text>
+    <text x="211" y="452.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="462" x2="209" y2="462" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="473.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tpc</text>
+    <text x="211" y="473.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="483" x2="209" y2="483" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="494.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">ta_sal</text>
+    <text x="211" y="494.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="504" x2="209" y2="504" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="515.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">teu_sal</text>
+    <text x="211" y="515.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="525" x2="209" y2="525" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="536.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tec_sal</text>
+    <text x="211" y="536.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="546" x2="209" y2="546" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="557.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tpu_sal</text>
+    <text x="211" y="557.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="567" x2="209" y2="567" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="578.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tpc_sal</text>
+    <text x="211" y="578.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="588" x2="209" y2="588" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="599.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">masa_sal_ta</text>
+    <text x="211" y="599.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">numeric</text>
+    <line x1="10" y1="609" x2="209" y2="609" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="620.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">masa_sal_teu</text>
+    <text x="211" y="620.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">numeric</text>
+    <line x1="10" y1="630" x2="209" y2="630" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="641.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">masa_sal_tec</text>
+    <text x="211" y="641.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">numeric</text>
+    <line x1="10" y1="651" x2="209" y2="651" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="662.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">masa_sal_tpu</text>
+    <text x="211" y="662.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">numeric</text>
+    <line x1="10" y1="672" x2="209" y2="672" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="683.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">masa_sal_tpc</text>
+    <text x="211" y="683.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">numeric</text>
+    <line x1="10" y1="693" x2="209" y2="693" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="704.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">created_at</text>
+    <text x="211" y="704.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">datetime</text>
+  </g>
+</svg>

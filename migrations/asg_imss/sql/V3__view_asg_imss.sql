@@ -42,13 +42,13 @@ SELECT
     f.masa_sal_tpu,
     f.masa_sal_tpc
 FROM stg_asg_imss f
-JOIN      cat_delegacion               d   ON d.id   = f.delegacion_id
 JOIN      cat_subdelegacion            sd  ON sd.id  = f.subdelegacion_id
-JOIN      cat_entidad                  e   ON e.id   = f.entidad_id
+JOIN      cat_delegacion               d   ON d.id   = sd.delegacion_id
 JOIN      cat_municipio                m   ON m.id   = f.municipio_id
-LEFT JOIN cat_sector_1                 s1  ON s1.id  = f.sector_1_id
-LEFT JOIN cat_sector_2                 s2  ON s2.id  = f.sector_2_id
+JOIN      cat_entidad                  e   ON e.id   = m.entidad_id
 LEFT JOIN cat_sector_4                 s4  ON s4.id  = f.sector_4_id
+LEFT JOIN cat_sector_2                 s2  ON s2.id  = s4.sector_2_id
+LEFT JOIN cat_sector_1                 s1  ON s1.id  = s2.sector_1_id
 JOIN      cat_tamano_registro_patronal trp ON trp.id = f.tamano_registro_patronal_id
 JOIN      cat_sexo                     sx  ON sx.id  = f.sexo_id
 JOIN      cat_rango_edad               re  ON re.id  = f.rango_edad_id

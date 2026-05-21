@@ -5,8 +5,10 @@
 --   * PK sintética id BIGSERIAL.
 --   * Sin UNIQUE sobre llaves naturales, sin columna hash, sin SCD2.
 --   * fecha_corte es el último día del mes publicado (DATE).
---   * FKs NOT NULL a todos los catálogos EXCEPTO los tres sectores
---     (sector_1_id, sector_2_id, sector_4_id) que sí admiten NULL.
+--   * FKs directas solo a los catálogos hoja de la jerarquía:
+--     subdelegacion_id, municipio_id y sector_4_id (nullable).
+--     delegacion/entidad/sector_1/sector_2 se resuelven a través de sus
+--     catálogos hijo (jerarquía en catálogos, no en hechos).
 --   * Filtro geográfico (entidad = 14, Jalisco) vive en transform; el
 --     modelo soporta cualquier entidad por flexibilidad futura.
 -- =======================================================================
@@ -14,13 +16,9 @@
 CREATE TABLE IF NOT EXISTS stg_asg_imss (
     id                              BIGSERIAL    PRIMARY KEY,
     fecha_corte                     DATE         NOT NULL,
-    -- FKs a catálogos (sectores nullable)
-    delegacion_id                   INTEGER      NOT NULL REFERENCES cat_delegacion (id),
+    -- FKs a catálogos (sector_4 nullable)
     subdelegacion_id                INTEGER      NOT NULL REFERENCES cat_subdelegacion (id),
-    entidad_id                      INTEGER      NOT NULL REFERENCES cat_entidad (id),
     municipio_id                    INTEGER      NOT NULL REFERENCES cat_municipio (id),
-    sector_1_id                     INTEGER               REFERENCES cat_sector_1 (id),
-    sector_2_id                     INTEGER               REFERENCES cat_sector_2 (id),
     sector_4_id                     INTEGER               REFERENCES cat_sector_4 (id),
     tamano_registro_patronal_id     INTEGER      NOT NULL REFERENCES cat_tamano_registro_patronal (id),
     sexo_id                         INTEGER      NOT NULL REFERENCES cat_sexo (id),
@@ -54,14 +52,8 @@ CREATE TABLE IF NOT EXISTS stg_asg_imss (
 CREATE INDEX IF NOT EXISTS ix_stg_asg_imss_fecha_corte
     ON stg_asg_imss (fecha_corte);
 
-CREATE INDEX IF NOT EXISTS ix_stg_asg_imss_delegacion
-    ON stg_asg_imss (delegacion_id);
-
 CREATE INDEX IF NOT EXISTS ix_stg_asg_imss_subdelegacion
     ON stg_asg_imss (subdelegacion_id);
-
-CREATE INDEX IF NOT EXISTS ix_stg_asg_imss_entidad
-    ON stg_asg_imss (entidad_id);
 
 CREATE INDEX IF NOT EXISTS ix_stg_asg_imss_municipio
     ON stg_asg_imss (municipio_id);

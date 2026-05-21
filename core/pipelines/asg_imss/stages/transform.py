@@ -154,13 +154,14 @@ class AsgImssCatalogTransformer(Stage):
         # ----- sector_2 (jerárquico) -----
         df = _read_sheet(file_path, "sector 2")
         df.columns = [c.lower() for c in df.columns]
-        clave_col = "sector_economico_2" if "sector_economico_2" in df.columns else df.columns[0]
-        desc_col = "desc_sector_economico_2" if "desc_sector_economico_2" in df.columns else df.columns[1]
+        clave_col = "sector_economico_2_2pos"
+        desc_col = next((c for c in df.columns if "descripci" in c), df.columns[-1])
+        s1_col = "sector_economico_1"
         out["sector_2"] = [
             {
-                "clave": row[clave_col].zfill(2),
+                "clave": str(row[clave_col]).zfill(2),
                 "descripcion": row[desc_col],
-                "sector_1_clave": row[clave_col].zfill(2)[:1],
+                "sector_1_clave": str(row[s1_col]).zfill(1),
             }
             for _, row in df.iterrows()
             if row[clave_col]
@@ -169,13 +170,14 @@ class AsgImssCatalogTransformer(Stage):
         # ----- sector_4 (jerárquico) -----
         df = _read_sheet(file_path, "sector 4")
         df.columns = [c.lower() for c in df.columns]
-        clave_col = "sector_economico_4" if "sector_economico_4" in df.columns else df.columns[0]
-        desc_col = "desc_sector_economico_4" if "desc_sector_economico_4" in df.columns else df.columns[1]
+        clave_col = "sector_economico_4_4_pos"
+        desc_col = next((c for c in df.columns if "descripci" in c), df.columns[-1])
+        s2_col = "sector_economico_2_2pos"
         out["sector_4"] = [
             {
-                "clave": row[clave_col].zfill(4),
+                "clave": str(row[clave_col]).zfill(4),
                 "descripcion": row[desc_col],
-                "sector_2_clave": row[clave_col].zfill(4)[:2],
+                "sector_2_clave": str(row[s2_col]).zfill(2),
             }
             for _, row in df.iterrows()
             if row[clave_col]

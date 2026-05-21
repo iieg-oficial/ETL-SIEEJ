@@ -41,12 +41,8 @@ class AsgImssTables(StrEnum):
 # ---------------------------------------------------------------------------
 
 CATALOG_FK_COLUMNS_CSV: list[str] = [
-    "cve_delegacion",
     "cve_subdelegacion",
-    "cve_entidad",
     "cve_municipio",
-    "sector_economico_1",
-    "sector_economico_2",
     "sector_economico_4",
     "tamano_patron",
     "sexo",
@@ -78,10 +74,8 @@ METRIC_FLOAT_COLUMNS: list[str] = [
     "masa_sal_tpc",
 ]
 
-# Catálogos cuyas FK en stg_asg_imss admiten NULL (solo los sectores).
+# Catálogos cuyas FK en stg_asg_imss admiten NULL (solo sector_4).
 NULLABLE_CATALOG_FK_COLUMNS: list[str] = [
-    "sector_economico_1",
-    "sector_economico_2",
     "sector_economico_4",
 ]
 
@@ -123,12 +117,8 @@ CSV_HEADER_RENAMES: dict[str, str] = {
 
 # Mapeo entre nombre del CSV (post-rename) y la columna FK en stg_asg_imss.
 CSV_FK_TO_STG_COLUMN: dict[str, str] = {
-    "cve_delegacion": "delegacion_id",
     "cve_subdelegacion": "subdelegacion_id",
-    "cve_entidad": "entidad_id",
     "cve_municipio": "municipio_id",
-    "sector_economico_1": "sector_1_id",
-    "sector_economico_2": "sector_2_id",
     "sector_economico_4": "sector_4_id",
     "tamano_patron": "tamano_registro_patronal_id",
     "sexo": "sexo_id",

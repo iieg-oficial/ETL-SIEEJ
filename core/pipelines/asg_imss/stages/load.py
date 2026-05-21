@@ -181,12 +181,8 @@ class AsgImssCatalogLoader(Stage):
 # Mapeos CSV col → (modelo, "simple"|"sub"|"municipio"|"sector"|"nullable_sector")
 # describe la estrategia para resolver/insertar FK por clave.
 _CATALOG_RESOLVER: dict[str, dict] = {
-    "cve_delegacion": {"model": CatDelegacion, "kind": "simple"},
     "cve_subdelegacion": {"model": CatSubdelegacion, "kind": "subdelegacion"},
-    "cve_entidad": {"model": CatEntidad, "kind": "simple"},
     "cve_municipio": {"model": CatMunicipio, "kind": "municipio"},
-    "sector_economico_1": {"model": CatSector1, "kind": "sector_1"},
-    "sector_economico_2": {"model": CatSector2, "kind": "sector_2"},
     "sector_economico_4": {"model": CatSector4, "kind": "sector_4"},
     "tamano_patron": {"model": CatTamanoRegistroPatronal, "kind": "simple"},
     "sexo": {"model": CatSexo, "kind": "simple"},
@@ -370,10 +366,8 @@ class AsgImssDataLoader(Stage):
             # Resolución de FKs (vectorizada por columna)
             resolved: dict[str, list[Optional[int]]] = {}
 
-            # Primero: catálogos planos
+            # Catálogos simples que van directamente a stg
             for csv_col in [
-                "cve_delegacion",
-                "cve_entidad",
                 "tamano_patron",
                 "sexo",
                 "rango_edad",
@@ -386,26 +380,35 @@ class AsgImssDataLoader(Stage):
                     ids.append(self._resolve_simple(session, model, v))
                 resolved[CSV_FK_TO_STG_COLUMN[csv_col]] = ids
 
+            # delegacion — intermedio para resolver subdelegacion (NO va a stg)
+            deleg_ids: list[int] = []
+            for v in df["cve_delegacion"].tolist():
+                deleg_ids.append(self._resolve_simple(session, CatDelegacion, v))
+
             # Subdelegacion (depende de delegacion_id)
             sub_ids: list[Optional[int]] = []
-            for deleg_id, clave in zip(resolved["delegacion_id"], df["cve_subdelegacion"].tolist()):
+            for deleg_id, clave in zip(deleg_ids, df["cve_subdelegacion"].tolist()):
                 sub_ids.append(self._resolve_subdelegacion(session, deleg_id, clave))
             resolved["subdelegacion_id"] = sub_ids
 
+            # entidad — intermedio para resolver municipio (NO va a stg)
+            ent_ids: list[int] = []
+            for v in df["cve_entidad"].tolist():
+                ent_ids.append(self._resolve_simple(session, CatEntidad, v))
+
             # Municipio (depende de entidad_id)
             mun_ids: list[Optional[int]] = []
-            for ent_id, clave in zip(resolved["entidad_id"], df["cve_municipio"].tolist()):
+            for ent_id, clave in zip(ent_ids, df["cve_municipio"].tolist()):
                 mun_ids.append(self._resolve_municipio(session, ent_id, clave))
             resolved["municipio_id"] = mun_ids
 
-            # Sectores (nullable cuando viene vacío)
+            # sector_1 y sector_2 — intermedios para resolver sector_4 (NO van a stg)
             s1_ids: list[Optional[int]] = []
             for v in df["sector_economico_1"].tolist():
                 if v == "" or v is None:
                     s1_ids.append(None)
                 else:
                     s1_ids.append(self._resolve_sector(session, CatSector1, None, v))
-            resolved["sector_1_id"] = s1_ids
 
             s2_ids: list[Optional[int]] = []
             for s1_id, v in zip(s1_ids, df["sector_economico_2"].tolist()):
@@ -413,7 +416,6 @@ class AsgImssDataLoader(Stage):
                     s2_ids.append(None)
                 else:
                     s2_ids.append(self._resolve_sector(session, CatSector2, s1_id, v))
-            resolved["sector_2_id"] = s2_ids
 
             s4_ids: list[Optional[int]] = []
             for s2_id, v in zip(s2_ids, df["sector_economico_4"].tolist()):

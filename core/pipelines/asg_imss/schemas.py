@@ -58,7 +58,6 @@ class CatDelegacion(AsgImssBase):
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
 
     subdelegaciones: Mapped[list["CatSubdelegacion"]] = relationship(back_populates="delegacion_rel")
-    registros: Mapped[list["StgAsgImss"]] = relationship(back_populates="delegacion_rel")
 
 
 class CatSubdelegacion(AsgImssBase):
@@ -86,7 +85,6 @@ class CatEntidad(AsgImssBase):
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
 
     municipios: Mapped[list["CatMunicipio"]] = relationship(back_populates="entidad_rel")
-    registros: Mapped[list["StgAsgImss"]] = relationship(back_populates="entidad_rel")
 
 
 class CatMunicipio(AsgImssBase):
@@ -114,7 +112,6 @@ class CatSector1(AsgImssBase):
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
 
     sectores_2: Mapped[list["CatSector2"]] = relationship(back_populates="sector_1_rel")
-    registros: Mapped[list["StgAsgImss"]] = relationship(back_populates="sector_1_rel")
 
 
 class CatSector2(AsgImssBase):
@@ -131,7 +128,6 @@ class CatSector2(AsgImssBase):
 
     sector_1_rel: Mapped["CatSector1"] = relationship(back_populates="sectores_2")
     sectores_4: Mapped[list["CatSector4"]] = relationship(back_populates="sector_2_rel")
-    registros: Mapped[list["StgAsgImss"]] = relationship(back_populates="sector_2_rel")
 
 
 class CatSector4(AsgImssBase):
@@ -214,9 +210,7 @@ class StgAsgImss(AsgImssBase):
     __tablename__ = T.STG_ASG_IMSS
     __table_args__ = (
         Index("ix_stg_asg_imss_fecha_corte", "fecha_corte"),
-        Index("ix_stg_asg_imss_delegacion", "delegacion_id"),
         Index("ix_stg_asg_imss_subdelegacion", "subdelegacion_id"),
-        Index("ix_stg_asg_imss_entidad", "entidad_id"),
         Index("ix_stg_asg_imss_municipio", "municipio_id"),
         Index("ix_stg_asg_imss_sector_4", "sector_4_id"),
         Index("ix_stg_asg_imss_tamano_registro_patronal", "tamano_registro_patronal_id"),
@@ -229,13 +223,9 @@ class StgAsgImss(AsgImssBase):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     fecha_corte: Mapped[date] = mapped_column(nullable=False)
 
-    # FKs (sectores nullable)
-    delegacion_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_DELEGACION}.id"), nullable=False)
+    # FKs (sector_4 nullable)
     subdelegacion_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_SUBDELEGACION}.id"), nullable=False)
-    entidad_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_ENTIDAD}.id"), nullable=False)
     municipio_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_MUNICIPIO}.id"), nullable=False)
-    sector_1_id: Mapped[Optional[int]] = mapped_column(ForeignKey(f"{T.CAT_SECTOR_1}.id"), nullable=True)
-    sector_2_id: Mapped[Optional[int]] = mapped_column(ForeignKey(f"{T.CAT_SECTOR_2}.id"), nullable=True)
     sector_4_id: Mapped[Optional[int]] = mapped_column(ForeignKey(f"{T.CAT_SECTOR_4}.id"), nullable=True)
     tamano_registro_patronal_id: Mapped[int] = mapped_column(
         ForeignKey(f"{T.CAT_TAMANO_REGISTRO_PATRONAL}.id"), nullable=False
@@ -270,12 +260,8 @@ class StgAsgImss(AsgImssBase):
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
 
     # Relaciones ORM
-    delegacion_rel: Mapped["CatDelegacion"] = relationship(back_populates="registros")
     subdelegacion_rel: Mapped["CatSubdelegacion"] = relationship(back_populates="registros")
-    entidad_rel: Mapped["CatEntidad"] = relationship(back_populates="registros")
     municipio_rel: Mapped["CatMunicipio"] = relationship(back_populates="registros")
-    sector_1_rel: Mapped[Optional["CatSector1"]] = relationship(back_populates="registros")
-    sector_2_rel: Mapped[Optional["CatSector2"]] = relationship(back_populates="registros")
     sector_4_rel: Mapped[Optional["CatSector4"]] = relationship(back_populates="registros")
     tamano_registro_patronal_rel: Mapped["CatTamanoRegistroPatronal"] = relationship(back_populates="registros")
     sexo_rel: Mapped["CatSexo"] = relationship(back_populates="registros")
