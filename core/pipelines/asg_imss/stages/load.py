@@ -366,6 +366,12 @@ class AsgImssDataLoader(Stage):
         assert self.db is not None
         rows_inserted = 0
         with self.db.get_session() as session:
+            # Guard de idempotencia: omitir si la fecha ya tiene datos cargados.
+            already = session.query(StgAsgImss.id).filter(StgAsgImss.fecha_corte == target_date).first()
+            if already is not None:
+                self.logger.warning(f"⏭️  {target_date}: fecha ya cargada — omitiendo (idempotente).")
+                return {"rows_inserted": 0, "target_date": target_date}
+
             # Resolución de FKs (vectorizada por columna)
             resolved: dict[str, list[Optional[int]]] = {}
 
