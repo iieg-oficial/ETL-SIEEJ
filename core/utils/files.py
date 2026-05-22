@@ -69,6 +69,11 @@ def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.Data
             return pd.read_csv(f, **read_csv_kwargs)
 
 
+def load_csv_lookups(csv_path: str | Path, group_col: str, key_col: str, value_col: str) -> dict[str, dict[str, str]]:
+    df = pd.read_csv(csv_path, dtype=str)
+    return {group: dict(zip(sub[key_col], sub[value_col])) for group, sub in df.groupby(group_col)}
+
+
 def cleanup_pipeline_data(pipeline_name: str) -> None:
     data_dir = Path("data")
     for stage_dir in data_dir.iterdir():
