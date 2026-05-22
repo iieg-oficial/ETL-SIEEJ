@@ -30,5 +30,5 @@ El **DENUE** (Directorio Estadístico Nacional de Unidades Económicas) es una h
 ## Actualizacion
 
 - **Frecuencia**: Semestral
-- **¿Tiene update automático?**: Sí 
+- **¿Tiene update automático?**: Sí
 - INEGI publica snapshots del DENUE dos veces al anio (generalmente mayo y noviembre)

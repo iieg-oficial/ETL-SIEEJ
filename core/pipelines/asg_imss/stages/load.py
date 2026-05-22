@@ -22,6 +22,7 @@ from core.pipelines.asg_imss.attributes import (
     CSV_FK_TO_STG_COLUMN,
     METRIC_FLOAT_COLUMNS,
     METRIC_INT_COLUMNS,
+    MUNICIPIO_ALIASES,
 )
 from core.pipelines.asg_imss.config import PIPELINE_NAME, settings
 from core.pipelines.asg_imss.schemas import (
@@ -298,6 +299,8 @@ class AsgImssDataLoader(Stage):
         return result
 
     def _resolve_municipio(self, session, entidad_id: int, clave: str) -> int:
+        # Redirige claves alias a su clave canónica antes de consultar el catálogo.
+        clave = MUNICIPIO_ALIASES.get(clave, clave)
         key = (entidad_id, clave)
         if key in self._cache_municipio:
             return self._cache_municipio[key]

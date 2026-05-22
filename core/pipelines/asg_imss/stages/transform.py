@@ -19,6 +19,7 @@ from core.pipelines.asg_imss.attributes import (
     ENTIDAD_FILTRO_CVE,
     METRIC_FLOAT_COLUMNS,
     METRIC_INT_COLUMNS,
+    MUNICIPIO_ALIASES,
     SECTOR_KEY_LENGTHS,
 )
 from core.pipelines.asg_imss.config import PIPELINE_NAME
@@ -120,10 +121,12 @@ class AsgImssCatalogTransformer(Stage):
         out["delegacion"] = [{"clave": k, "descripcion": v} for k, v in delegaciones.items()]
         out["subdelegacion"] = subdelegaciones
 
-        # ----- entidad + municipio -----
+        # ----- entidad + municipio (solo Jalisco) -----
         df = _read_sheet(file_path, "entidad-municipio")
         df = df.rename(columns={c: c.lower() for c in df.columns})
         # Columnas reales: cve_municipio, cve_delegacion, cve_entidad, descripción entidad, descripción municipio
+        # Se filtra a ENTIDAD_FILTRO_CVE y se excluyen las claves alias
+        # (ver MUNICIPIO_ALIASES en attributes.py).
         entidades: dict[str, str] = {}
         municipios: list[dict] = []
         for _, row in df.iterrows():
@@ -131,10 +134,10 @@ class AsgImssCatalogTransformer(Stage):
             desc_e = row.get("descripción entidad", "").strip()
             cve_m = row.get("cve_municipio", "").strip()
             desc_m = row.get("descripción municipio", "").strip()
-            if not cve_e:
+            if not cve_e or cve_e != ENTIDAD_FILTRO_CVE:
                 continue
             entidades.setdefault(cve_e, desc_e)
-            if cve_m:
+            if cve_m and cve_m not in MUNICIPIO_ALIASES:
                 municipios.append({"clave": cve_m, "descripcion": desc_m, "entidad_clave": cve_e})
         out["entidad"] = [{"clave": k, "descripcion": v} for k, v in entidades.items()]
         out["municipio"] = municipios

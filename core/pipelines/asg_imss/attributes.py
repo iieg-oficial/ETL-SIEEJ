@@ -104,6 +104,36 @@ NA_LITERAL_VALID_CATALOGS: list[str] = [
 ENTIDAD_FILTRO_CVE: str = "14"
 
 # ---------------------------------------------------------------------------
+# Aliases de municipio: claves IMSS no-canónicas → clave canónica
+#
+# El IMSS usa varias claves internas para subdivisiones del mismo municipio
+# geográfico. El catálogo almacena una única entrada canónica por municipio;
+# el load remapea automáticamente las claves alias al canónico al resolver FKs.
+#
+#   Guadalajara  canónico: B90
+#     R12 Guadalajara Juárez        → B90
+#     R13 Guadalajara Hidalgo       → B90
+#     R14 Guadalajara Libertad Reforma → B90
+#     R15 Guadalajara Libertad Reforma → B90
+#     Z62 Guadalajara Juárez        → B90
+#     Z67 Guadalajara Hidalgo       → B90
+#
+#   Zapopan  canónico: C16
+#     Z29 Zapopan → C16
+#     Z60 Zapopan → C16
+# ---------------------------------------------------------------------------
+MUNICIPIO_ALIASES: dict[str, str] = {
+    "R12": "B90",
+    "R13": "B90",
+    "R14": "B90",
+    "R15": "B90",
+    "Z62": "B90",
+    "Z67": "B90",
+    "Z29": "C16",
+    "Z60": "C16",
+}
+
+# ---------------------------------------------------------------------------
 # Mapeos de header del CSV original → nombre normalizado
 # El CSV publicado por IMSS llega con el caracter U+FFFD en lugar de la 'ñ'
 # en algunas publicaciones; transform normaliza ambos variantes a
