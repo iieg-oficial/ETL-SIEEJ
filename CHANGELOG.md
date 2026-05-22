@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.2.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.1.0...v1.2.0) (2026-05-22)
+
+
+### Features
+
+* **agropecuario_siap:** add SIAP agricultural pipeline with bootstrap and yearly update ([5ff6c05](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5ff6c05aa878da588f6d324055bbdefb924fa1d5))
+* **agropecuario_siap:** pipeline SIAP datos agrícolas municipales ([1619638](https://github.com/iieg-oficial/ETL-SIEEJ/commit/16196388d88a3fa24c2b6b8cb5a7d2951646afe8))
+* **asg_imss:** add bootstrap and update dags ([50e590d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/50e590d734b12ccad1cae121ec7494b7195709b3))
+* **asg_imss:** add extract, transform and load stages ([954fd14](https://github.com/iieg-oficial/ETL-SIEEJ/commit/954fd143f16191146261b52cbfd72f0372a1e538))
+* **asg_imss:** add flyway migrations v1-v3 ([9de3329](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9de33294bff7590558c3875d4f0811cb79816f76))
+* **asg_imss:** add sqlalchemy models and attributes ([28deefb](https://github.com/iieg-oficial/ETL-SIEEJ/commit/28deefbb2997fe3330effb558bdd4617379c0ccd))
+* **delitos_fuero_comun:** new global view added ([5086a3a](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5086a3a555d2e9067b169b4a3d21135cd9ab76a7))
+* **produccion-ganadera:** add bootstrap and update DAGs ([ad25aa2](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ad25aa2f8b184b97469d184b1c152468bd8c4d5e))
+* **produccion-ganadera:** add extract stage ([30caaeb](https://github.com/iieg-oficial/ETL-SIEEJ/commit/30caaebebe22740f2d23d959fa8dc3d715672a60))
+* **produccion-ganadera:** add helpers ([d6241f0](https://github.com/iieg-oficial/ETL-SIEEJ/commit/d6241f0db118807aa2275cbb315c7183ce633b14))
+* **produccion-ganadera:** add schemas, config and constants ([03ec735](https://github.com/iieg-oficial/ETL-SIEEJ/commit/03ec73504ab44a69cdf09750f5dfa47923204e5c))
+* **produccion-ganadera:** add transform and load stages ([8e64027](https://github.com/iieg-oficial/ETL-SIEEJ/commit/8e640270145a5cf5263c7dc5d2106fc64e6e9ec8))
+* **produccion-ganadera:** add V1-V4 migrations ([312fdd5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/312fdd5b7834a60aac0d7f92b6885aac4e1e3798))
+* **produccion-ganadera:** pipeline produccion_ganadera ([fcc8cdc](https://github.com/iieg-oficial/ETL-SIEEJ/commit/fcc8cdcd807f67aa04e38ad0b59e0f96d8a73a07))
+* **utils:** add download_public_file and load_csv_lookups helpers ([5b395aa](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5b395aa4eeb7ed79f7e3883350d26a5a94f06b32))
+
+
+### Bug Fixes
+
+* **asg_imss:** avoids cleaning self directory in transform ([885691a](https://github.com/iieg-oficial/ETL-SIEEJ/commit/885691ac97ad1bcf40b0f5b40ec490a45a3a3a22))
+* **asg_imss:** corrects schema and sectors transformation ([f3bf567](https://github.com/iieg-oficial/ETL-SIEEJ/commit/f3bf5676aee140c24237926dccc720c165658ac1))
+* **asg_imss:** refactor bootstrap con diccionario Excel, elimina record_hash y corrige encoding ([f8b00ce](https://github.com/iieg-oficial/ETL-SIEEJ/commit/f8b00ceae041f8cfdcaa31ea2e5305b16b6257c3))
+* **asg_imss:** removes old version of asg ([a217e50](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a217e50d34fd39d32ef938e5dbaf8f8e143d882a))
+* **delitos_fuero_comun:** corregir sintaxis UNNEST pg16 y conversion pd.NA en load ([460cc8c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/460cc8c8af254abcc75406aa6b365cd97aac931b))
+* **delitos_fuero_comun:** replace cat_municipio with cvegeo fdw reference ([453647e](https://github.com/iieg-oficial/ETL-SIEEJ/commit/453647e55dd1990f9b575b6e2f89f59d35dffc53))
+* **delitos_fuero_comun:** replace cat_municipio with cvegeo FDW reference ([4129ac3](https://github.com/iieg-oficial/ETL-SIEEJ/commit/4129ac3ad9e0e44e72dff4a8030d6678abf3f16a))
+* **delitos_fuero_comun:** update schemas and stages to use cvegeo integer key ([a597d13](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a597d1304ac386810f3130053484747e3992a131))
+* **denue:** entidades constant to loop over all entities ([943777f](https://github.com/iieg-oficial/ETL-SIEEJ/commit/943777fda3364755e4c0118acd6fdbfdf7882c2c))
+* encoding detection ([4303525](https://github.com/iieg-oficial/ETL-SIEEJ/commit/43035257c285c7253d57a9c48e2e3a53d0f4de5a))
+* implements catalogs load dynamic ([5a34d1e](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5a34d1e2d1121e18e14dbb0eace29bab33388135))
+* **pipeline:** deduplicate denue localidades by composite key ([1e484bd](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1e484bd3e2fbfc40f229b315f744376d6e2d4295))
+* **pipeline:** deduplicate denue localidades by composite key ([eda3cac](https://github.com/iieg-oficial/ETL-SIEEJ/commit/eda3cac0f5f0a96f119a5fbd5e869a5ebe478e50))
+
+
+### Updates
+
+* **docs:** regenerate denue ERD with green theme and cvegeo tables ([796cfc5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/796cfc55af49cf2c9d2621791ae2f2a8f877b67e))
+* **docs:** removes unnecesary testing tasks ([90c87dc](https://github.com/iieg-oficial/ETL-SIEEJ/commit/90c87dc945f241b8acff0402363ad36e01e80cf2))
+* **produccion-ganadera:** .env.example to use the correct start_date ([e810b81](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e810b81b72f1a2af3a5ed4d374bd23ef721cfda3))
+
 ## [1.1.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.0.0...v1.1.0) (2026-05-19)
 
 
