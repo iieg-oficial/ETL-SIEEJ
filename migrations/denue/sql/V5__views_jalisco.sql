@@ -10,16 +10,29 @@ SELECT
     e.nombre_asentamiento,
     e.ageb,
     m.nomgeo AS municipio,
-    l.clave_localidad,
+    l.localidad_id,
     l.localidad,
-    ae.nombre_actividad_economica AS actividad_economica,
+    sec.codigo AS sector_codigo,
+    sec.sector,
+    sub.codigo AS subsector_codigo,
+    sub.subsector,
+    r.codigo AS rama_codigo,
+    r.rama,
+    sr.codigo AS subrama_codigo,
+    sr.subrama,
+    ca.codigo AS clase_actividad_codigo,
+    ca.clase AS clase_actividad,
     rp.descripcion AS rango_personal,
     te.descripcion AS tipo_establecimiento
-FROM establecimientos e
-LEFT JOIN actualizaciones a ON e.actualizacion_id = a.id
-LEFT JOIN localidades l ON e.localidad_id = l.id
+FROM stg_establecimientos e
+LEFT JOIN cat_actualizaciones a ON e.actualizacion_id = a.id
+LEFT JOIN cat_localidades l ON e.localidad_id = l.id
 LEFT JOIN cvegeo_municipalities m ON l.municipio_id = m.cve_mun AND l.entidad_id = m.cve_ent
-LEFT JOIN actividades_economicas ae ON e.actividad_economica_id = ae.id
-LEFT JOIN rangos_personal rp ON e.rango_personal_id = rp.id
-LEFT JOIN tipos_establecimientos te ON e.tipo_establecimiento_id = te.id
+LEFT JOIN cat_sectores sec ON e.sector_id = sec.id
+LEFT JOIN cat_subsectores sub ON e.subsector_id = sub.id
+LEFT JOIN cat_ramas r ON e.rama_id = r.id
+LEFT JOIN cat_subramas sr ON e.subrama_id = sr.id
+LEFT JOIN cat_clases_actividad ca ON e.clase_actividad_id = ca.id
+LEFT JOIN cat_rangos_personal rp ON e.rango_personal_id = rp.id
+LEFT JOIN cat_tipos_establecimientos te ON e.tipo_establecimiento_id = te.id
 WHERE l.entidad_id = 14;

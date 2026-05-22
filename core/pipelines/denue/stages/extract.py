@@ -5,15 +5,13 @@ from typing import Any, Optional
 
 from selenium.webdriver.common.by import By
 
-from core.db import Database
 from core.pipelines.stage import Stage
 from core.pipelines.denue.config import settings
 from core.pipelines.denue.constants import RENAME_HEADER
-from core.pipelines.denue.helpers.date_utils import parse_periodo
+from core.pipelines.denue.helpers.date_utils import parse_periodo, resolve_start_date
 from core.pipelines.denue.helpers.file_processor import download_denue_csv
+from core.pipelines.denue.helpers.scian import download_scian
 from core.pipelines.denue.helpers.web_driver import driver_configuration
-from core.pipelines.denue.schemas import Actualizaciones
-from core.utils.bulk_ops import get_last_update
 from core.utils.logger import get_logger
 
 PIPELINE_NAME = settings.PIPELINE_NAME
@@ -28,28 +26,15 @@ class DenueExtract(Stage):
         raw_date = start_date or settings.BOOTSTRAP_START_DATE
         self.start_date = datetime.strptime(raw_date, "%d/%m/%Y").date()
 
-    def _resolve_start_date(self):
-        if self.mode != "update":
-            return self.start_date
-        db = Database(settings.DB_NAME, settings.database_url)
-        db.connect()
-        try:
-            with db.get_session() as session:
-                last_date = get_last_update(session, Actualizaciones, Actualizaciones.fecha_actualizacion.key)
-        finally:
-            db.disconnect()
-        if last_date:
-            self.logger.info(f"[source] Update mode: last actualizacion {last_date}")
-            return last_date
-        return self.start_date
-
     def source(self, input_data: Optional[Any] = None) -> list[dict]:
+        download_scian(self.work_dir, settings.SCIAN_FILE_ID, settings.SCIAN_CSV_NAME)
+
         pkl_path = self.work_dir / f"denue_extracted_{self.entidad}.pkl"
         if pkl_path.exists():
             self.logger.info(f"[source] pkl found for entidad {self.entidad}, skipping extract")
             return []
 
-        start_date = self._resolve_start_date()
+        start_date = resolve_start_date(self.mode, self.start_date, settings.DB_NAME, settings.database_url)
         self.logger.info(f"[source] Scraping URLs for entidad {self.entidad} after {start_date}")
         driver = driver_configuration(settings.DENUE_URL)
         urls = []

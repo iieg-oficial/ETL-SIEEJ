@@ -1,6 +1,6 @@
 flyway.url=jdbc:postgresql://<DB_HOST>:<DB_PORT>/<DB_NAME>
 flyway.user=<DB_USER>
 flyway.password=<DB_PASSWORD>
-flyway.locations=migrations/asg_imss/sql
+flyway.locations=migrations/asg_imss/sql/
 flyway.schemas=public
 flyway.cleanDisabled=false

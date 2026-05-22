@@ -1,19 +1,46 @@
 -- =============================================================================
 -- V1__create_catalogos.sql  |  Pipeline: delitos_fuero_comun
--- Catalog tables: municipio, bien_juridico_afectado, tipo_delito,
+-- Catalog tables: bien_juridico_afectado, tipo_delito,
 --                 subtipo_delito, modalidad.
+-- Municipality reference: shared cvegeo_municipalities (FDW → cvegeo DB).
 -- =============================================================================
 
--- Municipality catalog (natural key cve_municipio 5-digit INEGI code)
-CREATE TABLE IF NOT EXISTS cat_municipio (
-    id            SERIAL       PRIMARY KEY,
-    cve_municipio VARCHAR(5)   NOT NULL,
-    clave_ent     VARCHAR(2)   NOT NULL,
-    entidad       VARCHAR(200) NOT NULL,
-    municipio     VARCHAR(200) NOT NULL,
-    CONSTRAINT uq_cat_municipio_cve UNIQUE (cve_municipio)
-);
+-- -----------------------------------------------------------------------------
+-- FDW: expose cvegeo_municipalities from the shared cvegeo database
+-- -----------------------------------------------------------------------------
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
+DROP SERVER IF EXISTS cvegeo_server CASCADE;
+
+CREATE SERVER cvegeo_server
+    FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (
+        dbname  '${fdw_dbname}',
+        host    '${fdw_host}',
+        port    '${fdw_port}'
+    );
+
+CREATE USER MAPPING FOR CURRENT_USER
+    SERVER cvegeo_server
+    OPTIONS (
+        user     '${fdw_user}',
+        password '${fdw_password}'
+    );
+
+CREATE FOREIGN TABLE cvegeo_municipalities (
+    id        INTEGER,
+    cvegeo    INTEGER,
+    cve_ent   INTEGER,
+    cve_mun   INTEGER,
+    nomgeo    VARCHAR,
+    nom_ent   VARCHAR
+)
+SERVER cvegeo_server
+OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
+
+-- -----------------------------------------------------------------------------
+-- Local catalog tables
+-- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS cat_bien_juridico_afectado (
     id                     SERIAL       PRIMARY KEY,
     bien_juridico_afectado VARCHAR(200) NOT NULL,

@@ -10,7 +10,6 @@ from core.pipelines.delitos_fuero_comun.constants import NK_COLS, UPDATE_COLS
 from core.pipelines.delitos_fuero_comun.schemas import (
     CatBienJuridicoAfectado,
     CatModalidad,
-    CatMunicipio,
     CatSubtipoDelito,
     CatTipoDelito,
     DelitosFueroComunBase,
@@ -82,14 +81,6 @@ class DelitosLoad(Stage):
             ]
             insert_records(session, modalidad_records, CatModalidad, conflict_keys=["modalidad"])
             sync_id_sequence(session, CatModalidad)
-
-            insert_records(
-                session,
-                catalogs["municipio"],
-                CatMunicipio,
-                conflict_keys=["cve_municipio"],
-            )
-            sync_id_sequence(session, CatMunicipio)
 
             # 2. Build full ID maps
             bja_map: dict[str, int] = get_mapping(session, CatBienJuridicoAfectado, "bien_juridico_afectado", "id")

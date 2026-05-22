@@ -44,20 +44,16 @@ class DelitosTransform(Stage):
     def _read_and_normalize(self, path: str) -> pd.DataFrame:
         df = pd.read_csv(path, encoding="latin1", dtype=str)
         df = df.rename(columns=RENAME)
-        df["clave_ent"] = df["clave_ent"].str.zfill(2)
         df["anio"] = pd.array(df["anio"], dtype="Int16")
+        df["cvegeo"] = pd.to_numeric(df["cve_municipio"], errors="coerce").astype("Int32")
         for col in MONTH_COLS:
             df[col] = pd.array(df[col], dtype="Int32")
+        df = df.drop(columns=["clave_ent", "entidad", "cve_municipio", "municipio"])
         return df
 
     def _extract_catalogs(self, dfs: list[pd.DataFrame]) -> dict:
         combined = pd.concat(dfs, ignore_index=True)
 
-        municipio = (
-            combined[["cve_municipio", "clave_ent", "entidad", "municipio"]]
-            .drop_duplicates(subset=["cve_municipio"])
-            .to_dict("records")
-        )
         bien_juridico = combined[["bien_juridico_afectado"]].drop_duplicates().to_dict("records")
         tipo = combined[["tipo_delito"]].drop_duplicates().to_dict("records")
         subtipo = (
@@ -66,7 +62,6 @@ class DelitosTransform(Stage):
         modalidad = combined[["modalidad", "subtipo_delito"]].drop_duplicates(subset=["modalidad"]).to_dict("records")
 
         return {
-            "municipio": municipio,
             "bien_juridico_afectado": bien_juridico,
             "tipo_delito": tipo,
             "subtipo_delito": subtipo,

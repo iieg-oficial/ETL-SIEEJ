@@ -2,9 +2,13 @@ from enum import auto, StrEnum
 
 
 class DenueTables(StrEnum):
-    ACTUALIZACIONES = auto()
-    LOCALIDADES = auto()
-    ACTIVIDADES_ECONOMICAS = auto()
-    RANGOS_PERSONAL = auto()
-    TIPOS_ESTABLECIMIENTOS = auto()
-    ESTABLECIMIENTOS = auto()
+    CAT_ACTUALIZACIONES = auto()
+    CAT_LOCALIDADES = auto()
+    CAT_SECTORES = auto()
+    CAT_SUBSECTORES = auto()
+    CAT_RAMAS = auto()
+    CAT_SUBRAMAS = auto()
+    CAT_CLASES_ACTIVIDAD = auto()
+    CAT_RANGOS_PERSONAL = auto()
+    CAT_TIPOS_ESTABLECIMIENTOS = auto()
+    STG_ESTABLECIMIENTOS = auto()

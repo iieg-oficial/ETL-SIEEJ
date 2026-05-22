@@ -1,11 +1,23 @@
 import os
 import io
+from pathlib import Path
+
+import requests
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+
+
+def download_public_file(file_id: str, dest_path: Path, timeout: int = 30) -> Path:
+    url = f"https://drive.google.com/uc?export=download&id={file_id}"
+    response = requests.get(url, timeout=timeout)
+    response.raise_for_status()
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    dest_path.write_bytes(response.content)
+    return dest_path
 
 
 def _build_service(client_email: str, private_key: str):
