@@ -68,6 +68,16 @@ class EfipemTransformer(Stage):
         # cvegeo: normalizar a exactamente 5 caracteres con ceros a la izquierda
         df["cvegeo"] = df["cvegeo"].str.strip().str.zfill(5)
 
+        # Colapsar entradas multiples del mismo concepto sumando valor.
+        # El CSV fuente puede tener N apuntes contables para la misma combinacion
+        # (anio, cvegeo, tema, clasificador, concepto, estatus); se agregan en uno.
+        group_cols = ["anio", "cvegeo", "cve_ent", "cve_mun", "tema", "clasificador", "concepto", "estatus"]
+        before = len(df)
+        df = df.groupby(group_cols, as_index=False, dropna=False)["valor"].sum()
+        collapsed = before - len(df)
+        if collapsed:
+            self.logger.info(f"Agrupados {collapsed} registros → {len(df)} entradas unicas (GROUP BY + SUM valor)")
+
         # Extraer catalogos simples (name-only)
         catalogs: dict[str, list[str]] = {}
         for col in CATALOG_COLUMNS:
