@@ -26,6 +26,7 @@ SELECT
     cvegeo,
     nom_municipio,
     nom_ent,
+    indicador,
     valor,
     error_estandar
 FROM vw_ilmm
@@ -44,6 +45,7 @@ SELECT
     cvegeo,
     nom_municipio,
     nom_ent,
+    indicador,
     valor,
     error_estandar
 FROM vw_ilmm
