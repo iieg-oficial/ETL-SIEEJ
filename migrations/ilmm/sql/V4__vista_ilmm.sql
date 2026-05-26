@@ -1,11 +1,11 @@
 CREATE OR REPLACE VIEW vw_ilmm AS
 SELECT
     s.id,
+    s.fecha,
     s.clave_municipio,
     LPAD(m.cvegeo::text, 5, '0')  AS cvegeo,
     m.nomgeo                       AS nom_municipio,
     m.nom_ent,
-    s.fecha,
     i.indicador,
     s.valor,
     s.error_estandar
