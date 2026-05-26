@@ -15,11 +15,9 @@ from core.pipelines.efipem.schemas import (
     EfipemBase,
     FinanzasMunicipal,
 )
-from more_itertools import chunked
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import (
+    bulk_insert,
     get_mapping,
     insert_records,
     sync_id_sequence,
@@ -94,23 +92,10 @@ class EfipemLoader(Stage):
 
     def _load_bootstrap(self, df: pd.DataFrame, now: datetime) -> int:
         records = [self._build_record(row) for row in df.to_dict(orient="records")]
-        inserted = 0
         with self.db.get_session() as session:
-            for i, chunk in enumerate(chunked(records, settings.EFIPEM_LOAD_BATCH_SIZE), start=1):
-                chunk = list(chunk)
-                stmt = pg_insert(FinanzasMunicipal).values(chunk)
-                stmt = stmt.on_conflict_do_nothing(
-                    index_elements=["anio", "cvegeo", "tema_id", "clasificador_id", "concepto_id"]
-                )
-                result = session.execute(stmt)
-                inserted += result.rowcount
-                self.logger.info(
-                    f"  chunk {i}: {min(i * settings.EFIPEM_LOAD_BATCH_SIZE, len(records))}/{len(records)}"
-                )
-        self.logger.info(
-            f"Bootstrap: {inserted} registros insertados ({len(records) - inserted} omitidos por conflicto)"
-        )
-        return inserted
+            bulk_insert(session, records, FinanzasMunicipal, chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE)
+        self.logger.info(f"Bootstrap: {len(records)} registros insertados")
+        return len(records)
 
     def _load_catalogs(self, session, catalog_values: dict[str, list[str]]) -> None:
         for cat_key, values in catalog_values.items():
