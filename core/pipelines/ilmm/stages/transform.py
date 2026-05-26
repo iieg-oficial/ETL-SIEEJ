@@ -35,10 +35,9 @@ class IlmmTransform(Stage):
         self.logger.info(f"[action] After filtering est IN (1,2): {len(df)} rows")
 
         # Build clave_municipio
-        df["clave_municipio"] = (
-            df["ent"].astype(int).astype(str).str.zfill(2)
-            + df["mun"].astype(int).astype(str).str.zfill(3)
-        )
+        df["clave_municipio"] = df["ent"].astype(int).astype(str).str.zfill(2) + df["mun"].astype(int).astype(
+            str
+        ).str.zfill(3)
 
         # Cast indicator columns to numeric
         for col in ("ocupados", "informales"):

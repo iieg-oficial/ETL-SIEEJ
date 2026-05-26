@@ -48,9 +48,7 @@ class IlmmLoad(Stage):
                 conflict_cols = ["clave_municipio", "fecha", "indicador_id"]
                 chunk_size = 5_000
                 for i, chunk in enumerate(chunked(records, chunk_size), start=1):
-                    stmt = insert(Ilmm).values(chunk).on_conflict_do_nothing(
-                        index_elements=conflict_cols
-                    )
+                    stmt = insert(Ilmm).values(chunk).on_conflict_do_nothing(index_elements=conflict_cols)
                     session.execute(stmt)
                     session.flush()
                     self.logger.info(f"  chunk {i}: {min(i * chunk_size, total)}/{total}")
@@ -67,9 +65,7 @@ class IlmmLoad(Stage):
             with self.db.get_session() as session:
                 total = count_records(session, Ilmm)
                 inserted = total - input_data["records_before"]
-                self.logger.info(
-                    f"[finalization] ilmm: {format(total, ',')} total, {format(inserted, ',')} inserted"
-                )
+                self.logger.info(f"[finalization] ilmm: {format(total, ',')} total, {format(inserted, ',')} inserted")
         finally:
             self.db.disconnect()
 

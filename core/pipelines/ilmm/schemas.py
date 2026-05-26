@@ -28,15 +28,11 @@ class IlmmIndicador(IlmmBase):
 
 class Ilmm(IlmmBase):
     __tablename__ = T.ILMM
-    __table_args__ = (
-        UniqueConstraint("clave_municipio", "fecha", "indicador_id", name="uq_stg_ilmm"),
-    )
+    __table_args__ = (UniqueConstraint("clave_municipio", "fecha", "indicador_id", name="uq_stg_ilmm"),)
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     clave_municipio: Mapped[str] = mapped_column(String(5), nullable=False)
     fecha: Mapped[date] = mapped_column(Date, nullable=False)
-    indicador_id: Mapped[int] = mapped_column(
-        SmallInteger, ForeignKey(f"{T.ILMM_INDICADOR}.id"), nullable=False
-    )
+    indicador_id: Mapped[int] = mapped_column(SmallInteger, ForeignKey(f"{T.ILMM_INDICADOR}.id"), nullable=False)
     valor: Mapped[float | None] = mapped_column(Numeric(12, 4), nullable=True)
     error_estandar: Mapped[float | None] = mapped_column(Numeric(12, 4), nullable=True)

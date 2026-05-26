@@ -21,10 +21,7 @@ import requests
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-BASE_URL = (
-    "https://www.inegi.org.mx/contenidos/programas/ilmm/datosabiertos/"
-    "conjunto_de_datos_ilmm_{year}_1t_csv.zip"
-)
+BASE_URL = "https://www.inegi.org.mx/contenidos/programas/ilmm/datosabiertos/conjunto_de_datos_ilmm_{year}_1t_csv.zip"
 SAMPLE_YEARS = [2024, 2020, 2017]  # primary + 2 historical for consistency check
 PRIMARY_YEAR = 2024
 CATALOG_THRESHOLD = 100
@@ -67,9 +64,7 @@ def extract_dataframes(zip_bytes: bytes) -> tuple[pd.DataFrame, pd.DataFrame | N
         members = zf.namelist()
 
         # Main dataset CSV
-        main_candidates = [
-            m for m in members if "conjunto_de_datos" in m.lower() and m.lower().endswith(".csv")
-        ]
+        main_candidates = [m for m in members if "conjunto_de_datos" in m.lower() and m.lower().endswith(".csv")]
         if not main_candidates:
             raise ValueError(f"No main dataset CSV found in ZIP. Members: {members}")
         main_csv_name = main_candidates[0]
@@ -84,10 +79,7 @@ def extract_dataframes(zip_bytes: bytes) -> tuple[pd.DataFrame, pd.DataFrame | N
         df_main.columns = [c.lstrip("\ufeff") for c in df_main.columns]
 
         # Catalog est.csv (skip mun.csv and ent.csv)
-        est_candidates = [
-            m for m in members
-            if m.lower().endswith("est.csv") and "catalogos" in m.lower()
-        ]
+        est_candidates = [m for m in members if m.lower().endswith("est.csv") and "catalogos" in m.lower()]
         df_est: pd.DataFrame | None = None
         if est_candidates:
             df_est = _read_csv_auto_encoding(
@@ -153,10 +145,7 @@ total_filas, total_cols = df_main.shape
 
 # Save main CSV to extract dir for optional inspection (not inside eda/)
 with zipfile.ZipFile(io.BytesIO(zip_2024)) as zf:
-    main_candidates = [
-        m for m in zf.namelist()
-        if "conjunto_de_datos" in m.lower() and m.lower().endswith(".csv")
-    ]
+    main_candidates = [m for m in zf.namelist() if "conjunto_de_datos" in m.lower() and m.lower().endswith(".csv")]
     main_csv_name = main_candidates[0]
     csv_path = EXTRACT_DIR / Path(main_csv_name).name
     csv_path.write_bytes(zf.read(main_csv_name))
@@ -202,13 +191,13 @@ for col in KEY_COLS_DETAIL:
 
 # mun zero-padding check: any municipality code with fewer than 3 digits needs LPAD
 if "mun" in df_main.columns:
-    mun_digits = df_main["mun"].dropna().apply(
-        lambda x: len(str(int(float(x))).lstrip("-"))
-    )
+    mun_digits = df_main["mun"].dropna().apply(lambda x: len(str(int(float(x))).lstrip("-")))
     mun_min_digits = int(mun_digits.min())
     mun_max_digits = int(mun_digits.max())
     lpad_needed = mun_min_digits < 3
-    print(f"\n   mun digits range: min={mun_min_digits}  max={mun_max_digits}  → LPAD(mun::text, 3, '0') needed: {lpad_needed}")
+    print(
+        f"\n   mun digits range: min={mun_min_digits}  max={mun_max_digits}  → LPAD(mun::text, 3, '0') needed: {lpad_needed}"
+    )
 
 # ---------------------------------------------------------------------------
 # Step 4c — Natural key uniqueness
@@ -264,9 +253,7 @@ for year in historical_years:
         dtype_diffs: list[str] = []
         for col in primary_cols & hist_cols:
             if str(df_main[col].dtype) != str(df_hist[col].dtype):
-                dtype_diffs.append(
-                    f"{col}: 2024={df_main[col].dtype} vs {year}={df_hist[col].dtype}"
-                )
+                dtype_diffs.append(f"{col}: 2024={df_main[col].dtype} vs {year}={df_hist[col].dtype}")
         if dtype_diffs:
             print(f"   dtype differences: {dtype_diffs}")
         else:
@@ -356,9 +343,7 @@ notas.append(
     "est=1 → estimación puntual, est=2 → error estándar. "
     "La tasa de desocupación se deriva de: 100 - ocupados cuando est=1."
 )
-notas.append(
-    "Ignorar catalogos/mun.csv y catalogos/ent.csv del ZIP; usar cv_geo del repositorio."
-)
+notas.append("Ignorar catalogos/mun.csv y catalogos/ent.csv del ZIP; usar cv_geo del repositorio.")
 notas.append(f"Consistencia histórica verificada para años: {[r['year'] for r in consistency_results]}.")
 if consistency_results:
     for res in consistency_results:
