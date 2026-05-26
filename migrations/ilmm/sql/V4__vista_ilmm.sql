@@ -16,9 +16,9 @@ LEFT JOIN cvegeo_municipalities m ON LPAD(m.cvegeo::text, 5, '0') = s.clave_muni
 COMMENT ON VIEW vw_ilmm IS 'Vista de integración del pipeline ilmm. Expone indicadores del mercado de trabajo municipal con nombres geográficos.';
 
 -- ---------------------------------------------------------------------------
--- Vista filtrada: porcentaje de ocupación en el sector informal
+-- Vista materializada: porcentaje de ocupación en el sector informal
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE VIEW vw_ocupacion_informal AS
+CREATE MATERIALIZED VIEW vw_ocupacion_informal AS
 SELECT
     id,
     fecha,
@@ -26,18 +26,19 @@ SELECT
     cvegeo,
     nom_municipio,
     nom_ent,
-    indicador,
     valor,
     error_estandar
 FROM vw_ilmm
 WHERE indicador = 'porcentaje_ocupacion_informal';
 
-COMMENT ON VIEW vw_ocupacion_informal IS 'Porcentaje de ocupación en el sector informal por municipio y fecha (indicador: porcentaje_ocupacion_informal).';
+CREATE UNIQUE INDEX idx_mvw_ocupacion_informal_id ON vw_ocupacion_informal (id);
+
+COMMENT ON MATERIALIZED VIEW vw_ocupacion_informal IS 'Porcentaje de ocupación en el sector informal por municipio y fecha (indicador: porcentaje_ocupacion_informal).';
 
 -- ---------------------------------------------------------------------------
--- Vista filtrada: tasa de desocupación
+-- Vista materializada: tasa de desocupación
 -- ---------------------------------------------------------------------------
-CREATE OR REPLACE VIEW vw_tasa_desocupacion AS
+CREATE MATERIALIZED VIEW vw_tasa_desocupacion AS
 SELECT
     id,
     fecha,
@@ -45,10 +46,11 @@ SELECT
     cvegeo,
     nom_municipio,
     nom_ent,
-    indicador,
     valor,
     error_estandar
 FROM vw_ilmm
 WHERE indicador = 'tasa_desocupacion';
 
-COMMENT ON VIEW vw_tasa_desocupacion IS 'Tasa de desocupación por municipio y fecha (indicador: tasa_desocupacion).';
+CREATE UNIQUE INDEX idx_mvw_tasa_desocupacion_id ON vw_tasa_desocupacion (id);
+
+COMMENT ON MATERIALIZED VIEW vw_tasa_desocupacion IS 'Tasa de desocupación por municipio y fecha (indicador: tasa_desocupacion).';
