@@ -15,7 +15,7 @@ from core.pipelines.efipem.stages.transform import EfipemTransformer
 
 
 def run_bootstrap():
-    """Ejecuta la carga inicial completa de EFIPEM (cobertura nacional)."""
+    """Ejecuta la carga inicial completa de EFIPEM municipal anual (Jalisco, 1989-presente)."""
     pipeline = Pipeline(
         name="efipem",
         stages=[
@@ -25,19 +25,6 @@ def run_bootstrap():
         ],
     )
     pipeline.run(mode="bootstrap")
-
-
-def run_update():
-    """Ejecuta carga incremental SCD2: cierra versiones modificadas e inserta nuevas."""
-    pipeline = Pipeline(
-        name="efipem",
-        stages=[
-            EfipemExtractor(mode="update"),
-            EfipemTransformer(mode="update"),
-            EfipemLoader(mode="update"),
-        ],
-    )
-    pipeline.run(mode="update")
 
 
 # ============================================================================
@@ -53,7 +40,7 @@ default_args_bootstrap = {
 with DAG(
     "etl_efipem_bootstrap",
     default_args=default_args_bootstrap,
-    description="EFIPEM Bootstrap - Carga inicial nacional (On Demand)",
+    description="EFIPEM Bootstrap - Carga inicial municipal anual Jalisco (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
     schedule=None,
@@ -66,29 +53,8 @@ with DAG(
 
 
 # ============================================================================
-# DAG 2: UPDATE (Carga incremental - Trimestral)
-# Cron: dia 15 del 2do mes de cada trimestre (feb, may, ago, nov) a las 02:00
+# DAG 2: UPDATE — no implementado (dataset anual, solo bootstrap por ahora)
 # ============================================================================
-
-default_args_update = {
-    "owner": "Alejandro Zarate",
-    "retries": 2,
-    "retry_delay": timedelta(minutes=5),
-}
-
-with DAG(
-    "etl_efipem_update",
-    default_args=default_args_update,
-    description="EFIPEM Update - Re-ingesta trimestral SCD2",
-    schedule="0 2 15 2,5,8,11 *",
-    start_date=datetime(2024, 1, 1),
-    catchup=False,
-    tags=["etl", "efipem", "update", "quarterly", "inegi", "finanzas-publicas"],
-) as dag_update:
-    update_task = PythonOperator(
-        task_id="run_update",
-        python_callable=run_update,
-    )
 
 
 if __name__ == "__main__":
