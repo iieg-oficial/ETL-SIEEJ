@@ -5,6 +5,7 @@ SELECT
     p.municipio_id,
     m.nomgeo                 AS municipio,
     l.localidad,
+    CASE WHEN p.localidad_id IS NULL THEN 'Municipal' ELSE 'Localidad' END AS nivel,
     p.total,
     p.total_hombres,
     p.total_mujeres,
@@ -21,6 +22,7 @@ SELECT
     s.nom_ent                AS entidad,
     p.municipio_id,
     m.nomgeo                 AS municipio,
+    CASE WHEN p.localidad_id IS NULL THEN 'Municipal' ELSE 'Localidad' END AS nivel,
     p.total,
     p.total_hombres,
     p.total_mujeres
@@ -36,6 +38,7 @@ SELECT
     p.municipio_id,
     m.nomgeo                 AS municipio,
     l.localidad,
+    CASE WHEN p.localidad_id IS NULL THEN 'Municipal' ELSE 'Localidad' END AS nivel,
     p.total,
     p.total_hombres,
     p.total_mujeres,

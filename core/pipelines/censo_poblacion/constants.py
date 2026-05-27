@@ -34,7 +34,7 @@ RENAME_INEGI_2015_COL: dict[str, str] = {
 
 NULL_VALUES: list[str] = ["*"]
 
-LOC_FILTER_VALUES: list[int] = [0, 9998, 9999]
+LOC_FILTER_VALUES: list[int] = [9998, 9999]
 
 NUMERIC_COLS: list[str] = ["total", "total_mujeres", "total_hombres", "viviendas_habitadas"]
 

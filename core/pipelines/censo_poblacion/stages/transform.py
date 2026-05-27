@@ -44,20 +44,26 @@ class CensoPoblacionTransform(Stage):
         for col in ["total_mujeres", "total_hombres", "viviendas_habitadas"]:
             df[col] = df[col].where(df[col].notna(), other=None)
 
-        df["cve_geo_id"] = df.apply(
+        is_municipal = df["localidad_id"] == 0
+        df_loc = df[~is_municipal].copy()
+
+        df_loc["cve_geo_id"] = df_loc.apply(
             lambda row: int(f"{int(row['entidad_id']):02}{int(row['municipio_id']):03}{int(row['localidad_id']):04}"),
             axis=1,
         )
 
         localidades = (
-            df[["cve_geo_id", "localidad"]]
+            df_loc[["cve_geo_id", "localidad"]]
             .drop_duplicates(subset=["cve_geo_id"])
             .dropna(subset=["localidad"])
             .rename(columns={"cve_geo_id": "id"})
             .to_dict("records")
         )
 
-        df["localidad_id"] = df["cve_geo_id"]
+        df_loc["localidad_id"] = df_loc["cve_geo_id"]
+        df.loc[is_municipal, "localidad_id"] = None
+        df.loc[~is_municipal, "localidad_id"] = df_loc["localidad_id"]
+
         df["fuente_id"] = fuente_id
         return df[POBLACION_COLS], localidades
 
