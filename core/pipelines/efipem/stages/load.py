@@ -3,8 +3,6 @@ import pandas as pd
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-from sqlalchemy import update
-
 from core.db import Database
 from core.pipelines.efipem.config import settings
 from core.pipelines.efipem.consts import (
@@ -15,7 +13,7 @@ from core.pipelines.efipem.schemas import (
     CATALOG_MODELS,
     CatConcepto,
     EfipemBase,
-    FinanzasTrimestral,
+    FinanzasMunicipal,
 )
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import (
@@ -59,16 +57,10 @@ class EfipemLoader(Stage):
         df = self._resolve_ids(df)
 
         now = datetime.now(timezone.utc)
-        records_inserted = 0
-        records_closed = 0
-
-        if self.mode == "bootstrap":
-            records_inserted = self._load_bootstrap(df, now)
-        else:
-            records_inserted, records_closed = self._load_update(df, now)
+        records_inserted = self._load_bootstrap(df, now)
 
         with self.db.get_session() as session:
-            sync_id_sequence(session, FinanzasTrimestral)
+            sync_id_sequence(session, FinanzasMunicipal)
             for model in CATALOG_MODELS.values():
                 sync_id_sequence(session, model)
             sync_id_sequence(session, CatConcepto)
@@ -76,8 +68,6 @@ class EfipemLoader(Stage):
         return {
             "mode": self.mode,
             "records_inserted": records_inserted,
-            "records_closed": records_closed,
-            "catalogs_synced": len(catalog_values),
         }
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
@@ -87,94 +77,25 @@ class EfipemLoader(Stage):
         self.logger.info(f"Etapa Load completa. Estadisticas: {input_data}")
         return input_data
 
-    def _build_record(self, row: dict, now: datetime) -> dict:
+    def _build_record(self, row: dict) -> dict:
         return {
             "anio": int(row["anio"]),
-            "trimestre_id": int(row["trimestre_id"]),
+            "cvegeo": str(row["cvegeo"]),
             "cve_ent": int(row["cve_ent"]),
+            "cve_mun": int(row["cve_mun"]),
             "tema_id": int(row["tema_id"]),
             "clasificador_id": int(row["clasificador_id"]),
             "concepto_id": int(row["concepto_id"]),
             "valor": int(row["valor"]),
             "estatus_id": int(row["estatus_id"]),
-            "row_hash": row["row_hash"],
-            "is_current": True,
-            "valid_from": now,
-            "valid_to": None,
         }
 
     def _load_bootstrap(self, df: pd.DataFrame, now: datetime) -> int:
-        records = [self._build_record(row, now) for row in df.to_dict(orient="records")]
+        records = [self._build_record(row) for row in df.to_dict(orient="records")]
         with self.db.get_session() as session:
-            bulk_insert(session, records, FinanzasTrimestral, chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE)
+            bulk_insert(session, records, FinanzasMunicipal, chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE)
         self.logger.info(f"Bootstrap: {len(records)} registros insertados")
         return len(records)
-
-    def _load_update(self, df: pd.DataFrame, now: datetime) -> tuple[int, int]:
-        with self.db.get_session() as session:
-            active_rows = (
-                session.query(
-                    FinanzasTrimestral.id,
-                    FinanzasTrimestral.anio,
-                    FinanzasTrimestral.trimestre_id,
-                    FinanzasTrimestral.cve_ent,
-                    FinanzasTrimestral.tema_id,
-                    FinanzasTrimestral.clasificador_id,
-                    FinanzasTrimestral.concepto_id,
-                    FinanzasTrimestral.row_hash,
-                )
-                .filter(FinanzasTrimestral.is_current == True)  # noqa: E712
-                .all()
-            )
-
-        active_index: dict[tuple, tuple[int, str]] = {
-            (r.anio, r.trimestre_id, r.cve_ent, r.tema_id, r.clasificador_id, r.concepto_id): (r.id, r.row_hash)
-            for r in active_rows
-        }
-        self.logger.info(f"Registros activos en BD: {len(active_index)}")
-
-        ids_to_close: list[int] = []
-        records_to_insert: list[dict] = []
-
-        for row in df.to_dict(orient="records"):
-            key = (
-                int(row["anio"]),
-                int(row["trimestre_id"]),
-                int(row["cve_ent"]),
-                int(row["tema_id"]),
-                int(row["clasificador_id"]),
-                int(row["concepto_id"]),
-            )
-            incoming_hash: str = row["row_hash"]
-
-            if key not in active_index:
-                records_to_insert.append(self._build_record(row, now))
-            else:
-                db_id, db_hash = active_index[key]
-                if incoming_hash != db_hash:
-                    ids_to_close.append(db_id)
-                    records_to_insert.append(self._build_record(row, now))
-
-        self.logger.info(
-            f"Update: {len(ids_to_close)} registros a cerrar, {len(records_to_insert)} registros a insertar"
-        )
-
-        with self.db.get_session() as session:
-            if ids_to_close:
-                session.execute(
-                    update(FinanzasTrimestral)
-                    .where(FinanzasTrimestral.id.in_(ids_to_close))
-                    .values(valid_to=now, is_current=False)
-                )
-            if records_to_insert:
-                bulk_insert(
-                    session,
-                    records_to_insert,
-                    FinanzasTrimestral,
-                    chunk_size=settings.EFIPEM_LOAD_BATCH_SIZE,
-                )
-
-        return len(records_to_insert), len(ids_to_close)
 
     def _load_catalogs(self, session, catalog_values: dict[str, list[str]]) -> None:
         for cat_key, values in catalog_values.items():
@@ -215,7 +136,7 @@ class EfipemLoader(Stage):
             axis=1,
         )
 
-        required_fk = ["trimestre_id", "tema_id", "clasificador_id", "concepto_id", "estatus_id"]
+        required_fk = ["tema_id", "clasificador_id", "concepto_id", "estatus_id"]
         for col in required_fk:
             null_count = df[col].isna().sum()
             if null_count:
