@@ -6,8 +6,10 @@ CREATE TABLE IF NOT EXISTS iim_municipal (
     por_viv_emigrantes  FLOAT,
     por_viv_circ        FLOAT,
     por_viv_reto        FLOAT,
+    iaim                FLOAT,
+    gaim                TEXT,
     iim_dp2             FLOAT,
-    grado_iim           TEXT,
+    gim_dp2             TEXT,
     lugar_contexto_nacional INTEGER,
     fecha               INTEGER NOT NULL,
     CONSTRAINT uq_iim_municipal UNIQUE (municipio_id, fecha)
@@ -22,7 +24,7 @@ CREATE TABLE IF NOT EXISTS iim_estatal (
     por_viv_circ        FLOAT,
     por_viv_reto        FLOAT,
     iim_dp2             FLOAT,
-    grado_iim           TEXT,
+    gim_dp2             TEXT,
     lugar_contexto_nacional INTEGER,
     fecha               INTEGER NOT NULL,
     CONSTRAINT uq_iim_estatal UNIQUE (entidad_id, fecha)
