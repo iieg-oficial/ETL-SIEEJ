@@ -1,8 +1,7 @@
 import io
-from typing import Any, Optional
-
 import pandas as pd
 import requests
+from typing import Any, Optional
 
 from core.pipelines.intensidad_migratoria.config import settings
 from core.pipelines.intensidad_migratoria.constants import (
