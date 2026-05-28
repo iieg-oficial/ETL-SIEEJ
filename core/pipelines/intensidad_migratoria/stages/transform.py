@@ -1,7 +1,6 @@
+import pandas as pd
 from pathlib import Path
 from typing import Any, Optional
-
-import pandas as pd
 
 from core.pipelines.intensidad_migratoria.constants import ESTATAL_COLS, MUNICIPAL_COLS
 from core.pipelines.stage import Stage
