@@ -1,190 +1,98 @@
-# Pipeline: Pobreza Multidimensional
+# pobreza_multidimensional
 
-Indicadores municipales de pobreza multidimensional del CONEVAL para los años 2010, 2015 y 2020. Cubre las 2,469 localidades municipales de México con métricas de pobreza, carencias sociales y líneas de ingreso.
+## Descripción general
 
-## Fuente
+Pipeline ETL de indicadores de pobreza multidimensional municipal del CONEVAL. Descarga el concentrado de indicadores para los años 2010, 2015 y 2020, transformando el formato wide del XLSX a un formato tidy (municipio × año) con múltiples indicadores de pobreza, vulnerabilidad y carencias sociales.
 
-Medición de pobreza a nivel municipal publicada por el Consejo Nacional de Evaluación de la Política de Desarrollo Social (CONEVAL).
+## Fuente general
 
-| Atributo | Valor |
+https://www.coneval.org.mx/Medicion/Paginas/pobreza-municipio-2010-2020.aspx
+
+## Fuente específica
+
+```shell
+POBREZA_MULTIDIMENSIONAL_SOURCE_URL=https://www.coneval.org.mx/Medicion/Documents/Pobreza_municipal/2020/Concentrado_indicadores_de_pobreza_2020.zip
+```
+
+## Características de los datos
+
+| Característica | Valor |
 |---|---|
-| **URL** | [Concentrado_indicadores_de_pobreza_2020.zip](https://www.coneval.org.mx/Medicion/Documents/Pobreza_municipal/2020/Concentrado_indicadores_de_pobreza_2020.zip) |
-| **Formato** | Excel (hoja `Concentrado municipal`, datos desde fila 9, encabezados multi-nivel filas 5-6) |
-| **Registros** | ~7,407 (2,469 municipios × 3 años) |
-| **Llave natural** | `(cve_mun, anio)` |
-| **Periodicidad** | Bianual (nueva edición cada 2-3 años) |
-| **Comportamiento** | sobreescribe — el archivo reemplaza a la versión anterior completa |
+| Última fecha disponible | `2020` |
+| Frecuencia de actualización | Quinquenal |
+| Desagregación | Nacional, Municipal |
+| ¿Tiene update? | No |
+| Update | No aplica |
 
-## Estructura
-
-```
-pobreza_multidimencional/
-├── .env.example     # Variables de entorno con valores de ejemplo
-├── config.py        # Settings del pipeline (extiende BaseConfig)
-├── consts.py        # Constantes: EXCEL_COL_NAMES, INDICATOR_PREFIXES, NULL_VALUES, DATA_YEARS
-├── schemas.py       # Modelos SQLAlchemy (CatEntidad, PobrezaMultidimencionalDatos)
-└── stages/
-    ├── extract.py   # Descarga ZIP y extrae XLSX
-    ├── transform.py # Wide → tidy (municipio × año), extrae catálogos
-    └── load.py      # Carga catálogos + datos en BD
-```
-
-Archivos relacionados:
-
-- `dags/etl_pobreza_multidimencional.py` — DAG de Airflow (bootstrap, `schedule=None`)
-- `migrations/pobreza_multidimencional/sql/` — Migraciones Flyway V1–V3
-- `migrations/pobreza_multidimencional/flyway.conf.example` — Config de ejemplo
-
-## ERD
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
-```mermaid
-erDiagram
-    stg_pobreza_multidimencional_cat_entidad {
-        INTEGER id PK
-        VARCHAR_2_ cve_ent
-        VARCHAR_100_ nombre_entidad
-    }
-    stg_pobreza_multidimencional_datos {
-        INTEGER id PK
-        VARCHAR_5_ cve_mun
-        VARCHAR_150_ nombre_municipio
-        INTEGER cat_entidad_id FK
-        SMALLINT anio
-        INTEGER poblacion
-        FLOAT pobreza_porcentaje
-        INTEGER pobreza_personas
-        FLOAT pobreza_promedio
-        FLOAT pobreza_ext_porcentaje
-        INTEGER pobreza_ext_personas
-        FLOAT pobreza_ext_promedio
-        FLOAT pobreza_mod_porcentaje
-        INTEGER pobreza_mod_personas
-        FLOAT pobreza_mod_promedio
-        FLOAT vul_carencia_porcentaje
-        INTEGER vul_carencia_personas
-        FLOAT vul_carencia_promedio
-        FLOAT vul_ingreso_porcentaje
-        INTEGER vul_ingreso_personas
-        FLOAT no_pobre_porcentaje
-        INTEGER no_pobre_personas
-        FLOAT rez_edu_porcentaje
-        INTEGER rez_edu_personas
-        FLOAT rez_edu_promedio
-        FLOAT car_salud_porcentaje
-        INTEGER car_salud_personas
-        FLOAT car_salud_promedio
-        FLOAT car_seg_soc_porcentaje
-        INTEGER car_seg_soc_personas
-        FLOAT car_seg_soc_promedio
-        FLOAT car_viv_porcentaje
-        INTEGER car_viv_personas
-        FLOAT car_viv_promedio
-        FLOAT car_sbv_porcentaje
-        INTEGER car_sbv_personas
-        FLOAT car_sbv_promedio
-        FLOAT car_ali_porcentaje
-        INTEGER car_ali_personas
-        FLOAT car_ali_promedio
-        FLOAT al_1_car_porcentaje
-        INTEGER al_1_car_personas
-        FLOAT al_1_car_promedio
-        FLOAT tres_mas_car_porcentaje
-        INTEGER tres_mas_car_personas
-        FLOAT tres_mas_car_promedio
-        FLOAT lpi_porcentaje
-        INTEGER lpi_personas
-        FLOAT lpi_promedio
-        FLOAT lpei_porcentaje
-        INTEGER lpei_personas
-        FLOAT lpei_promedio
-        DATETIME created_at
-        DATETIME updated_at
-    }
-    stg_pobreza_multidimencional_cat_entidad ||--o{ stg_pobreza_multidimencional_datos : "cat_entidad_id"
-```
+## Diccionario de variables
 
-**Vista analítica**: `vw_pobreza_multidimencional` — JOIN de `datos` + `cat_entidad`, expone todas las columnas de métricas con `nombre_municipio` y `nombre_entidad`.
+### pobreza_multidimensional_datos
 
-**Catálogos**: 32 entidades sincronizadas vía `insert_records` con `ON CONFLICT DO NOTHING` usando `cve_ent` como llave.
-
-**Estrategia de update**: `bootstrap_only` — la fuente sobreescribe completamente en cada edición. Re-ingestión completa vía `flyway-reset` + bootstrap.
-
-## Indicadores disponibles
-
-Cada indicador tiene 3 columnas: `_porcentaje` (FLOAT), `_personas` (INTEGER), y `_carencias_promedio` (FLOAT, excepto `vul_ingreso` y `no_pobre`).
-
-| Indicador | Descripción |
+| variable | descripción |
 |---|---|
-| `pobreza` | Pobreza total |
-| `pobreza_ext` | Pobreza extrema |
-| `pobreza_mod` | Pobreza moderada |
-| `vul_carencia` | Vulnerable por carencia social |
-| `vul_ingreso` | Vulnerable por ingreso |
-| `no_pobre` | No pobre y no vulnerable |
-| `rez_edu` | Rezago educativo |
-| `car_salud` | Carencia acceso a salud |
-| `car_seg_soc` | Carencia seguridad social |
-| `car_viv` | Carencia calidad de vivienda |
-| `car_sbv` | Carencia servicios básicos de vivienda |
-| `car_ali` | Carencia acceso a alimentación |
-| `al_1_car` | Al menos una carencia social |
-| `tres_mas_car` | Tres o más carencias sociales |
-| `lpi` | Ingreso < línea de pobreza |
-| `lpei` | Ingreso < línea de pobreza extrema |
+| `cve_mun` | Clave INEGI del municipio (5 dígitos) |
+| `nombre_municipio` | Nombre del municipio |
+| `cat_entidad_id` | FK a catálogo de entidades |
+| `anio` | Año del levantamiento |
+| `poblacion` | Población total del municipio |
+| `pobreza_porcentaje` | % de población en situación de pobreza |
+| `pobreza_personas` | Personas en situación de pobreza |
+| `pobreza_ext_porcentaje` | % en pobreza extrema |
+| `pobreza_ext_personas` | Personas en pobreza extrema |
+| `pobreza_mod_porcentaje` | % en pobreza moderada |
+| `vul_carencia_porcentaje` | % vulnerable por carencia social |
+| `vul_ingreso_porcentaje` | % vulnerable por ingresos |
+| `no_pobre_porcentaje` | % no pobre y no vulnerable |
+| `rez_edu_porcentaje` | % con rezago educativo |
+| `car_salud_porcentaje` | % con carencia de acceso a servicios de salud |
+| `car_seg_soc_porcentaje` | % con carencia de seguridad social |
+| `car_viv_porcentaje` | % con carencia de calidad de vivienda |
 
-## Arquitectura
+## Migraciones
 
-Sigue el patrón de 3 etapas `Stage` → `Pipeline`:
+| migración | descripción |
+|---|---|
+| `V1__catalogos.sql` | Catálogo de entidades federativas |
+| `V2__tabla_principal.sql` | Tabla principal `pobreza_multidimensional_datos` |
+| `V3__vista.sql` | Vista analítica desnormalizada |
 
-```
-PobrezaMultidimencionalExtract → PobrezaMultidimencionalTransform → PobrezaMultidimencionalLoad
-```
+## Variables de entorno
 
-| Etapa | Entrada | Salida |
-|---|---|---|
-| **Extract** | Ninguna | `{"file_path": str, "zip_path": str}` |
-| **Transform** | `file_path` | `{"df": DataFrame, "catalogs": dict, "row_count": int}` |
-| **Load** | `df` + `catalogs` | `{"row_count": int}` |
+| variable | descripción |
+|---|---|
+| `POBREZA_MULTIDIMENSIONAL_SOURCE_URL` | URL del ZIP con el XLSX de indicadores municipales |
+| `POBREZA_MULTIDIMENSIONAL_LOAD_BATCH_SIZE` | Tamaño de lote para inserción masiva |
+| `XLSX_FILENAME` | Nombre del archivo XLSX dentro del ZIP |
+
+## Notas metodológicas
 
 ### Extract
 
-1. Descarga el ZIP desde `POBREZA_MULTIDIMENCIONAL_SOURCE_URL` (timeout 180 s).
-2. Extrae `Concentrado_indicadores_de_pobreza_2020.xlsx`.
-3. Elimina el ZIP; guarda el XLSX en `data/extract/pobreza_multidimencional/`.
+Descarga el ZIP desde `POBREZA_MULTIDIMENSIONAL_SOURCE_URL`, extrae el XLSX configurado en `XLSX_FILENAME` y elimina el ZIP para liberar espacio.
 
 ### Transform
 
-1. Lee el XLSX (`skiprows=8`, `usecols=range(1,146)`) y asigna `EXCEL_COL_NAMES`.
-2. Filtra filas donde `cve_mun` no sea un código de 5 dígitos.
-3. Aplica `NULL_VALUES`; convierte métricas `_personas` a `Int64` y porcentajes a `float`.
-4. Pivota de formato wide a tidy: 3 DataFrames (uno por año) → concatena → 7,407 filas.
-5. Extrae catálogo de entidades federativas (32 entidades únicas).
+Lee el XLSX en formato wide (una columna por indicador × año), transforma a formato tidy con `pd.melt`, extrae el catálogo de entidades, sanitiza nulos residuales y valida la estructura.
 
 ### Load
 
-1. Sincroniza `cat_entidad` con `insert_records` (conflict key: `cve_ent`).
-2. Construye mapa `cve_ent → cat_entidad_id`.
-3. Resuelve `cat_entidad_id` en el DataFrame.
-4. `bulk_insert` en lotes de `POBREZA_MULTIDIMENCIONAL_LOAD_BATCH_SIZE` (default 2,000).
-5. Sincroniza secuencias SERIAL.
+Inserta el catálogo de entidades e inserta masivamente los registros tidy en `pobreza_multidimensional_datos` con `bulk_insert`.
 
-## Periodicidad
+## Ejecución
 
-- **Bootstrap**: `schedule=None`, ejecución bajo demanda. Corre `run_bootstrap()` al ejecutar `python dags/etl_pobreza_multidimencional.py` directamente.
+**Bootstrap** (única ejecución):
 
-## Setup local
-
-```bash
-# 1. Copiar y completar variables de entorno
-cp core/pipelines/pobreza_multidimencional/.env.example \
-   core/pipelines/pobreza_multidimencional/.env
-
-# 2. Aplicar migraciones
-just flyway-reset pobreza_multidimencional
-
-# 3. Ejecutar bootstrap
-conda activate etl
-python dags/etl_pobreza_multidimencional.py
+```shell
+just flyway-migrate pobreza_multidimensional
+conda run -n etl python -m core.pipelines.pobreza_multidimensional bootstrap
 ```
+
+No tiene flujo update.
+
+## Notas adicionales
+
+El CONEVAL publica los datos con varios años de rezago. Para incorporar el levantamiento 2025 será necesario actualizar la URL y el nombre del XLSX, y ejecutar nuevamente el bootstrap. El XLSX contiene datos de todos los municipios de México.
