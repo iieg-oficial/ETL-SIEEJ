@@ -11,18 +11,24 @@ class IlmmTransform(Stage):
     def __init__(self):
         super().__init__("ilmm", "transform")
 
-    def source(self, input_data: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    def source(
+        self, input_data: Optional[tuple[pd.DataFrame, pd.DataFrame | None]] = None
+    ) -> tuple[pd.DataFrame, pd.DataFrame | None]:
         pkl_path = Path("data/extract/ilmm/ilmm_raw.pkl")
+        est_path = Path("data/extract/ilmm/cat_estimador.pkl")
         if pkl_path.exists():
             self.logger.info(f"[source] Loading {pkl_path}")
-            return pd.read_pickle(pkl_path)
+            df = pd.read_pickle(pkl_path)
+            df_est = pd.read_pickle(est_path) if est_path.exists() else None
+            return df, df_est
         self.logger.info("[source] pkl not found, using extract output")
         return input_data
 
-    def action(self, df: pd.DataFrame) -> pd.DataFrame:
+    def action(self, input_data: tuple[pd.DataFrame, pd.DataFrame | None]) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+        df, df_est = input_data
         self.logger.info(f"[action] Transforming {len(df)} raw rows")
 
-        # Cast key columns to int (they may arrive as float from CSV)
+        # Cast key columns to numeric
         for col in ("ent", "mun", "est"):
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
@@ -30,57 +36,38 @@ class IlmmTransform(Stage):
         df = df[(df["ent"] != 0) & (df["mun"] != 0)].copy()
         self.logger.info(f"[action] After filtering aggregates: {len(df)} rows")
 
-        # Keep only est=1 (Valor) and est=2 (Error estándar)
-        df = df[df["est"].isin([1, 2])].copy()
-        self.logger.info(f"[action] After filtering est IN (1,2): {len(df)} rows")
-
-        # Build clave_municipio
+        # Build clave_municipio (5-digit INEGI key)
         df["clave_municipio"] = df["ent"].astype(int).astype(str).str.zfill(2) + df["mun"].astype(int).astype(
             str
         ).str.zfill(3)
 
         # Cast indicator columns to numeric
-        for col in ("ocupados", "informales"):
+        for col in ("pea", "ocupados", "informales"):
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # Split by estimador
-        df_val = df[df["est"] == 1][["clave_municipio", "year", "ocupados", "informales"]].copy()
-        df_err = df[df["est"] == 2][["clave_municipio", "year", "ocupados", "informales"]].copy()
+        # Build fecha from year
+        df["fecha"] = df["year"].apply(lambda y: date(int(y), 1, 1))
 
-        # Merge value and std-error rows on (clave_municipio, year)
-        merged = df_val.merge(
-            df_err,
-            on=["clave_municipio", "year"],
-            suffixes=("_val", "_err"),
-        )
-        self.logger.info(f"[action] After merge: {len(merged)} pairs")
+        # Rename columns to match schema
+        df = df.rename(columns={"est": "estimador_id", "pea": "pob_econo_activa"})
 
-        # indicador_id=1: tasa_desocupacion
-        # valor = 100 - ocupados(est=1),  error_estandar = ocupados(est=2)
-        td = merged[["clave_municipio", "year", "ocupados_val", "ocupados_err"]].copy()
-        td["indicador_id"] = 1
-        td["valor"] = (100 - td["ocupados_val"]).round(4)
-        td["error_estandar"] = td["ocupados_err"].round(4)
-        td = td.drop(columns=["ocupados_val", "ocupados_err"])
+        result = df[["clave_municipio", "fecha", "estimador_id", "pob_econo_activa", "ocupados", "informales"]].copy()
 
-        # indicador_id=2: porcentaje_ocupacion_informal
-        # valor = informales(est=1),  error_estandar = informales(est=2)
-        pi = merged[["clave_municipio", "year", "informales_val", "informales_err"]].copy()
-        pi["indicador_id"] = 2
-        pi["valor"] = pi["informales_val"].round(4)
-        pi["error_estandar"] = pi["informales_err"].round(4)
-        pi = pi.drop(columns=["informales_val", "informales_err"])
+        # Round numeric columns
+        for col in ("pob_econo_activa", "ocupados", "informales"):
+            result[col] = result[col].round(4)
 
-        result = pd.concat([td, pi], ignore_index=True)
-        result["fecha"] = result["year"].apply(lambda y: date(int(y), 1, 1))
-        result = result[["clave_municipio", "fecha", "indicador_id", "valor", "error_estandar"]]
-        result = result.dropna(subset=["clave_municipio", "fecha", "indicador_id"])
+        result = result.dropna(subset=["clave_municipio", "fecha", "estimador_id"])
+        result["estimador_id"] = result["estimador_id"].astype(int)
 
         self.logger.info(f"[action] {len(result)} transformed rows ready for load")
-        return result
+        return result, df_est
 
-    def finalization(self, input_data: pd.DataFrame) -> pd.DataFrame:
+    def finalization(
+        self, input_data: tuple[pd.DataFrame, pd.DataFrame | None]
+    ) -> tuple[pd.DataFrame, pd.DataFrame | None]:
+        result, df_est = input_data
         pkl_path = self.work_dir / "ilmm_transformed.pkl"
-        input_data.to_pickle(pkl_path)
-        self.logger.info(f"[finalization] {len(input_data)} rows saved to {pkl_path}")
-        return input_data
+        result.to_pickle(pkl_path)
+        self.logger.info(f"[finalization] {len(result)} rows saved to {pkl_path}")
+        return result, df_est

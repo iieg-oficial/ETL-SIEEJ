@@ -1,36 +1,26 @@
-CREATE OR REPLACE VIEW vw_ilmm AS
-SELECT
-    s.id,
-    s.fecha,
-    s.clave_municipio,
-    LPAD(m.cvegeo::text, 5, '0')  AS cvegeo,
-    m.nomgeo                       AS nom_municipio,
-    m.nom_ent,
-    i.indicador,
-    s.valor,
-    s.error_estandar
-FROM stg_ilmm s
-JOIN cat_ilmm_indicador i ON i.id = s.indicador_id
-LEFT JOIN cvegeo_municipalities m ON LPAD(m.cvegeo::text, 5, '0') = s.clave_municipio;
-
-COMMENT ON VIEW vw_ilmm IS 'Vista de integración del pipeline ilmm. Expone indicadores del mercado de trabajo municipal con nombres geográficos.';
-
 -- ---------------------------------------------------------------------------
 -- Vista materializada: porcentaje de ocupación en el sector informal
+-- indicador derivado: valor = informales(est=1), error_estandar = informales(est=2)
 -- ---------------------------------------------------------------------------
 CREATE MATERIALIZED VIEW vw_ocupacion_informal AS
 SELECT
-    id,
-    fecha,
-    clave_municipio,
-    cvegeo,
-    nom_municipio,
-    nom_ent,
-    indicador,
-    valor,
-    error_estandar
-FROM vw_ilmm
-WHERE indicador = 'porcentaje_ocupacion_informal';
+    s1.id,
+    s1.fecha,
+    s1.clave_municipio,
+    LPAD(m.cvegeo::text, 5, '0')          AS cvegeo,
+    m.nomgeo                               AS nom_municipio,
+    m.nom_ent,
+    'porcentaje_ocupacion_informal'::TEXT  AS indicador,
+    s1.informales                          AS valor,
+    s2.informales                          AS error_estandar
+FROM stg_ilmm s1
+JOIN stg_ilmm s2
+    ON  s1.clave_municipio = s2.clave_municipio
+    AND s1.fecha           = s2.fecha
+    AND s1.estimador_id    = 1
+    AND s2.estimador_id    = 2
+LEFT JOIN cvegeo_municipalities m
+    ON LPAD(m.cvegeo::text, 5, '0') = s1.clave_municipio;
 
 CREATE UNIQUE INDEX idx_mvw_ocupacion_informal_id ON vw_ocupacion_informal (id);
 
@@ -38,20 +28,27 @@ COMMENT ON MATERIALIZED VIEW vw_ocupacion_informal IS 'Porcentaje de ocupación 
 
 -- ---------------------------------------------------------------------------
 -- Vista materializada: tasa de desocupación
+-- indicador derivado: valor = 100 - ocupados(est=1), error_estandar = ocupados(est=2)
 -- ---------------------------------------------------------------------------
 CREATE MATERIALIZED VIEW vw_tasa_desocupacion AS
 SELECT
-    id,
-    fecha,
-    clave_municipio,
-    cvegeo,
-    nom_municipio,
-    nom_ent,
-    indicador,
-    valor,
-    error_estandar
-FROM vw_ilmm
-WHERE indicador = 'tasa_desocupacion';
+    s1.id,
+    s1.fecha,
+    s1.clave_municipio,
+    LPAD(m.cvegeo::text, 5, '0')  AS cvegeo,
+    m.nomgeo                       AS nom_municipio,
+    m.nom_ent,
+    'tasa_desocupacion'::TEXT      AS indicador,
+    (100 - s1.ocupados)            AS valor,
+    s2.ocupados                    AS error_estandar
+FROM stg_ilmm s1
+JOIN stg_ilmm s2
+    ON  s1.clave_municipio = s2.clave_municipio
+    AND s1.fecha           = s2.fecha
+    AND s1.estimador_id    = 1
+    AND s2.estimador_id    = 2
+LEFT JOIN cvegeo_municipalities m
+    ON LPAD(m.cvegeo::text, 5, '0') = s1.clave_municipio;
 
 CREATE UNIQUE INDEX idx_mvw_tasa_desocupacion_id ON vw_tasa_desocupacion (id);
 
