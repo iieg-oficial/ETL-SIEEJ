@@ -1,4 +1,6 @@
+import io
 import pandas as pd
+from csv import QUOTE_NONE
 from pathlib import Path
 from typing import Any, Optional
 
@@ -6,7 +8,9 @@ from core.db import Database
 from core.pipelines.stage import Stage
 from core.pipelines.denue.attributes import DenueTables as T
 from core.pipelines.denue.config import settings
-from core.pipelines.denue.mappings import RANGOS_PERSONAL, TIPOS_ESTABLECIMIENTOS, get_sector_codigo
+from core.pipelines.denue.mappings import RANGOS_PERSONAL, TIPOS_ESTABLECIMIENTOS
+from core.pipelines.denue.constants import INT_COLS, RAW_COLS
+from core.pipelines.denue.queries import INSERT_FROM_RAW, TMP_TABLE_DDL
 from core.pipelines.denue.schemas import (
     CatActualizaciones,
     CatClasesActividad,
@@ -19,15 +23,7 @@ from core.pipelines.denue.schemas import (
     CatTiposEstablecimientos,
     StgEstablecimientos,
 )
-from core.utils import df_to_records
-from core.utils.bulk_ops import (
-    count_records,
-    get_all_records,
-    get_mapping,
-    insert_records,
-    sync_id_sequence,
-    upsert_records,
-)
+from core.utils.bulk_ops import count_records, insert_records, sync_id_sequence
 from core.utils.logger import get_logger
 
 PIPELINE_NAME = settings.PIPELINE_NAME
@@ -95,51 +91,22 @@ class DenueLoad(Stage):
         ]:
             sync_id_sequence(session, model)
 
-    def _map_foreign_keys(self, session, df: pd.DataFrame) -> pd.DataFrame:
-        self.logger.info("[_map_foreign_keys] Building actualizaciones mapping")
-        actualizaciones_map = get_mapping(
-            session,
-            CatActualizaciones,
-            CatActualizaciones.fecha_actualizacion.key,
-            CatActualizaciones.id.key,
-        )
+    def _prepare_copy_buffer(self, df: pd.DataFrame) -> io.StringIO:
+        subset = df[RAW_COLS].copy()
+        subset = subset.astype(object).where(subset.notna(), None)
 
-        self.logger.info("[_map_foreign_keys] Building localidades mapping")
-        localidades_rows = get_all_records(
-            session,
-            CatLocalidades,
-            [CatLocalidades.id.key, CatLocalidades.cve_geo_id.key],
-        )
-        localidades_map = {r[CatLocalidades.cve_geo_id.key]: r[CatLocalidades.id.key] for r in localidades_rows}
+        for col in subset.columns:
+            if col in INT_COLS:
+                subset[col] = subset[col].apply(lambda v: str(int(v)) if v is not None else "\\N")
+            elif col == "codigo_actividad":
+                subset[col] = subset[col].apply(lambda v: str(int(float(v))) if v is not None else "\\N")
+            else:
+                subset[col] = subset[col].apply(lambda v: str(v).replace("\\", "\\\\") if v is not None else "\\N")
 
-        self.logger.info("[_map_foreign_keys] Building SCIAN mappings")
-        sectores_map = get_mapping(session, CatSectores, CatSectores.codigo.key, CatSectores.id.key)
-        subsectores_map = get_mapping(session, CatSubsectores, CatSubsectores.codigo.key, CatSubsectores.id.key)
-        ramas_map = get_mapping(session, CatRamas, CatRamas.codigo.key, CatRamas.id.key)
-        subramas_map = get_mapping(session, CatSubramas, CatSubramas.codigo.key, CatSubramas.id.key)
-        clases_map = get_mapping(session, CatClasesActividad, CatClasesActividad.codigo.key, CatClasesActividad.id.key)
-
-        df = df.copy()
-        df[StgEstablecimientos.actualizacion_id.key] = df["fecha_actualizacion"].map(actualizaciones_map)
-
-        df["cve_geo_id"] = df.apply(
-            lambda row: (
-                int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['localidad_id']):04}")
-                if pd.notna(row["cve_mun"]) and pd.notna(row["localidad_id"])
-                else None
-            ),
-            axis=1,
-        )
-        df["localidad_id"] = df["cve_geo_id"].map(localidades_map)
-
-        codigo_str = df["codigo_actividad"].apply(lambda x: str(int(x)) if pd.notna(x) else None)
-        df["sector_id"] = codigo_str.apply(lambda x: sectores_map.get(get_sector_codigo(x)) if x else None)
-        df["subsector_id"] = codigo_str.apply(lambda x: subsectores_map.get(x[:3]) if x and len(x) >= 3 else None)
-        df["rama_id"] = codigo_str.apply(lambda x: ramas_map.get(x[:4]) if x and len(x) >= 4 else None)
-        df["subrama_id"] = codigo_str.apply(lambda x: subramas_map.get(x[:5]) if x and len(x) >= 5 else None)
-        df["clase_actividad_id"] = codigo_str.apply(lambda x: clases_map.get(x) if x else None)
-
-        return df.astype(object).where(df.notna(), None)
+        buffer = io.StringIO()
+        subset.to_csv(buffer, sep="\t", header=False, index=False, quoting=QUOTE_NONE)
+        buffer.seek(0)
+        return buffer
 
     def action(self, input_data: Any) -> Any:
         df = input_data["df"]
@@ -148,25 +115,27 @@ class DenueLoad(Stage):
             return None
 
         catalogs = input_data["catalogs"]
-        self.logger.info(f"[action] Loading {len(df)} rows")
+        self.logger.info(f"[action] Loading {len(df):,} rows")
 
         try:
             self.db.connect()
             with self.db.get_session() as session:
                 records_before = count_records(session, StgEstablecimientos)
                 self._load_catalogs(session, catalogs)
-                df = self._map_foreign_keys(session, df)
 
-                cols = [c for c in StgEstablecimientos.columns() if c != StgEstablecimientos.id.key]
-                cols = [StgEstablecimientos.id.key] + cols
-                records = df_to_records(df, cols)
-                upsert_records(
-                    session,
-                    records,
-                    StgEstablecimientos,
-                    conflict_keys=[StgEstablecimientos.id.key, StgEstablecimientos.actualizacion_id.key],
-                    chunk_size=settings.CHUNK_SIZE,
-                )
+            buffer = self._prepare_copy_buffer(df)
+            cols_str = ", ".join(RAW_COLS)
+
+            with self.db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(TMP_TABLE_DDL)
+
+                self.logger.info(f"[action] COPY {len(df):,} rows to tmp_raw")
+                cursor.copy_expert(f"COPY tmp_raw ({cols_str}) FROM STDIN WITH (FORMAT text, NULL '\\N')", buffer)
+
+                self.logger.info(f"[action] INSERT INTO {T.STG_ESTABLECIMIENTOS} from tmp_raw")
+                cursor.execute(INSERT_FROM_RAW)
+                cursor.close()
         except Exception:
             self.db.disconnect()
             raise
