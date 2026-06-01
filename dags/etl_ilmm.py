@@ -40,13 +40,13 @@ def run_update():
 
 
 default_args_bootstrap = {
-    "owner": "José Velazco H.",
+    "owner": "Héctor Moreno",
     "retries": 2,
     "retry_delay": timedelta(minutes=15),
 }
 
 default_args_update = {
-    "owner": "José Velazco H.",
+    "owner": "Héctor Moreno",
     "retries": 3,
     "retry_delay": timedelta(days=2),
 }
