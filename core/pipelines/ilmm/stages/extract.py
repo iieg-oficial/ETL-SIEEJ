@@ -8,8 +8,6 @@ import requests
 from core.pipelines.stage import Stage
 from core.pipelines.ilmm.config import settings
 
-CSV_INNER_PATH = "conjunto_de_datos/conjunto_de_datos_ilmm_{year}_1t.csv"
-
 
 class IlmmExtract(Stage):
     def __init__(self, years: list[int]):
@@ -25,7 +23,7 @@ class IlmmExtract(Stage):
             response.raise_for_status()
 
             with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
-                csv_path = CSV_INNER_PATH.format(year=year)
+                csv_path = settings.CSV_INNER_PATH.format(year=year)
                 with zf.open(csv_path) as f:
                     df = pd.read_csv(f, encoding="utf-8-sig")
                     df.columns = df.columns.str.strip().str.lower()
