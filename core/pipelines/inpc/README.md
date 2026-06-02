@@ -1,126 +1,108 @@
-# Pipeline: INPC
+# inpc
 
-Pipeline ETL para el Índice Nacional de Precios al Consumidor (INPC) publicado por el INEGI. Procesa series históricas de precios a nivel nacional, estatal y por ciudad.
+## Descripción general
 
-## Fuentes de datos
+Pipeline ETL del Índice Nacional de Precios al Consumidor (INPC) publicado por el INEGI. Descarga series mensuales de precios por ciudad, entidad federativa y nivel nacional, desglosadas por objeto del gasto (rubro), disponible desde el año 2000.
 
-El pipeline consume la API de series del INEGI, consultada por tipo de ubicación (nacional, entidad, ciudad):
+## Fuente general
 
-- **URL**: `INPC_BASE_URL` e `INPC_URL_NODOS` configuradas en `.env`
-- **Cobertura histórica**: A partir de enero de 1979 (`BOOTSTRAP_START_YEAR`)
-- **Frecuencia de publicación**: Mensual. Cada observación representa el índice de precios de un mes dado
-- **Ubicaciones**: 55 ciudades, 32 entidades federativas y nivel nacional
-- **Categorías**: 9 objetos de gasto (índice general + 8 subcategorías)
+https://www.inegi.org.mx/temas/inpc/
 
-## ERD
+## Fuente específica
+
+```shell
+INPC_BASE_URL=https://www.inegi.org.mx/app/indicesdepreciosv2/Exportacion.aspx
+INPC_URL_NODOS=https://www.inegi.org.mx/app/indicesdepreciosv2/servicios/ArbolAjaxInteraccion.asmx/ObtieneNodosV2
+```
+
+## Características de los datos
+
+| Característica | Valor |
+|---|---|
+| Última fecha disponible | `2025-04` |
+| Frecuencia de actualización | Mensual |
+| Desagregación | Nacional, Estatal, Ciudad |
+| ¿Tiene update? | Sí |
+| Update | Automático |
+
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
-### Catálogos
+## Diccionario de variables
 
-```
-┌──────────────────────────┐     ┌──────────────────────────┐
-│         ciudades         │     │      objetos_gasto        │
-│──────────────────────────│     │──────────────────────────│
-│  id SERIAL PK            │     │  id INTEGER PK           │
-│  ciudad VARCHAR(100)     │     │  objeto_gasto VARCHAR(100)│
-│    UNIQUE NOT NULL       │     │    UNIQUE NOT NULL       │
-│  entidad VARCHAR(100)    │     └──────────────────────────┘
-└──────────────────────────┘
-```
+### inpc_ciudades
 
-`ciudades` es un catálogo dinámico (extraído de los datos). `objetos_gasto` es estático con IDs predefinidos en `mappings.py`.
+| variable | descripción |
+|---|---|
+| `ciudad_id` | FK a catálogo de ciudades |
+| `fecha` | Fecha del periodo (primer día del mes) |
+| `objeto_gasto_id` | FK a objeto del gasto (rubro de precios) |
+| `indice_de_precios` | Índice de precios del periodo |
+| `fecha_actualizacion` | Fecha de descarga del dato |
 
-### Tablas principales
+### inpc_entidades
 
-```
-┌──────────────────────────────────────┐
-│            inpc_ciudades             │
-│──────────────────────────────────────│
-│  id SERIAL PK                        │
-│  ciudad_id → ciudades(id)            │
-│  fecha DATE NOT NULL                 │
-│  objeto_gasto_id → objetos_gasto(id) │
-│  indice_de_precios FLOAT             │
-│  fecha_actualizacion DATE NOT NULL   │
-│  UNIQUE(ciudad_id, fecha,            │
-│    objeto_gasto_id)                  │
-└──────────────────────────────────────┘
+| variable | descripción |
+|---|---|
+| `fecha` | Fecha del periodo |
+| `objeto_gasto_id` | FK a objeto del gasto |
+| `indice_de_precios` | Índice de precios del periodo |
 
-┌──────────────────────────────────────┐
-│           inpc_entidades             │
-│──────────────────────────────────────│
-│  id SERIAL PK                        │
-│  entidad_id INTEGER NOT NULL         │
-│    (ref. cvegeo_states.cve_ent)      │
-│  fecha DATE NOT NULL                 │
-│  objeto_gasto_id → objetos_gasto(id) │
-│  indice_de_precios FLOAT             │
-│  fecha_actualizacion DATE NOT NULL   │
-│  UNIQUE(entidad_id, fecha,           │
-│    objeto_gasto_id)                  │
-└──────────────────────────────────────┘
+### inpc_nacional
 
-┌──────────────────────────────────────┐
-│            inpc_nacional             │
-│──────────────────────────────────────│
-│  id SERIAL PK                        │
-│  fecha DATE NOT NULL                 │
-│  objeto_gasto_id → objetos_gasto(id) │
-│  indice_de_precios FLOAT             │
-│  fecha_actualizacion DATE NOT NULL   │
-│  UNIQUE(fecha, objeto_gasto_id)      │
-└──────────────────────────────────────┘
-```
+| variable | descripción |
+|---|---|
+| `fecha` | Fecha del periodo |
+| `objeto_gasto_id` | FK a objeto del gasto |
+| `indice_de_precios` | Índice de precios del periodo |
 
-**Catálogo estático**: `objetos_gasto` tiene IDs predefinidos definidos en `mappings.py` (9 categorías).
+## Migraciones
 
-**Catálogo dinámico**: `ciudades` se extrae de los datos y se inserta con `ON CONFLICT DO NOTHING`.
+| migración | descripción |
+|---|---|
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
+| `V2__catalogs_inpc.sql` | Catálogos de ciudades y objetos del gasto |
+| `V3__tables_inpc.sql` | Tablas `inpc_ciudades`, `inpc_entidades` e `inpc_nacional` |
+| `V4__views_inpc.sql` | Vistas analíticas unificadas |
 
-**Llave única**: `(entidad_id, fecha, objeto_gasto_id)`, `(ciudad_id, fecha, objeto_gasto_id)` y `(fecha, objeto_gasto_id)` — cada registro representa el índice de precios de una ubicación/categoría en un mes dado.
+## Variables de entorno
 
-## Flujo del pipeline
+| variable | descripción |
+|---|---|
+| `INPC_BASE_URL` | URL base de exportación de series del INEGI |
+| `INPC_URL_NODOS` | URL del servicio web que retorna los nodos del árbol de series |
+| `BOOTSTRAP_START_YEAR` | Año inicial de la descarga (ej. `2000`) |
+
+## Notas metodológicas
 
 ### Extract
 
-1. Itera sobre tres tipos de ubicación: nacional, 55 ciudades (`INPC_CITIES`) y 32 entidades (`INPC_ENTITIES`)
-2. Para cada ubicación, descubre los IDs de series disponibles en la API del INEGI mediante traversal recursivo del árbol de nodos (`discover_series_ids`)
-3. Descarga los datos en formato CSV con hasta 6 reintentos; aplica 1 segundo de espera entre solicitudes
-4. Parsea cada CSV (codificación latin-1, omite filas de encabezado):
-   - Renombra columnas según `RENAME_HEADER`
-   - Reemplaza abreviaturas de mes en español (Ene → 01, Feb → 02, …) y convierte a `date`
-   - Agrega `fecha_actualizacion` con la fecha de ejecución
-   - Para ciudades: agrega `ciudad_id`, `ciudad` y `entidad`
-   - Para entidades: agrega `entidad_id` y nombre de entidad
-5. Persiste tres pickles en `data/extract/inpc/` (ciudades, entidades, nacional)
+Descubre los IDs de series disponibles consultando el árbol de nodos de la API del INEGI. Descarga los CSVs de cada serie (ciudades, entidades y nacional) iterando por año desde `BOOTSTRAP_START_YEAR`. Guarda los datos en archivos `.pkl` por nivel geográfico.
 
 ### Transform
 
-1. Carga los pickles generados en la etapa de extracción
-2. Reemplaza valores nulos conocidos (`N/E` → `None`)
-3. Aplica formato wide→long (`melt`) sobre las 9 columnas numéricas de objetos de gasto por cada tipo de ubicación:
-   - Ciudades: pivota sobre `[ciudad_id, fecha, fecha_actualizacion]`
-   - Entidades: pivota sobre `[entidad_id, entity, fecha, fecha_actualizacion]`
-   - Nacional: pivota sobre `[fecha, fecha_actualizacion]`
-4. Convierte valores de `indice_de_precios` a float con 3 decimales
-5. Mapea nombres de objeto de gasto a su `objeto_gasto_id` y elimina la columna de texto
-6. Construye catálogos:
-   - `ciudades`: registros únicos de `(ciudad_id, ciudad, entidad)`
-   - `objetos_gasto`: extraído del enum `ObjetoGasto` en `mappings.py`
-7. Filtra filas anteriores a `date_from` en modo update
-8. Persiste tres pickles en `data/transform/inpc/`
+Lee los pickles, renombra cabeceras, parsea meses en español, construye el catálogo de ciudades con su entidad correspondiente, y pivotea las series temporales al formato fecha × objeto_gasto × índice.
 
 ### Load
 
-1. Inserta `objetos_gasto` con IDs predefinidos (`ON CONFLICT DO NOTHING`)
-2. Sincroniza secuencia de `ciudades` e inserta registros dinámicos (`ON CONFLICT DO NOTHING`)
-3. Mapea `entidad_id`:
-   - Obtiene tabla `cvegeo_states` (nom_ent → cve_ent) vía postgres_fdw
-   - Aplica aliases de nombres (`ENTITY_NAME_ALIASES`) y normaliza con `normalize_col()`
-   - Mapea al `cve_ent` correspondiente y elimina columna de texto
-4. Inserta en `inpc_ciudades`, `inpc_entidades` e `inpc_nacional` en chunks de 10,000 registros con `ON CONFLICT DO NOTHING`
+Upsert de catálogos e inserción masiva en las tres tablas con `bulk_insert`. En update carga solo los registros más recientes.
 
-## Periodicidad
+## Ejecución
 
-- **Bootstrap**: Bajo demanda. Carga la serie histórica completa desde 1979 hasta el año en curso (`etl_inpc_bootstrap`)
-- **Update**: Mensual (`@monthly`). Consulta el último `fecha_actualizacion` en la base de datos y descarga desde ese año en adelante (`etl_inpc_update`)
+**Bootstrap** (desde `BOOTSTRAP_START_YEAR`):
+
+```shell
+just flyway-migrate inpc
+conda run -n etl python -m core.pipelines.inpc bootstrap
+```
+
+**Update mensual** (DAG `etl_inpc_update`, `@monthly`):
+
+```shell
+conda run -n etl python -m core.pipelines.inpc update
+```
+
+## Notas adicionales
+
+El INEGI puede modificar retroactivamente cifras del INPC; el update recarga los últimos 3 meses para capturar revisiones. La API de nodos puede variar; si el bootstrap falla, verificar la estructura del árbol de series.

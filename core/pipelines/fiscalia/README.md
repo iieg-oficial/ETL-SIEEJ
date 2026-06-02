@@ -1,93 +1,101 @@
-# Pipeline: Fiscalia
+# fiscalia
 
-Pipeline ETL para datos de incidencia delictiva de la Fiscalia del Estado de Jalisco.
+## Descripción general
 
-## Fuentes de datos
+Pipeline ETL de carpetas de investigación de la Fiscalía General del Estado de Jalisco. Ingesta datos de casos denunciados incluyendo delito, zona geográfica, municipio, colonia, calle, fecha y coordenadas geográficas. Los archivos se obtienen desde Google Drive mediante cuenta de servicio.
 
-El pipeline consume archivos Excel almacenados en una carpeta compartida de Google Drive:
+## Fuente general
 
-- **Archivo histórico**: Un único `.xlsx` (~50,000 registros) con incidentes de años anteriores. Usa coordenadas WGS84 y carece de algunas columnas presentes en las actualizaciones (violencia, calle, cruce).
-- **Archivos de actualización**: Archivos `.xlsx` mensuales enviados por la Fiscalía vía correo electrónico. Deben subirse a la carpeta de Drive con el formato de nombre `dd-mm-yyyy.xlsx` (ej. `01-12-2025.xlsx`). Estos archivos usan coordenadas UTM Zona 13N que se convierten durante la transformación.
+https://fiscaliajalisco.gob.mx
 
-## ERD
+## Fuente específica
+
+Los archivos se encuentran en una carpeta de Google Drive compartida. La cuenta de servicio requiere acceso previo.
+
+```shell
+GDRIVE_FOLDER_ID=
+HISTORICAL_FILENAME=
+```
+
+## Características de los datos
+
+| Característica | Valor |
+|---|---|
+| Última fecha disponible | `2025` |
+| Frecuencia de actualización | Mensual |
+| Desagregación | Municipal |
+| ¿Tiene update? | Sí |
+| Update | Manual |
+
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
-```
-┌──────────────────┐     ┌───────────────────┐
-│  bien_afectado   │     │ zonas_geograficas │
-│──────────────────│     │───────────────────│
-│  id INTEGER PK   │     │  id INTEGER PK    │
-│  bien_afectado   │     │  zona_geografica  │
-└───────┬──────────┘     └───────────────────┘
-        │
-┌───────┴──────────┐     ┌──────────────────┐
-│     delitos      │     │    violencia     │
-│──────────────────│     │──────────────────│
-│  id INTEGER PK   │     │  id INTEGER PK   │
-│  delito          │     │  violencia       │
-│  bien_afectado_id│     └──────────────────┘
-└──────────────────┘
+## Diccionario de variables
 
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│    colonias      │  │     calles       │  │     cruces       │
-│──────────────────│  │──────────────────│  │──────────────────│
-│  id SERIAL PK    │  │  id SERIAL PK    │  │  id SERIAL PK    │
-│  colonia UNIQUE  │  │  calle UNIQUE    │  │  cruce UNIQUE    │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
+### casos
 
-┌─────────────────────────────────────────────────────────┐
-│                        casos                            │
-│─────────────────────────────────────────────────────────│
-│  id SERIAL PK                                           │
-│  delitos_id INTEGER NOT NULL → delitos(id)              │
-│  violencia_id INTEGER → violencia(id)                   │
-│  zonas_geograficas_id INTEGER → zonas_geograficas(id)   │
-│  municipios_id INTEGER                                  │
-│  colonias_id INTEGER → colonias(id)                     │
-│  calles_id INTEGER → calles(id)                         │
-│  cruces_id INTEGER → cruces(id)                         │
-│  hora VARCHAR(5) NOT NULL                               │
-│  longitud FLOAT NOT NULL                                │
-│  latitud FLOAT NOT NULL                                 │
-│  fecha_denuncia DATE NOT NULL                           │
-│  fecha_actualizacion DATE NOT NULL                      │
-│─────────────────────────────────────────────────────────│
-│  UNIQUE (delitos_id, fecha_denuncia, hora,              │
-│          longitud, latitud)                             │
-└─────────────────────────────────────────────────────────┘
-```
+| variable | descripción |
+|---|---|
+| `delitos_id` | FK a catálogo de delitos |
+| `violencia_id` | FK a catálogo de tipo de violencia |
+| `zonas_geograficas_id` | FK a zona geográfica de la Fiscalía |
+| `municipios_id` | FK a municipio (puede ser nulo) |
+| `colonias_id` | FK a catálogo de colonias |
+| `calles_id` | FK a catálogo de calles |
+| `cruces_id` | FK a catálogo de cruces |
+| `hora` | Hora del evento (HH:MM) |
+| `longitud` / `latitud` | Coordenadas geográficas del hecho |
+| `fecha_denuncia` | Fecha en que se presentó la denuncia |
+| `fecha_actualizacion` | Fecha del corte del archivo |
 
-**Catálogos**: `zonas_geograficas`, `bien_afectado`, `delitos`, `violencia` son estáticos (IDs predefinidos). `colonias`, `calles`, `cruces` son dinámicos (auto-incrementales, extraídos de los datos).
+## Migraciones
 
-**Constraints**: `casos` tiene una llave natural única en `(delitos_id, fecha_denuncia, hora, longitud, latitud)`. Las filas con coordenadas nulas o en cero se descartan antes de la inserción.
+| migración | descripción |
+|---|---|
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
+| `V2__catalogos_fiscalia.sql` | Catálogos de delitos, bienes afectados, violencia y zonas geográficas |
+| `V3__tabla_casos.sql` | Tabla principal `casos` |
+| `V4__vista_fiscalia.sql` | Vista analítica desnormalizada |
 
-## Flujo del pipeline
+## Variables de entorno
 
+| variable | descripción |
+|---|---|
+| `GDRIVE_FOLDER_ID` | ID de la carpeta de Google Drive con los archivos |
+| `GDRIVE_CLIENT_EMAIL` | Email de la cuenta de servicio de Google |
+| `GDRIVE_PRIVATE_KEY` | Clave privada de la cuenta de servicio |
+| `HISTORICAL_FILENAME` | Nombre del archivo histórico consolidado |
+
+## Notas metodológicas
 
 ### Extract
 
-1. Descarga los archivos desde Google Drive
-2. Lee cada `.xlsx`
-3. Distingue archivos históricos de actualizaciones por el formato del nombre (fechas parseables como `dd-mm-yyyy` son actualizaciones)
-4. A los datos históricos se les agregan las columnas faltantes como `NULL` (`violencia`, `calle`, `cruce`)
+Descarga los archivos de la carpeta de Google Drive usando la cuenta de servicio. En bootstrap descarga el archivo histórico consolidado más los archivos anuales. En update descarga solo el archivo más reciente.
 
 ### Transform
 
-1. Aplica titlecase y reemplaza valores nulos conocidos
-2. Convierte coordenadas UTM 13N a WGS84 (solo filas de actualización)
-3. Parsea `hora` (HH:MM) y `fecha_denuncia` (date)
-4. Descarta filas con `longitud`, `latitud`, `fecha_denuncia` u `hora` nulos o en cero
-5. Deduplica sobre la llave natural
-6. Extrae `colonias`, `calles` y `cruces` únicos para inserción en catálogos
+Aplica titlecase a campos de texto, normaliza nulos, parsea hora y fecha de denuncia, extrae catálogos de colonias/calles/cruces y resuelve IDs foráneos.
 
 ### Load
 
-1. Inserta catálogos estáticos (idempotente vía `ON CONFLICT DO NOTHING`)
-2. Inserta catálogos dinámicos (colonias, calles, cruces)
-3. Construye mapeos de FKs y asigna los IDs al DataFrame
-4. Upsert de registros en `casos` (`ON CONFLICT DO UPDATE`)
+Upsert de catálogos e inserción masiva de casos con `bulk_insert`. Los registros se agregan incrementalmente (append-only).
 
-## Periodicidad
+## Ejecución
 
-Mensual (`@monthly`). Se espera que los archivos de actualización se suban a la carpeta de Drive antes de la ejecución programada.
+**Bootstrap** (historial completo):
+
+```shell
+just flyway-migrate fiscalia
+conda run -n etl python -m core.pipelines.fiscalia bootstrap
+```
+
+**Update mensual** (DAG `etl_fiscalia_update`, `@monthly`):
+
+```shell
+conda run -n etl python -m core.pipelines.fiscalia update
+```
+
+## Notas adicionales
+
+La Fiscalía actualiza la carpeta de Drive manualmente; el pipeline verifica la existencia de nuevos archivos antes de procesar. Las credenciales de Google (`GDRIVE_PRIVATE_KEY`) son sensibles y no deben incluirse en el `.env.example`.
