@@ -25,7 +25,7 @@ class DenueTransform(Stage):
         self.scian_lookups = None
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
-        extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
+        extract_dir = self.work_dir.parents[1] / "extract" / PIPELINE_NAME
         pkl_path = extract_dir / f"denue_extracted_{self.entidad}.pkl"
         self.logger.info(f"[source] Checking for pkl at {pkl_path}")
         if pkl_path.exists():

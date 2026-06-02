@@ -87,7 +87,6 @@ class CatTiposEstablecimientos(DenueBase):
 
 class StgEstablecimientos(DenueBase):
     __tablename__ = T.STG_ESTABLECIMIENTOS
-    __table_args__ = ({"postgresql_unlogged": True},)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     actualizacion_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_ACTUALIZACIONES}.id"), primary_key=True)

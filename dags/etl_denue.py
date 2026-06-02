@@ -3,79 +3,122 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from airflow import DAG
-from airflow.providers.standard.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-from core.pipeline import Pipeline
-from core.pipelines.denue.stages.extract import DenueExtract
-from core.pipelines.denue.stages.transform import DenueTransform
-from core.pipelines.denue.stages.load import DenueLoad
-from core.pipelines.denue.constants import ENTIDADES_MEXICO
-from core.utils.files import cleanup_pipeline_data
+from airflow import DAG
+from airflow.providers.standard.operators.python import PythonOperator
+
+LOAD_POOL = "denue_load_pool"
+ENTIDADES = list(range(1, 33))
+
+
+def run_extract(mode: str, entidad: int):
+    from core.pipelines.denue.stages.extract import DenueExtract
+
+    DenueExtract(mode=mode, entidad=entidad).execute()
+
+
+def run_transform(mode: str, entidad: int):
+    from core.pipelines.denue.stages.transform import DenueTransform
+
+    DenueTransform(mode=mode, entidad=entidad).execute()
+
+
+def run_load(mode: str, entidad: int):
+    from core.pipelines.denue.stages.load import DenueLoad
+
+    DenueLoad(mode=mode, entidad=entidad).execute()
+
+
+def cleanup():
+    from core.utils.files import cleanup_pipeline_data
+
+    cleanup_pipeline_data("denue")
 
 
 def run_bootstrap():
+    from core.pipelines.denue.constants import ENTIDADES_MEXICO
+
     for entidad in ENTIDADES_MEXICO:
-        pipeline = Pipeline(
-            name="denue",
-            stages=[
-                DenueExtract(mode="bootstrap", entidad=entidad),
-                DenueTransform(mode="bootstrap", entidad=entidad),
-                DenueLoad(mode="bootstrap", entidad=entidad),
-            ],
-        )
-        pipeline.run(mode="bootstrap")
-    cleanup_pipeline_data("denue")
+        run_extract("bootstrap", entidad)
+        run_transform("bootstrap", entidad)
+        run_load("bootstrap", entidad)
+    cleanup()
 
 
 def run_update():
+    from core.pipelines.denue.constants import ENTIDADES_MEXICO
+
     for entidad in ENTIDADES_MEXICO:
-        pipeline = Pipeline(
-            name="denue",
-            stages=[
-                DenueExtract(mode="update", entidad=entidad),
-                DenueTransform(mode="update", entidad=entidad),
-                DenueLoad(mode="update", entidad=entidad),
-            ],
+        run_extract("update", entidad)
+        run_transform("update", entidad)
+        run_load("update", entidad)
+    cleanup()
+
+
+def build_dag(dag_id, mode, description, schedule, tags):
+    with DAG(
+        dag_id,
+        default_args={
+            "owner": "José Velazco H.",
+            "retries": 3,
+            "retry_delay": timedelta(days=10),
+        },
+        description=description,
+        start_date=datetime(year=2025, month=1, day=20),
+        schedule=schedule,
+        catchup=False,
+        max_active_tasks=6,
+        tags=tags,
+    ) as dag:
+        for entidad in ENTIDADES:
+            extract = PythonOperator(
+                task_id=f"extract_{entidad}",
+                python_callable=run_extract,
+                op_kwargs={"mode": mode, "entidad": entidad},
+            )
+
+            transform = PythonOperator(
+                task_id=f"transform_{entidad}",
+                python_callable=run_transform,
+                op_kwargs={"mode": mode, "entidad": entidad},
+            )
+
+            load = PythonOperator(
+                task_id=f"load_{entidad}",
+                python_callable=run_load,
+                op_kwargs={"mode": mode, "entidad": entidad},
+                pool=LOAD_POOL,
+            )
+
+            extract >> transform >> load
+
+        cleanup_task = PythonOperator(
+            task_id="cleanup",
+            python_callable=cleanup,
+            trigger_rule="all_done",
         )
-        pipeline.run(mode="update")
-    cleanup_pipeline_data("denue")
+
+        [dag.get_task(f"load_{e}") for e in ENTIDADES] >> cleanup_task
+
+    return dag
 
 
-default_args = {
-    "owner": "José Velazco H.",
-    "retries": 3,
-    "retry_delay": timedelta(days=10),
-}
-
-with DAG(
-    "etl_denue_bootstrap",
-    default_args=default_args,
+dag_bootstrap = build_dag(
+    dag_id="etl_denue_bootstrap",
+    mode="bootstrap",
     description="DENUE Bootstrap - All entidades (On Demand)",
-    start_date=datetime(year=2025, month=1, day=20),
     schedule=None,
-    catchup=False,
     tags=["etl", "denue", "bootstrap", "on-demand", "inegi"],
-) as dag_bootstrap:
-    bootstrap_task = PythonOperator(
-        task_id="run_bootstrap",
-        python_callable=run_bootstrap,
-    )
+)
 
-with DAG(
-    "etl_denue_update",
-    default_args=default_args,
+dag_update = build_dag(
+    dag_id="etl_denue_update",
+    mode="update",
     description="DENUE Update - All entidades",
-    start_date=datetime(year=2025, month=1, day=20),
     schedule=timedelta(days=10),
-    catchup=False,
     tags=["etl", "denue", "update", "inegi"],
-) as dag_update:
-    update_task = PythonOperator(
-        task_id="run_update",
-        python_callable=run_update,
-    )
+)
 
 if __name__ == "__main__":
     run_bootstrap()
