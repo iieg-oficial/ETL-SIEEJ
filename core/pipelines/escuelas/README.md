@@ -18,7 +18,7 @@
 
 ## Esquema de Base de Datos
 
-El diagrama ER no está versionado todavía para este pipeline.
+![Diagrama ER](assets/er_escuelas.png)
 
 ### Tablas catálogo
 
@@ -77,6 +77,7 @@ core/pipelines/escuelas/
 ├── helpers/
 │   └── values.py
 └── assets/
+    └── er_escuelas.png
 
 dags/
 └── etl_escuelas.py
