@@ -30,7 +30,7 @@ class DenueExtract(Stage):
         download_scian(self.work_dir, settings.SCIAN_FILE_ID, settings.SCIAN_CSV_NAME)
 
         pkl_path = self.work_dir / f"denue_extracted_{self.entidad}.pkl"
-        if pkl_path.exists():
+        if self.mode != "bootstrap" and pkl_path.exists():
             self.logger.info(f"[source] pkl found for entidad {self.entidad}, skipping extract")
             return []
 
@@ -44,29 +44,41 @@ class DenueExtract(Stage):
             driver.execute_script("arguments[0].click();", elemento)
             time.sleep(5)
 
-            table = driver.find_element(By.ID, "tblDescargaArchivos_denue")
-            rows = table.find_elements(By.TAG_NAME, "tr")
             archivos_unicos = {}
 
-            for row in rows:
-                cells = row.find_elements(By.TAG_NAME, "td")
-                if len(cells) <= 1:
-                    continue
-                periodo_date = parse_periodo(cells[1].text.strip())
-                if periodo_date is None:
-                    continue
-                periodo = periodo_date.date()
-                if periodo <= start_date:
-                    continue
-                for cell in cells:
-                    for link in cell.find_elements(By.TAG_NAME, "a"):
-                        href = link.get_attribute("href")
-                        if href and "csv.zip" in href and href not in archivos_unicos:
-                            archivos_unicos[href] = {
-                                "fecha_actualizacion": periodo,
-                                "url": href,
-                                "entidad_id": self.entidad,
-                            }
+            while True:
+                table = driver.find_element(By.ID, "tblDescargaArchivos_denue")
+                rows = table.find_elements(By.TAG_NAME, "tr")
+
+                for row in rows:
+                    cells = row.find_elements(By.TAG_NAME, "td")
+                    if len(cells) <= 1:
+                        continue
+                    periodo_date = parse_periodo(cells[1].text.strip())
+                    if periodo_date is None:
+                        continue
+                    periodo = periodo_date.date()
+                    if periodo <= start_date:
+                        continue
+                    for cell in cells:
+                        for link in cell.find_elements(By.TAG_NAME, "a"):
+                            href = link.get_attribute("href")
+                            if href and "csv.zip" in href:
+                                if (
+                                    href not in archivos_unicos
+                                    or periodo > archivos_unicos[href]["fecha_actualizacion"]
+                                ):
+                                    archivos_unicos[href] = {
+                                        "fecha_actualizacion": periodo,
+                                        "url": href,
+                                        "entidad_id": self.entidad,
+                                    }
+
+                next_btn = driver.find_elements(By.CSS_SELECTOR, "#tblDescargaArchivos_denue_next:not(.disabled)")
+                if not next_btn:
+                    break
+                driver.execute_script("arguments[0].click();", next_btn[0])
+                time.sleep(1)
 
             urls = list(archivos_unicos.values())
             self.logger.info(f"[source] Found {len(urls)} files for entidad {self.entidad}")

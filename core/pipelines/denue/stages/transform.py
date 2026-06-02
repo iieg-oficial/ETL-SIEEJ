@@ -25,7 +25,7 @@ class DenueTransform(Stage):
         self.scian_lookups = None
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
-        extract_dir = self.work_dir.parent / "extract" / PIPELINE_NAME
+        extract_dir = self.work_dir.parents[1] / "extract" / PIPELINE_NAME
         pkl_path = extract_dir / f"denue_extracted_{self.entidad}.pkl"
         self.logger.info(f"[source] Checking for pkl at {pkl_path}")
         if pkl_path.exists():
@@ -46,18 +46,18 @@ class DenueTransform(Stage):
         localidades_df = df.drop_duplicates(subset=["localidad_id", "cve_mun", "entidad_id"]).dropna(
             subset=["localidad_id", "cve_mun", "entidad_id"]
         )
-        localidades = []
-        for _, row in localidades_df.iterrows():
-            cve_geo_id = int(f"{int(row['entidad_id']):02}{int(row['cve_mun']):03}{int(row['localidad_id']):04}")
-            localidades.append(
-                {
-                    "cve_geo_id": cve_geo_id,
-                    "localidad_id": int(row["localidad_id"]),
-                    "municipio_id": int(row["cve_mun"]),
-                    "entidad_id": int(row["entidad_id"]),
-                    "localidad": row["localidad"],
-                }
-            )
+        localidades_df = localidades_df.copy()
+        localidades_df["cve_geo_id"] = (
+            localidades_df["entidad_id"].astype(int) * 10_000_000
+            + localidades_df["cve_mun"].astype(int) * 10_000
+            + localidades_df["localidad_id"].astype(int)
+        )
+        localidades = (
+            localidades_df[["cve_geo_id", "localidad_id", "entidad_id", "cve_mun", "localidad"]]
+            .rename(columns={"cve_mun": "municipio_id"})
+            .astype({"cve_geo_id": int, "localidad_id": int, "municipio_id": int, "entidad_id": int})
+            .to_dict("records")
+        )
         self.logger.info(f"[_build_catalogs] {len(localidades)} unique localidades")
 
         codigos = df["codigo_actividad"].dropna().astype(int).astype(str).unique()
@@ -142,9 +142,11 @@ class DenueTransform(Stage):
             if col in df.columns:
                 df[col] = df[col].astype("category")
 
-        df["rango_personal_id"] = df["per_ocu"].map(
-            lambda x: next((v for k, v in RANGO_PERSONAL_MAP.items() if isinstance(x, str) and k in x), None)
-        )
+        per_ocu_str = df["per_ocu"].astype(str)
+        df["rango_personal_id"] = None
+        for pattern, rango_id in RANGO_PERSONAL_MAP.items():
+            mask = per_ocu_str.str.contains(pattern, na=False)
+            df.loc[mask, "rango_personal_id"] = rango_id
         df["tipo_establecimiento_id"] = df["tipo_uni_eco"].map(TIPO_ESTABLECIMIENTO_MAP)
 
         df = df[df["nombre_establecimiento"].notna()]
