@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS stg_establecimientos (
+CREATE UNLOGGED TABLE IF NOT EXISTS stg_establecimientos (
     id INTEGER NOT NULL,
     actualizacion_id INTEGER NOT NULL REFERENCES cat_actualizaciones(id),
     nombre_establecimiento TEXT NOT NULL,

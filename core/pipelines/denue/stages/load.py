@@ -93,18 +93,23 @@ class DenueLoad(Stage):
 
     def _prepare_copy_buffer(self, df: pd.DataFrame) -> io.StringIO:
         subset = df[RAW_COLS].copy()
-        subset = subset.astype(object).where(subset.notna(), None)
 
-        for col in subset.columns:
-            if col in INT_COLS:
-                subset[col] = subset[col].apply(lambda v: str(int(v)) if v is not None else "\\N")
-            elif col == "codigo_actividad":
-                subset[col] = subset[col].apply(lambda v: str(int(float(v))) if v is not None else "\\N")
-            else:
-                subset[col] = subset[col].apply(lambda v: str(v).replace("\\", "\\\\") if v is not None else "\\N")
+        for col in INT_COLS:
+            subset[col] = pd.to_numeric(subset[col], errors="coerce").astype("Int64").astype(str).replace("<NA>", "\\N")
+
+        subset["codigo_actividad"] = (
+            pd.to_numeric(subset["codigo_actividad"], errors="coerce")
+            .astype("Int64")
+            .astype(str)
+            .replace("<NA>", "\\N")
+        )
+
+        text_cols = [c for c in RAW_COLS if c not in INT_COLS and c != "codigo_actividad"]
+        for col in text_cols:
+            subset[col] = subset[col].astype(str).replace("nan", "\\N").str.replace("\\", "\\\\", regex=False)
 
         buffer = io.StringIO()
-        subset.to_csv(buffer, sep="\t", header=False, index=False, quoting=QUOTE_NONE)
+        subset.to_csv(buffer, sep="\t", header=False, index=False, quoting=QUOTE_NONE, na_rep="\\N")
         buffer.seek(0)
         return buffer
 
