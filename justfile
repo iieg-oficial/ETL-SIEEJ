@@ -94,13 +94,23 @@ create-db pipeline: (_load-env pipeline)
     DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
     DB_USER=$(grep '^DB_USER=' "$env_file" | cut -d= -f2-)
     DB_PASSWORD=$(grep '^DB_PASSWORD=' "$env_file" | cut -d= -f2-)
-    exists=$(PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
-      -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | tr -d '[:space:]')
+    run_psql() {
+      if command -v psql >/dev/null 2>&1; then
+        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" "$@"
+      elif docker ps --filter name='^/postgres-dev$' --quiet | grep -q .; then
+        docker exec -e PGPASSWORD="$DB_PASSWORD" postgres-dev psql -h 127.0.0.1 -p 5432 -U "$DB_USER" "$@"
+      elif docker compose ps postgres --status running --quiet | grep -q .; then
+        docker compose exec -T -e PGPASSWORD="$DB_PASSWORD" postgres psql -h 127.0.0.1 -p 5432 -U "$DB_USER" "$@"
+      else
+        echo "No PostgreSQL client available. Install psql or start postgres-dev with: just build-dev"
+        exit 127
+      fi
+    }
+    exists=$(run_psql -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | tr -d '[:space:]')
     if [ "$exists" = "1" ]; then
         echo "Already exists: $DB_NAME"
     else
-        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres \
-          -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+        run_psql -d postgres -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
         echo "Created: $DB_NAME"
     fi
 
