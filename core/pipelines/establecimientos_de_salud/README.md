@@ -1,184 +1,98 @@
-# Pipeline: Establecimientos de Salud
+# establecimientos_de_salud
 
-Pipeline ETL para el catálogo nacional de establecimientos de salud (CLUES) publicado por la Secretaría de Salud del Gobierno de México.
+## Descripción general
 
-## Fuentes de datos
+Pipeline ETL del Catálogo de Establecimientos de Salud (CLUES) de la Secretaría de Salud. Descarga mensualmente el inventario de establecimientos de salud en México, incluyendo tipo de servicio, institución, tipología, geolocalización y estatus, con historial desde mayo de 2017.
 
-El pipeline consume archivos Excel publicados mensualmente en el portal de la Secretaría de Salud:
+## Fuente general
 
-- **URL**: `ESTABLECIMIENTOS_URL` configurada en `.env`, con parámetros `{year}` y `{month}` (ej. `ESTABLECIMIENTO_SALUD_202501.xlsx`)
-- **Cobertura histórica**: A partir de mayo de 2017
-- **Frecuencia de publicación**: Mensual. Cada archivo representa el estado del padrón en ese período
+https://www.gob.mx/salud/documentos/clues-sistema-unico-de-informacion-de-infraestructura-de-la-salud
 
-## ERD
+## Fuente específica
+
+```shell
+ESTABLECIMIENTOS_URL=https://gobi.salud.gob.mx/historico_clues/ESTABLECIMIENTO_SALUD_{year}{month}.xlsx?v=1.1
+```
+
+## Características de los datos
+
+| Característica | Valor |
+|---|---|
+| Última fecha disponible | `2025-04` |
+| Frecuencia de actualización | Mensual |
+| Desagregación | Nacional, Estatal, Municipal, Localidad |
+| ¿Tiene update? | Sí |
+| Update | Automático |
+
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
-### Catálogos estáticos (IDs predefinidos)
+## Diccionario de variables
 
-```
-┌──────────────────────────┐  ┌──────────────────────────┐
-│   tipos_establecimiento  │  │  estatus_establecimiento  │
-│──────────────────────────│  │──────────────────────────│
-│  id INTEGER PK           │  │  id INTEGER PK           │
-│  tipo_establecimiento    │  │  estatus_establecimiento  │
-└──────────────────────────┘  └──────────────────────────┘
+### establecimientos
 
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│  nivel_atencion  │  │  estrato_unidad  │  │    movimientos   │
-│──────────────────│  │──────────────────│  │──────────────────│
-│  id INTEGER PK   │  │  id INTEGER PK   │  │  id INTEGER PK   │
-│  nivel_atencion  │  │  estrato_unidad  │  │  movimiento      │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
-```
+| variable | descripción |
+|---|---|
+| `clues` | Clave Única de Establecimientos de Salud (PK) |
+| `fecha_actualizacion` | Mes del corte (PK compuesta con `clues`) |
+| `institucion_id` | FK a institución de salud (IMSS, ISSSTE, SSA, etc.) |
+| `localidad_id` | FK a localidad |
+| `jurisdiccion_id` | FK a jurisdicción sanitaria |
+| `tipo_establecimiento_id` | FK a tipo de establecimiento |
+| `tipologia_id` | FK a tipología de unidad |
+| `subtipologia_id` | FK a subtipología |
+| `unidad_movil_id` | FK a unidad móvil (si aplica) |
+| `vialidad_id` | FK a vialidad del domicilio |
 
-### Catálogos dinámicos (auto-incrementales)
+## Migraciones
 
-```
-┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│   instituciones  │  │    tipologias    │  │  subtipologias   │
-│──────────────────│  │──────────────────│  │──────────────────│
-│  id SERIAL PK    │  │  id SERIAL PK    │  │  id SERIAL PK    │
-│  institucion     │  │  tipologia       │  │  subtipologia    │
-└──────────────────┘  └──────────────────┘  └──────────────────┘
+| migración | descripción |
+|---|---|
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
+| `V2__catalogs_establecimientos.sql` | Catálogos de instituciones, tipologías, jurisdicciones, estatus y niveles |
+| `V3__table_establecimientos.sql` | Tabla principal `establecimientos` |
+| `V4__view_establecimientos.sql` | Vista desnormalizada nacional |
+| `V5__view_estab_jal.sql` | Vista filtrada a Jalisco |
+| `V6__view_estab_jal_activos.sql` | Vista de establecimientos activos en Jalisco |
 
-┌──────────────────┐  ┌───────────────────────────┐
-│   localidades    │  │       jurisdicciones       │
-│──────────────────│  │───────────────────────────│
-│  id SERIAL PK    │  │  id SERIAL PK             │
-│  clave_localidad │  │  jurisdiccion UNIQUE       │
-│  municipio_id    │  │  municipio_id              │
-│  entidad_id      │  │  entidad_id               │
-│  localidad       │  └───────────────────────────┘
-└──────────────────┘
+## Variables de entorno
 
-┌──────────────────────┐     ┌──────────────────────┐
-│    tipos_vialidad    │     │  tipos_asentamiento  │
-│──────────────────────│     │──────────────────────│
-│  id SERIAL PK        │     │  id SERIAL PK        │
-│  tipo_vialidad UNIQUE│     │  tipo_asentamiento   │
-└──────────┬───────────┘     └──────────────────────┘
-           │
-┌──────────┴───────────┐
-│      vialidades      │
-│──────────────────────│
-│  id SERIAL PK        │
-│  vialidad            │
-│  tipo_vialidad_id FK │
-│  UNIQUE(vialidad,    │
-│    tipo_vialidad_id) │
-└──────────────────────┘
+| variable | descripción |
+|---|---|
+| `ESTABLECIMIENTOS_URL` | URL con parámetros `{year}` y `{month}` para el XLSX mensual |
+| `BOOTSTRAP_START_YEAR` | Año inicial del bootstrap (ej. `2017`) |
+| `BOOTSTRAP_START_MONTH` | Mes inicial del bootstrap (ej. `5`) |
 
-┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│   marcas_moviles     │  │  programas_moviles   │  │   unidades_moviles   │
-│──────────────────────│  │──────────────────────│  │──────────────────────│
-│  id SERIAL PK        │  │  id SERIAL PK        │  │  id SERIAL PK        │
-│  marca               │  │  programa_movil      │  │  nombre_unidad_movil │
-│  marca_especifica    │  │  UNIQUE              │  │  nombre_comercial    │
-│  modelo              │  └──────────────────────┘  │  UNIQUE              │
-│  UNIQUE(marca,       │                             └──────────────────────┘
-│    marca_especifica, │
-│    modelo)           │
-└──────────────────────┘
-
-┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│  tipos_unidad_movil  │  │  tipologias_moviles  │  │       tipos_obra     │
-│──────────────────────│  │──────────────────────│  │──────────────────────│
-│  id SERIAL PK        │  │  id SERIAL PK        │  │  id SERIAL PK        │
-│  tipo_unidad_movil   │  │  tipologia_movil     │  │  tipo_obra UNIQUE    │
-│  UNIQUE              │  │  UNIQUE              │  └──────────────────────┘
-└──────────────────────┘  └──────────────────────┘
-
-┌──────────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│  institutos_administracion│  │  rfc_establecimientos│  │    motivos_baja      │
-│──────────────────────────│  │──────────────────────│  │──────────────────────│
-│  id SERIAL PK            │  │  id SERIAL PK        │  │  id SERIAL PK        │
-│  instituto_administracion│  │  rfc UNIQUE          │  │  motivo_baja UNIQUE  │
-│  UNIQUE                  │  └──────────────────────┘  └──────────────────────┘
-└──────────────────────────┘
-```
-
-### Tabla principal
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                          establecimientos                           │
-│─────────────────────────────────────────────────────────────────────│
-│  clues VARCHAR(11) PK                                               │
-│  fecha_actualizacion DATE PK                                        │
-│  institucion_id → instituciones(id)                                 │
-│  entidad_id (ref. cvegeo_states)                                    │
-│  municipio_id (ref. cvegeo_municipalities)                          │
-│  localidad_id → localidades(id)                                     │
-│  jurisdiccion_id → jurisdicciones(id)                               │
-│  tipo_establecimiento_id → tipos_establecimiento(id)                │
-│  tipologia_id → tipologias(id)                                      │
-│  subtipologia_id → subtipologias(id)                                │
-│  unidad_movil_id → unidades_moviles(id)                             │
-│  vialidad_id → vialidades(id)                                       │
-│  numero_exterior TEXT                                               │
-│  numero_interior TEXT                                               │
-│  tipo_asentamiento_id → tipos_asentamiento(id)                      │
-│  estatus_id → estatus_establecimiento(id)                           │
-│  nivel_atencion_id → nivel_atencion(id)                             │
-│  estrato_unidad_id → estrato_unidad(id)                             │
-│  tipo_obra_id → tipos_obra(id)                                      │
-│  instituto_adm_id → institutos_administracion(id)                   │
-│  rfc_id → rfc_establecimientos(id)                                  │
-│  marca_movil_id → marcas_moviles(id)                                │
-│  programa_movil_id → programas_moviles(id)                          │
-│  tipo_unidad_movil_id → tipos_unidad_movil(id)                      │
-│  tipologia_movil_id → tipologias_moviles(id)                        │
-│  movimiento_id → movimientos(id)                                    │
-│  motivo_baja_id → motivos_baja(id)                                  │
-│  fecha_ultimo_movimiento DATE                                       │
-│  fecha_efectiva_baja DATE                                           │
-│  fecha_construccion DATE                                            │
-│  fecha_inicio_operacion DATE                                        │
-│  telefono_1 TEXT                                                    │
-│  extension_1 TEXT                                                   │
-│  telefono_2 TEXT                                                    │
-│  extension_2 TEXT                                                   │
-│  latitud FLOAT                                                      │
-│  longitud FLOAT                                                     │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-**Catálogos estáticos**: `tipos_establecimiento`, `estatus_establecimiento`, `nivel_atencion`, `estrato_unidad`, `movimientos` tienen IDs predefinidos definidos en `mappings.py`.
-
-**Catálogos dinámicos**: El resto de catálogos se extraen de los propios datos y se insertan con `ON CONFLICT DO NOTHING`.
-
-**Llave primaria**: `(clues, fecha_actualizacion)` — cada registro representa el estado de un establecimiento en un mes dado.
-
-## Flujo del pipeline
+## Notas metodológicas
 
 ### Extract
 
-1. Calcula los períodos a descargar según el modo:
-   - **Bootstrap**: año por año desde `BOOTSTRAP_START_YEAR/MONTH` (configurado en `.env`) hasta hoy
-   - **Update**: desde el mes siguiente al último `fecha_actualizacion` en la base de datos hasta hoy
-2. Descarga cada archivo `.xlsx` desde la URL pública; omite períodos no disponibles
-3. Normaliza nombres de columnas (renombres de encabezados del xlsx)
-4. Concatena todos los períodos en un único DataFrame y lo persiste en `.pkl`
+Genera la lista de periodos mensuales desde `(BOOTSTRAP_START_YEAR, BOOTSTRAP_START_MONTH)` hasta el mes actual y descarga el XLSX de cada periodo. En update, calcula el siguiente mes desde el último registro en BD.
 
 ### Transform
 
-1. Renombra columnas del xlsx a nombres de base de datos usando `EstablecimientosColMap`
-2. Normaliza texto: capitalize para catálogos generales, title case para topónimos (localidad, jurisdicción)
-3. Sanitiza números exteriores/interiores (elimina valores vacíos, ceros, variantes de "sin número")
-4. Limpia claves geográficas como strings con ceros a la izquierda
-5. Parsea fechas y convierte `modelo` a string entero
-6. Reemplaza valores nulos conocidos
-7. Extrae catálogos únicos para cada tabla de referencia
+Lee el XLSX, aplica mapeo de columnas, normaliza texto (titlecase/capitalize), parsea fechas y claves geográficas, y extrae catálogos.
 
 ### Load
 
-1. Inserta catálogos estáticos con IDs predefinidos (`ON CONFLICT DO NOTHING`)
-2. Inserta catálogos dinámicos (`ON CONFLICT DO NOTHING`)
-3. Construye mapeos de FKs y asigna IDs al DataFrame; los lookups compuestos (localidad, vialidad, marca) usan `pd.MultiIndex` en lugar de `apply(lambda)`
-4. Inserta registros en `establecimientos` vía `bulk_insert` en chunks de 50,000 (bootstrap) o 10,000 (update)
+Upsert en la tabla `establecimientos` usando `(clues, fecha_actualizacion)` como clave natural. Los catálogos se sincronizan antes de la carga principal.
 
-## Periodicidad
+## Ejecución
 
-- **Bootstrap**: Bajo demanda. Corre año por año desde 2017 para acotar el uso de RAM
-- **Update**: Mensual, el día 15 de cada mes a las 8:00 (`0 8 15 * *`). Procesa todos los meses pendientes desde el último registro en base de datos
+**Bootstrap** (desde mayo 2017):
+
+```shell
+just flyway-migrate establecimientos_de_salud
+conda run -n etl python -m core.pipelines.establecimientos_de_salud bootstrap
+```
+
+**Update mensual** (DAG `etl_establecimientos_de_salud_update`, `@monthly`):
+
+```shell
+conda run -n etl python -m core.pipelines.establecimientos_de_salud update
+```
+
+## Notas adicionales
+
+El XLSX mensual contiene el inventario completo, no solo los cambios. La tabla crece con un snapshot por mes, lo que permite análisis de altas y bajas de establecimientos. El bootstrap desde 2017 puede tardar varias horas.

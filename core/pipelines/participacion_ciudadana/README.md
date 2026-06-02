@@ -1,28 +1,32 @@
 # participacion_ciudadana
 
-Porcentaje de participacion ciudadana en elecciones federales por municipio en Jalisco. Cubre los procesos electorales de 2018, 2021 y 2024.
+## Descripción general
+
+Pipeline ETL de participación electoral ciudadana a nivel municipal del INE. Carga los porcentajes de participación por municipio de Jalisco para las elecciones de 2012, 2015, 2018 y 2021, a partir de un archivo consolidado almacenado en Google Drive.
 
 ## Fuente general
 
-https://ine.mx
+https://www.ine.mx
 
-## Fuente especifica
+## Fuente específica
 
-- [x] URL de drive
+```shell
+GDRIVE_FILE_ID=
+```
 
-Archivo CSV alojado en Google Drive. Se descarga con `core.utils.gdrive.download_public_file`.
+El archivo CSV consolidado se obtiene desde Google Drive (acceso público con el file ID).
 
-## Caracteristicas de los datos
+## Características de los datos
 
-| Caracteristica | Valor |
+| Característica | Valor |
 |---|---|
-| Ultima fecha disponible | 2019 |
-| Frecuencia de actualizacion | Trianual (elecciones federales) |
-| Desagregacion | Municipal |
-| Tiene update? | No |
+| Última fecha disponible | `2021` |
+| Frecuencia de actualización | Trienal |
+| Desagregación | Municipal |
+| ¿Tiene update? | No |
 | Update | No aplica |
 
-## Diagrama de entidad relacion
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
@@ -30,42 +34,52 @@ Archivo CSV alojado en Google Drive. Se descarga con `core.utils.gdrive.download
 
 ### stg_participacion
 
-| Variable | Descripcion |
+| variable | descripción |
 |---|---|
-| `entidad_id` | Clave de la entidad federativa (14 = Jalisco) |
-| `municipio_id` | Clave del municipio segun catalogo INEGI |
-| `porc_participacion` | Porcentaje de participacion ciudadana en la eleccion |
-| `anio` | Anio del proceso electoral (2018, 2021, 2024) |
+| `entidad_id` | Clave de entidad federativa (14 = Jalisco) |
+| `municipio_id` | Clave del municipio |
+| `porc_participacion` | Porcentaje de participación electoral (0–100) |
+| `anio` | Año de la elección |
 
 ## Migraciones
 
-| Migracion | Descripcion |
+| migración | descripción |
 |---|---|
-| `V1__foreign_tables.sql` | Crea extension postgres_fdw y tablas foraneas cvegeo_states y cvegeo_municipalities |
-| `V2__table_participacion.sql` | Crea tabla stg_participacion |
-| `V3__view_participacion.sql` | Crea vista v_participacion con nombres de entidad y municipio |
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
+| `V2__table_participacion.sql` | Tabla principal `stg_participacion` |
+| `V3__view_participacion.sql` | Vista analítica |
 
 ## Variables de entorno
 
-| Variable | Descripcion |
+| variable | descripción |
 |---|---|
 | `GDRIVE_FILE_ID` | ID del archivo CSV en Google Drive |
 
-## Notas metodologicas
+## Notas metodológicas
 
-- **Extract**: descarga el CSV desde Google Drive usando el file ID configurado en `.env`. Renombra las columnas segun `RENAME_HEADER`.
-- **Transform**: convierte el formato wide (una columna por anio) a formato long mediante `melt`. Elimina el simbolo `%` de los porcentajes y convierte a float.
-- **Load**: inserta los 375 registros (125 municipios x 3 anios) via `bulk_insert`.
+### Extract
 
-## Ejecucion
+Descarga el CSV desde Google Drive usando `gdown` con el file ID. Almacena el resultado en un `.pkl` para evitar descargas repetidas.
 
-```bash
-just create-db participacion_ciudadana
+### Transform
+
+Renombra columnas, filtra a años de elección válidos, convierte porcentajes a numérico (elimina el símbolo `%`), limpia nulos y pivotea el formato wide → long (municipio × año).
+
+### Load
+
+Inserción directa de los registros en `stg_participacion` con `insert_records`.
+
+## Ejecución
+
+**Bootstrap** (única ejecución):
+
+```shell
 just flyway-migrate participacion_ciudadana
-python dags/etl_participacion_ciudadana.py
+conda run -n etl python -m core.pipelines.participacion_ciudadana bootstrap
 ```
+
+No tiene flujo update.
 
 ## Notas adicionales
 
-- El CSV fuente ya viene filtrado a Jalisco (entidad 14), por lo que no se aplica filtro adicional en el extract.
-- La vista `vw_participacion` resuelve los nombres de entidad y municipio mediante join a las tablas foraneas de cvegeo.
+El archivo de Google Drive debe actualizarse manualmente después de cada proceso electoral. Para incorporar resultados de 2024 es necesario actualizar el archivo fuente y ejecutar nuevamente el bootstrap.

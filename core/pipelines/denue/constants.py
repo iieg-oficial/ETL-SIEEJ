@@ -31,3 +31,30 @@ TITLE_COLS: Final[List[str]] = [
 DATE_COLS: Final[List[str]] = ["fecha_alta"]
 
 ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))
+
+RAW_COLS: Final[List[str]] = [
+    "id",
+    "nombre_establecimiento",
+    "razon_social",
+    "latitud",
+    "longitud",
+    "fecha_alta",
+    "nombre_asentamiento",
+    "ageb",
+    "codigo_actividad",
+    "entidad_id",
+    "cve_mun",
+    "localidad_id",
+    "fecha_actualizacion",
+    "rango_personal_id",
+    "tipo_establecimiento_id",
+]
+
+INT_COLS: Final[set] = {
+    "id",
+    "entidad_id",
+    "cve_mun",
+    "localidad_id",
+    "rango_personal_id",
+    "tipo_establecimiento_id",
+}

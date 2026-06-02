@@ -1,98 +1,101 @@
 # marginacion
 
-Pipeline ETL para el índice y grado de marginación municipal, por localidad y estatal, publicado por CONAPO.
+## Descripción general
 
-## ERD
+Pipeline ETL del Índice de Marginación del CONAPO para Jalisco. Carga indicadores de marginación a nivel municipal y de localidad para los años 2010, 2015 y 2020, incluyendo indicadores de rezago educativo, servicios básicos, vivienda y concentración poblacional.
+
+## Fuente general
+
+https://www.gob.mx/conapo
+
+## Fuente específica
+
+```shell
+URL_MUNICIPAL=https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Municipio/IMM_{}.xlsx
+URL_MUNICIPAL_DP2=https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Municipio/IMM_DP2_{}.xlsx
+URL_LOCALIDAD=https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Localidad/IML_{}.zip
+```
+
+## Características de los datos
+
+| Característica | Valor |
+|---|---|
+| Última fecha disponible | `2020` |
+| Frecuencia de actualización | Quinquenal |
+| Desagregación | Estatal, Municipal, Localidad |
+| ¿Tiene update? | No |
+| Update | No aplica |
+
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
 ## Diccionario de variables
 
-### `marginaciones_municipales`
+### marginaciones_municipales
 
-| Variable | Descripción |
-|----------|-------------|
-| `municipio_id` | Clave INEGI del municipio (referencia a `cvegeo_municipalities`) |
-| `grado_marginacion_id` | FK a `grados_marginacion` |
-| `pob_total` | Población total |
-| `porc_pob15_analfabeta` | % de población de 15 años o más analfabeta |
-| `pob15_sin_educ_bas` | % de población de 15 años o más sin educación básica completa |
-| `porc_viv_sin_drenaje_ni_excusado` | % de ocupantes en viviendas sin drenaje ni excusado |
-| `porc_viv_sin_energia` | % de ocupantes en viviendas sin energía eléctrica |
-| `porc_viv_sin_agua_entubada` | % de ocupantes en viviendas sin agua entubada |
-| `porc_viv_piso_tierra` | % de ocupantes en viviendas con piso de tierra |
+| variable | descripción |
+|---|---|
+| `grado_marginacion_id` | FK a catálogo de grados (Muy alto, Alto, Medio, Bajo, Muy bajo) |
+| `pob_total` | Población total del municipio |
+| `porc_pob15_analfabeta` | % de población de 15+ años analfabeta |
+| `pob15_sin_educ_bas` | % sin educación básica completa |
+| `porc_viv_sin_drenaje_ni_excusado` | % de viviendas sin drenaje ni excusado |
+| `porc_viv_sin_energia` | % de viviendas sin energía eléctrica |
+| `porc_viv_sin_agua_entubada` | % de viviendas sin agua entubada |
+| `porc_viv_piso_tierra` | % de viviendas con piso de tierra |
 | `prom_ocup_por_cuarto` | Promedio de ocupantes por cuarto |
-| `porc_pob_loc_menos5000_hab` | % de población en localidades con menos de 5,000 habitantes |
-| `pob_ocup_hasta_2_sal_min` | % de población ocupada con ingresos de hasta 2 salarios mínimos |
-| `indice_marginacion` | Índice de marginación calculado por CONAPO |
-| `indice_marginacion_normalizado` | Índice de marginación normalizado en escala 0–100 |
-| `porc_viv_sin_refrigerador` | % de viviendas particulares habitadas sin refrigerador (calculado desde ITER 2020 de INEGI; nulo para 2010 y 2015) |
-| `lugar_contexto_nacional` | Posición del municipio en el ranking nacional por índice de marginación |
-
-### `marginaciones_estatales`
-
-| Variable | Descripción |
-|----------|-------------|
-| `entidad_id` | Clave INEGI de la entidad federativa (referencia a `cvegeo_states`) |
-| `grado_marginacion_id` | FK a `grados_marginacion` |
-| `pob_total` | Población total |
-| `porc_pob15_analfabeta` | % de población de 15 años o más analfabeta |
-| `pob15_sin_educ_bas` | % de población de 15 años o más sin educación básica completa |
-| `porc_viv_sin_drenaje_ni_excusado` | % de ocupantes en viviendas sin drenaje ni excusado |
-| `porc_viv_sin_energia` | % de ocupantes en viviendas sin energía eléctrica |
-| `porc_viv_sin_agua_entubada` | % de ocupantes en viviendas sin agua entubada |
-| `porc_viv_piso_tierra` | % de ocupantes en viviendas con piso de tierra |
-| `porc_viv_con_hacinamiento` | % de viviendas particulares con hacinamiento |
-| `porc_pob_loc_menos5000_hab` | % de población en localidades con menos de 5,000 habitantes |
-| `pob_ocup_hasta_2_sal_min` | % de población ocupada con ingresos de hasta 2 salarios mínimos |
-| `porc_viv_sin_refrigerador` | % de viviendas particulares habitadas sin refrigerador (calculado desde ITER 2020 de INEGI; nulo para años anteriores) |
-| `indice_marginacion` | Índice de marginación calculado por CONAPO |
-| `indice_marginacion_normalizado` | Índice de marginación normalizado en escala 0–100 |
-| `lugar_contexto_nacional` | Posición de la entidad en el ranking nacional por índice de marginación |
-
-### `marginaciones_localidades`
-
-| Variable | Descripción |
-|----------|-------------|
-| `localidad_id` | FK a `localidades` |
-| `grado_marginacion_id` | FK a `grados_marginacion` |
-| `pob_total` | Población total |
-| `porc_pob15_analfabeta` | % de población de 15 años o más analfabeta |
-| `porc_pob15_sin_educ_basica` | % de población de 15 años o más sin educación básica completa |
-| `porc_viv_sin_drenaje_ni_excusado` | % de ocupantes en viviendas sin drenaje ni excusado |
-| `porc_viv_sin_energia` | % de ocupantes en viviendas sin energía eléctrica |
-| `porc_viv_sin_agua_entubada` | % de ocupantes en viviendas sin agua entubada |
-| `porc_viv_piso_tierra` | % de ocupantes en viviendas con piso de tierra |
-| `prom_ocup_por_cuarto` | Promedio de ocupantes por cuarto |
+| `porc_pob_loc_menos5000_hab` | % de población en localidades < 5,000 hab. |
+| `pob_ocup_hasta_2_sal_min` | % de población ocupada con hasta 2 salarios mínimos |
+| `indice_marginacion` | Índice de marginación (IM) |
+| `indice_marginacion_normalizado` | IM normalizado (0-100) |
 | `porc_viv_sin_refrigerador` | % de viviendas sin refrigerador |
-| `indice_marginacion` | Índice de marginación calculado por CONAPO |
-| `indice_marginacion_normalizado` | Índice de marginación normalizado en escala 0–100 |
+| `lugar_contexto_nacional` | Lugar en el contexto nacional |
+| `fecha_actualizacion` | Año del levantamiento |
 
-## Fuentes
+## Migraciones
 
-| Nivel | Fuente |
-|-------|--------|
-| Municipal 2020 | [IMM_{año}.xlsx](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Municipio/IMM_{año}.xlsx) |
-| Municipal 2010, 2015 | [IMM_DP2_{año}.xlsx](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Municipio/IMM_DP2_{año}.xlsx) |
-| Localidad | [IML_{año}.zip](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Localidad/IML_{año}.zip) |
-| Estatal 2010 | [IME_DP2_2010.xlsx](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Entidad_Federativa/IME_DP2_2010.xlsx) |
-| Estatal 2015 | [Base_Indice_de_marginacion_estatal_90-15.csv](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Entidad_Federativa/Base_Indice_de_marginacion_estatal_90-15.csv) |
-| Estatal 2020 | [IME_2020.xls](https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Entidad_Federativa/IME_2020.xls) |
-| `porc_viv_sin_refrigerador` | [iter_{01..32}_2020_csv.zip](https://www.inegi.org.mx/contenidos/programas/ccpv/2020/microdatos/iter/iter_{01..32}_2020_csv.zip) |
+| migración | descripción |
+|---|---|
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
+| `V2__catalogs_marginacion.sql` | Catálogo de grados de marginación y localidades |
+| `V3__tables_marginacion.sql` | Tablas `marginaciones_municipales`, `marginaciones_estatales` y `marginaciones_localidades` |
+| `V4__views_marginacion.sql` | Vistas analíticas |
 
-Municipal y localidad filtrados a Jalisco (`CVE_ENT = 14`). Los registros de totales municipales (`LOC = 9999`) son excluidos. Estatal incluye las 32 entidades federativas.
+## Variables de entorno
 
-## Actualización
+| variable | descripción |
+|---|---|
+| `URL_MUNICIPAL` | URL del XLSX municipal con parámetro de año `{}` |
+| `URL_MUNICIPAL_DP2` | URL del XLSX municipal formato DP2 (para 2010 y 2015) |
+| `URL_LOCALIDAD` | URL del ZIP de localidades con parámetro de año `{}` |
+| `DATA_YEARS` | Lista de años a procesar (ej. `[2010,2015,2020]`) |
 
-**Frecuencia:** cada 5 años, al momento de publicación de CONAPO (último: 2020).
+## Notas metodológicas
 
-**Manual.** CONAPO no ofrece API ni feed automático; los archivos se publican de forma irregular en su portal. El dato de `porc_viv_sin_refrigerador` proviene del Censo de Población y Vivienda de INEGI, que se realiza cada 10 años.
+### Extract
 
-Para incorporar un nuevo año de publicación:
+Descarga el XLSX municipal y el ZIP de localidades para cada año en `DATA_YEARS`. Para 2010 y 2015 usa la URL `DP2`; para 2020 usa la URL estándar.
 
-1. Agregar el año a `DATA_YEARS` en `.env`
-2. Verificar si los nombres de columna cambiaron en la fuente y actualizar `rename_municipal`, `rename_estatal` y `rename_localidad` en `constants.py`
-3. Verificar si el patrón de URL cambió y actualizar `config.py` y `.env.example`
-4. Para el año estatal, identificar el nuevo archivo en el portal de CONAPO y actualizar `_fetch_estatal` en `extract.py`
-5. Para `porc_viv_sin_refrigerador`, actualizar la URL del ITER en `_fetch_iter_refri` en `extract.py` cuando se publique el Censo 2030
-6. Ejecutar `python dags/etl_marginacion.py`
+### Transform
+
+Lee los Excel, filtra a Jalisco (entidad 14), renombra columnas según el mapeo por año, agrega el campo de % de viviendas sin refrigerador desde datos auxiliares, y construye los catálogos de grados y localidades.
+
+### Load
+
+Inserción directa de catálogos e inserción masiva de indicadores en las tres tablas con `bulk_insert` por año.
+
+## Ejecución
+
+**Bootstrap** (años 2010, 2015 y 2020):
+
+```shell
+just flyway-migrate marginacion
+conda run -n etl python -m core.pipelines.marginacion bootstrap
+```
+
+No tiene flujo update.
+
+## Notas adicionales
+
+El CONAPO usa dos formatos de XLSX distintos según el año (DP2 vs estándar). El servidor del CONAPO puede ser lento; el pipeline deshabilita la verificación SSL (`verify=False`) para evitar errores de certificado.

@@ -105,7 +105,20 @@ class AgropecuarioLoad(Stage):
                     "tipo_ciclo_id",
                     "modalidad_id",
                 ]
-                df = df.drop_duplicates(subset=conflict_keys, keep="last")
+                sum_cols = [
+                    "sup_sembrada",
+                    "sup_cosechada",
+                    "sup_siniestrada",
+                    "volumen_produccion",
+                    "valor_produccion",
+                ]
+                agg_map = {c: pd.NamedAgg(column=c, aggfunc=lambda s: s.sum(min_count=1)) for c in sum_cols}
+                agg_map["unidad_med_id"] = pd.NamedAgg(column="unidad_med_id", aggfunc="first")
+                df = df.groupby(conflict_keys, as_index=False, dropna=False).agg(**agg_map)
+                cosechada = df["sup_cosechada"].replace(0, pd.NA)
+                volumen = df["volumen_produccion"].replace(0, pd.NA)
+                df["rendimiento"] = df["volumen_produccion"] / cosechada
+                df["precio_med_rural"] = df["valor_produccion"] / volumen
                 df_clean = df.astype(object).where(df.notna(), None)
                 upsert_records(
                     session,

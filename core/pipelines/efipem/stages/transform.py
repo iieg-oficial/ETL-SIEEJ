@@ -1,5 +1,3 @@
-import hashlib
-
 import pandas as pd
 
 from pathlib import Path
@@ -7,11 +5,11 @@ from typing import Any, Optional
 
 from core.pipelines.efipem.consts import (
     CATALOG_COLUMNS,
-    CLASIFICADOR_NORMALIZATION,
     COLUMN_RENAME_MAP,
-    MUTABLE_COLUMNS,
+    JALISCO_CVE_ENT,
     NULL_VALUES,
     PIPELINE_NAME,
+    SOURCE_CSV_GLOB,
 )
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null
@@ -25,18 +23,26 @@ class EfipemTransformer(Stage):
 
     # Valida la salida de Extract
     def source(self, input_data: Optional[Any] = None) -> dict:
-        if not input_data or not input_data.get("file_path"):
-            raise ValueError("Transform no recibio archivo de Extract.")
-        self.logger.info(f"Archivo fuente: {input_data['file_path']}")
+        if not input_data or not input_data.get("data_dir"):
+            raise ValueError("Transform no recibio directorio de Extract.")
+        self.logger.info(f"Directorio fuente: {input_data['data_dir']}")
         return input_data
 
-    # Lee el CSV, normaliza y extrae catalogos
+    # Lee todos los CSVs anuales, concatena, filtra a Jalisco y normaliza
     def action(self, input_data: Optional[Any] = None) -> dict:
-        file_path = input_data["file_path"]
+        data_dir = Path(input_data["data_dir"])
+        csv_paths = sorted(data_dir.glob(SOURCE_CSV_GLOB))
+        if not csv_paths:
+            raise FileNotFoundError(f"No se encontraron CSVs con patron '{SOURCE_CSV_GLOB}' en {data_dir}")
 
-        self.logger.info(f"Leyendo CSV: {file_path}")
-        df = pd.read_csv(file_path, dtype=str, encoding="utf-8")
-        self.logger.info(f"Registros leidos: {len(df)}, columnas: {list(df.columns)}")
+        self.logger.info(f"Leyendo {len(csv_paths)} CSVs anuales...")
+        frames = []
+        for csv_path in csv_paths:
+            df_year = pd.read_csv(csv_path, dtype=str, encoding="utf-8")
+            frames.append(df_year)
+
+        df = pd.concat(frames, ignore_index=True)
+        self.logger.info(f"Registros totales leidos (nacional): {len(df)}, columnas: {list(df.columns)}")
 
         # Normalizar headers a minusculas y renombrar
         df.columns = [c.strip().lower() for c in df.columns]
@@ -45,24 +51,32 @@ class EfipemTransformer(Stage):
         # Limpiar valores nulos
         df = list_values_to_null(df, rm_list=NULL_VALUES)
 
-        # cve_ent a entero (el CSV lo trae como "1", "2", ..., "32")
-        df["cve_ent"] = pd.to_numeric(df["cve_ent"].str.strip(), errors="coerce").astype("Int64")
+        # Filtrar solo Jalisco antes de cualquier tipado costoso
+        df["cve_ent"] = df["cve_ent"].str.strip()
+        df = df[df["cve_ent"] == JALISCO_CVE_ENT].copy()
+        self.logger.info(f"Registros Jalisco (cve_ent={JALISCO_CVE_ENT}): {len(df)}")
 
-        # Normalizar clasificador (unificar guiones em-dash / hyphen)
-        df["clasificador"] = df["clasificador"].str.strip()
-        df["clasificador"] = df["clasificador"].map(CLASIFICADOR_NORMALIZATION).fillna(df["clasificador"])
+        if df.empty:
+            raise ValueError(f"No se encontraron registros para Jalisco (cve_ent={JALISCO_CVE_ENT})")
 
-        # Tipar numericos
+        # Tipar numericas
         df["anio"] = df["anio"].astype(int)
-        df["valor"] = df["valor"].astype("int64")
+        df["cve_ent"] = pd.to_numeric(df["cve_ent"], errors="coerce").astype("Int64")
+        df["cve_mun"] = pd.to_numeric(df["cve_mun"].str.strip(), errors="coerce").astype("Int64")
+        df["valor"] = pd.to_numeric(df["valor"], errors="coerce").astype("Int64")
 
-        # Calcular row_hash SHA-256 sobre columnas mutables (antes de resolver IDs)
-        def _row_hash(row: pd.Series) -> str:
-            raw = "|".join(str(row[c]) if pd.notna(row[c]) else "" for c in MUTABLE_COLUMNS)
-            return hashlib.sha256(raw.encode()).hexdigest()
+        # cvegeo: normalizar a exactamente 5 caracteres con ceros a la izquierda
+        df["cvegeo"] = df["cvegeo"].str.strip().str.zfill(5)
 
-        df["row_hash"] = df.apply(_row_hash, axis=1)
-        self.logger.info(f"row_hash calculado. Registros totales: {len(df)}")
+        # Colapsar entradas multiples del mismo concepto sumando valor.
+        # El CSV fuente puede tener N apuntes contables para la misma combinacion
+        # (anio, cvegeo, tema, clasificador, concepto, estatus); se agregan en uno.
+        group_cols = ["anio", "cvegeo", "cve_ent", "cve_mun", "tema", "clasificador", "concepto", "estatus"]
+        before = len(df)
+        df = df.groupby(group_cols, as_index=False, dropna=False)["valor"].sum()
+        collapsed = before - len(df)
+        if collapsed:
+            self.logger.info(f"Agrupados {collapsed} registros → {len(df)} entradas unicas (GROUP BY + SUM valor)")
 
         # Extraer catalogos simples (name-only)
         catalogs: dict[str, list[str]] = {}
@@ -89,7 +103,7 @@ class EfipemTransformer(Stage):
 
     # Limpia extract y la propia carpeta de trabajo
     def finalization(self, input_data: Optional[Any] = None) -> dict:
-        self.logger.info(f"Transformacion completa. {input_data['row_count']} registros procesados.")
+        self.logger.info(f"Transformacion completa. {input_data['row_count']} registros de Jalisco procesados.")
 
         extract_dir = Path(f"data/extract/{PIPELINE_NAME}")
         clean_directory(extract_dir, self.logger)

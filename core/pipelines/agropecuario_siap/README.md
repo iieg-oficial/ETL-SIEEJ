@@ -1,52 +1,101 @@
-# Pipeline: agropecuario_siap
+# agropecuario_siap
 
-Pipeline ETL para la descarga y carga de datos agrícolas del SIAP (Servicio de Información Agroalimentaria y Pesquera).
+## Descripción general
 
-## ERD
+Pipeline ETL del Sistema de Información Agroalimentaria y Pesquera (SIAP) de la Secretaría de Agricultura y Desarrollo Rural. Contiene datos anuales de producción agrícola a nivel municipal y distrital para México, incluyendo superficies sembradas, cosechadas, volumen de producción, rendimiento y valor por cultivo desde 2003.
+
+## Fuente general
+
+https://www.gob.mx/siap
+
+## Fuente específica
+
+```shell
+SIAP_URL=https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO={anio}
+```
+
+## Características de los datos
+
+| Característica | Valor |
+|---|---|
+| Última fecha disponible | `2024` |
+| Frecuencia de actualización | Anual |
+| Desagregación | Nacional, Estatal, Municipal |
+| ¿Tiene update? | Sí |
+| Update | Automático |
+
+## Diagrama de entidad relación
 
 ![ERD](assets/erd.svg)
 
-## Fuente de datos
+## Diccionario de variables
 
-- **Organismo:** SIAP — Secretaría de Agricultura y Desarrollo Rural
-- **URL:** `https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC5A-EDF4AFAA&ANIO={anio}`
-- **Formato:** CSV (encoding latin-1)
-- **Parámetro iterable:** año (`anio`), desde 2003 en adelante
-- **Frecuencia de actualización:** anual
+### stg_agricola
 
-## Tablas generadas
+| variable | descripción |
+|---|---|
+| `anio` | Año de la campaña agrícola |
+| `distrito_des_rural_id` | FK al distrito de desarrollo rural |
+| `ctr_apoyo_des_rural_id` | FK al centro de apoyo al desarrollo rural |
+| `tipo_ciclo_id` | FK al ciclo agrícola (Primavera-Verano, Otoño-Invierno, etc.) |
+| `modalidad_id` | FK a la modalidad (Riego, Temporal) |
+| `unidad_med_id` | FK a la unidad de medida del cultivo |
+| `cultivo_id` | FK al cultivo producido |
+| `sup_sembrada` | Superficie sembrada (ha) |
+| `sup_cosechada` | Superficie cosechada (ha) |
+| `sup_siniestrada` | Superficie siniestrada (ha) |
+| `volumen_produccion` | Volumen de producción en la unidad de medida registrada |
+| `rendimiento` | Rendimiento por hectárea |
+| `precio_med_rural` | Precio medio rural ($/ton) |
+| `valor_produccion` | Valor de producción (miles de pesos) |
 
-| Tabla | Descripción | Filas aprox. |
-|---|---|---|
-| `stg_agricola` | Producción agrícola por municipio, cultivo, ciclo y modalidad | ~30,000/año |
-| `cat_cultivos` | Catálogo de cultivos agrícolas | ~300 |
-| `cat_unidades_medida` | Unidades de medida de producción | ~6 |
-| `cat_modalidades` | Modalidades hídricas (Riego, Temporal) | 2 |
-| `cat_ciclos` | Ciclos productivos (Otoño-Invierno, Primavera-Verano, Perenne) | 3 |
-| `cat_ctrs_apoyo_des_rural` | Centros de Apoyo al Desarrollo Rural | ~20 |
-| `cat_distritos_des_rural` | Distritos de Desarrollo Rural | ~190 |
+## Migraciones
 
-## DAGs
-
-- **`etl_agropecuario_siap_bootstrap`** — Carga inicial completa (2003 a END_DATE). Schedule: None (on-demand)
-- **`etl_agropecuario_siap_update`** — Actualización incremental desde el último año en DB. Schedule: `@yearly`
+| migración | descripción |
+|---|---|
+| `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` para vínculos geográficos |
+| `V2__catalogs_agropecuario_siap.sql` | Catálogos de cultivos, ciclos, modalidades, unidades de medida y distritos |
+| `V3__tables_agropecuario_siap.sql` | Tabla principal `stg_agricola` |
+| `V4__views_agropecuario_siap.sql` | Vistas analíticas desnormalizadas |
 
 ## Variables de entorno
 
-| Variable | Descripción |
+| variable | descripción |
 |---|---|
-| `SIAP_URL` | URL template de la API (con `{anio}`) |
-| `START_DATE` | Año de inicio del bootstrap (default: 2003) |
-| `END_DATE` | Año fin del bootstrap (default: 2024) |
-| `DB_*` | Conexión a PostgreSQL |
+| `SIAP_URL` | URL con parámetro `{anio}` para descargar el CSV de cada año |
+| `START_DATE` | Año inicial del bootstrap (ej. `2003`) |
+| `END_DATE` | Año final del bootstrap (ej. `2024`) |
+| `CHUNK_SIZE` | Tamaño de lote para inserción masiva |
 
-## Instrucciones para actualizar
+## Notas metodológicas
 
-1. Crear o actualizar `.env` en `core/pipelines/agropecuario_siap/`
-2. Ejecutar flyway: `just flyway-reset agropecuario_siap` (solo si es primer deploy)
-3. Para carga inicial: activar DAG `etl_agropecuario_siap_bootstrap` en Airflow
-4. Para actualización anual: el DAG `etl_agropecuario_siap_update` se ejecuta automáticamente con schedule `@yearly`
+### Extract
 
-## Vista disponible
+Descarga un CSV por año desde la URL del SIAP, iterando desde `START_DATE` hasta `END_DATE`. El archivo se escribe en el directorio de trabajo local antes de pasar a transform.
 
-- `view_agricola_jalisco` — datos agrícolas filtrados para Jalisco (cve_ent = 14) con nombres de municipio, entidad, cultivo, ciclo, modalidad, etc.
+### Transform
+
+Normaliza texto, renombra columnas según el mapa de constantes, extrae catálogos dinámicamente (cultivos, ciclos, modalidades, unidades) y resuelve los IDs foráneos correspondientes.
+
+### Load
+
+Inserta los catálogos nuevos con `insert_records` y carga los registros anuales con `bulk_insert` en `stg_agricola` (append-only por año).
+
+## Ejecución
+
+**Bootstrap** (carga inicial desde 2003):
+
+```shell
+just flyway-migrate agropecuario_siap
+conda run -n etl python -m core.pipelines.agropecuario_siap bootstrap
+```
+
+**Update anual** (DAG `etl_agropecuario_siap_update`, schedule `@yearly`):
+
+```shell
+conda run -n etl python -m core.pipelines.agropecuario_siap update
+```
+
+## Notas adicionales
+
+Los datos cubren todos los estados de México; el pipeline no filtra a Jalisco para permitir análisis comparativos nacionales. Los archivos CSV del SIAP pueden variar de formato entre años; el pipeline incluye mapeos de columnas por rango de año.
