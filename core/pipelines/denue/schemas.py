@@ -85,12 +85,13 @@ class CatTiposEstablecimientos(DenueBase):
     descripcion: Mapped[str] = mapped_column(Text, nullable=False)
 
 
-class StgEstablecimientos(DenueBase):
-    __tablename__ = T.STG_ESTABLECIMIENTOS
+class StgEstJal(DenueBase):
+    __tablename__ = T.STG_EST_JAL
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     actualizacion_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_ACTUALIZACIONES}.id"), primary_key=True)
-    nombre_establecimiento: Mapped[str] = mapped_column(Text, nullable=False)
+    clee: Mapped[str] = mapped_column(Text, nullable=False)
+    nombre_establecimiento: Mapped[str | None] = mapped_column(Text, nullable=True)
     razon_social: Mapped[str | None] = mapped_column(Text, nullable=True)
     latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -107,3 +108,20 @@ class StgEstablecimientos(DenueBase):
     tipo_establecimiento_id: Mapped[int | None] = mapped_column(
         ForeignKey(f"{T.CAT_TIPOS_ESTABLECIMIENTOS}.id"), nullable=True
     )
+
+
+class StgEstEntResumen(DenueBase):
+    __tablename__ = T.STG_EST_ENT
+    __table_args__ = (
+        UniqueConstraint("entidad_id", "actualizacion_id", "clase_actividad_id", name="uq_resumen_entidad_act_clase"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    actualizacion_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_ACTUALIZACIONES}.id"), nullable=False)
+    sector_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_SECTORES}.id"), nullable=True)
+    subsector_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_SUBSECTORES}.id"), nullable=True)
+    rama_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_RAMAS}.id"), nullable=True)
+    subrama_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_SUBRAMAS}.id"), nullable=True)
+    clase_actividad_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_CLASES_ACTIVIDAD}.id"), nullable=True)
+    num_establecimientos: Mapped[int] = mapped_column(Integer, nullable=False)
