@@ -13,15 +13,10 @@ SELECT
     m.nomgeo AS municipio,
     l.localidad_id,
     l.localidad,
-    sec.codigo AS sector_codigo,
     sec.sector,
-    sub.codigo AS subsector_codigo,
     sub.subsector,
-    r.codigo AS rama_codigo,
     r.rama,
-    sr.codigo AS subrama_codigo,
     sr.subrama,
-    ca.codigo AS clase_actividad_codigo,
     ca.clase AS clase_actividad,
     rp.descripcion AS rango_personal,
     te.descripcion AS tipo_establecimiento
@@ -52,15 +47,10 @@ COMMENT ON COLUMN v_establecimientos_jalisco.ageb IS 'Área geoestadística bás
 COMMENT ON COLUMN v_establecimientos_jalisco.municipio IS 'Nombre del municipio';
 COMMENT ON COLUMN v_establecimientos_jalisco.localidad_id IS 'Clave de la localidad';
 COMMENT ON COLUMN v_establecimientos_jalisco.localidad IS 'Nombre de la localidad';
-COMMENT ON COLUMN v_establecimientos_jalisco.sector_codigo IS 'Código SCIAN del sector';
 COMMENT ON COLUMN v_establecimientos_jalisco.sector IS 'Nombre del sector económico';
-COMMENT ON COLUMN v_establecimientos_jalisco.subsector_codigo IS 'Código SCIAN del subsector';
 COMMENT ON COLUMN v_establecimientos_jalisco.subsector IS 'Nombre del subsector económico';
-COMMENT ON COLUMN v_establecimientos_jalisco.rama_codigo IS 'Código SCIAN de la rama';
 COMMENT ON COLUMN v_establecimientos_jalisco.rama IS 'Nombre de la rama económica';
-COMMENT ON COLUMN v_establecimientos_jalisco.subrama_codigo IS 'Código SCIAN de la subrama';
 COMMENT ON COLUMN v_establecimientos_jalisco.subrama IS 'Nombre de la subrama económica';
-COMMENT ON COLUMN v_establecimientos_jalisco.clase_actividad_codigo IS 'Código SCIAN de la clase de actividad';
 COMMENT ON COLUMN v_establecimientos_jalisco.clase_actividad IS 'Nombre de la clase de actividad económica';
 COMMENT ON COLUMN v_establecimientos_jalisco.rango_personal IS 'Rango de personal ocupado';
 COMMENT ON COLUMN v_establecimientos_jalisco.tipo_establecimiento IS 'Tipo de unidad económica (fijo o semifijo)';
