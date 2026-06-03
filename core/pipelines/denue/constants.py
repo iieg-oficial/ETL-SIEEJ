@@ -1,6 +1,7 @@
 from typing import Final, List
 
 RENAME_HEADER: Final[dict] = {
+    "clee": "clee",
     "id": "id",
     "nom_estab": "nombre_establecimiento",
     "raz_social": "razon_social",
@@ -32,7 +33,10 @@ DATE_COLS: Final[List[str]] = ["fecha_alta"]
 
 ENTIDADES_MEXICO: Final[List[int]] = list(range(1, 33))
 
+ENTIDAD_JALISCO: Final[int] = 14
+
 RAW_COLS: Final[List[str]] = [
+    "clee",
     "id",
     "nombre_establecimiento",
     "razon_social",
@@ -58,3 +62,7 @@ INT_COLS: Final[set] = {
     "rango_personal_id",
     "tipo_establecimiento_id",
 }
+
+TRANSFORM_POOL = "transform_pool"
+LOAD_POOL = "load_pool"
+ENTIDADES = list(range(1, 33))

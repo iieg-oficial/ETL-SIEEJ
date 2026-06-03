@@ -4,12 +4,10 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from datetime import datetime, timedelta
-
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
-LOAD_POOL = "denue_load_pool"
-ENTIDADES = list(range(1, 33))
+from core.pipelines.denue.constants import ENTIDADES, TRANSFORM_POOL, LOAD_POOL
 
 
 def run_extract(mode: str, entidad: int):
@@ -68,9 +66,11 @@ def build_dag(dag_id, mode, description, schedule, tags):
         start_date=datetime(year=2025, month=1, day=20),
         schedule=schedule,
         catchup=False,
-        max_active_tasks=6,
+        max_active_tasks=4,
         tags=tags,
     ) as dag:
+        load_tasks = []
+
         for entidad in ENTIDADES:
             extract = PythonOperator(
                 task_id=f"extract_{entidad}",
@@ -82,6 +82,7 @@ def build_dag(dag_id, mode, description, schedule, tags):
                 task_id=f"transform_{entidad}",
                 python_callable=run_transform,
                 op_kwargs={"mode": mode, "entidad": entidad},
+                pool=TRANSFORM_POOL,
             )
 
             load = PythonOperator(
@@ -92,6 +93,7 @@ def build_dag(dag_id, mode, description, schedule, tags):
             )
 
             extract >> transform >> load
+            load_tasks.append(load)
 
         cleanup_task = PythonOperator(
             task_id="cleanup",
@@ -99,7 +101,7 @@ def build_dag(dag_id, mode, description, schedule, tags):
             trigger_rule="all_done",
         )
 
-        [dag.get_task(f"load_{e}") for e in ENTIDADES] >> cleanup_task
+        load_tasks >> cleanup_task
 
     return dag
 

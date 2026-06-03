@@ -11,4 +11,5 @@ class DenueTables(StrEnum):
     CAT_CLASES_ACTIVIDAD = auto()
     CAT_RANGOS_PERSONAL = auto()
     CAT_TIPOS_ESTABLECIMIENTOS = auto()
-    STG_ESTABLECIMIENTOS = auto()
+    STG_EST_JAL = auto()
+    STG_EST_ENT = auto()
