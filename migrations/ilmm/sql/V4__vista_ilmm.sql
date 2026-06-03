@@ -53,3 +53,26 @@ LEFT JOIN cvegeo_municipalities m
 CREATE UNIQUE INDEX idx_mvw_tasa_desocupacion_id ON vw_tasa_desocupacion (id);
 
 COMMENT ON MATERIALIZED VIEW vw_tasa_desocupacion IS 'Tasa de desocupación por municipio y fecha (indicador: tasa_desocupacion).';
+
+-- ---------------------------------------------------------------------------
+-- Vista general: todos los registros de stg_ilmm con descripción de estimador
+-- y nombre de municipio
+-- ---------------------------------------------------------------------------
+CREATE VIEW vw_ilmm AS
+SELECT
+    s.id,
+    s.fecha,
+    s.clave_municipio,
+    m.nomgeo                       AS municipio,
+    m.nom_ent                      AS entidad,
+    s.estimador_id,
+    e.descripcion                  AS estimador,
+    s.pob_econo_activa,
+    s.ocupados,
+    s.informales
+FROM stg_ilmm s
+JOIN cat_ilmm_estimador e  ON e.id = s.estimador_id
+LEFT JOIN cvegeo_municipalities m
+    ON LPAD(m.cvegeo::text, 5, '0') = s.clave_municipio;
+
+COMMENT ON VIEW vw_ilmm IS 'Vista general de stg_ilmm con descripción de estimador y nombre de municipio.';
