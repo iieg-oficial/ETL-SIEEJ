@@ -42,13 +42,13 @@ def run_update() -> None:
 
 
 _default_args_bootstrap = {
-    "owner": "iieg",
+    "owner": "Héctor Moreno",
     "retries": 1,
     "retry_delay": timedelta(minutes=10),
 }
 
 _default_args_update = {
-    "owner": "iieg",
+    "owner": "Héctor Moreno",
     "retries": 2,
     "retry_delay": timedelta(minutes=10),
 }
