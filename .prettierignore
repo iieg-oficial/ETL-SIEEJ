@@ -16,3 +16,8 @@ migrations/
 *.csv
 *.json.gz
 *.md
+
+# AI Agents
+.opencode/
+.github/
+.claude/

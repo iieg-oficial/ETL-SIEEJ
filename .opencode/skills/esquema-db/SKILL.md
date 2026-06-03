@@ -14,13 +14,13 @@ First determine whether the pipeline has state or municipal geography (`reporte_
 
 ### Path A — Pipeline with geography level
 
-| Version | Filename                                 | Content                                |
-|---------|------------------------------------------|----------------------------------------|
-| V1      | `V1__foreign_tables.sql`                 | `cve_geo` FDW tables                   |
-| V2      | `V2__catalogs_{flujo}.sql`               | One `cat_` table per catalog           |
-| V3      | `V3__table_{flujo}.sql`                  | Main `stg_{flujo}` table               |
-| V4      | `V4__view_{flujo}.sql`                   | Integration view `v_{flujo}`           |
-| V5      | `V5__comments_{flujo}.sql`               | Table and column comments              |
+| Version | Filename                    | Content                        |
+|---------|-----------------------------|--------------------------------|
+| V1      | `V1__foreign_tables.sql`    | `cve_geo` FDW tables           |
+| V2      | `V2__catalogs_{flujo}.sql`  | One `cat_` table per catalog   |
+| V3      | `V3__table_{flujo}.sql`     | Main `stg_{flujo}` table       |
+| V4      | `V4__view_{flujo}.sql`       | Integration view `v_{flujo}`   |
+| V5      | `V5__comments_{flujo}.sql`   | Table and column comments      |
 
 1. Generate `V1__foreign_tables.sql` from `template_v1_foreign_tables.sql`. Include only the foreign tables used by the pipeline.
 2. Generate `V2__catalogs_{flujo}.sql` from `template_v1_catalogos.sql`. Create one `cat_` table for each column marked as a catalog in the EDA report.
@@ -30,12 +30,12 @@ First determine whether the pipeline has state or municipal geography (`reporte_
 
 ### Path B — Pipeline without geography level
 
-| Version | Filename                                 | Content                                |
-|---------|------------------------------------------|----------------------------------------|
-| V1      | `V1__catalogs_{flujo}.sql`               | One `cat_` table per catalog           |
-| V2      | `V2__table_{flujo}.sql`                  | Main `stg_{flujo}` table               |
-| V3      | `V3__view_{flujo}.sql`                   | Integration view `v_{flujo}`           |
-| V4      | `V4__comments_{flujo}.sql`               | Table and column comments              |
+| Version | Filename                   | Content                       |
+|---------|----------------------------|-------------------------------|
+| V1      | `V1__catalogs_{flujo}.sql` | One `cat_` table per catalog  |
+| V2      | `V2__table_{flujo}.sql`    | Main `stg_{flujo}` table      |
+| V3      | `V3__view_{flujo}.sql`     | Integration view `v_{flujo}`   |
+| V4      | `V4__comments_{flujo}.sql` | Table and column comments      |
 
 1. Generate `V1__catalogs_{flujo}.sql` from `template_v1_catalogos.sql`.
 2. Generate `V2__table_{flujo}.sql` from `template_v3_tabla.sql`.

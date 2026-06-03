@@ -6,7 +6,9 @@ requires-python = ">=3.12"
 target-version = "py312"
 line-length = 120
 exclude = [
-    ".github/skills",
+    ".claude",
+    ".github",
+    ".opencode",
 ]
 
 [tool.ruff.lint]
