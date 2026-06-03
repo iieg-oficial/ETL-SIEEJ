@@ -20,11 +20,13 @@ First determine whether the pipeline has state or municipal geography (`reporte_
 | V2      | `V2__catalogs_{flujo}.sql`               | One `cat_` table per catalog           |
 | V3      | `V3__table_{flujo}.sql`                  | Main `stg_{flujo}` table               |
 | V4      | `V4__view_{flujo}.sql`                   | Integration view `v_{flujo}`           |
+| V5      | `V5__comments_{flujo}.sql`               | Table and column comments              |
 
 1. Generate `V1__foreign_tables.sql` from `template_v1_foreign_tables.sql`. Include only the foreign tables used by the pipeline.
 2. Generate `V2__catalogs_{flujo}.sql` from `template_v1_catalogos.sql`. Create one `cat_` table for each column marked as a catalog in the EDA report.
 3. Generate `V3__table_{flujo}.sql` from `template_v3_tabla.sql`.
 4. Generate `V4__view_{flujo}.sql` from `template_v4_vista.sql`.
+5. Generate `V5__comments_{flujo}.sql` from `template_v5_comments.sql`. Add `COMMENT ON TABLE` and `COMMENT ON COLUMN` for every table and column so AI Agents can retrieve context from the database schema.
 
 ### Path B — Pipeline without geography level
 
@@ -33,10 +35,12 @@ First determine whether the pipeline has state or municipal geography (`reporte_
 | V1      | `V1__catalogs_{flujo}.sql`               | One `cat_` table per catalog           |
 | V2      | `V2__table_{flujo}.sql`                  | Main `stg_{flujo}` table               |
 | V3      | `V3__view_{flujo}.sql`                   | Integration view `v_{flujo}`           |
+| V4      | `V4__comments_{flujo}.sql`               | Table and column comments              |
 
 1. Generate `V1__catalogs_{flujo}.sql` from `template_v1_catalogos.sql`.
 2. Generate `V2__table_{flujo}.sql` from `template_v3_tabla.sql`.
 3. Generate `V3__view_{flujo}.sql` from `template_v4_vista.sql`.
+4. Generate `V4__comments_{flujo}.sql` from `template_v5_comments.sql`. Add `COMMENT ON TABLE` and `COMMENT ON COLUMN` for every table and column so AI Agents can retrieve context from the database schema.
 
 ### Common steps
 
@@ -50,4 +54,4 @@ First determine whether the pipeline has state or municipal geography (`reporte_
 
 ## Templates
 
-See `template_v1_foreign_tables.sql`, `template_v1_catalogos.sql`, `template_v3_tabla.sql`, and `template_v4_vista.sql` in this folder.
+See `template_v1_foreign_tables.sql`, `template_v1_catalogos.sql`, `template_v3_tabla.sql`, `template_v4_vista.sql`, and `template_v5_comments.sql` in this folder.
