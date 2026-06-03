@@ -26,7 +26,7 @@ def run_bootstrap():
 
 
 default_args = {
-    "owner": "Data Engineering",
+    "owner": "Alejandro Zarate",
     "retries": 3,
     "retry_delay": timedelta(minutes=1),
 }
