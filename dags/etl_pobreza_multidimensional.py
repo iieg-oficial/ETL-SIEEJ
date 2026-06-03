@@ -32,7 +32,7 @@ def run_bootstrap() -> None:
 
 
 default_args = {
-    "owner": "iieg",
+    "owner": "Héctor Moreno",
     "retries": 1,
     "retry_delay": timedelta(minutes=10),
 }

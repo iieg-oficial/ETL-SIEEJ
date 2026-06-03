@@ -27,7 +27,7 @@ def run_bootstrap() -> None:
 
 
 default_args_bootstrap = {
-    "owner": "Jose Velazco H.",
+    "owner": "Alejandro Zarate",
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
