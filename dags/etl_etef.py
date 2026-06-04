@@ -39,7 +39,7 @@ def run_update():
 with DAG(
     "etl_etef_bootstrap",
     default_args={
-        "owner": "iieg",
+        "owner": "Alejandro Zarate",
         "retries": 1,
         "retry_delay": timedelta(minutes=10),
     },
@@ -55,7 +55,7 @@ with DAG(
 with DAG(
     "etl_etef_update",
     default_args={
-        "owner": "iieg",
+        "owner": "Alejandro Zarate",
         "retries": 2,
         "retry_delay": timedelta(minutes=5),
     },

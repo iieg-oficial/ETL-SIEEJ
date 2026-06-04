@@ -1,7 +1,9 @@
 from core.pipelines.denue.attributes import DenueTables as T
 
 TMP_TABLE_DDL = """
+DROP TABLE IF EXISTS tmp_raw;
 CREATE TEMP TABLE tmp_raw (
+    clee TEXT,
     id INTEGER,
     nombre_establecimiento TEXT,
     razon_social TEXT,
@@ -29,8 +31,8 @@ END
 """
 
 INSERT_FROM_RAW = f"""
-INSERT INTO {T.STG_ESTABLECIMIENTOS} (
-    id, actualizacion_id, nombre_establecimiento, razon_social,
+INSERT INTO {T.STG_EST_JAL} (
+    id, actualizacion_id, clee, nombre_establecimiento, razon_social,
     latitud, longitud, fecha_alta, nombre_asentamiento, ageb,
     localidad_id, sector_id, subsector_id, rama_id, subrama_id,
     clase_actividad_id, rango_personal_id, tipo_establecimiento_id
@@ -38,6 +40,7 @@ INSERT INTO {T.STG_ESTABLECIMIENTOS} (
 SELECT
     r.id,
     ca.id,
+    r.clee,
     r.nombre_establecimiento,
     r.razon_social,
     r.latitud,
@@ -64,6 +67,7 @@ LEFT JOIN {T.CAT_RAMAS} cr ON cr.codigo = LEFT(r.codigo_actividad, 4)
 LEFT JOIN {T.CAT_SUBRAMAS} csr ON csr.codigo = LEFT(r.codigo_actividad, 5)
 LEFT JOIN {T.CAT_CLASES_ACTIVIDAD} cca ON cca.codigo = r.codigo_actividad
 ON CONFLICT (id, actualizacion_id) DO UPDATE SET
+    clee = EXCLUDED.clee,
     nombre_establecimiento = EXCLUDED.nombre_establecimiento,
     razon_social = EXCLUDED.razon_social,
     latitud = EXCLUDED.latitud,
