@@ -3,9 +3,6 @@ import io
 from pathlib import Path
 
 import requests
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
 
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
@@ -21,6 +18,9 @@ def download_public_file(file_id: str, dest_path: Path, timeout: int = 30) -> Pa
 
 
 def _build_service(client_email: str, private_key: str):
+    from google.oauth2 import service_account
+    from googleapiclient.discovery import build
+
     credentials = service_account.Credentials.from_service_account_info(
         {
             "type": "service_account",
@@ -48,6 +48,8 @@ def _list_files(service, folder_id: str):
 
 
 def _download_file(service, file_id: str, file_name: str, destination: str) -> str:
+    from googleapiclient.http import MediaIoBaseDownload
+
     request = service.files().get_media(fileId=file_id)
     file_path = os.path.join(destination, file_name)
 
