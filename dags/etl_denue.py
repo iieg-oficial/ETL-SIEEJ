@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
-from core.pipelines.denue.constants import ENTIDADES, TRANSFORM_POOL, LOAD_POOL
+from core.pipelines.denue.constants import ENTIDADES, EXTRACT_POOL, TRANSFORM_POOL, LOAD_POOL
 
 
 def run_extract(mode: str, entidad: int):
@@ -76,6 +76,7 @@ def build_dag(dag_id, mode, description, schedule, tags):
                 task_id=f"extract_{entidad}",
                 python_callable=run_extract,
                 op_kwargs={"mode": mode, "entidad": entidad},
+                pool=EXTRACT_POOL,
             )
 
             transform = PythonOperator(

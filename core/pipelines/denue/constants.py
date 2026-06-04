@@ -63,6 +63,7 @@ INT_COLS: Final[set] = {
     "tipo_establecimiento_id",
 }
 
+EXTRACT_POOL = "extract_pool"
 TRANSFORM_POOL = "transform_pool"
 LOAD_POOL = "load_pool"
 ENTIDADES = list(range(1, 33))
