@@ -31,7 +31,7 @@ def run_update():
     pipeline = Pipeline(
         name="ilmm",
         stages=[
-            IlmmExtract(years=[current_year]),
+            IlmmExtract(years=[current_year - 1]),
             IlmmTransform(),
             IlmmLoad(),
         ],
