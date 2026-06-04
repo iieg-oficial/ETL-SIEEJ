@@ -32,8 +32,8 @@ class IlmmTransform(Stage):
         for col in ("ent", "mun", "est"):
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-        # Filter out national/state aggregates (ent=0 or mun=0)
-        df = df[(df["ent"] != 0) & (df["mun"] != 0)].copy()
+        # Filter out national/state aggregates (ent=0 or mun=0) and any rows with NaN in key columns
+        df = df[df["ent"].notna() & df["mun"].notna() & (df["ent"] != 0) & (df["mun"] != 0)].copy()
         self.logger.info(f"[action] After filtering aggregates: {len(df)} rows")
 
         # Build clave_municipio (5-digit INEGI key)
