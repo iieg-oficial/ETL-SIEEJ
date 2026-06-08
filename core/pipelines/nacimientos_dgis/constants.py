@@ -1,3 +1,5 @@
+from core.constants.files import NULL_VALUES  # noqa: F401
+
 PIPELINE_NAME = "nacimientos_dgis"
 
 USECOLS = [
