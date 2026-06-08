@@ -1,8 +1,7 @@
 import io
+import pandas as pd
 from pathlib import Path
 from typing import Any, Optional
-
-import pandas as pd
 
 from core.db import Database
 from core.pipelines.nacimientos_dgis.config import settings
@@ -22,9 +21,10 @@ from core.utils.logger import get_logger
 
 
 class NacimientosDgisLoad(Stage):
-    def __init__(self):
+    def __init__(self, mode: str = "bootstrap"):
         super().__init__(PIPELINE_NAME, "load")
         self.logger = get_logger(f"{PIPELINE_NAME}.load")
+        self.mode = mode
         self.db = Database(settings.DB_NAME, settings.database_url)
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame:
@@ -41,10 +41,11 @@ class NacimientosDgisLoad(Stage):
         return buffer
 
     def _load_stg(self, df: pd.DataFrame) -> None:
-        with self.db.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(TRUNCATE_STG)
-            cursor.close()
+        if self.mode == "bootstrap":
+            with self.db.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(TRUNCATE_STG)
+                cursor.close()
 
         buffer = self._prepare_copy_buffer(df)
 
