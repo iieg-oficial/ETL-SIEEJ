@@ -10,6 +10,8 @@ USECOLS = [
 
 EDADPADRE_INVALID = {888, 999}
 
+EXTRACT_POOL = "extract_pool"
+
 COPY_COLS = [
     "anio",
     "cve_geo",

@@ -1,8 +1,6 @@
 import io
 import zipfile
-from datetime import date
 from typing import Any, Optional
-
 import pandas as pd
 import requests
 
@@ -13,9 +11,10 @@ from core.utils.logger import get_logger
 
 
 class NacimientosDgisExtract(Stage):
-    def __init__(self):
+    def __init__(self, year: int | None = None):
         super().__init__(PIPELINE_NAME, "extract")
         self.logger = get_logger(f"{PIPELINE_NAME}.extract")
+        self.year = year
 
     def _fetch_year(self, year: int) -> pd.DataFrame | None:
         url = settings.SOURCE_URL.format(year=year)
@@ -36,33 +35,20 @@ class NacimientosDgisExtract(Stage):
         self.logger.info(f"[source] {year}: {len(df):,} rows")
         return df
 
-    def source(self, input_data: Optional[Any] = None) -> dict[int, pd.DataFrame]:
-        current_year = date.today().year
-        cached = {}
-        missing_years = []
+    def source(self, input_data: Optional[Any] = None) -> pd.DataFrame | None:
+        pkl = self.work_dir / f"sinac_{self.year}.pkl"
+        if pkl.exists():
+            self.logger.info(f"[source] {self.year}: loaded from cache ({pkl})")
+            return pd.read_pickle(pkl)
+        return self._fetch_year(self.year)
 
-        for year in range(settings.START_YEAR, current_year + 1):
-            pkl = self.work_dir / f"sinac_{year}.pkl"
-            if pkl.exists():
-                cached[year] = pd.read_pickle(pkl)
-                self.logger.info(f"[source] {year}: loaded from cache ({len(cached[year]):,} rows)")
-            else:
-                missing_years.append(year)
-
-        for year in missing_years:
-            df = self._fetch_year(year)
-            if df is not None:
-                cached[year] = df
-
-        return cached
-
-    def action(self, input_data: dict[int, pd.DataFrame]) -> dict[int, pd.DataFrame]:
+    def action(self, input_data: pd.DataFrame | None) -> pd.DataFrame | None:
         return input_data
 
-    def finalization(self, input_data: dict[int, pd.DataFrame]) -> dict[int, pd.DataFrame]:
-        for year, df in input_data.items():
-            df.to_pickle(self.work_dir / f"sinac_{year}.pkl")
-
-        total = sum(len(df) for df in input_data.values())
-        self.logger.info(f"[finalization] {total:,} rows saved across {len(input_data)} years")
+    def finalization(self, input_data: pd.DataFrame | None) -> pd.DataFrame | None:
+        if input_data is None or input_data.empty:
+            return input_data
+        pkl = self.work_dir / f"sinac_{self.year}.pkl"
+        input_data.to_pickle(pkl)
+        self.logger.info(f"[finalization] {self.year}: {len(input_data):,} rows saved")
         return input_data
