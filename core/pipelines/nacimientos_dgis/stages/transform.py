@@ -1,8 +1,7 @@
+import pandas as pd
 from datetime import date
 from pathlib import Path
 from typing import Any, Optional
-
-import pandas as pd
 
 from core.constants.geo import JALISCO_CVE_ENTIDAD
 from core.pipelines.nacimientos_dgis.constants import EDADPADRE_INVALID, PIPELINE_NAME
