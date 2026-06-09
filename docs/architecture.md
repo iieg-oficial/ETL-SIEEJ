@@ -14,8 +14,8 @@ Si una función de `load.py` está limpiando strings, o una de `extract.py` est�
 ### 2. Cada pipeline es autónomo
 Un pipeline no debe depender de la ejecución o el estado de otro pipeline. Las referencias cruzadas a tablas de otros pipelines se declaran como foreign tables en `V1__foreign_tables.sql`, no como dependencias de código Python.
 
-### 3. Las operaciones de escritura siempre pasan por `bulk_ops`
-Ningún código de pipeline inserta filas directamente con `session.add()` o `conn.execute(INSERT ...)`. Toda escritura usa `insert_records` o `upsert_records` de `core.utils.bulk_ops`. Esto garantiza consistencia en el manejo de errores, secuencias y rendimiento.
+### 3. Las operaciones de escritura siempre pasan por `bulk_ops` o usando copy
+Ningún código de pipeline inserta filas directamente con `session.add()` o `conn.execute(INSERT ...)`. Toda escritura usa `insert_records` o `upsert_records` de `core.utils.bulk_ops` o usando copy con queries de sql directo para mayor velocidad. Esto garantiza consistencia en el manejo de errores, secuencias y rendimiento.
 
 ### 4. La normalización es centralizada
 Toda limpieza de texto, fechas y valores nulos usa las utilidades de `core/utils/`. No se reimplementan estas funciones en los pipelines. Si una transformación recurrente no existe en `core/utils/`, se añade ahí y no se duplica en cada pipeline.
