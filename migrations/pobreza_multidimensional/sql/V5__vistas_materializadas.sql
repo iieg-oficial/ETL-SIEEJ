@@ -11,13 +11,13 @@
 CREATE MATERIALIZED VIEW IF NOT EXISTS pobreza AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_inegi,
+    g.geom_inegi,
     d.cve_mun                                AS clave_municipio,
-    g.geometry                               AS geom_iieg,
+    g.geom_iieg,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.nombre_municipio                       AS nombre,
     d.cat_entidad_id                         AS clave_entidad,
-    d.pobreza_porcentaje                     AS pobreza,
+    d.pobreza_porcentaje                     AS porcentaje,
     d.pobreza_personas                       AS personas,
     d.pobreza_promedio                       AS carencias_promedio
 FROM public.stg_pobreza_multidimensional_datos d
@@ -36,9 +36,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_pobreza_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS pobreza_extrema AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_inegi,
+    g.geom_inegi,
     d.cve_mun                                AS clave_municipio,
-    g.geometry                               AS geom_iieg,
+    g.geom_iieg,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.nombre_municipio                       AS nombre,
     d.cat_entidad_id                         AS clave_entidad,
@@ -61,9 +61,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_pobreza_extrema_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS pobreza_moderada AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_inegi,
+    g.geom_inegi,
     d.cve_mun                                AS clave_municipio,
-    g.geometry                               AS geom_iieg,
+    g.geom_iieg,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.nombre_municipio                       AS nombre,
     d.cat_entidad_id                         AS clave_entidad,
@@ -86,12 +86,12 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_pobreza_moderada_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS poblacion_ingreso_inferior_linea_pobreza_ingresos AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_inegi,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
     d.cve_mun                                AS clave_municipio,
-    g.geometry                               AS geom_iieg,
+    g.geom_iieg,
     d.lpi_personas                           AS personas,
     d.lpi_porcentaje                         AS porcentaje,
     d.lpi_promedio                           AS carencias_promedio
@@ -111,8 +111,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_lpi_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS poblacion_ingreso_inferior_linea_pobreza_extrema_ingresos AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -136,8 +136,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_lpei_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS rezago_educativo AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -161,8 +161,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_rezago_educativo_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS carencia_acceso_servicios_salud AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -186,8 +186,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_car_salud_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS carencia_acceso_seguridad_social AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -211,8 +211,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_car_seg_soc_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS carencia_calidad_espacios_vivienda AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -236,8 +236,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_car_viv_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS carencia_servicios_basicos_vivienda AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -261,8 +261,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_car_sbv_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS carencia_acceso_alimentacion AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -286,8 +286,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_car_ali_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS poblacion_con_al_menos_una_carencia_social AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -311,8 +311,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_al_1_car_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS poblacion_con_tres_o_mas_carencias_sociales AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -336,8 +336,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_tres_mas_car_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS vulnerables_por_carencia_social AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -361,8 +361,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_vul_carencia_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS vulnerables_por_ingreso AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,
@@ -386,8 +386,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_vul_ingreso_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS no_pobre_y_no_vulnerable AS
 SELECT
     ROW_NUMBER() OVER ()::bigint             AS fid,
-    g.geometry                               AS geom_iieg,
-    g.geometry                               AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     d.nombre_municipio                       AS nombre,
     (d.anio::text || '-01-01')::date         AS fecha,
     d.cat_entidad_id                         AS clave_entidad,

@@ -87,7 +87,7 @@ COMMENT ON COLUMN pobreza.geom_iieg IS 'Geometría del municipio (marco geoestad
 COMMENT ON COLUMN pobreza.fecha IS 'Fecha del periodo de medición (1 de enero del año).';
 COMMENT ON COLUMN pobreza.nombre IS 'Nombre oficial del municipio.';
 COMMENT ON COLUMN pobreza.clave_entidad IS 'FK al catálogo de entidades federativas.';
-COMMENT ON COLUMN pobreza.pobreza IS 'Porcentaje de personas en situación de pobreza.';
+COMMENT ON COLUMN pobreza.porcentaje IS 'Porcentaje de personas en situación de pobreza.';
 COMMENT ON COLUMN pobreza.personas IS 'Número de personas en situación de pobreza.';
 COMMENT ON COLUMN pobreza.carencias_promedio IS 'Promedio de carencias de la población en pobreza.';
 

@@ -22,13 +22,14 @@ OPTIONS (
 );
 
 CREATE FOREIGN TABLE IF NOT EXISTS cvegeo_municipalities (
-    id      INTEGER,
-    cvegeo  INTEGER,
-    cve_ent INTEGER,
-    cve_mun INTEGER,
-    nomgeo  VARCHAR,
-    nom_ent VARCHAR,
-    geometry geometry
+    id         INTEGER,
+    cvegeo     INTEGER,
+    cve_ent    INTEGER,
+    cve_mun    INTEGER,
+    nomgeo     VARCHAR,
+    nom_ent    VARCHAR,
+    geom_iieg  geometry(MultiPolygon, 6368),
+    geom_inegi geometry(MultiPolygon, 6368)
 )
 SERVER cvegeo_server
 OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
