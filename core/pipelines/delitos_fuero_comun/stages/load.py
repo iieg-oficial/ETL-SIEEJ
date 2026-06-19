@@ -16,6 +16,7 @@ from core.pipelines.delitos_fuero_comun.schemas import (
     StgDelitosFueroComun2026,
     StgDelitosFueroComunHistorico,
 )
+from core.pipelines.delitos_fuero_comun.queries import REFRESH_GOLD
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
@@ -121,7 +122,15 @@ class DelitosLoad(Stage):
             rows_2026 = len(records_2026)
             self.logger.info(f"2026 cargado: {rows_2026} filas")
 
+        self._refresh_gold()
         return {"rows_hist": rows_hist, "rows_2026": rows_2026}
+
+    def _refresh_gold(self) -> None:
+        with self.db.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(REFRESH_GOLD)
+            cursor.close()
+        self.logger.info("gold_delitos_fuero_comun refreshed")
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(Path(f"data/transform/{PIPELINE_NAME}"), self.logger)
