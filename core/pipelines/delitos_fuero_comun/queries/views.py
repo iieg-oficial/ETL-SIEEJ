@@ -1,1 +1,1 @@
-REFRESH_GOLD = "REFRESH MATERIALIZED VIEW gold_delitos_fuero_comun;"
+REFRESH_GOLD = "REFRESH MATERIALIZED VIEW CONCURRENTLY vw_gold_delitos_fuero_comun;"

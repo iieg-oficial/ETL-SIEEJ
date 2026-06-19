@@ -130,7 +130,7 @@ class DelitosLoad(Stage):
             cursor = conn.cursor()
             cursor.execute(REFRESH_GOLD)
             cursor.close()
-        self.logger.info("gold_delitos_fuero_comun refreshed")
+        self.logger.info("vw_gold_delitos_fuero_comun refreshed")
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(Path(f"data/transform/{PIPELINE_NAME}"), self.logger)

@@ -1,27 +1,30 @@
 -- =============================================================================
 -- V6__gold_delitos.sql  |  Pipeline: delitos_fuero_comun
--- Vista materializada gold_delitos_fuero_comun.
+-- Vista materializada vw_gold_delitos_fuero_comun.
 -- Consolida 13 delitos con total + 5 con desagregación por modalidad para
--- Jalisco (clave_ent = '14'), serie mensual 2015-presente, nivel municipal.
--- Las columnas geográficas (cve_municipio, clave_ent) vienen directamente
--- de las tablas stg; no se requiere JOIN a cvegeo_municipalities.
+-- Jalisco (cve_ent = 14), serie mensual 2015-presente, nivel municipal.
+-- Las columnas geográficas se derivan vía JOIN a cvegeo_municipalities.
 -- Tasa por 100k hab: LEFT JOIN a conapo_indicadores_demograficos (FDW de V5).
 -- La MV se crea WITH NO DATA; el primer REFRESH ocurre en el DAG bootstrap.
 -- =============================================================================
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS gold_delitos_fuero_comun AS
+-- -----------------------------------------------------------------------------
+-- Drop legacy MV (renamed from gold_delitos_fuero_comun)
+-- -----------------------------------------------------------------------------
+DROP MATERIALIZED VIEW IF EXISTS gold_delitos_fuero_comun CASCADE;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS vw_gold_delitos_fuero_comun AS
 WITH
 
 -- ---------------------------------------------------------------------------
 -- Bases: unpivot mensual desde cada tabla staging.
--- Filtro Jalisco aplicado directamente sobre clave_ent = '14'.
+-- Filtro Jalisco aplicado sobre cvegeo_municipalities.cve_ent = 14.
 -- Las columnas de texto de catálogos se resuelven con JOIN a las tablas cat_.
 -- ---------------------------------------------------------------------------
 base_hist AS (
     SELECT
         s.anio,
-        s.cve_municipio,
-        s.clave_ent,
+        LPAD(m.cvegeo::text, 5, '0')    AS cve_municipio,
         bja.bien_juridico_afectado,
         td.tipo_delito,
         sd.subtipo_delito,
@@ -29,6 +32,7 @@ base_hist AS (
         t.mes_num,
         t.conteo
     FROM stg_delitos_fuero_comun_2015_2025 s
+    JOIN cvegeo_municipalities      m   ON s.cvegeo = m.cvegeo
     JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
     JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
     JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
@@ -41,15 +45,14 @@ base_hist AS (
                          s.septiembre,s.octubre,s.noviembre,
                          s.diciembre])                              AS conteo
     ) t
-    WHERE s.clave_ent = '14'
+    WHERE m.cve_ent = 14
       AND t.conteo IS NOT NULL AND t.conteo > 0
 ),
 
 base_2026 AS (
     SELECT
         s.anio,
-        s.cve_municipio,
-        s.clave_ent,
+        LPAD(m.cvegeo::text, 5, '0')    AS cve_municipio,
         bja.bien_juridico_afectado,
         td.tipo_delito,
         sd.subtipo_delito,
@@ -57,6 +60,7 @@ base_2026 AS (
         t.mes_num,
         t.conteo
     FROM stg_delitos_fuero_comun_2026 s
+    JOIN cvegeo_municipalities      m   ON s.cvegeo = m.cvegeo
     JOIN cat_bien_juridico_afectado bja ON s.bien_juridico_afectado_id = bja.id
     JOIN cat_tipo_delito            td  ON s.tipo_delito_id             = td.id
     JOIN cat_subtipo_delito         sd  ON s.subtipo_delito_id          = sd.id
@@ -69,7 +73,7 @@ base_2026 AS (
                          s.septiembre,s.octubre,s.noviembre,
                          s.diciembre])                              AS conteo
     ) t
-    WHERE s.clave_ent = '14'
+    WHERE m.cve_ent = 14
       AND t.conteo IS NOT NULL AND t.conteo > 0
 ),
 
@@ -369,10 +373,10 @@ WITH NO DATA;
 
 -- =============================================================================
 -- ÍNDICES
--- uix_gold_delitos_nk: clave natural única, habilita REFRESH CONCURRENTLY
+-- uix_vw_gold_delitos_nk: clave natural única, habilita REFRESH CONCURRENTLY
 -- =============================================================================
-CREATE UNIQUE INDEX IF NOT EXISTS uix_gold_delitos_nk
-    ON gold_delitos_fuero_comun (
+CREATE UNIQUE INDEX IF NOT EXISTS uix_vw_gold_delitos_nk
+    ON vw_gold_delitos_fuero_comun (
         fecha_mes,
         cve_municipio,
         nivel_jerarquico,
@@ -380,43 +384,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uix_gold_delitos_nk
         COALESCE(modalidad, '')
     );
 
-CREATE INDEX IF NOT EXISTS ix_gold_delitos_anio
-    ON gold_delitos_fuero_comun (fecha_anio);
+CREATE INDEX IF NOT EXISTS ix_vw_gold_delitos_anio
+    ON vw_gold_delitos_fuero_comun (fecha_anio);
 
-CREATE INDEX IF NOT EXISTS ix_gold_delitos_municipio
-    ON gold_delitos_fuero_comun (cve_municipio);
+CREATE INDEX IF NOT EXISTS ix_vw_gold_delitos_municipio
+    ON vw_gold_delitos_fuero_comun (cve_municipio);
 
-CREATE INDEX IF NOT EXISTS ix_gold_delitos_delito
-    ON gold_delitos_fuero_comun (delito);
-
--- =============================================================================
--- COMENTARIOS
--- =============================================================================
-COMMENT ON MATERIALIZED VIEW gold_delitos_fuero_comun IS
-    'Gold layer de delitos del fuero común para Jalisco (clave_ent=14). '
-    'Consolida 13 delitos seleccionados con total mensual (nivel_jerarquico=delito) '
-    'y 5 con desagregación por modalidad (nivel_jerarquico=modalidad). '
-    'Tasa por 100,000 habitantes con población CONAPO (stg_indicadores_demograficos). '
-    'Fuente: SSPC/RNID 2015-2025 (stg_delitos_fuero_comun_2015_2025) y '
-    '2026+ (stg_delitos_fuero_comun_2026).';
-
-COMMENT ON COLUMN gold_delitos_fuero_comun.fecha_anio IS
-    'Año del registro (YYYY).';
-COMMENT ON COLUMN gold_delitos_fuero_comun.fecha_mes IS
-    'Mes del registro en formato YYYY-MM.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.clave_ent IS
-    'Clave de entidad federativa, siempre 14 (Jalisco).';
-COMMENT ON COLUMN gold_delitos_fuero_comun.cve_municipio IS
-    'Clave geoestadística del municipio (5 dígitos, EEMMM).';
-COMMENT ON COLUMN gold_delitos_fuero_comun.nivel_jerarquico IS
-    'Nivel de agregación: delito | modalidad.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.bien_juridico IS
-    'Bien jurídico afectado según catálogo SSPC.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.delito IS
-    'Nombre normalizado del delito en el gold.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.modalidad IS
-    'Modalidad del delito; NULL para nivel_jerarquico = delito.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.carpetas_investigacion IS
-    'Número de carpetas de investigación iniciadas en el mes.';
-COMMENT ON COLUMN gold_delitos_fuero_comun.tasa_carpetas_investigacion IS
-    'Tasa por 100,000 habitantes (CONAPO pob_mit_mun). NULL si sin dato poblacional.';
+CREATE INDEX IF NOT EXISTS ix_vw_gold_delitos_delito
+    ON vw_gold_delitos_fuero_comun (delito);
