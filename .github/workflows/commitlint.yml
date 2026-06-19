@@ -18,7 +18,7 @@ jobs:
         run: |
           commits=$(git log --format=%s --no-merges origin/${{ github.base_ref }}..HEAD)
 
-          regex="^(feat|fix|update|refactor|chore|docs|merge)(\([a-z0-9_-]+\))?: .+"
+          regex="^(feat|fix|update|refactor|chore|docs)(\([a-z0-9_-]+\))?: .+"
           error=0
 
           while read -r msg; do
@@ -39,7 +39,7 @@ jobs:
           if [ $error -eq 1 ]; then
             echo ""
             echo "Format: <type>[(<scope>)]: <description>"
-            echo "Types:  feat, fix, update, refactor, chore, docs, merge"
+            echo "Types:  feat, fix, update, refactor, chore, docs"
             echo ""
             echo "Examples:"
             echo "  feat(repd): add extract stage"
