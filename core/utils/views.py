@@ -12,6 +12,9 @@ def refresh_materialized_views(
 ) -> None:
     """Refresh one or more materialized views through a raw connection.
 
+    When *concurrently* is True and a view has never been populated, the
+    first refresh is done without CONCURRENTLY (PostgreSQL requirement).
+
     Args:
         db: Connected Database instance (exposes get_connection()).
         views: Materialized view names to refresh, in order.
@@ -19,12 +22,20 @@ def refresh_materialized_views(
             locks. Each view must have a unique index and have been populated
             at least once. Set False only for views with no unique index.
     """
-    clause = "CONCURRENTLY " if concurrently else ""
-    statements = "\n".join(f"REFRESH MATERIALIZED VIEW {clause}{view};" for view in views)
-
     with db.get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute(statements)
-        cursor.close()
+        for view in views:
+            if concurrently:
+                cursor.execute(
+                    "SELECT relispopulated FROM pg_class WHERE relname = %s AND relkind = 'm'",
+                    (view,),
+                )
+                row = cursor.fetchone()
+                is_populated = row[0] if row else True
+                clause = "CONCURRENTLY " if is_populated else ""
+            else:
+                clause = ""
 
-    logger.info("[refresh] materialized views refreshed")
+            cursor.execute(f"REFRESH MATERIALIZED VIEW {clause}{view};")
+            logger.info(f"[refresh] {view} refreshed{' concurrently' if clause else ''}")
+        cursor.close()
