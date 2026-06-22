@@ -16,13 +16,14 @@ ALTER FOREIGN TABLE cvegeo_municipalities
     ADD COLUMN IF NOT EXISTS geom_inegi geometry(MultiPolygon, 6368);
 
 -- =============================================================================
--- Macro de columnas comunes a las 15 MVs estándar (por delito):
+-- Macro de columnas comunes a las 14 MVs estándar (por delito):
 --   fid, geom_iieg, geom_inegi, nombre, fecha, clave_entidad, clave_municipio,
 --   bien_juridico, delito, con_arma_de_fuego, con_arma_blanca,
---   con_otro_elemento, no_especificado, carpetas_investigacion,
---   tasa_carpetas_investigacion
--- El pivot de armas usa las filas nivel_jerarquico = 'modalidad' del gold MV.
+--   con_otro_elemento, no_especificado, con_violencia, sin_violencia,
+--   carpetas_investigacion, tasa_carpetas_investigacion
+-- El pivot de armas/violencia usa filas nivel_jerarquico = 'modalidad' del gold MV.
 -- carpetas_investigacion y tasa usan la fila nivel_jerarquico = 'delito'.
+-- Excepción: feminicidio conserva nivel_jerarquico + modalidad sin pivot.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -55,6 +56,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -155,6 +164,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -205,6 +222,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -255,6 +280,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -305,6 +338,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -357,6 +398,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -407,6 +456,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -457,6 +514,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -507,6 +572,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -557,6 +630,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -607,6 +688,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -657,6 +746,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -707,6 +804,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
@@ -757,6 +862,14 @@ SELECT
         WHERE g.nivel_jerarquico = 'modalidad'
           AND g.modalidad ILIKE '%no especificado%'
     )                                                           AS no_especificado,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%con violencia%'
+    )                                                           AS con_violencia,
+    SUM(g.carpetas_investigacion) FILTER (
+        WHERE g.nivel_jerarquico = 'modalidad'
+          AND g.modalidad ILIKE '%sin violencia%'
+    )                                                           AS sin_violencia,
     MAX(g.carpetas_investigacion) FILTER (
         WHERE g.nivel_jerarquico = 'delito'
     )                                                           AS carpetas_investigacion,
