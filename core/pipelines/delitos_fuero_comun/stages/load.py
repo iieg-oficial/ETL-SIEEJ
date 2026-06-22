@@ -16,9 +16,9 @@ from core.pipelines.delitos_fuero_comun.schemas import (
     StgDelitosFueroComun2026,
     StgDelitosFueroComunHistorico,
 )
-from core.pipelines.delitos_fuero_comun.queries import REFRESH_GOLD
+from core.pipelines.delitos_fuero_comun.queries import REFRESH_GOLD, REFRESH_SECRETARIADO
 from core.pipelines.stage import Stage
-from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence, upsert_records
+from core.utils.bulk_ops import bulk_insert_do_nothing, get_mapping, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
 
 
@@ -94,7 +94,13 @@ class DelitosLoad(Stage):
             if df_historico is not None:
                 df_hist = self._resolve_ids(df_historico, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
                 records_hist = _prepare_records(df_hist, StgDelitosFueroComunHistorico, ("id", "created_at"))
-                bulk_insert(session, records_hist, StgDelitosFueroComunHistorico, chunk_size=settings.LOAD_BATCH_SIZE)
+                bulk_insert_do_nothing(
+                    session,
+                    records_hist,
+                    StgDelitosFueroComunHistorico,
+                    conflict_keys=NK_COLS,
+                    chunk_size=settings.LOAD_BATCH_SIZE,
+                )
                 sync_id_sequence(session, StgDelitosFueroComunHistorico)
                 rows_hist = len(records_hist)
                 self.logger.info(f"Histórico cargado: {rows_hist} filas")
@@ -105,7 +111,13 @@ class DelitosLoad(Stage):
 
             if self.mode == "bootstrap":
                 records_2026 = _prepare_records(df_26, StgDelitosFueroComun2026, ("id", "created_at", "updated_at"))
-                bulk_insert(session, records_2026, StgDelitosFueroComun2026, chunk_size=settings.LOAD_BATCH_SIZE)
+                bulk_insert_do_nothing(
+                    session,
+                    records_2026,
+                    StgDelitosFueroComun2026,
+                    conflict_keys=NK_COLS,
+                    chunk_size=settings.LOAD_BATCH_SIZE,
+                )
             else:
                 df_26["updated_at"] = datetime.utcnow()
                 records_2026 = _prepare_records(df_26, StgDelitosFueroComun2026, ("id", "created_at"))
@@ -129,8 +141,10 @@ class DelitosLoad(Stage):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(REFRESH_GOLD)
+            for stmt in REFRESH_SECRETARIADO:
+                cursor.execute(stmt)
             cursor.close()
-        self.logger.info("vw_gold_delitos_fuero_comun refreshed")
+        self.logger.info("vw_gold_delitos_fuero_comun y vistas secretariado refrescadas")
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(Path(f"data/transform/{PIPELINE_NAME}"), self.logger)
