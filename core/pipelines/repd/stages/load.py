@@ -14,6 +14,7 @@ from core.pipelines.repd.consts import (
     PIPELINE_NAME,
     SKIP_MUNICIPALITY_VALUES,
 )
+from core.pipelines.repd.queries import MATERIALIZED_VIEWS
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
     CaseCurrent,
@@ -30,6 +31,7 @@ from core.utils.bulk_ops import (
 from core.utils.files import clean_directory
 from core.utils.normalize import normalize_text
 from core.utils.records import compute_record_hash
+from core.utils.views import refresh_materialized_views
 
 
 class REPDLoader(Stage):
@@ -73,7 +75,13 @@ class REPDLoader(Stage):
         else:
             stats = self._load_update(df)
 
+        self._refresh_views()
+
         return stats
+
+    # Refresca las vistas materializadas despues de cargar datos
+    def _refresh_views(self) -> None:
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
     # Sincroniza secuencias, limpia carpeta de datos y desconecta
     def finalization(self, input_data: Optional[Any] = None) -> dict:
