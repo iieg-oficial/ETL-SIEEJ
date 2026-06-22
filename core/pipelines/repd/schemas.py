@@ -1,8 +1,10 @@
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Index, String, UniqueConstraint, func
+from sqlalchemy import BigInteger, Date, Index, Integer, Numeric, String, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from geoalchemy2 import Geometry
 
 
 class RepdBase(DeclarativeBase):
@@ -152,4 +154,115 @@ CATALOG_MODELS = {
     "location_condition": CatLocationCondition,
     "location_classification": CatLocationClassification,
     "closure_type": CatClosureType,
+}
+
+
+# Vistas materializadas para consumo GIS (iieg_gis)
+
+
+class PersonasDesaparecidas(RepdBase):
+    __tablename__ = "personas_desaparecidas"
+    __table_args__ = (Index("ix_personas_desaparecidas_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total: Mapped[Optional[int]] = mapped_column(Integer)
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer)
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_total: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    tasa_hombres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    tasa_mujeres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+class PersonasDesaparecidasHombres(RepdBase):
+    __tablename__ = "personas_desaparecidas_hombres"
+    __table_args__ = (Index("ix_personas_desaparecidas_hombres_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_hombres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+class PersonasDesaparecidasMujeres(RepdBase):
+    __tablename__ = "personas_desaparecidas_mujeres"
+    __table_args__ = (Index("ix_personas_desaparecidas_mujeres_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_mujeres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+class PersonasLocalizadas(RepdBase):
+    __tablename__ = "personas_localizadas"
+    __table_args__ = (Index("ix_personas_localizadas_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total: Mapped[Optional[int]] = mapped_column(Integer)
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer)
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_total: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    tasa_hombres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+    tasa_mujeres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+class PersonasLocalizadasHombres(RepdBase):
+    __tablename__ = "personas_localizadas_hombres"
+    __table_args__ = (Index("ix_personas_localizadas_hombres_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_hombres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+class PersonasLocalizadasMujeres(RepdBase):
+    __tablename__ = "personas_localizadas_mujeres"
+    __table_args__ = (Index("ix_personas_localizadas_mujeres_fid", "fid", unique=True),)
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MultiPolygon", srid=6368))
+    nombre: Mapped[Optional[str]] = mapped_column(String(254))
+    fecha: Mapped[Optional[date]] = mapped_column(Date)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(String(2))
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5))
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer)
+    tasa_mujeres: Mapped[Optional[Decimal]] = mapped_column(Numeric(12, 2))
+
+
+MATERIALIZED_VIEW_MODELS = {
+    "personas_desaparecidas": PersonasDesaparecidas,
+    "personas_desaparecidas_hombres": PersonasDesaparecidasHombres,
+    "personas_desaparecidas_mujeres": PersonasDesaparecidasMujeres,
+    "personas_localizadas": PersonasLocalizadas,
+    "personas_localizadas_hombres": PersonasLocalizadasHombres,
+    "personas_localizadas_mujeres": PersonasLocalizadasMujeres,
 }
