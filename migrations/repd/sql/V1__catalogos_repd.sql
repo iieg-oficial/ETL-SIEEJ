@@ -1,10 +1,11 @@
 -- =======================================================================
--- V1: Foreign Data Wrapper + Tablas catalogo REPD
+-- V1: Foreign Data Wrappers (cvegeo + conapo) + Tablas catalogo REPD
 -- =======================================================================
 
--- FDW para acceder a cvegeo_municipalities (resolucion de municipios INEGI)
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+CREATE EXTENSION IF NOT EXISTS postgis;
 
+-- FDW para acceder a cvegeo_municipalities (geometrias + resolucion de municipios)
 CREATE SERVER IF NOT EXISTS cvegeo_server
 FOREIGN DATA WRAPPER postgres_fdw
 OPTIONS (
@@ -26,10 +27,36 @@ CREATE FOREIGN TABLE IF NOT EXISTS cvegeo_municipalities (
     cve_ent   INTEGER,
     cve_mun   INTEGER,
     nomgeo    VARCHAR,
-    nom_ent   VARCHAR
+    nom_ent   VARCHAR,
+    geometry  geometry(MultiPolygon, 6372)
 )
 SERVER cvegeo_server
 OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
+
+-- FDW para acceder a CONAPO (poblacion municipal por sexo y anio)
+CREATE SERVER IF NOT EXISTS conapo_server
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (
+    dbname 'conapo',
+    host '${fdw_host}',
+    port '${fdw_port}'
+);
+
+CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
+SERVER conapo_server
+OPTIONS (
+    user '${fdw_user}',
+    password '${fdw_password}'
+);
+
+CREATE FOREIGN TABLE IF NOT EXISTS conapo_poblacion (
+    municipio_id  INTEGER,
+    sexo_id       INTEGER,
+    anio          INTEGER,
+    pob_total     INTEGER
+)
+SERVER conapo_server
+OPTIONS (schema_name 'public', table_name 'stg_poblacion_mitad_anio');
 
 -- Catalogos
 CREATE TABLE IF NOT EXISTS stg_repd_cat_sex (
