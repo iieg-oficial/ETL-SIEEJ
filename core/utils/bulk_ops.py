@@ -67,6 +67,18 @@ def get_all_records(session, model, columns: List[str] = None) -> List[Dict]:
     return [row.__dict__ for row in session.query(model).all()]
 
 
+def bulk_insert_do_nothing(session, data: List[Dict], model, conflict_keys: List[str], chunk_size: int = 1000) -> None:
+    """Bulk INSERT ... ON CONFLICT DO NOTHING, safe for re-runs."""
+    table = model.__table__
+    total = len(data)
+    logger.info(f"Bulk inserting {total} records into '{table.name}' (ON CONFLICT DO NOTHING)")
+    for i, chunk in enumerate(chunked(data, chunk_size), start=1):
+        stmt = insert(model).values(chunk).on_conflict_do_nothing(index_elements=conflict_keys)
+        session.execute(stmt)
+        logger.info(f"  chunk {i}: {min(i * chunk_size, total)}/{total}")
+    session.flush()
+
+
 def sync_id_sequence(session, model) -> None:
     max_id = session.query(func.max(model.id)).scalar() or 0
     logger.info(f"Syncing sequence for '{model.__tablename__}' to {max_id + 1}")
