@@ -56,9 +56,37 @@ REPD_DATA_URL=
 
 | migración | descripción |
 |---|---|
-| `V1__catalogos_repd.sql` | Catálogos de sexo, nacionalidad, rango de edad, estatus, condición y tipo de cierre |
+| `V1__catalogos_repd.sql` | FDW a cvegeo (con geometrías) y CONAPO; catálogos de sexo, nacionalidad, rango de edad, estatus, condición y tipo de cierre |
 | `V2__tabla_stg_repd.sql` | Tablas `stg_repd_case_current` y `stg_repd_case_history` |
 | `V3__vista_repd.sql` | Vista analítica que resuelve catálogos y municipios |
+| `V4__vistas_materializadas_repd.sql` | 6 vistas materializadas con geometrías y tasas CONAPO para consumo GIS |
+| `V5__comments_repd.sql` | Comentarios en vistas materializadas |
+
+## Vistas materializadas (consumo GIS)
+
+6 vistas materializadas que agregan casos REPD por municipio y mes, con geometrías (`geom_iieg`, `geom_inegi` SRID 6368) y tasas por 100,000 habitantes (denominador CONAPO).
+
+| vista | columnas clave | descripción |
+|---|---|---|
+| `personas_desaparecidas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Reportes mensuales de personas desaparecidas por municipio (status_id = 2) |
+| `personas_desaparecidas_hombres` | `total_hombres`, `tasa_hombres` | Vista filtrada sólo con desaparecidos hombres |
+| `personas_desaparecidas_mujeres` | `total_mujeres`, `tasa_mujeres` | Vista filtrada sólo con desaparecidas mujeres |
+| `personas_localizadas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Personas localizadas por municipio y mes (status_id = 3) |
+| `personas_localizadas_hombres` | `total_hombres`, `tasa_hombres` | Vista filtrada sólo con localizados hombres |
+| `personas_localizadas_mujeres` | `total_mujeres`, `tasa_mujeres` | Vista filtrada sólo con localizadas mujeres |
+
+Columnas comunes: `fid`, `nombre`, `fecha` (YYYY-MM-01), `clave_entidad` (14), `clave_municipio` (EEMMM), `geom_iieg`, `geom_inegi`.
+
+Las vistas se crean con `WITH NO DATA`; se deben refrescar después de cada carga:
+
+```shell
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_desaparecidas;"
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_desaparecidas_hombres;"
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_desaparecidas_mujeres;"
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_localizadas;"
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_localizadas_hombres;"
+just psql repd -c "REFRESH MATERIALIZED VIEW personas_localizadas_mujeres;"
+```
 
 ## Variables de entorno
 
