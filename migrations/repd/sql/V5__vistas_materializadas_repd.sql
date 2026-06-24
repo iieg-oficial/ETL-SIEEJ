@@ -1,5 +1,5 @@
 -- =======================================================================
--- V4: Vistas materializadas REPD para consumo GIS (iieg_gis)
+-- V5: Vistas materializadas REPD para consumo GIS (iieg_gis)
 -- =======================================================================
 -- 6 vistas materializadas con geometrias municipales y tasas CONAPO.
 -- Status: 2 = PERSONA DESAPARECIDA, 3 = PERSONA LOCALIZADA
@@ -36,8 +36,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
@@ -95,8 +95,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
@@ -144,8 +144,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
@@ -195,8 +195,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
@@ -254,8 +254,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
@@ -303,8 +303,8 @@ pob AS (
 )
 SELECT
     ROW_NUMBER() OVER ()::bigint                          AS fid,
-    ST_Transform(g.geometry, 6368)                       AS geom_iieg,
-    ST_Transform(g.geometry, 6368)                       AS geom_inegi,
+    g.geom_iieg,
+    g.geom_inegi,
     g.nomgeo::varchar(254)                               AS nombre,
     a.fecha,
     '14'::char(2)                                        AS clave_entidad,
