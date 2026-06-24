@@ -285,6 +285,34 @@ modalidad_vehiculos AS (
     WHERE delito IS NOT NULL AND modalidad_norm IS NOT NULL
 ),
 
+-- D) Con/sin violencia para los 6 subtipos de robo restantes.
+--    El staging tiene modalidad_id con 'Con violencia' / 'Sin violencia' para estos subtipos,
+--    pero la CTE todas_modalidades original no los incluía.
+modalidad_subtipo_robos AS (
+    SELECT
+        anio,
+        mes_num,
+        cve_municipio,
+        bien_juridico_afectado,
+        subtipo_delito                      AS delito,
+        modalidad,
+        SUM(conteo)                         AS carpetas_investigacion
+    FROM base
+    WHERE subtipo_delito IN (
+        'Robo de autopartes',
+        'Robo a transportista',
+        'Robo a transeúnte en vía pública',
+        'Robo a institución bancaria',
+        'Robo a negocio',
+        'Robo a casa habitación'
+    )
+      AND (
+           modalidad ILIKE '%con violencia%'
+        OR modalidad ILIKE '%sin violencia%'
+      )
+    GROUP BY anio, mes_num, cve_municipio, bien_juridico_afectado, subtipo_delito, modalidad
+),
+
 todas_modalidades AS (
     SELECT anio, mes_num, cve_municipio, bien_juridico_afectado, delito, modalidad, carpetas_investigacion
     FROM modalidad_directa
@@ -293,6 +321,11 @@ todas_modalidades AS (
 
     SELECT anio, mes_num, cve_municipio, bien_juridico_afectado, delito, modalidad, carpetas_investigacion
     FROM modalidad_vehiculos
+
+    UNION ALL
+
+    SELECT anio, mes_num, cve_municipio, bien_juridico_afectado, delito, modalidad, carpetas_investigacion
+    FROM modalidad_subtipo_robos
 ),
 
 -- =============================================================================
