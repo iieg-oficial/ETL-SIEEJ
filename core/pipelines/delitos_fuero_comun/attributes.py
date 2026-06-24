@@ -8,6 +8,7 @@ class DelitosFueroComunTables(StrEnum):
     CAT_MODALIDAD = auto()
     STG_DELITOS_FUERO_COMUN_2015_2025 = auto()
     STG_DELITOS_FUERO_COMUN_2026 = auto()
+    GOLD_DELITOS_FUERO_COMUN = auto()
 
 
 # Column definitions for both staging tables (post-transform, pre-load).

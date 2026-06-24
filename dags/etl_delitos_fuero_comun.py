@@ -61,7 +61,7 @@ if _AIRFLOW_AVAILABLE:
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
-        tags=["etl", "delitos_fuero_comun", "sspc", "bootstrap"],
+        tags=["etl", "delitos_fuero_comun", "sspc", "bootstrap", "gold"],
     ) as dag_bootstrap:
         PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
 
@@ -72,7 +72,7 @@ if _AIRFLOW_AVAILABLE:
         start_date=datetime(2024, 1, 1),
         schedule="0 12 1 * *",
         catchup=False,
-        tags=["etl", "delitos_fuero_comun", "sspc", "update"],
+        tags=["etl", "delitos_fuero_comun", "sspc", "update", "gold"],
     ) as dag_update:
         PythonOperator(task_id="run_update", python_callable=run_update)
 
