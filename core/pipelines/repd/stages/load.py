@@ -75,13 +75,9 @@ class REPDLoader(Stage):
         else:
             stats = self._load_update(df)
 
-        self._refresh_views()
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         return stats
-
-    # Refresca las vistas materializadas despues de cargar datos
-    def _refresh_views(self) -> None:
-        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
     # Sincroniza secuencias, limpia carpeta de datos y desconecta
     def finalization(self, input_data: Optional[Any] = None) -> dict:
