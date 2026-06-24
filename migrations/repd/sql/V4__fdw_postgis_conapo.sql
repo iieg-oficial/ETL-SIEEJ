@@ -4,17 +4,23 @@
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
--- Recrear foreign table de cvegeo con columna geometry
+-- Recrear foreign table de cvegeo con columnas geom_iieg y geom_inegi (SRID 6368)
 -- La vista stg_repd_case_current_vw depende de la foreign table, se recrea despues
 DROP FOREIGN TABLE IF EXISTS cvegeo_municipalities CASCADE;
 CREATE FOREIGN TABLE cvegeo_municipalities (
-    id        INTEGER,
-    cvegeo    INTEGER,
-    cve_ent   INTEGER,
-    cve_mun   INTEGER,
-    nomgeo    VARCHAR,
-    nom_ent   VARCHAR,
-    geometry  geometry(MultiPolygon, 6372)
+    id          INTEGER,
+    cvegeo      INTEGER,
+    cve_ent     INTEGER,
+    cve_mun     INTEGER,
+    nomgeo      VARCHAR,
+    nom_ent     VARCHAR,
+    geom_iieg   geometry(MultiPolygon, 6368),
+    geom_inegi  geometry(MultiPolygon, 6368),
+    region      VARCHAR,
+    area_km2_iieg   DOUBLE PRECISION,
+    area_km2_inegi  DOUBLE PRECISION,
+    area_ha_iieg    DOUBLE PRECISION,
+    area_ha_inegi   DOUBLE PRECISION
 )
 SERVER cvegeo_server
 OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
