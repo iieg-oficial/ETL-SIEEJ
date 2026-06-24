@@ -14,6 +14,7 @@ from core.pipelines.repd.consts import (
     PIPELINE_NAME,
     SKIP_MUNICIPALITY_VALUES,
 )
+from core.pipelines.repd.queries import MATERIALIZED_VIEWS
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
     CaseCurrent,
@@ -30,6 +31,7 @@ from core.utils.bulk_ops import (
 from core.utils.files import clean_directory
 from core.utils.normalize import normalize_text
 from core.utils.records import compute_record_hash
+from core.utils.views import refresh_materialized_views
 
 
 class REPDLoader(Stage):
@@ -72,6 +74,8 @@ class REPDLoader(Stage):
             stats = self._load_bootstrap(df)
         else:
             stats = self._load_update(df)
+
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         return stats
 
