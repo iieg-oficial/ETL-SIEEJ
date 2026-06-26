@@ -98,7 +98,7 @@ class CensosEconomicosTransformer(Stage):
 
         df.columns = df.columns.str.lower()
 
-        geo_rename = GEO_RENAME_2024 if year == 2024 else GEO_RENAME_2019
+        geo_rename = GEO_RENAME_2024 if year == 2023 else GEO_RENAME_2019
         if geo_rename:
             df = df.rename(columns=geo_rename)
 

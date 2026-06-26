@@ -43,7 +43,7 @@ INEGI_STATE_SLUGS: dict[str, str] = {
 }
 
 CE_YEARS_CONFIG: dict[int, dict] = {
-    2019: {
+    2018: {
         "url_template": ("https://www.inegi.org.mx/contenidos/programas/ce/2019/Datosabiertos/ce2019_{slug}_csv.zip"),
         "slugs": INEGI_STATE_SLUGS,
         "data_csv_pattern": "conjunto_de_datos/ce2019_{slug}.csv",
@@ -51,7 +51,7 @@ CE_YEARS_CONFIG: dict[int, dict] = {
         "catalog_estrato": "catalogos/tc_estrato_ce2019.csv",
         "diccionario": "diccionario_de_datos/",
     },
-    2024: {
+    2023: {
         "url_template": (
             "https://www.inegi.org.mx/contenidos/programas/ce/2024/"
             "datosabiertos/conjunto_de_datos_ce_{slug}_2024_csv.zip"
@@ -351,8 +351,8 @@ RENAME_COLS_2019: dict[str, str] = {
 }
 
 RENAME_COLS_BY_YEAR: dict[int, dict[str, str]] = {
-    2019: RENAME_COLS_2019,
-    2024: RENAME_COLS_2024,
+    2018: RENAME_COLS_2019,
+    2023: RENAME_COLS_2024,
 }
 
 COLUMN_DESCRIPTIONS_2024: dict[str, str] = {
@@ -545,8 +545,8 @@ COLUMN_DESCRIPTIONS_2019: dict[str, str] = {
 }
 
 COLUMN_DESCRIPTIONS_BY_YEAR: dict[int, dict[str, str]] = {
-    2019: COLUMN_DESCRIPTIONS_2019,
-    2024: COLUMN_DESCRIPTIONS_2024,
+    2018: COLUMN_DESCRIPTIONS_2019,
+    2023: COLUMN_DESCRIPTIONS_2024,
 }
 
 GEO_LEVEL_NACIONAL = "nacional"

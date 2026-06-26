@@ -59,7 +59,7 @@ class StgEconomicoBase(CensosEconomicosBase):
     estrato_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_ESTRATOS}.id"), nullable=True)
 
 
-class StgEconomico2019Base(StgEconomicoBase):
+class StgEconomico2018Base(StgEconomicoBase):
     __abstract__ = True
 
     unidades_economicas: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -248,7 +248,7 @@ class StgEconomico2019Base(StgEconomicoBase):
     part_muje_pers_ocupado_tot: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
-class StgEconomico2024Base(StgEconomicoBase):
+class StgEconomico2023Base(StgEconomicoBase):
     __abstract__ = True
 
     sector: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -356,35 +356,35 @@ class StgEconomico2024Base(StgEconomicoBase):
     acervo_mobiliario_oficina_mdp: Mapped[float | None] = mapped_column(Float, nullable=True)
 
 
-class StgEconomicoNacional2019(StgEconomico2019Base):
-    __tablename__ = T.STG_ECONOMICO_NACIONAL_2019
+class StgEconomicoNacional2018(StgEconomico2018Base):
+    __tablename__ = T.STG_ECONOMICO_NACIONAL_2018
 
 
-class StgEconomicoEstatal2019(StgEconomico2019Base):
-    __tablename__ = T.STG_ECONOMICO_ESTATAL_2019
+class StgEconomicoEstatal2018(StgEconomico2018Base):
+    __tablename__ = T.STG_ECONOMICO_ESTATAL_2018
 
     cve_ent: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
-class StgEconomicoMunicipal2019(StgEconomico2019Base):
-    __tablename__ = T.STG_ECONOMICO_MUNICIPAL_2019
+class StgEconomicoMunicipal2018(StgEconomico2018Base):
+    __tablename__ = T.STG_ECONOMICO_MUNICIPAL_2018
 
     cve_ent: Mapped[int] = mapped_column(Integer, nullable=False)
     cve_mun: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
-class StgEconomicoNacional2024(StgEconomico2024Base):
-    __tablename__ = T.STG_ECONOMICO_NACIONAL_2024
+class StgEconomicoNacional2023(StgEconomico2023Base):
+    __tablename__ = T.STG_ECONOMICO_NACIONAL_2023
 
 
-class StgEconomicoEstatal2024(StgEconomico2024Base):
-    __tablename__ = T.STG_ECONOMICO_ESTATAL_2024
+class StgEconomicoEstatal2023(StgEconomico2023Base):
+    __tablename__ = T.STG_ECONOMICO_ESTATAL_2023
 
     cve_ent: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
-class StgEconomicoMunicipal2024(StgEconomico2024Base):
-    __tablename__ = T.STG_ECONOMICO_MUNICIPAL_2024
+class StgEconomicoMunicipal2023(StgEconomico2023Base):
+    __tablename__ = T.STG_ECONOMICO_MUNICIPAL_2023
 
     cve_ent: Mapped[int] = mapped_column(Integer, nullable=False)
     cve_mun: Mapped[int] = mapped_column(Integer, nullable=False)
