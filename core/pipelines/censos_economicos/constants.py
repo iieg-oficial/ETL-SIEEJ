@@ -558,6 +558,8 @@ GEO_RENAME_2024: dict[str, str] = {"e03": "entidad", "e04": "municipio"}
 
 EXTRA_COLS_2024: list[str] = ["sector", "subsector", "rama", "subrama", "clase"]
 
+TOTAL_ROW_CODIGO: str = "TOTAL DE SECTOR"
+
 CLASIFICADOR_TEXT_TO_ID: dict[str, int] = {v.lower(): k for k, v in CLASIFICADOR_CODIGO_MAP.items()}
 
 ENTITY_CHUNK_SIZE: int = 4

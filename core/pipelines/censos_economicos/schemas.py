@@ -31,7 +31,15 @@ class CatClasificadoresCodigos(CensosEconomicosBase):
 
 class CatActividadesEconomicas(CensosEconomicosBase):
     __tablename__ = T.CAT_ACTIVIDADES_ECONOMICAS
-    __table_args__ = (UniqueConstraint("codigo", "codigo_id", "censo_id", name="uq_actividad_codigo_clas_censo"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "codigo",
+            "codigo_id",
+            "censo_id",
+            name="uq_actividad_codigo_clas_censo",
+            postgresql_nulls_not_distinct=True,
+        ),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     censo_id: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_CENSOS}.id"), nullable=False)
