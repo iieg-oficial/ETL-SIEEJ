@@ -1,7 +1,8 @@
+import time
 from pathlib import Path
 from typing import Any, Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from core.db import Database
 from core.pipelines.stage import Stage
@@ -35,6 +36,19 @@ class EnoeExtract(Stage):
             db.disconnect()
         return (result.anio, result.trimestre) if result else None
 
+    def _loaded_periods(self) -> set[tuple[int, int]]:
+        db = Database(settings.DB_NAME, settings.database_url)
+        db.connect()
+        try:
+            with db.get_session() as session:
+                rows = session.execute(
+                    select(StgEnoe.anio, StgEnoe.trimestre)
+                    .group_by(StgEnoe.anio, StgEnoe.trimestre)
+                ).all()
+        finally:
+            db.disconnect()
+        return {(r.anio, r.trimestre) for r in rows}
+
     def _periods(self) -> list[tuple[int, int]]:
         if self.mode == "bootstrap":
             return trimestres_range(self.start_year, self.start_trimestre)
@@ -55,6 +69,7 @@ class EnoeExtract(Stage):
 
     def action(self, input_data: list[tuple[int, int]]) -> list[Path]:
         saved: list[Path] = []
+        loaded = self._loaded_periods()
 
         for anio, trimestre in input_data:
             pkl_path = self.work_dir / f"enoe_{anio}_{trimestre}.pkl"
@@ -64,14 +79,23 @@ class EnoeExtract(Stage):
                 saved.append(pkl_path)
                 continue
 
+            if (anio, trimestre) in loaded:
+                self.logger.info(f"[action] {anio} T{trimestre} already in DB, skipping")
+                continue
+
             url = settings.build_url(anio, trimestre)
-            url_alt = settings.build_url_alt(anio, trimestre)
+            fallbacks = [
+                settings.build_url_alt(anio, trimestre),
+                settings.build_url_c(anio, trimestre),
+                settings.build_url_n(anio, trimestre),
+            ]
             self.logger.info(f"[action] Downloading {anio} T{trimestre}")
 
             try:
-                df = download_sdem(url, anio, trimestre, url_alt=url_alt)
+                df = download_sdem(url, anio, trimestre, fallbacks=fallbacks)
             except Exception as e:
                 self.logger.warning(f"[action] Failed {anio} T{trimestre}: {e}")
+                time.sleep(2)
                 continue
 
             if df.empty:
@@ -81,6 +105,7 @@ class EnoeExtract(Stage):
             df.to_pickle(pkl_path)
             self.logger.info(f"[action] {len(df):,} Jalisco rows saved to {pkl_path.name}")
             saved.append(pkl_path)
+            time.sleep(1)
 
         return saved
 

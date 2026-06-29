@@ -10,6 +10,8 @@ from core.pipelines.enoe.constants import JALISCO_ENT, SDEM_COLS
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+_HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0 Safari/537.36"}
+
 
 def current_trimestre() -> tuple[int, int]:
     today = date.today()
@@ -30,13 +32,21 @@ def trimestres_range(start_year: int, start_t: int) -> list[tuple[int, int]]:
 
 
 def _parse_sdem(content: bytes, anio: int, trimestre: int) -> pd.DataFrame:
-    csv_name = (
-        f"conjunto_de_datos_sdem_enoe_{anio}_{trimestre}t/"
-        f"conjunto_de_datos/conjunto_de_datos_sdem_enoe_{anio}_{trimestre}t.csv"
-    )
-    with zipfile.ZipFile(io.BytesIO(content)) as z:
-        with z.open(csv_name) as f:
-            df = pd.read_csv(f, encoding="latin-1", low_memory=False)
+    # Try both "enoe" (regular) and "enoen" (COVID-19 period: 2020 T2–2022)
+    for prefix in ("enoe", "enoen"):
+        csv_name = (
+            f"conjunto_de_datos_sdem_{prefix}_{anio}_{trimestre}t/"
+            f"conjunto_de_datos/conjunto_de_datos_sdem_{prefix}_{anio}_{trimestre}t.csv"
+        )
+        try:
+            with zipfile.ZipFile(io.BytesIO(content)) as z:
+                with z.open(csv_name) as f:
+                    df = pd.read_csv(f, encoding="latin-1", low_memory=False)
+            break
+        except KeyError:
+            continue
+    else:
+        raise ValueError(f"SDEM CSV not found in ZIP for {anio} T{trimestre}")
 
     df.columns = [c.strip().lower() for c in df.columns]
     ent_col = "cve_ent" if "cve_ent" in df.columns else "ent"
@@ -45,14 +55,15 @@ def _parse_sdem(content: bytes, anio: int, trimestre: int) -> pd.DataFrame:
     return df[available]
 
 
-def download_sdem(url: str, anio: int, trimestre: int, url_alt: str | None = None) -> pd.DataFrame:
-    try:
-        response = requests.get(url, verify=False, timeout=120)
-        response.raise_for_status()
-        return _parse_sdem(response.content, anio, trimestre)
-    except Exception:
-        if url_alt is None:
-            raise
-        response = requests.get(url_alt, verify=False, timeout=120)
-        response.raise_for_status()
-        return _parse_sdem(response.content, anio, trimestre)
+def download_sdem(url: str, anio: int, trimestre: int, fallbacks: list[str] | None = None) -> pd.DataFrame:
+    all_urls = [url] + (fallbacks or [])
+    last_exc: Exception | None = None
+    for u in all_urls:
+        try:
+            response = requests.get(u, verify=False, timeout=120, headers=_HEADERS)
+            response.raise_for_status()
+            return _parse_sdem(response.content, anio, trimestre)
+        except Exception as e:
+            last_exc = e
+            continue
+    raise last_exc  # type: ignore[misc]
