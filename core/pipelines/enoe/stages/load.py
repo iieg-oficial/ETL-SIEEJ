@@ -58,9 +58,7 @@ class EnoeLoad(Stage):
 
     def _period_exists(self, session, anio: int, trimestre: int) -> bool:
         result = session.execute(
-            select(func.count()).select_from(StgEnoe).where(
-                StgEnoe.anio == anio, StgEnoe.trimestre == trimestre
-            )
+            select(func.count()).select_from(StgEnoe).where(StgEnoe.anio == anio, StgEnoe.trimestre == trimestre)
         ).scalar()
         return (result or 0) > 0
 

@@ -56,7 +56,16 @@ class StgEnoe(EnoeBase):
     __tablename__ = T.STG_ENOE
     __table_args__ = (
         UniqueConstraint(
-            "anio", "trimestre", "cd_a", "entidad_id", "con", "v_sel", "n_hog", "h_mud", "n_ent", "n_ren",
+            "anio",
+            "trimestre",
+            "cd_a",
+            "entidad_id",
+            "con",
+            "v_sel",
+            "n_hog",
+            "h_mud",
+            "n_ent",
+            "n_ren",
             name="uq_stg_enoe_persona",
         ),
     )

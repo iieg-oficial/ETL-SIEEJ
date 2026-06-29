@@ -2,7 +2,7 @@ import time
 from pathlib import Path
 from typing import Any, Optional
 
-from sqlalchemy import select, func
+from sqlalchemy import select
 
 from core.db import Database
 from core.pipelines.stage import Stage
@@ -42,8 +42,7 @@ class EnoeExtract(Stage):
         try:
             with db.get_session() as session:
                 rows = session.execute(
-                    select(StgEnoe.anio, StgEnoe.trimestre)
-                    .group_by(StgEnoe.anio, StgEnoe.trimestre)
+                    select(StgEnoe.anio, StgEnoe.trimestre).group_by(StgEnoe.anio, StgEnoe.trimestre)
                 ).all()
         finally:
             db.disconnect()
