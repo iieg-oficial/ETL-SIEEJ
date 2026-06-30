@@ -1,24 +1,24 @@
 from datetime import date
 
 from core.pipelines.censos_economicos.schemas import (
-    StgEconomicoEstatal2019,
-    StgEconomicoEstatal2024,
-    StgEconomicoMunicipal2019,
-    StgEconomicoMunicipal2024,
-    StgEconomicoNacional2019,
-    StgEconomicoNacional2024,
+    StgEconomicoEstatal2018,
+    StgEconomicoEstatal2023,
+    StgEconomicoMunicipal2018,
+    StgEconomicoMunicipal2023,
+    StgEconomicoNacional2018,
+    StgEconomicoNacional2023,
 )
 
 CENSO_METADATA: dict[int, dict] = {
-    2019: {
-        "anio": 2019,
-        "descripcion": "Censos Economicos 2019",
+    2018: {
+        "anio": 2018,
+        "descripcion": "Censos Economicos 2019 (datos 2018)",
         "fecha_publicacion": date(2020, 12, 15),
         "fuente": "INEGI",
     },
-    2024: {
-        "anio": 2024,
-        "descripcion": "Censos Economicos 2024",
+    2023: {
+        "anio": 2023,
+        "descripcion": "Censos Economicos 2024 (datos 2023)",
         "fecha_publicacion": date(2025, 7, 24),
         "fuente": "INEGI",
     },
@@ -52,14 +52,14 @@ ESTRATOS_CODIGO_MAP: dict = {
 }
 
 STG_MODEL_MAP: dict[int, dict[str, type]] = {
-    2019: {
-        "nacional": StgEconomicoNacional2019,
-        "estatal": StgEconomicoEstatal2019,
-        "municipal": StgEconomicoMunicipal2019,
+    2018: {
+        "nacional": StgEconomicoNacional2018,
+        "estatal": StgEconomicoEstatal2018,
+        "municipal": StgEconomicoMunicipal2018,
     },
-    2024: {
-        "nacional": StgEconomicoNacional2024,
-        "estatal": StgEconomicoEstatal2024,
-        "municipal": StgEconomicoMunicipal2024,
+    2023: {
+        "nacional": StgEconomicoNacional2023,
+        "estatal": StgEconomicoEstatal2023,
+        "municipal": StgEconomicoMunicipal2023,
     },
 }
