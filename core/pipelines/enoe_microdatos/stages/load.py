@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 
 from core.db import Database
 from core.pipelines.stage import Stage
@@ -133,6 +133,10 @@ class EnoeMicrodatosLoad(Stage):
             inserted = total - input_data["records_before"]
             self.logger.info(f"[finalization] {total:,} rows in {StgEnoeMicrodatos.__tablename__}")
             self.logger.info(f"[finalization] {inserted:,} rows inserted")
+            with self.db.get_session() as session:
+                session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_enoe_microdatos"))
+                session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_enoe_tasas"))
+            self.logger.info("[finalization] materialized views refreshed")
         finally:
             self.db.disconnect()
             cleanup_pipeline_data(PIPELINE_NAME)
