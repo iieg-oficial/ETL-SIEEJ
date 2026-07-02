@@ -83,11 +83,11 @@ class EnoeMicrodatosExtract(Stage):
                 self.logger.info(f"[action] {anio} T{trimestre} already in DB, skipping")
                 continue
 
-            url = settings.build_url(anio, trimestre)
+            urls = settings.build_urls(anio, trimestre)
             self.logger.info(f"[action] Downloading {anio} T{trimestre}")
 
             try:
-                df = download_sdem_coe(url, anio, trimestre)
+                df = download_sdem_coe(urls[0], anio, trimestre, fallbacks=urls[1:])
             except Exception as e:
                 self.logger.warning(f"[action] Failed {anio} T{trimestre}: {e}")
                 time.sleep(2)

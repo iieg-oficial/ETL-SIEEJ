@@ -92,6 +92,9 @@ class EnoeMicrodatosLoad(Stage):
                     self._load_catalogs(session, catalogs)
 
                 cols = [c for c in StgEnoeMicrodatos.columns() if c != StgEnoeMicrodatos.id.key]
+                for col in cols:
+                    if col not in df.columns:
+                        df[col] = pd.NA
                 records = df[cols].astype(object).where(df[cols].notna(), None).to_dict("records")
 
                 with self.db.get_session() as session:

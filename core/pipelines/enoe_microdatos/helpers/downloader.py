@@ -32,10 +32,12 @@ def trimestres_range(start_year: int, start_t: int) -> list[tuple[int, int]]:
 
 
 def _find_csv(z: zipfile.ZipFile, prefix: str) -> str:
-    for name in z.namelist():
-        upper = name.upper()
-        if upper.startswith(prefix.upper()) and upper.endswith(".CSV"):
-            return name
+    # 2023+: ENOE_SDEM*.csv  |  legacy 2005-2022: SDEM*.csv (con o sin prefijo ENOE_)
+    for candidate in [f"ENOE_{prefix}", prefix]:
+        for name in z.namelist():
+            upper = name.upper()
+            if upper.startswith(candidate.upper()) and upper.endswith(".CSV"):
+                return name
     raise ValueError(f"No se encontró {prefix}*.csv en el ZIP")
 
 
@@ -58,12 +60,12 @@ def download_sdem_coe(url: str, anio: int, trimestre: int, fallbacks: list[str] 
             response.raise_for_status()
 
             with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-                sdem = _read_table(z, "ENOE_SDEM", SDEM_COLS)
+                sdem = _read_table(z, "SDEM", SDEM_COLS)
                 ent_col = "cve_ent" if "cve_ent" in sdem.columns else "ent"
                 sdem = sdem[sdem[ent_col] == JALISCO_ENT].copy()
 
-                coe1 = _read_table(z, "ENOE_COE1", COE1_COLS)
-                coe2 = _read_table(z, "ENOE_COE2", COE2_COLS)
+                coe1 = _read_table(z, "COE1", COE1_COLS)
+                coe2 = _read_table(z, "COE2", COE2_COLS)
 
             join_sdem_coe1 = [k for k in JOIN_KEYS if k in sdem.columns and k in coe1.columns]
             df = sdem.merge(coe1, on=join_sdem_coe1, how="left")
