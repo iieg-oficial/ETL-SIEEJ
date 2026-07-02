@@ -136,6 +136,7 @@ class EnoeMicrodatosLoad(Stage):
             with self.db.get_session() as session:
                 session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_enoe_microdatos"))
                 session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_enoe_tasas"))
+                session.execute(text("REFRESH MATERIALIZED VIEW CONCURRENTLY mv_enoe_tasas_jalisco"))
             self.logger.info("[finalization] materialized views refreshed")
         finally:
             self.db.disconnect()
