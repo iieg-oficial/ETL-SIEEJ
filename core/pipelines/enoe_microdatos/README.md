@@ -110,6 +110,8 @@ Tres vistas con diferentes niveles de agregación:
 
 > **Nota estadística**: ENOE no es representativa a nivel municipio. El diseño muestral opera por `cd_a` (ciudad/área). Por ejemplo, `cd_a = 2` corresponde a la Zona Metropolitana de Guadalajara (Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco de Zúñiga, El Salto). Para valores que coincidan con cifras oficiales INEGI usar `mv_enoe_tasas_jalisco`.
 
+Las vistas `mv_enoe_tasas` y `mv_enoe_tasas_jalisco` incluyen las 11 tasas y poblaciones base desagregadas por sexo con sufijos `_h` (hombres, `sex=1`) y `_m` (mujeres, `sex=2`). Ejemplo: `td_h`, `td_m`, `pea_h`, `pea_m`.
+
 ## Tasas INEGI — metodología
 
 Las 11 tasas siguen la metodología de *ENOE. Conociendo la base de datos* (INEGI, 2023).
