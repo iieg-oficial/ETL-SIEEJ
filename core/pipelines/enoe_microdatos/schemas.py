@@ -35,8 +35,16 @@ class StgEnoeMicrodatos(EnoeMicrodatosBase):
     __tablename__ = T.STG_ENOE_MICRODATOS
     __table_args__ = (
         UniqueConstraint(
-            "anio", "trimestre", "cd_a", "entidad_id", "con",
-            "v_sel", "n_hog", "h_mud", "n_ent", "n_ren",
+            "anio",
+            "trimestre",
+            "cd_a",
+            "entidad_id",
+            "con",
+            "v_sel",
+            "n_hog",
+            "h_mud",
+            "n_ent",
+            "n_ren",
             name="uq_stg_enoe_microdatos_persona",
         ),
     )

@@ -42,8 +42,9 @@ class EnoeMicrodatosExtract(Stage):
         try:
             with db.get_session() as session:
                 rows = session.execute(
-                    select(StgEnoeMicrodatos.anio, StgEnoeMicrodatos.trimestre)
-                    .group_by(StgEnoeMicrodatos.anio, StgEnoeMicrodatos.trimestre)
+                    select(StgEnoeMicrodatos.anio, StgEnoeMicrodatos.trimestre).group_by(
+                        StgEnoeMicrodatos.anio, StgEnoeMicrodatos.trimestre
+                    )
                 ).all()
         finally:
             db.disconnect()

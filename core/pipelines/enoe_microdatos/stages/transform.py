@@ -7,7 +7,7 @@ import pandas as pd
 from core.pipelines.stage import Stage
 from core.pipelines.enoe_microdatos.attributes import EnoeMicrodatosTables as T
 from core.pipelines.enoe_microdatos.config import settings
-from core.pipelines.enoe_microdatos.constants import FLOAT_COLS, INT_COLS, NULL_VALUES, RENAME_HEADER, TEXT_COLS
+from core.pipelines.enoe_microdatos.constants import FLOAT_COLS, INT_COLS, NULL_VALUES, RENAME_HEADER
 from core.pipelines.enoe_microdatos.mappings import Ocupacion, Sector, SituacionTrabajo
 from core.utils.clean import list_values_to_null
 from core.utils.logger import get_logger

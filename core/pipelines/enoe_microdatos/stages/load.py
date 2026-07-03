@@ -41,7 +41,7 @@ class EnoeMicrodatosLoad(Stage):
             periods = []
             for df_pkl in pkls:
                 stem = df_pkl.stem  # enoe_microdatos_{anio}_{t}
-                suffix = stem[len("enoe_microdatos_"):]  # {anio}_{t}
+                suffix = stem[len("enoe_microdatos_") :]  # {anio}_{t}
                 cat_pkl = transform_dir / f"catalogs_{suffix}.pkl"
                 if cat_pkl.exists():
                     periods.append({"df_path": df_pkl, "catalogs_path": cat_pkl})
