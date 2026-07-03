@@ -97,3 +97,67 @@ Frecuencia: Trimestral (marzo, junio, septiembre, diciembre)
 Tipo: Automática vía DAG `etl_enoe_microdatos_incremental` (cron `0 0 10 3,6,9,12 *`)
 
 Justificación: INEGI publica ENOE trimestral. Jalisco (entidad_id=14) incluye municipios de Jalisco únicamente. Los períodos 2020 T2-T4, 2021 T1-T4 y 2022 T1-T4 no están disponibles (pausa COVID-19 / ETOE). Bootstrap disponible desde 2005 T1 hasta trimestre corriente.
+
+## Vistas materializadas
+
+Tres vistas con diferentes niveles de agregación:
+
+| Vista | Granularidad | Filas aprox. |
+|---|---|---|
+| `mv_enoe_microdatos` | 1 fila = 1 persona encuestada (microdatos con joins resueltos) | ~1,090,806 |
+| `mv_enoe_tasas` | 1 fila = municipio × trimestre | ~3,250 |
+| `mv_enoe_tasas_jalisco` | 1 fila = trimestre (estado completo) | 74 |
+
+> **Nota estadística**: ENOE no es representativa a nivel municipio. El diseño muestral opera por `cd_a` (ciudad/área). Por ejemplo, `cd_a = 2` corresponde a la Zona Metropolitana de Guadalajara (Guadalajara, Zapopan, Tlaquepaque, Tonalá, Tlajomulco de Zúñiga, El Salto). Para valores que coincidan con cifras oficiales INEGI usar `mv_enoe_tasas_jalisco`.
+
+## Tasas INEGI — metodología
+
+Las 11 tasas siguen la metodología de *ENOE. Conociendo la base de datos* (INEGI, 2023).
+
+### Criterio general poblacional
+
+Aplica a todas las tasas:
+
+```
+r_def = 0          -- entrevista completa
+c_res IN (1, 3)    -- residente habitual o nuevo residente
+eda BETWEEN 15 AND 98
+```
+
+### Poblaciones base
+
+Las poblaciones se obtienen sumando el factor de expansión trimestral (`fac` = FAC_TRI). **Nunca contar registros — siempre sumar `fac`.**
+
+| Población | Criterio adicional |
+|---|---|
+| P15yMAS | Sin filtro adicional |
+| PEA | `clase1 = 1` |
+| PD | `clase2 = 2` |
+| PO | `clase2 = 1` |
+| PONA | `clase2 = 1 AND ambito1 <> 1` |
+
+### Fórmulas de las 11 tasas
+
+| # | Tasa | Columna | Fórmula |
+|---|---|---|---|
+| I | Tasa de Participación | `tp` | PEA / P15yMAS × 100 |
+| II | Tasa de Desocupación | `td` | PD / PEA × 100 |
+| III | Tasa de Ocupación Parcial y Desocupación | `topd` | (PD + O<15hrs) / PEA × 100 |
+| IV | Tasa de Presión General | `tprg` | (PD + POBOT) / PEA × 100 |
+| V | Tasa de Trabajo Asalariado | `tta` | PASA / PO × 100 |
+| VI | Tasa de Subocupación | `tsub` | PSUB_O / PO × 100 |
+| VII | Tasa de Condiciones Críticas de Ocupación | `tcco` | PCCO / PO × 100 |
+| VIII | Tasa de Ocupación en el Sector Informal 1 | `tosi1` | POSI / PO × 100 |
+| IX | Tasa de Informalidad Laboral 1 | `til1` | POI / PO × 100 |
+| X | Tasa de Ocupación en el Sector Informal 2 | `tosi2` | POSI / PONA × 100 |
+| XI | Tasa de Informalidad Laboral 2 | `til2` | POINA / PONA × 100 |
+
+Donde:
+- **O<15hrs**: `clase2=1 AND dur9c=2`
+- **POBOT**: `clase2=1 AND tpg_p8a=1`
+- **PASA**: `clase2=1 AND remune2c=1`
+- **PSUB_O**: `clase2=1 AND sub_o=1`
+- **PCCO**: `clase2=1 AND tcco IN (1,2,3)`
+- **POSI**: `clase2=1 AND tue2=5`
+- **POI**: `clase2=1 AND emp_ppal=1`
+- **POINA**: `clase2=1 AND emp_ppal=1 AND ambito1<>1`
