@@ -17,7 +17,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy_erd import generate_erd
+from sqlalchemy_erd import generate_erd, layout_select, star
 
 PIPELINES_DIR = REPO_ROOT / "core" / "pipelines"
 
@@ -25,6 +25,27 @@ THEME = "blue"
 NODE_WIDTH = "auto"
 FORMAT = "svg"
 LAYOUT = "star"
+
+
+def star_layout_gridded(tables, relationships, star_cols=None, node_w=star.NODE_W):
+    """Star layout that places disconnected tables in a grid, not a single row."""
+    connected = {t for rel in relationships for t in (rel.from_table, rel.to_table)}
+    main = [t for t in tables if t.name in connected]
+    disconnected = [t for t in tables if t.name not in connected]
+
+    if not main or not disconnected:
+        return star.star_layout(tables, relationships, star_cols, node_w)
+
+    positions = star.star_layout(main, relationships, star_cols, node_w)
+    table_map = {t.name: t for t in main}
+    max_bottom = max(y + star.node_h(table_map[name]) for name, (_, y) in positions.items())
+    offset = max_bottom + star.GAP_Y * 2 - star.MARGIN
+    for name, (x, y) in star._grid_layout(disconnected, star.MARGIN, node_w).items():
+        positions[name] = (x, round(y + offset, 1))
+    return positions
+
+
+layout_select.star_layout = star_layout_gridded
 
 
 def find_base(pipeline: str) -> type[DeclarativeBase]:
