@@ -10,26 +10,21 @@ from core.pipelines.defunciones.config import settings
 from core.pipelines.defunciones.constants import (
     ANIO_COLUMN,
     CAPITULO_GRUPO_DATASET,
-    CATALOG_FK_COLUMNS,
     CHAPTER_TOTAL_GPO,
-    CODED_SOURCE_COLUMNS,
-    COLUMN_CATALOG,
-    EDAD_DATASET,
     EDICION_DATASET,
     FACT_DATASET,
     GEO_ROLES,
-    NOMBRE_EDAD_COL,
     PIPELINE_NAME,
-    VERSIONED_SOURCE_COLUMNS,
 )
 from core.utils.geo import resolve_municipio_ids
 from core.pipelines.defunciones.schemas import (
-    CATALOG_MODELS,
+    CATALOG_SPECS,
+    CODED_FK_MODELS,
     CODED_MODELS,
-    OVERRIDE_MODELS,
+    FK_CATALOGS,
+    VERSIONED_FK_MODELS,
     VERSIONED_MODELS,
     CatCapituloGrupo,
-    CatEdad,
     CatEdicion,
     StgDefunciones,
 )
@@ -43,31 +38,6 @@ from core.utils.bulk_ops import (
 )
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
-
-_MODELS_BY_TABLE: dict[str, type] = {
-    model.__tablename__: model for model in (CatEdad, *CATALOG_MODELS, *OVERRIDE_MODELS)
-}
-
-CATALOG_SPECS: dict[str, tuple[type, str]] = {
-    EDAD_DATASET: (CatEdad, NOMBRE_EDAD_COL),
-    **{model.__tablename__: (model, "descripcion") for model in (*CATALOG_MODELS, *OVERRIDE_MODELS)},
-}
-
-FK_CATALOGS: dict[str, type] = {
-    CATALOG_FK_COLUMNS[col]: _MODELS_BY_TABLE[table]
-    for col, table in COLUMN_CATALOG.items()
-    if col not in VERSIONED_SOURCE_COLUMNS and col not in CODED_SOURCE_COLUMNS
-}
-
-_VERSIONED_BY_TABLE: dict[str, type] = {m.__tablename__: m for m in VERSIONED_MODELS}
-VERSIONED_FK_MODELS: dict[str, type] = {
-    CATALOG_FK_COLUMNS[col]: _VERSIONED_BY_TABLE[table] for col, table in VERSIONED_SOURCE_COLUMNS.items()
-}
-
-_CODED_BY_TABLE: dict[str, type] = {m.__tablename__: m for m in CODED_MODELS}
-CODED_FK_MODELS: dict[str, type] = {
-    CATALOG_FK_COLUMNS[col]: _CODED_BY_TABLE[table] for col, table in CODED_SOURCE_COLUMNS.items()
-}
 
 
 class DefuncionesLoad(Stage):

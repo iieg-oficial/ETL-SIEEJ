@@ -5,6 +5,14 @@ from sqlalchemy import Date, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from core.pipelines.defunciones.attributes import DefuncionesTables as T
+from core.pipelines.defunciones.constants import (
+    CATALOG_FK_COLUMNS,
+    CODED_SOURCE_COLUMNS,
+    COLUMN_CATALOG,
+    EDAD_DATASET,
+    NOMBRE_EDAD_COL,
+    VERSIONED_SOURCE_COLUMNS,
+)
 
 DESCRIPCION_MAX_LEN = 255
 CLAVE_TEXT_MAX_LEN = 20
@@ -509,3 +517,30 @@ CODED_MODELS: tuple[type[DefuncionesBase], ...] = (
 
 
 OVERRIDE_MODELS: tuple[type[DefuncionesBase], ...] = (CatRazonMaterna,)
+
+
+def _by_table(models: tuple[type, ...]) -> dict[str, type]:
+    return {model.__tablename__: model for model in models}
+
+
+def _fk_models(source_columns: dict[str, str], by_table: dict[str, type]) -> dict[str, type]:
+    return {CATALOG_FK_COLUMNS[col]: by_table[table] for col, table in source_columns.items()}
+
+
+CATALOG_SPECS: dict[str, tuple[type, str]] = {
+    EDAD_DATASET: (CatEdad, NOMBRE_EDAD_COL),
+    **{model.__tablename__: (model, "descripcion") for model in (*CATALOG_MODELS, *OVERRIDE_MODELS)},
+}
+
+FK_CATALOGS: dict[str, type] = _fk_models(
+    {
+        col: table
+        for col, table in COLUMN_CATALOG.items()
+        if col not in VERSIONED_SOURCE_COLUMNS and col not in CODED_SOURCE_COLUMNS
+    },
+    _by_table((CatEdad, *CATALOG_MODELS, *OVERRIDE_MODELS)),
+)
+
+VERSIONED_FK_MODELS: dict[str, type] = _fk_models(VERSIONED_SOURCE_COLUMNS, _by_table(VERSIONED_MODELS))
+
+CODED_FK_MODELS: dict[str, type] = _fk_models(CODED_SOURCE_COLUMNS, _by_table(CODED_MODELS))
