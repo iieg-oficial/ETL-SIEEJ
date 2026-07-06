@@ -8,3 +8,5 @@ ASISTENCIA_MEDICA_DATASET: Final[str] = "cat_asistencia_medica"
 SEXO_DATASET: Final[str] = "cat_sexo"
 
 PROPER_NOUN_CATALOGS: Final[frozenset[str]] = frozenset({"cat_origen", "cat_lenguas"})
+
+ANIO_CATALOG: Final[str] = "cat_anio"

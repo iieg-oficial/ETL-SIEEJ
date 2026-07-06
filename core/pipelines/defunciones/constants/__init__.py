@@ -7,6 +7,7 @@ from core.pipelines.defunciones.constants.accents import (
 from core.pipelines.defunciones.constants.catalogs import (
     ASISTENCIA_MEDICA_DATASET,
     EDAD_DATASET,
+    ANIO_CATALOG,
     EDAD_EXCLUDE,
     EDAD_KEYWORD,
     PROPER_NOUN_CATALOGS,
@@ -62,6 +63,7 @@ __all__ = [
     "SOURCE_ENCODINGS",
     "ASISTENCIA_MEDICA_DATASET",
     "EDAD_DATASET",
+    "ANIO_CATALOG",
     "EDAD_EXCLUDE",
     "EDAD_KEYWORD",
     "PROPER_NOUN_CATALOGS",

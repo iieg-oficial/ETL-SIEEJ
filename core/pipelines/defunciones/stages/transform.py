@@ -5,6 +5,7 @@ from typing import Any, Optional
 import pandas as pd
 
 from core.pipelines.defunciones.constants import (
+    ANIO_CATALOG,
     CAPITULO_GRUPO_DATASET,
     CHAPTER_TOTAL_GPO,
     CLAVE_COL,
@@ -169,7 +170,10 @@ class DefuncionesTransform(Stage):
             for record in records:
                 value = record.get(field)
                 if isinstance(value, str):
-                    record[field] = self._restore_acronyms(apply_accents(value, DEFUNCIONES_ACCENT_MAP))
+                    value = self._restore_acronyms(apply_accents(value, DEFUNCIONES_ACCENT_MAP))
+                    if name == ANIO_CATALOG:
+                        value = re.sub(r"^Año\s+", "", value)
+                    record[field] = value
 
     def action(self, input_data: dict[str, pd.DataFrame]) -> dict[str, Any]:
         edad_records = self._build_edad_catalog(input_data[EDAD_DATASET])
