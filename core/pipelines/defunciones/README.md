@@ -116,6 +116,7 @@ Cada columna `*_id` es FK a su catálogo (`cat_*`). Las columnas `ent_*` / `mun_
 | `V2__catalogs_defunciones.sql` | Crea los ~48 catálogos (simples, codificados, versionados, override, compuesto, edición) |
 | `V3__tables_defunciones.sql` | Crea la tabla de hechos `stg_defunciones` con sus FK a los catálogos locales |
 | `V4__comments_defunciones.sql` | `COMMENT ON TABLE`/`COLUMN` de todas las tablas (documentación en BD desde el diccionario DGIS) |
+| `V5__views_defunciones.sql` | Vistas analíticas: `vw_defunciones` (base denormalizada) y agregadas (principales causas, por municipio, mortalidad materna e infantil) |
 
 ## Variables de entorno
 
@@ -142,18 +143,19 @@ Hace upsert de los catálogos (por `id`, `codigo`, `(codigo, edicion)` o `(cap, 
 
 ## Ejecución
 
-**Bootstrap** (carga inicial, todas las ediciones ≥ `BACKFILL_MIN_YEAR`):
+Primero aplicar las migraciones:
 
 ```shell
 just flyway-migrate defunciones
-conda run -n etl python -m core.pipelines.defunciones bootstrap
 ```
 
-**Update** (anual, DAG `etl_defunciones_update`):
+**Bootstrap** (carga inicial, todas las ediciones ≥ `BACKFILL_MIN_YEAR`) — DAG `etl_defunciones_bootstrap`, on demand. Se dispara desde Airflow o localmente:
 
 ```shell
-conda run -n etl python -m core.pipelines.defunciones update
+python dags/etl_defunciones.py
 ```
+
+**Update** (anual, DAG `etl_defunciones_update`, schedule `0 4 1 7 *`): baja la última edición publicada y la carga de forma idempotente por año (`DELETE` del año + reinserción). Se ejecuta automáticamente en Airflow.
 
 ## Notas adicionales
 
