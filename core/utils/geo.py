@@ -1,3 +1,5 @@
+from typing import Any
+
 import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Point
@@ -34,3 +36,25 @@ def latlon_to_utm13n(df, lat_col="latitud", lon_col="longitud"):
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:32613", always_xy=True)
     df["X"], df["Y"] = transformer.transform(df[lon_col].values, df[lat_col].values)
     return df
+
+
+def cvegeo_code(ent: Any, mun: Any) -> int | None:
+    try:
+        entidad = int(ent)
+        municipio = int(mun)
+    except (TypeError, ValueError):
+        return None
+    if entidad <= 0 or municipio <= 0:
+        return None
+    return entidad * 1000 + municipio
+
+
+def resolve_municipio_ids(
+    records: list[dict[str, Any]],
+    roles: tuple[tuple[str, str, str], ...],
+    mapping: dict[int, int],
+) -> None:
+    for record in records:
+        for ent_col, mun_col, target in roles:
+            code = cvegeo_code(record.get(ent_col), record.get(mun_col))
+            record[target] = mapping.get(code) if code is not None else None
