@@ -1,5 +1,6 @@
 import pandas as pd
 
+from core.pipelines.defunciones.helpers import catalogs
 from core.pipelines.defunciones.mappings import RAZON_MATERNA
 from core.pipelines.defunciones.stages.transform import DefuncionesTransform
 
@@ -15,7 +16,7 @@ def test_build_edad_catalog_coerces_dedups_and_drops_invalid():
             "descripcion": ["Una hora", "Una hora", "malo", "No especificada"],
         }
     )
-    records = _transform()._build_edad_catalog(df)
+    records = catalogs.build_edad_catalog(df)
     ids = {r["id"] for r in records}
     assert ids == {1001, 4998}
     assert all(isinstance(r["id"], int) for r in records)
@@ -24,20 +25,20 @@ def test_build_edad_catalog_coerces_dedups_and_drops_invalid():
 
 def test_build_catalog_int_key_coerces_and_dedups():
     df = pd.DataFrame({"clave": ["1", "1", "x", "9"], "descripcion": ["a", "a", "b", "c"]})
-    records = DefuncionesTransform._build_catalog(df, text_key=False)
+    records = catalogs.build_catalog(df, text_key=False)
     assert {r["id"] for r in records} == {1, 9}
     assert all(isinstance(r["id"], int) for r in records)
 
 
 def test_build_catalog_text_key_preserves_alphanumeric():
     df = pd.DataFrame({"clave": ["A00", "", "11D"], "descripcion": ["x", "empty", "y"]})
-    records = DefuncionesTransform._build_catalog(df, text_key=True)
+    records = catalogs.build_catalog(df, text_key=True)
     ids = {r["id"] for r in records}
     assert ids == {"A00", "11D"}
 
 
 def test_static_catalog_maps_code_to_descripcion():
-    records = DefuncionesTransform._static_catalog(RAZON_MATERNA)
+    records = catalogs.static_catalog(RAZON_MATERNA)
     assert {"id": 0, "descripcion": "No se considera para el cálculo"} in records
     assert len(records) == len(RAZON_MATERNA)
 
