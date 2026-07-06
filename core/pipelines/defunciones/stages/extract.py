@@ -35,9 +35,10 @@ from core.utils.logger import get_logger
 
 
 class DefuncionesExtract(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", since_year: int | None = None):
         super().__init__(PIPELINE_NAME, "extract")
         self.mode = mode
+        self.since_year = since_year
         self.logger = get_logger(f"{PIPELINE_NAME}.extract")
 
     def _extract_catalogs(self) -> dict[str, pd.DataFrame]:
@@ -67,12 +68,16 @@ class DefuncionesExtract(Stage):
         self.logger.info("[source] Extracted %s catalog datasets", len(out))
         return out
 
+    def _edition_floor(self) -> int | None:
+        return settings.BACKFILL_MIN_YEAR if self.mode == "bootstrap" else self.since_year
+
     def _catalog_edition_urls(self) -> list[str]:
         if settings.CATALOG_URL:
             return [settings.CATALOG_URL]
-        if self.mode != "bootstrap":
+        floor = self._edition_floor()
+        if floor is None:
             return [latest_catalog_url()]
-        return [u for u in discover_catalog_urls() if edition_year(u) >= settings.BACKFILL_MIN_YEAR]
+        return [u for u in discover_catalog_urls() if edition_year(u) >= floor]
 
     def _extract_versioned(self) -> dict[str, pd.DataFrame]:
         urls = self._catalog_edition_urls()
@@ -100,10 +105,10 @@ class DefuncionesExtract(Stage):
     def _registro_urls(self) -> list[str]:
         if settings.REGISTRO_URL:
             return [settings.REGISTRO_URL]
-        if self.mode != "bootstrap":
+        floor = self._edition_floor()
+        if floor is None:
             return [latest_registro_url()]
-        urls = discover_registro_urls()
-        return [u for u in urls if edition_year(u) >= settings.BACKFILL_MIN_YEAR]
+        return [u for u in discover_registro_urls() if edition_year(u) >= floor]
 
     def _read_jalisco(self, url: str) -> pd.DataFrame:
         zip_bytes = download_zip(url)
