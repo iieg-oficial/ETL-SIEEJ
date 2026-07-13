@@ -2,7 +2,7 @@
 
 ## Descripción general
 
-Pipeline ETL de los Censos Económicos del INEGI 2019 y 2024. Contiene indicadores de actividad económica a nivel nacional y estatal por actividad SCIAN, incluyendo unidades económicas, personal ocupado (total, hombres, mujeres), horas trabajadas, personal remunerado y no remunerado, y valor de la producción.
+Pipeline ETL de los Censos Económicos del INEGI, ediciones 2019 y 2024 (años de referencia 2018 y 2023). Contiene indicadores de actividad económica a nivel nacional y estatal por actividad SCIAN, incluyendo unidades económicas, personal ocupado (total, hombres, mujeres), horas trabajadas, personal remunerado y no remunerado, y valor de la producción.
 
 ## Fuente general
 
@@ -16,7 +16,7 @@ Los archivos se descargan manualmente desde INEGI en formato ZIP con CSVs por en
 
 | Característica | Valor |
 |---|---|
-| Última fecha disponible | `2024` |
+| Última fecha disponible | `2023` |
 | Frecuencia de actualización | Quinquenal |
 | Desagregación | Nacional, Estatal |
 | ¿Tiene update? | No |
@@ -28,11 +28,11 @@ Los archivos se descargan manualmente desde INEGI en formato ZIP con CSVs por en
 
 ## Diccionario de variables
 
-### stg_economico_* (por año de censo)
+### stg_economico_* (por año de referencia)
 
 | variable | descripción |
 |---|---|
-| `censo_id` | FK al catálogo de censos (2019, 2024) |
+| `censo_id` | FK al catálogo de censos (2018, 2023) |
 | `actividad_economica_id` | FK a actividad económica SCIAN |
 | `estrato_id` | FK a catálogo de estratos de personal |
 | `unidades_economicas` | Total de unidades económicas |

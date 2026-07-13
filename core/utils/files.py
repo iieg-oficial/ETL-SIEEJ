@@ -79,7 +79,9 @@ def cleanup_pipeline_data(pipeline_name: str) -> None:
     for stage_dir in data_dir.iterdir():
         pipeline_dir = stage_dir / pipeline_name
         if pipeline_dir.exists() and pipeline_dir.is_dir():
-            shutil.rmtree(pipeline_dir)
+            # Tolerant: post-load housekeeping must never fail the pipeline
+            # (e.g. a file vanishing under a concurrent run).
+            shutil.rmtree(pipeline_dir, ignore_errors=True)
             logger.info(f"Cleaned {pipeline_dir}")
 
 

@@ -10,6 +10,22 @@ from core.pipelines.ilmm.config import settings
 
 _EST_CATALOG_PATH_IN_ZIP = "catalogos/est.csv"
 
+# Column aliases introduced in the 2025 release
+_COLUMN_ALIASES: dict[str, str] = {
+    "cve_ent": "ent",
+    "cve_mun": "mun",
+}
+
+
+def _normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
+    # Rename aliased columns to the canonical schema expected by transform
+    df = df.rename(columns=_COLUMN_ALIASES)
+    # Drop spurious unnamed columns produced by trailing delimiters in newer CSVs
+    unnamed = [c for c in df.columns if c.startswith("unnamed")]
+    if unnamed:
+        df = df.drop(columns=unnamed)
+    return df
+
 
 def _read_csv_auto_encoding(raw: bytes, **kwargs) -> pd.DataFrame:
     for enc in ("utf-8-sig", "latin-1"):
@@ -40,6 +56,7 @@ class IlmmExtract(Stage):
                     raw = f.read()
                 df = _read_csv_auto_encoding(raw)
                 df.columns = df.columns.str.strip().str.lower()
+                df = _normalize_columns(df)
 
                 # Extract est.csv catalog only from the first year processed
                 if df_est is None and _EST_CATALOG_PATH_IN_ZIP in zf.namelist():

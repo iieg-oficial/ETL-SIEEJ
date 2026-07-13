@@ -121,6 +121,22 @@ class CensosEconomicosLoader(Stage):
         )
         return {r["codigo"]: r["id"] for r in rows if r["censo_id"] == censo_id}
 
+    def _gran_sector_id(self, session, censo_id: int) -> Optional[int]:
+        rows = get_all_records(
+            session,
+            CatActividadesEconomicas,
+            [
+                CatActividadesEconomicas.id.key,
+                CatActividadesEconomicas.codigo.key,
+                CatActividadesEconomicas.codigo_id.key,
+                CatActividadesEconomicas.censo_id.key,
+            ],
+        )
+        for r in rows:
+            if r["censo_id"] == censo_id and r["codigo_id"] == 1 and r["codigo"] is None:
+                return r["id"]
+        return None
+
     def _map_and_load_stg(
         self,
         session,
@@ -136,6 +152,8 @@ class CensosEconomicosLoader(Stage):
         df["censo_id"] = censo_id
 
         df["actividad_economica_id"] = df["codigo"].map(actividades_map)
+        gran_sector_id = self._gran_sector_id(session, censo_id)
+        df.loc[df["codigo"].isna(), "actividad_economica_id"] = gran_sector_id
         df["id_estrato"] = pd.to_numeric(df["id_estrato"], errors="coerce")
         is_null_estrato = df["id_estrato"].isna()
         df["estrato_id"] = df["id_estrato"].map({k: v for k, v in ESTRATOS_CODIGO_MAP.items() if k is not None})

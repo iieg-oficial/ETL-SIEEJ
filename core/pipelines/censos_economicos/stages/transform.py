@@ -15,6 +15,7 @@ from core.pipelines.censos_economicos.constants import (
     GEO_RENAME_2024,
     NULL_VALUES,
     RENAME_COLS_BY_YEAR,
+    TOTAL_ROW_CODIGO,
 )
 from core.utils import list_values_to_null
 from core.utils.logger import get_logger
@@ -98,7 +99,7 @@ class CensosEconomicosTransformer(Stage):
 
         df.columns = df.columns.str.lower()
 
-        geo_rename = GEO_RENAME_2024 if year == 2024 else GEO_RENAME_2019
+        geo_rename = GEO_RENAME_2024 if year == 2023 else GEO_RENAME_2019
         if geo_rename:
             df = df.rename(columns=geo_rename)
 
@@ -122,6 +123,7 @@ class CensosEconomicosTransformer(Stage):
             frame = list_values_to_null(frame, rm_list=NULL_VALUES)
             frame = frame.rename(columns=rename_cols)
             self._cast_data_cols(frame, data_cols)
+            frame.loc[frame["codigo"].astype(str).str.strip() == TOTAL_ROW_CODIGO, "codigo"] = None
             frames[key] = frame
 
         cat_actividad = self._process_catalog_actividad(raw["cat_actividad"])
