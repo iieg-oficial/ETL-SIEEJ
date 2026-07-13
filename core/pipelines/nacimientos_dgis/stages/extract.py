@@ -2,11 +2,11 @@ import io
 import zipfile
 from typing import Any, Optional
 import pandas as pd
-import requests
 
 from core.pipelines.nacimientos_dgis.config import settings
-from core.pipelines.nacimientos_dgis.constants import PIPELINE_NAME, USECOLS
+from core.pipelines.nacimientos_dgis.constants import DOWNLOAD_TIMEOUT, PIPELINE_NAME, USECOLS
 from core.pipelines.stage import Stage
+from core.utils.http import http_get
 from core.utils.logger import get_logger
 
 
@@ -19,7 +19,7 @@ class NacimientosDgisExtract(Stage):
     def _fetch_year(self, year: int) -> pd.DataFrame | None:
         url = settings.SOURCE_URL.format(year=year)
         self.logger.info(f"[source] Fetching {url}")
-        response = requests.get(url, timeout=300)
+        response = http_get(url, timeout=DOWNLOAD_TIMEOUT)
 
         if response.status_code == 404:
             self.logger.info(f"[source] {year}: not available (404)")

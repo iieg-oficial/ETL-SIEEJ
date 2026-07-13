@@ -11,6 +11,7 @@ openpyxl
 selenium==4.34.2
 webdriver-manager==4.0.2
 requests
+tenacity
 pytest
 chardet
 PyYAML

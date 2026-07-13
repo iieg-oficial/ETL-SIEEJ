@@ -6,7 +6,6 @@ import zipfile
 from urllib.parse import urljoin
 
 import pandas as pd
-import requests
 
 from core.pipelines.defunciones.constants import (
     CATALOG_PAGE_URL,
@@ -19,10 +18,11 @@ from core.pipelines.defunciones.constants import (
     REGISTRO_ZIP_PATTERN,
     SOURCE_ENCODINGS,
 )
+from core.utils.http import http_get
 
 
 def _http_get(url: str) -> bytes:
-    response = requests.get(url, timeout=DOWNLOAD_TIMEOUT)
+    response = http_get(url, timeout=DOWNLOAD_TIMEOUT)
     response.raise_for_status()
     return response.content
 
