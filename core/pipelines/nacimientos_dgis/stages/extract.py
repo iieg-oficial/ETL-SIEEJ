@@ -27,13 +27,26 @@ class NacimientosDgisExtract(Stage):
 
         response.raise_for_status()
 
-        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            csv_name = next(n for n in z.namelist() if n.endswith(".csv"))
-            with z.open(csv_name) as f:
-                df = pd.read_csv(f, usecols=USECOLS, low_memory=False)
+        csv_bytes = self._extract_csv_bytes(response.content, url)
+        df = pd.read_csv(io.BytesIO(csv_bytes), usecols=USECOLS, low_memory=False)
 
         self.logger.info(f"[source] {year}: {len(df):,} rows")
         return df
+
+    def _extract_csv_bytes(self, zip_bytes: bytes, origin: str) -> bytes:
+        """Return the CSV payload, descending into nested zips.
+
+        Older editions ship the CSV directly; the 2025 edition wraps it in a
+        second zip (sinac_YYYY.zip -> .../sinac_YYYY.zip -> Nacimientos_YYYY.csv).
+        """
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+            for name in z.namelist():
+                if name.endswith(".csv"):
+                    return z.read(name)
+            for name in z.namelist():
+                if name.endswith(".zip"):
+                    return self._extract_csv_bytes(z.read(name), origin)
+        raise ValueError(f"No CSV found in archive from {origin}")
 
     def source(self, input_data: Optional[Any] = None) -> pd.DataFrame | None:
         pkl = self.work_dir / f"sinac_{self.year}.pkl"
