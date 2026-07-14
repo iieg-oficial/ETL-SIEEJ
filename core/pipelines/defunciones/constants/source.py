@@ -8,6 +8,9 @@ SOURCE_ENCODINGS: Final[tuple[str, ...]] = ("utf-8-sig", "latin-1")
 
 DOWNLOAD_TIMEOUT: Final[int] = 120
 
+MIRRORED_EDITION: Final[int] = 2021
+MIRRORED_EDITION_FILENAME: Final[str] = "CATALOGOS_DEFUN_2021.zip"
+
 CLAVE_ALIASES: Final[tuple[str, ...]] = ("clave", "cve")
 DESCRIPCION_ALIASES: Final[tuple[str, ...]] = ("descrip", "descripcion")
 
