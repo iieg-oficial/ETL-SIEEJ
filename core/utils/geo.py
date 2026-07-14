@@ -58,3 +58,13 @@ def resolve_municipio_ids(
         for ent_col, mun_col, target in roles:
             code = cvegeo_code(record.get(ent_col), record.get(mun_col))
             record[target] = mapping.get(code) if code is not None else None
+
+
+def localidad_code(ent: Any, mun: Any, loc: Any) -> int | None:
+    try:
+        entidad = int(ent)
+        municipio = int(mun)
+        localidad = int(loc)
+    except (TypeError, ValueError):
+        return None
+    return int(f"{entidad:02d}{municipio:03d}{localidad:04d}")

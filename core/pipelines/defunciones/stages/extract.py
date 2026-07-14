@@ -14,6 +14,8 @@ from core.pipelines.defunciones.constants import (
     ENTIDAD_JALISCO,
     FACT_DATASET,
     JALISCO_FILTER_COLUMN,
+    LOCALIDADES_DATASET,
+    LOCALIDADES_KEYWORD,
     MIRRORED_EDITION,
     MIRRORED_EDITION_FILENAME,
     PIPELINE_NAME,
@@ -29,6 +31,7 @@ from core.pipelines.defunciones.helpers.source import (
     latest_registro_url,
     read_capitulo_grupo_csv,
     read_catalog_csv,
+    read_localidades_csv,
     read_registro_csv,
 )
 from core.pipelines.defunciones.schemas import CATALOG_MODELS, CODED_MODELS, VERSIONED_MODELS
@@ -95,6 +98,7 @@ class DefuncionesExtract(Stage):
     def _extract_versioned(self) -> dict[str, pd.DataFrame]:
         urls = self._catalog_edition_urls()
         frames: dict[str, list[pd.DataFrame]] = {m.__tablename__: [] for m in VERSIONED_MODELS}
+        localidad_frames: list[pd.DataFrame] = []
         years: list[int] = []
         for url in urls:
             year = edition_year(url)
@@ -108,9 +112,18 @@ class DefuncionesExtract(Stage):
                     frames[model.__tablename__].append(df)
                 except (FileNotFoundError, ValueError) as error:
                     self.logger.warning("[source] versioned %s not found in %s (%s)", model.__tablename__, year, error)
+            try:
+                member, raw = find_catalog_csv(zip_bytes, keyword=LOCALIDADES_KEYWORD)
+                localidades = read_localidades_csv(raw, member)
+                localidades["edicion"] = year
+                localidad_frames.append(localidades)
+            except (FileNotFoundError, ValueError) as error:
+                self.logger.warning("[source] %s not found in %s (%s)", LOCALIDADES_DATASET, year, error)
         out: dict[str, pd.DataFrame] = {
             name: pd.concat(parts, ignore_index=True) for name, parts in frames.items() if parts
         }
+        if localidad_frames:
+            out[LOCALIDADES_DATASET] = pd.concat(localidad_frames, ignore_index=True)
         out[EDICION_DATASET] = pd.DataFrame({"anio": sorted(set(years))})
         self.logger.info("[source] Versioned catalogs from editions: %s", sorted(set(years)))
         return out

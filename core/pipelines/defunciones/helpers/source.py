@@ -171,6 +171,28 @@ def read_capitulo_grupo_csv(raw: bytes, member: str = "") -> pd.DataFrame:
     return frame
 
 
+def read_localidades_csv(raw: bytes, member: str = "") -> pd.DataFrame:
+    lines = _decode(raw).splitlines()
+    header_idx = next(
+        (index for index, line in enumerate(lines) if "cve_ent" in line.lower()),
+        None,
+    )
+    if header_idx is None:
+        raise ValueError(f"No header row (cve_ent) found in {member}")
+
+    frame = pd.read_csv(
+        io.StringIO("\n".join(lines[header_idx:])),
+        dtype=str,
+        keep_default_na=False,
+    )
+    frame.columns = [column.strip().lower() for column in frame.columns]
+    frame = frame.rename(columns={"nom_loc": "descripcion"})[["cve_ent", "cve_mun", "cve_loc", "descripcion"]]
+
+    for column in frame.columns:
+        frame[column] = frame[column].str.strip()
+    return frame
+
+
 def find_registro_csv(zip_bytes: bytes) -> tuple[str, bytes]:
     members = _iter_csv_members(zip_bytes)
     if not members:
