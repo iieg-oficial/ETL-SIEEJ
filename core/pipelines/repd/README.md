@@ -30,35 +30,35 @@ REPD_DATA_URL=
 
 ## Diccionario de variables
 
-### stg_repd_case_current
+### stg_repd_casos
 
 | variable | descripción |
 |---|---|
-| `feb` | Folio Estadístico de Búsqueda (PK — identificador único del caso) |
-| `disappearance_state_name` | Nombre del estado de desaparición |
-| `location_state_name` | Nombre del estado de localización |
-| `linked_feb` | FEB de caso relacionado (si existe) |
+| `feb` | Folio Estadístico de Búsqueda (identificador único del caso) |
+| `estado_desaparicion` | Nombre del estado de desaparición |
+| `estado_localizacion` | Nombre del estado de localización |
+| `feb_vinculado` | FEB de caso relacionado (si existe) |
 | `record_hash` | Hash SHA-256 del contenido del registro (para SCD2) |
-| `current_version` | Número de versión actual del registro |
-| `created_at` | Timestamp de creación del registro |
-| `updated_at` | Timestamp de última actualización |
+| `version_actual` | Número de versión actual del registro |
+| `fecha_creacion` | Timestamp de creación del registro |
+| `fecha_actualizacion` | Timestamp de última actualización |
 
-### stg_repd_case_history
+### stg_repd_casos_historial
 
 | variable | descripción |
 |---|---|
 | `feb` | Folio Estadístico de Búsqueda |
-| `is_current` | Indica si es la versión vigente |
-| `valid_from` | Timestamp de inicio de vigencia |
+| `es_vigente` | Indica si es la versión vigente |
+| `vigente_desde` | Timestamp de inicio de vigencia |
 | `record_hash` | Hash SHA-256 del contenido histórico |
 
 ## Migraciones
 
 | migración | descripción |
 |---|---|
-| `V1__catalogos_repd.sql` | FDW a cvegeo; catálogos de sexo, nacionalidad, rango de edad, estatus, condición y tipo de cierre |
-| `V2__tabla_stg_repd.sql` | Tablas `stg_repd_case_current` y `stg_repd_case_history` |
-| `V3__vista_repd.sql` | Vista analítica que resuelve catálogos y municipios |
+| `V1__catalogos_repd.sql` | FDW a cvegeo; catálogos `cat_sexo`, `cat_nacionalidad`, `cat_rango_edad`, `cat_estatus`, `cat_condicion_localizacion`, `cat_clasificacion_localizacion`, `cat_tipo_cierre` |
+| `V2__tabla_stg_repd.sql` | Tablas `stg_repd_casos` y `stg_repd_casos_historial` |
+| `V3__vista_repd.sql` | Vista analítica `vw_repd` que resuelve catálogos y municipios |
 | `V4__fdw_postgis_conapo.sql` | PostGIS, geometry en FDW de cvegeo, y FDW a CONAPO |
 | `V5__vistas_materializadas_repd.sql` | 6 vistas materializadas con geometrías y tasas CONAPO para consumo GIS |
 | `V6__comments_repd.sql` | Comentarios en vistas materializadas |
@@ -69,10 +69,10 @@ REPD_DATA_URL=
 
 | vista | columnas clave | descripción |
 |---|---|---|
-| `personas_desaparecidas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Reportes mensuales de personas desaparecidas por municipio (status_id = 2) |
+| `personas_desaparecidas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Reportes mensuales de personas desaparecidas por municipio (estatus = `PERSONA DESAPARECIDA`) |
 | `personas_desaparecidas_hombres` | `total_hombres`, `tasa_hombres` | Vista filtrada sólo con desaparecidos hombres |
 | `personas_desaparecidas_mujeres` | `total_mujeres`, `tasa_mujeres` | Vista filtrada sólo con desaparecidas mujeres |
-| `personas_localizadas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Personas localizadas por municipio y mes (status_id = 3) |
+| `personas_localizadas` | `total`, `total_hombres`, `total_mujeres`, `tasa_total`, `tasa_hombres`, `tasa_mujeres` | Personas localizadas por municipio y mes (estatus = `PERSONA LOCALIZADA`) |
 | `personas_localizadas_hombres` | `total_hombres`, `tasa_hombres` | Vista filtrada sólo con localizados hombres |
 | `personas_localizadas_mujeres` | `total_mujeres`, `tasa_mujeres` | Vista filtrada sólo con localizadas mujeres |
 
@@ -98,7 +98,7 @@ Normaliza texto, extrae catálogos (sexo, nacionalidad, rangos de edad, estatus,
 
 ### Load
 
-Compara hashes con los registros actuales en `stg_repd_case_current`. Los registros nuevos se insertan; los modificados se versionan en `stg_repd_case_history` y se actualizan en `current`. Los catálogos se sincronizan con `insert_records`.
+Compara hashes con los registros actuales en `stg_repd_casos`. Los registros nuevos se insertan; los modificados se versionan en `stg_repd_casos_historial` y se actualizan en `stg_repd_casos`. Los catálogos se sincronizan con `insert_records`.
 
 ## Ejecución
 
@@ -117,4 +117,4 @@ conda run -n etl python -m core.pipelines.repd update
 
 ## Notas adicionales
 
-El SCD2 permite auditar la evolución de cada caso a lo largo del tiempo. La tabla `stg_repd_case_history` puede crecer considerablemente si hay muchos cambios de estatus. La URL del REPD puede requerir autenticación institucional.
+El SCD2 permite auditar la evolución de cada caso a lo largo del tiempo. La tabla `stg_repd_casos_historial` puede crecer considerablemente si hay muchos cambios de estatus. La URL del REPD puede requerir autenticación institucional.

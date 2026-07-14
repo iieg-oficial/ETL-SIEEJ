@@ -1,5 +1,5 @@
 -- =======================================================================
--- V5: Comentarios en vistas materializadas REPD
+-- V6: Comentarios en vistas materializadas REPD
 -- =======================================================================
 
 -- personas_desaparecidas
