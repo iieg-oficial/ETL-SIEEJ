@@ -17,3 +17,5 @@ DESCRIPCION_ALIASES: Final[tuple[str, ...]] = ("descrip", "descripcion")
 CLAVE_COL: Final[str] = "clave"
 DESCRIPCION_COL: Final[str] = "descripcion"
 NOMBRE_EDAD_COL: Final[str] = "nombre_edad"
+
+LOCALIDADES_KEYWORD: Final[str] = "entidad_municipio_localidad"

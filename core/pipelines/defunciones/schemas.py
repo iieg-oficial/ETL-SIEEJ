@@ -97,6 +97,16 @@ class CatPresuntaDefuncionViolenta(VersionedCatalog):
     keyword: ClassVar[str] = "presunta"
 
 
+class CatLocalidades(VersionedCatalog):
+    __tablename__ = T.CAT_LOCALIDADES
+    __table_args__ = (UniqueConstraint("codigo", "edicion_id", name="uq_localidades_edicion"),)
+    keyword: ClassVar[str] = "entidad_municipio_localidad"
+
+    cve_ent: Mapped[int] = mapped_column(Integer, nullable=False)
+    cve_mun: Mapped[int] = mapped_column(Integer, nullable=False)
+    cve_loc: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
 VERSIONED_MODELS: tuple[type[DefuncionesBase], ...] = (
     CatOcupacion,
     CatDerechohabiencia,
@@ -109,23 +119,37 @@ class StgDefunciones(DefuncionesBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     entidad_registro: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    entidad_registro_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     municipio_regis: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    municipio_regis_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     tamanio_loc_regis_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_TAMANO_LOCALIDAD}.id"), nullable=True
     )
-    localidad_regis: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    localidad_regis_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     entidad_resid: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    entidad_resid_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True)
     municipio_resid: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tamanio_loc_resid_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_TAMANO_LOCALIDAD}.id"), nullable=True
     )
-    localidad_resid: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    localidad_resid_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     entidad_ocurr: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    entidad_ocurr_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True)
     municipio_ocurr: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tamanio_loc_ocurr_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_TAMANO_LOCALIDAD}.id"), nullable=True
     )
-    localidad_ocurr: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    localidad_ocurr_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     causa_defuncion_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_CAUSA_DEFUNCION}.id"), nullable=True
     )
@@ -134,7 +158,9 @@ class StgDefunciones(DefuncionesBase):
     )
     lista_mex_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_LISTA_MEXICANA}.id"), nullable=True)
     sexo_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_SEXO}.id"), nullable=True)
-    entidad_nac: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    entidad_pais_nac_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_ENTIDAD_PAIS}.id"), nullable=True
+    )
     afromex_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_AFROMEXICANO}.id"), nullable=True)
     cond_indigena_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_CONDICION_INDIGENA}.id"), nullable=True
@@ -231,13 +257,27 @@ class StgDefunciones(DefuncionesBase):
     anio_certificacion_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_ANIO}.id"), nullable=True)
     maternas_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_CAUSA_DEFUNCION}.id"), nullable=True)
     entidad_ocules: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    entidad_ocules_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True)
     municipio_ocules: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    localidad_ocules: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    municipio_ocules_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
+    localidad_ocules_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
     razon_m_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_RAZON_MATERNA}.id"), nullable=True)
     dis_re_oax: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
-    municipio_resid_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    municipio_ocurr_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    municipio_resid_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
+    municipio_ocurr_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True
+    )
+    # cvegeo_municipalities is a foreign table (FDW); PostgreSQL forbids FKs to foreign tables.
+    # These carry the geographic key/geometry for maps only, never the label.
+    cvegeo_resid_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    cvegeo_ocurr_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     edicion_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_EDICION}.id"), nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
@@ -318,6 +358,11 @@ class CatEdadGestacional(IntCatalog):
 
 class CatOrigen(IntCatalog):
     __tablename__ = T.CAT_ORIGEN
+    keyword: ClassVar[str] = "paises"
+
+
+class CatEntidadPais(IntCatalog):
+    __tablename__ = T.CAT_ENTIDAD_PAIS
     keyword: ClassVar[str] = "paises"
 
 
@@ -482,6 +527,7 @@ CATALOG_MODELS: tuple[type[DefuncionesBase], ...] = (
     CatEdadAgrupada,
     CatEdadGestacional,
     CatOrigen,
+    CatEntidadPais,
     CatListaCie,
     CatLugarOcurrencia,
     CatSitioOcurrencia,

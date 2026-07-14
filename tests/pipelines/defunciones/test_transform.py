@@ -37,6 +37,41 @@ def test_build_catalog_text_key_preserves_alphanumeric():
     assert ids == {"A00", "11D"}
 
 
+def test_build_localidades_builds_nine_digit_key_and_keeps_sentinels():
+    df = pd.DataFrame(
+        {
+            "cve_ent": ["01", "88", "99", "x"],
+            "cve_mun": ["001", "999", "999", "001"],
+            "cve_loc": ["0001", "9999", "7777", "0001"],
+            "descripcion": ["Aguascalientes", "Localidad no especificada", "Cifra confidencial", "malo"],
+            "edicion": [2022, 2022, 2022, 2022],
+        }
+    )
+    records = catalogs.build_localidades(df)
+    codes = {r["codigo"] for r in records}
+    assert codes == {10010001, 889999999, 999997777}
+    sentinel = next(r for r in records if r["codigo"] == 889999999)
+    assert sentinel["cve_ent"] == 88
+    assert sentinel["cve_mun"] == 999
+    assert sentinel["cve_loc"] == 9999
+    assert sentinel["anio"] == 2022
+    assert sentinel["descripcion"] == "No especificado"
+
+
+def test_build_localidades_dedups_by_codigo_and_edicion():
+    df = pd.DataFrame(
+        {
+            "cve_ent": ["01", "01"],
+            "cve_mun": ["001", "001"],
+            "cve_loc": ["0001", "0001"],
+            "descripcion": ["Aguascalientes", "Aguascalientes"],
+            "edicion": [2022, 2022],
+        }
+    )
+    records = catalogs.build_localidades(df)
+    assert len(records) == 1
+
+
 def test_static_catalog_maps_code_to_descripcion():
     records = catalogs.static_catalog(RAZON_MATERNA)
     assert {"id": 0, "descripcion": "No se considera para el cálculo"} in records
@@ -74,3 +109,32 @@ def test_apply_fk_nulls_removes_codes_absent_from_catalog():
     assert records[0]["sexo_id"] == 1
     assert records[1]["sexo_id"] is None
     assert records[1]["edad_id"] == 4023
+
+
+def test_sentinel_descriptions_collapse_to_a_single_label():
+    df = pd.DataFrame(
+        {
+            "cve_ent": ["88", "88", "88", "99", "99", "99", "14"],
+            "cve_mun": ["000", "888", "888", "000", "999", "999", "039"],
+            "cve_loc": ["0000", "0000", "8888", "0000", "0000", "9999", "0000"],
+            "descripcion": [
+                "Entidad no aplica para A00 - R99 Y V90 - Y89",
+                "Municipio no aplica para A00 - R99 Y V90 - Y89",
+                "Localidad no aplica para A00 a R99",
+                "Entidad no especificada",
+                "Municipio no especificado",
+                "Localidad no especificada",
+                "Guadalajara",
+            ],
+            "edicion": [2022] * 7,
+        }
+    )
+    labels = {r["codigo"]: r["descripcion"] for r in catalogs.build_localidades(df)}
+
+    assert labels[880000000] == "No aplica"
+    assert labels[888880000] == "No aplica"
+    assert labels[888888888] == "No aplica"
+    assert labels[990000000] == "No especificado"
+    assert labels[999990000] == "No especificado"
+    assert labels[999999999] == "No especificado"
+    assert labels[140390000] == "Guadalajara"

@@ -40,21 +40,24 @@ CATALOG_URL=http://www.dgis.salud.gob.mx/descargas/datosabiertos/defunciones/cat
 | `id` | Identificador único de la fila (surrogate) |
 | `entidad_registro` | Entidad de registro |
 | `municipio_regis` | Municipio de registro |
+| `entidad_registro_id` / `municipio_regis_id` | Entidad y municipio de registro (nombres, contra `cat_localidades`) |
 | `tamanio_loc_regis_id` | Tamaño de localidad de registro |
-| `localidad_regis` | Localidad de registro |
-| `entidad_resid` | Entidad de residencia habitual |
-| `municipio_resid` | Municipio de residencia habitual |
+| `localidad_regis_id` | Localidad de registro (resuelta contra `cat_localidades`) |
+| `entidad_resid` | Entidad de residencia habitual (código crudo) |
+| `municipio_resid` | Municipio de residencia habitual (código crudo) |
+| `entidad_resid_id` / `municipio_resid_id` | Entidad y municipio de residencia (nombres, contra `cat_localidades`) |
 | `tamanio_loc_resid_id` | Tamaño de localidad de residencia |
-| `localidad_resid` | Localidad de residencia habitual |
-| `entidad_ocurr` | Entidad de ocurrencia |
-| `municipio_ocurr` | Municipio de ocurrencia |
+| `localidad_resid_id` | Localidad de residencia habitual (resuelta contra `cat_localidades`) |
+| `entidad_ocurr` | Entidad de ocurrencia (código crudo) |
+| `municipio_ocurr` | Municipio de ocurrencia (código crudo) |
+| `entidad_ocurr_id` / `municipio_ocurr_id` | Entidad y municipio de ocurrencia (nombres, contra `cat_localidades`) |
 | `tamanio_loc_ocurr_id` | Tamaño de localidad de ocurrencia |
-| `localidad_ocurr` | Localidad de ocurrencia |
+| `localidad_ocurr_id` | Localidad de ocurrencia (resuelta contra `cat_localidades`) |
 | `causa_defuncion_id` | Causa de la defunción (CIE-10, lista detallada) |
 | `cod_adicional_id` | Código adicional CIE |
 | `lista_mex_id` | Causa de la defunción (lista mexicana) |
 | `sexo_id` | Sexo del fallecido |
-| `entidad_nac` | Lugar de nacimiento |
+| `entidad_pais_nac_id` | Lugar de nacimiento, entidad federativa o país (resuelto contra `cat_entidad_pais`) |
 | `afromex_id` | Autoadscripción afromexicana |
 | `cond_indigena_id` | Autoadscripción indígena |
 | `lengua_indigena_id` | Condición de habla lengua indígena |
@@ -98,15 +101,37 @@ CATALOG_URL=http://www.dgis.salud.gob.mx/descargas/datosabiertos/defunciones/cat
 | `complicaron_id` | Complicaron el embarazo |
 | `dia_certificacion_id` / `mes_certificacion_id` / `anio_certificacion_id` | Fecha de certificación |
 | `maternas_id` | Defunciones maternas totales |
-| `entidad_ocules` / `municipio_ocules` / `localidad_ocules` | Geografía de ocurrencia de la lesión |
+| `entidad_ocules` / `municipio_ocules` | Entidad y municipio de ocurrencia de la lesión (códigos crudos) |
+| `entidad_ocules_id` / `municipio_ocules_id` | Entidad y municipio de ocurrencia de la lesión (nombres, contra `cat_localidades`) |
+| `localidad_ocules_id` | Localidad de ocurrencia de la lesión (resuelta contra `cat_localidades`) |
 | `razon_m_id` | Razón de mortalidad materna |
 | `dis_re_oax` | Distritos de registro de Oaxaca |
-| `municipio_resid_id` | Municipio de residencia resuelto (cvegeo) |
-| `municipio_ocurr_id` | Municipio de ocurrencia resuelto (cvegeo) |
+| `cvegeo_resid_id` | Municipio de residencia en `cvegeo` (solo clave geográfica y geometría, para mapas) |
+| `cvegeo_ocurr_id` | Municipio de ocurrencia en `cvegeo` (solo clave geográfica y geometría, para mapas) |
 | `edicion_id` | Edición DGIS de la que proviene la fila (procedencia) |
 | `fecha_actualizacion` | Fecha de carga ETL |
 
-Cada columna `*_id` es FK a su catálogo (`cat_*`). Las columnas `ent_*` / `mun_*` / `loc_*` son códigos crudos INEGI; `municipio_resid_id` / `municipio_ocurr_id` son el id resuelto contra `cvegeo`.
+Cada columna `*_id` es FK a su catálogo (`cat_*`). Las columnas `entidad_*` / `municipio_*` sin sufijo `_id` son los códigos crudos DGIS y se conservan porque de ellos se derivan las FK. Para cada uno de los cuatro roles geográficos (registro, residencia, ocurrencia, ocurrencia de la lesión) hay tres FK a `cat_localidades`, una por nivel: entidad, municipio y localidad. Los `cvegeo_*_id` apuntan a `cvegeo_municipalities` y sirven **solo** como clave geográfica y geometría para mapas, nunca como etiqueta.
+
+### cat_entidad_pais
+
+Catálogo combinado de entidades federativas mexicanas (`001`-`032`) y países (`100`+), fuente `paises.csv` de DGIS. Incluye sentinelas: `888` No aplica, `998` Mexicana sin entidad especificada, `999` No especificado. No está disponible en todas las ediciones (ver nota abajo).
+
+### cat_localidades
+
+Catálogo versionado y jerárquico (`entidad_municipio_localidad_<edicion>.csv`). Su `codigo` de 9 dígitos combina `cve_ent` (2) + `cve_mun` (3) + `cve_loc` (4). El archivo trae una fila por cada nivel, no solo por localidad:
+
+| codigo | descripción |
+|---|---|
+| `14 000 0000` | Jalisco |
+| `14 039 0000` | Guadalajara |
+| `88 000 0000` | Entidad no aplica para A00 - R99 Y V90 - Y89 |
+| `88 888 0000` | Municipio no aplica para A00 - R99 Y V90 - Y89 |
+| `99 000 0000` | Entidad no especificada |
+| `99 999 0000` | Municipio no especificado |
+| `99 999 9999` | Localidad no especificada |
+
+Por eso los tres niveles de cada rol se resuelven contra la misma tabla, y los sentinelas rinden su nombre en vez de NULL.
 
 ## Migraciones
 
@@ -117,6 +142,8 @@ Cada columna `*_id` es FK a su catálogo (`cat_*`). Las columnas `ent_*` / `mun_
 | `V3__tables_defunciones.sql` | Crea la tabla de hechos `stg_defunciones` con sus FK a los catálogos locales |
 | `V4__comments_defunciones.sql` | `COMMENT ON TABLE`/`COLUMN` de todas las tablas (documentación en BD desde el diccionario DGIS) |
 | `V5__views_defunciones.sql` | Vistas analíticas: `vw_defunciones` (base denormalizada) y agregadas (principales causas, por municipio, mortalidad materna e infantil) |
+| `V6__normalize_anio_descripcion.sql` | Normaliza `cat_anio.descripcion` ("Año 2019" → "2019") |
+| `V7__geo_catalogs_defunciones.sql` | Crea `cat_entidad_pais` y `cat_localidades`; reemplaza los códigos crudos por FKs resueltas en los tres niveles (entidad, municipio, localidad) de los cuatro roles geográficos; separa la clave `cvegeo_*_id` de la etiqueta; recrea las vistas de V5 |
 
 ## Variables de entorno
 
@@ -159,7 +186,7 @@ Construye los registros de cada familia de catálogo y de la tabla de hechos. No
 
 ### Load
 
-Hace upsert de los catálogos (por `id`, `codigo`, `(codigo, edicion)` o `(cap, gpo)` según la familia). Resuelve en la tabla de hechos: códigos alfanuméricos → id surrogate, códigos versionados → surrogate por `(codigo, edición)`, `capitulo`+`grupo` → surrogate, y entidad+municipio → id de `cvegeo`. Recarga idempotente por año (`DELETE` del año + `bulk_insert` en lotes de `CHUNK_SIZE`).
+Hace upsert de los catálogos (por `id`, `codigo`, `(codigo, edicion)` o `(cap, gpo)` según la familia). Resuelve en la tabla de hechos: códigos alfanuméricos → id surrogate, códigos versionados → surrogate por `(codigo, edición)`, `capitulo`+`grupo` → surrogate, entidad / municipio / localidad de cada rol → surrogate de `cat_localidades` por `(codigo, edición)` (cada nivel desde su propio código crudo), y entidad+municipio → id de `cvegeo` para la clave de mapas. Recarga idempotente por año (`DELETE` del año + `bulk_insert` en lotes de `CHUNK_SIZE`).
 
 ## Ejecución
 
@@ -183,9 +210,15 @@ python dags/etl_defunciones.py
 
 - **Versionado por edición.** DGIS reutiliza códigos con distinto significado entre años (ej. ocupación `11` = "No trabaja" en 2019, "Funcionarios" en 2024). Cargar histórico contra un solo catálogo produciría etiquetas incorrectas en silencio (misresolución). Por eso esos catálogos se versionan por edición y cada fila se resuelve contra el catálogo de **su** año. El backfill arranca en 2019 porque antes cambió el esquema de codificación.
 
-- **Geografía sin FK.** `cvegeo_municipalities` es una foreign table (FDW), y PostgreSQL no permite FK a foreign tables. Por eso el vínculo geográfico no es una constraint: se resuelve en el load (`entidad + municipio → cvegeo → municipio_id`) usando `core.utils.geo`.
+- **Geografía sin FK.** `cvegeo_municipalities` es una foreign table (FDW), y PostgreSQL no permite FK a foreign tables. Por eso `cvegeo_resid_id` / `cvegeo_ocurr_id` no son constraints: se resuelven en el load (`entidad + municipio → cvegeo → id`) usando `core.utils.geo`.
+
+- **Nombres contra `cat_localidades`, claves contra `cvegeo`.** Antes, `municipio_resid_id` / `municipio_ocurr_id` apuntaban a `cvegeo` y se usaban también como etiqueta. `cvegeo` no conoce los códigos sentinela, así que convertía en NULL en silencio los municipios `999` (308 filas en residencia, 1,071 en ocurrencia) y habría hecho lo mismo con el 90% de `entidad_ocules` (`88` = "No aplica", 320,242 filas). Ahora cada FK apunta a donde dice su nombre: la etiqueta sale de `cat_localidades` (que sí trae los sentinelas) y `cvegeo` queda reservado para la clave geográfica y la geometría de los mapas.
+
+- **Cada nivel se resuelve por su propio código.** La entidad usa `(ent, 0, 0)` y el municipio `(ent, mun, 0)`; no se derivan de la fila de la localidad. El catálogo no es denso: `(14, 039, 9999)` no existe aunque `(14, 120, 9999)` sí (solo 854 de las combinaciones `(ent, mun)` tienen fila `9999`). Derivarlos de la jerarquía de la localidad haría que una localidad no resuelta arrastrara consigo a la entidad y al municipio.
 
 - **Alcance Jalisco.** Se cargan solo defunciones de residentes de Jalisco (`ent_resid = 14`). Cambiar `JALISCO_FILTER_COLUMN` a `ent_ocurr` cargaría por ocurrencia en vez de residencia.
+
+- **`paises.csv` no está en todas las ediciones.** La edición 2021 no trae `paises.csv` (confirmado contra el ZIP real), por lo que `cat_entidad_pais` no tiene filas de esa edición y las defunciones de 2021 quedan con `entidad_pais_nac_id` en NULL aunque el código crudo `ent_nac` exista en el registro. No se trata de una pérdida introducida por este cambio: es una ausencia de la fuente, igual que otros catálogos faltantes en 2021 (ver nota de Drive arriba). `cat_localidades` no tiene este problema: `entidad_municipio_localidad_2021.csv` sí existe en esa edición.
 
 - **Múltiples clasificaciones de causa.** El registro trae la causa a varios niveles (`causa_defuncion` CIE completa, `lista_cie`/`lista_mexicana` listas cortas, `capitulo_grupo`), útiles para tablas de "principales causas" sin manejar los ~10 mil códigos CIE.
 

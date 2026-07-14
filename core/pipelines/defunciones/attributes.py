@@ -10,6 +10,8 @@ class DefuncionesTables(StrEnum):
     CAT_ESTADO_CIVIL = auto()
     CAT_DERECHO_HABIENCIA = auto()
     CAT_NACIONALIDAD = auto()
+    CAT_ENTIDAD_PAIS = auto()
+    CAT_LOCALIDADES = auto()
     CAT_CONDICION_ACTIVIDAD = auto()
     CAT_OCUPACION = auto()
     CAT_AFROMEXICANO = auto()

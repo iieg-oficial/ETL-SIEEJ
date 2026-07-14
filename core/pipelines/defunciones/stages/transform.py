@@ -9,6 +9,7 @@ from core.pipelines.defunciones.constants import (
     EDICION_DATASET,
     ETL_MANAGED_COLUMNS,
     FACT_DATASET,
+    LOCALIDADES_DATASET,
     PIPELINE_NAME,
     REGISTRO_RENAMES,
     TEXT_FACT_COLUMNS,
@@ -89,6 +90,8 @@ class DefuncionesTransform(Stage):
             built[CAPITULO_GRUPO_DATASET] = catalogs.build_capitulo_grupo(input_data[CAPITULO_GRUPO_DATASET])
         if EDICION_DATASET in input_data:
             built[EDICION_DATASET] = catalogs.build_edicion(input_data[EDICION_DATASET])
+        if LOCALIDADES_DATASET in input_data:
+            built[LOCALIDADES_DATASET] = catalogs.build_localidades(input_data[LOCALIDADES_DATASET])
         for model in VERSIONED_MODELS:
             if model.__tablename__ in input_data:
                 built[model.__tablename__] = catalogs.build_versioned(input_data[model.__tablename__])

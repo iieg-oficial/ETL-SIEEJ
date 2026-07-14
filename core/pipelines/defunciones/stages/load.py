@@ -13,10 +13,12 @@ from core.pipelines.defunciones.constants import (
     CHAPTER_TOTAL_GPO,
     EDICION_DATASET,
     FACT_DATASET,
+    GEO_LEVEL_ROLES,
     GEO_ROLES,
+    LOCALIDADES_DATASET,
     PIPELINE_NAME,
 )
-from core.utils.geo import resolve_municipio_ids
+from core.utils.geo import localidad_code, resolve_municipio_ids
 from core.pipelines.defunciones.schemas import (
     CATALOG_SPECS,
     CODED_FK_MODELS,
@@ -26,6 +28,7 @@ from core.pipelines.defunciones.schemas import (
     VERSIONED_MODELS,
     CatCapituloGrupo,
     CatEdicion,
+    CatLocalidades,
     StgDefunciones,
 )
 from core.pipelines.stage import Stage
@@ -98,6 +101,51 @@ class DefuncionesLoad(Stage):
             sync_id_sequence(session, model)
             upsert_records(session, records, model, conflict_keys=["codigo", "edicion_id"], update_keys=["descripcion"])
 
+    def _load_localidades(self, session, catalogs: dict[str, list[dict[str, Any]]]) -> None:
+        records = catalogs.get(LOCALIDADES_DATASET)
+        if not records:
+            return
+        edicion_map = self._edicion_map(session)
+        for record in records:
+            record["edicion_id"] = edicion_map.get(record.pop("anio"))
+        records = [r for r in records if r["edicion_id"] is not None]
+        sync_id_sequence(session, CatLocalidades)
+        upsert_records(
+            session,
+            records,
+            CatLocalidades,
+            conflict_keys=["codigo", "edicion_id"],
+            update_keys=["descripcion", "cve_ent", "cve_mun", "cve_loc"],
+        )
+
+    def _resolve_localidades(self, session, records: list[dict[str, Any]]) -> None:
+        edicion_map = self._edicion_map(session)
+        mapping = {
+            (codigo, eid): sid
+            for codigo, eid, sid in session.execute(
+                select(CatLocalidades.codigo, CatLocalidades.edicion_id, CatLocalidades.id)
+            )
+        }
+        unresolved = 0
+        for record in records:
+            edicion_id = edicion_map.get(record.get(ANIO_COLUMN))
+            for ent_col, mun_col, loc_target, ent_target, mun_target in GEO_LEVEL_ROLES:
+                ent = record.get(ent_col)
+                mun = record.get(mun_col)
+                loc = record.get(loc_target)
+                levels = (
+                    (ent_target, localidad_code(ent, 0, 0)),
+                    (mun_target, localidad_code(ent, mun, 0)),
+                    (loc_target, localidad_code(ent, mun, loc)),
+                )
+                for target, code in levels:
+                    resolved = mapping.get((code, edicion_id)) if code is not None else None
+                    if code is not None and resolved is None:
+                        unresolved += 1
+                    record[target] = resolved
+        if unresolved:
+            self.logger.warning("[facts] %s geographic codes could not be resolved against cat_localidades", unresolved)
+
     def _resolve_versioned(self, session, records: list[dict[str, Any]]) -> None:
         edicion_map = self._edicion_map(session)
         for record in records:
@@ -169,6 +217,7 @@ class DefuncionesLoad(Stage):
 
         self._resolve_versioned(session, records)
         self._resolve_coded(session, records)
+        self._resolve_localidades(session, records)
         self._null_invalid_fks(session, records)
         self._resolve_geo(session, records)
         self._resolve_capitulo_grupo(session, records)
@@ -196,6 +245,7 @@ class DefuncionesLoad(Stage):
                 self._load_capitulo_grupo(session, catalogs)
                 self._load_edicion(session, catalogs)
                 self._load_versioned(session, catalogs)
+                self._load_localidades(session, catalogs)
                 self._load_facts(session, facts)
         except Exception:
             self.db.disconnect()
