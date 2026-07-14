@@ -200,7 +200,6 @@ SELECT
     mo2.descripcion AS municipio_ocules,
     locu.descripcion AS localidad_ocules,
     c57.descripcion AS razon_m,
-    f.dis_re_oax,
     mres.descripcion AS municipio_resid,
     eres.descripcion AS entidad_resid,
     mr.cvegeo AS cvegeo_resid,

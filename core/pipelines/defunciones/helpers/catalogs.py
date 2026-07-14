@@ -13,6 +13,7 @@ from core.pipelines.defunciones.constants import (
     EDAD_DATASET,
     NOMBRE_EDAD_COL,
     PROPER_NOUN_CATALOGS,
+    SENTINEL_DESCRIPTIONS,
 )
 from core.utils.accents import apply_accents
 
@@ -73,11 +74,18 @@ def build_versioned(df: pd.DataFrame) -> list[dict[str, Any]]:
     return cat[["codigo", "anio", "descripcion"]].to_dict("records")
 
 
+def normalize_sentinel(descripcion: str) -> str:
+    for pattern, label in SENTINEL_DESCRIPTIONS:
+        if re.match(pattern, descripcion, flags=re.IGNORECASE):
+            return label
+    return descripcion
+
+
 def build_localidades(df: pd.DataFrame) -> list[dict[str, Any]]:
     catalog = df.copy()
     for col in ("cve_ent", "cve_mun", "cve_loc"):
         catalog[col] = pd.to_numeric(catalog[col], errors="coerce")
-    catalog["descripcion"] = catalog["descripcion"].str.strip()
+    catalog["descripcion"] = catalog["descripcion"].str.strip().map(normalize_sentinel)
     catalog = catalog.dropna(subset=["cve_ent", "cve_mun", "cve_loc", "descripcion"]).astype(
         {"cve_ent": int, "cve_mun": int, "cve_loc": int, "edicion": int}
     )

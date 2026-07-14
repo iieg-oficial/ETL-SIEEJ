@@ -11,6 +11,7 @@ from core.pipelines.defunciones.constants.catalogs import (
     EDAD_EXCLUDE,
     EDAD_KEYWORD,
     PROPER_NOUN_CATALOGS,
+    SENTINEL_DESCRIPTIONS,
     SEXO_DATASET,
 )
 from core.pipelines.defunciones.constants.facts import (
@@ -76,6 +77,7 @@ __all__ = [
     "EDAD_EXCLUDE",
     "EDAD_KEYWORD",
     "PROPER_NOUN_CATALOGS",
+    "SENTINEL_DESCRIPTIONS",
     "SEXO_DATASET",
     "REGISTRO_ZIP_PATTERN",
     "ANIO_COLUMN",

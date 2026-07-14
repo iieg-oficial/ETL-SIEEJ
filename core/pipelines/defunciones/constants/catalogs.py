@@ -12,3 +12,8 @@ PROPER_NOUN_CATALOGS: Final[frozenset[str]] = frozenset(
 )
 
 ANIO_CATALOG: Final[str] = "cat_anio"
+
+SENTINEL_DESCRIPTIONS: Final[tuple[tuple[str, str], ...]] = (
+    (r"^(?:Entidad|Municipio|Localidad)\s+no\s+aplica\b.*$", "No aplica"),
+    (r"^(?:Entidad|Municipio|Localidad)\s+no\s+especificad[ao]\b.*$", "No especificado"),
+)
