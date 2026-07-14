@@ -17,8 +17,8 @@ from core.pipelines.repd.consts import (
 from core.pipelines.repd.queries import MATERIALIZED_VIEWS
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
-    CaseCurrent,
-    CaseHistory,
+    Casos,
+    CasosHistorial,
     RepdBase,
 )
 from core.pipelines.stage import Stage
@@ -84,8 +84,8 @@ class REPDLoader(Stage):
         with self.db.get_session() as session:
             for model in CATALOG_MODELS.values():
                 sync_id_sequence(session, model)
-            sync_id_sequence(session, CaseCurrent)
-            sync_id_sequence(session, CaseHistory)
+            sync_id_sequence(session, Casos)
+            sync_id_sequence(session, CasosHistorial)
 
         clean_directory(self.work_dir, self.logger)
 
@@ -97,22 +97,22 @@ class REPDLoader(Stage):
     def _load_catalogs(self, session, catalog_values: dict[str, list[str]]) -> None:
         for cat_key, values in catalog_values.items():
             model = CATALOG_MODELS[cat_key]
-            records = [{"name": v} for v in values]
-            insert_records(session, records, model, conflict_keys=["name"])
+            records = [{"nombre": v} for v in values]
+            insert_records(session, records, model, conflict_keys=["nombre"])
             self.logger.info(f"Catalogo '{cat_key}': {len(records)} valores sincronizados.")
 
         session.flush()
 
         for cat_key, model in CATALOG_MODELS.items():
-            self._catalog_caches[cat_key] = get_mapping(session, model, "name", "id", is_normalize=True)
+            self._catalog_caches[cat_key] = get_mapping(session, model, "nombre", "id", is_normalize=True)
 
     # Inserta nuevos valores en un catalogo y refresca su cache
     def _refresh_catalog(self, session, cat_key: str, new_values: list[str]) -> None:
         model = CATALOG_MODELS[cat_key]
-        records = [{"name": v} for v in new_values]
-        insert_records(session, records, model, conflict_keys=["name"])
+        records = [{"nombre": v} for v in new_values]
+        insert_records(session, records, model, conflict_keys=["nombre"])
         session.flush()
-        self._catalog_caches[cat_key] = get_mapping(session, model, "name", "id", is_normalize=True)
+        self._catalog_caches[cat_key] = get_mapping(session, model, "nombre", "id", is_normalize=True)
 
     # Carga el mapping (estado, municipio)->id desde cvegeo via FDW
     def _load_municipality_cache(self, session) -> None:
@@ -160,38 +160,38 @@ class REPDLoader(Stage):
             current_records.append(
                 {
                     **rec,
-                    "current_version": 1,
-                    "created_at": now,
-                    "updated_at": now,
+                    "version_actual": 1,
+                    "fecha_creacion": now,
+                    "fecha_actualizacion": now,
                 }
             )
             history_records.append(
                 {
                     **rec,
-                    "version_num": 1,
-                    "is_current": True,
-                    "valid_from": now,
-                    "valid_to": None,
-                    "created_at": now,
+                    "numero_version": 1,
+                    "es_vigente": True,
+                    "vigente_desde": now,
+                    "vigente_hasta": None,
+                    "fecha_creacion": now,
                 }
             )
 
         batch_size = settings.REPD_LOAD_BATCH_SIZE
 
         with self.db.get_session() as session:
-            bulk_insert(session, current_records, CaseCurrent, chunk_size=batch_size)
-            self.logger.info(f"Insertados {len(current_records)} registros en case_current.")
+            bulk_insert(session, current_records, Casos, chunk_size=batch_size)
+            self.logger.info(f"Insertados {len(current_records)} registros en casos.")
 
-        # Asociar case_current_id a history
+        # Asociar caso_id a historial
         with self.db.get_session() as session:
-            feb_to_id = get_mapping(session, CaseCurrent, "feb", "id")
+            feb_to_id = get_mapping(session, Casos, "feb", "id")
 
         for rec in history_records:
-            rec["case_current_id"] = feb_to_id.get(rec["feb"])
+            rec["caso_id"] = feb_to_id.get(rec["feb"])
 
         with self.db.get_session() as session:
-            bulk_insert(session, history_records, CaseHistory, chunk_size=batch_size)
-            self.logger.info(f"Insertados {len(history_records)} registros en case_history.")
+            bulk_insert(session, history_records, CasosHistorial, chunk_size=batch_size)
+            self.logger.info(f"Insertados {len(history_records)} registros en casos_historial.")
 
         return {
             "mode": "bootstrap",
@@ -203,19 +203,19 @@ class REPDLoader(Stage):
     def _load_update(self, df: pd.DataFrame) -> dict:
         now = datetime.utcnow()
 
-        # Prefetch: feb -> {id, record_hash, current_version}
+        # Prefetch: feb -> {id, record_hash, version_actual}
         with self.db.get_session() as session:
             existing_rows = session.query(
-                CaseCurrent.id,
-                CaseCurrent.feb,
-                CaseCurrent.record_hash,
-                CaseCurrent.current_version,
+                Casos.id,
+                Casos.feb,
+                Casos.record_hash,
+                Casos.version_actual,
             ).all()
         existing_by_feb = {
             row.feb: {
                 "id": row.id,
                 "hash": row.record_hash,
-                "version": row.current_version,
+                "version": row.version_actual,
             }
             for row in existing_rows
         }
@@ -237,19 +237,19 @@ class REPDLoader(Stage):
                 new_current.append(
                     {
                         **rec,
-                        "current_version": 1,
-                        "created_at": now,
-                        "updated_at": now,
+                        "version_actual": 1,
+                        "fecha_creacion": now,
+                        "fecha_actualizacion": now,
                     }
                 )
                 new_history.append(
                     {
                         **rec,
-                        "version_num": 1,
-                        "is_current": True,
-                        "valid_from": now,
-                        "valid_to": None,
-                        "created_at": now,
+                        "numero_version": 1,
+                        "es_vigente": True,
+                        "vigente_desde": now,
+                        "vigente_hasta": None,
+                        "fecha_creacion": now,
                     }
                 )
 
@@ -262,8 +262,8 @@ class REPDLoader(Stage):
                         "case_id": existing["id"],
                         "record": {
                             **rec,
-                            "current_version": new_version,
-                            "updated_at": now,
+                            "version_actual": new_version,
+                            "fecha_actualizacion": now,
                         },
                     }
                 )
@@ -271,18 +271,18 @@ class REPDLoader(Stage):
                     {
                         "feb": feb,
                         "old_version": existing["version"],
-                        "valid_to": now,
+                        "vigente_hasta": now,
                     }
                 )
                 updated_history.append(
                     {
                         **rec,
-                        "case_current_id": existing["id"],
-                        "version_num": new_version,
-                        "is_current": True,
-                        "valid_from": now,
-                        "valid_to": None,
-                        "created_at": now,
+                        "caso_id": existing["id"],
+                        "numero_version": new_version,
+                        "es_vigente": True,
+                        "vigente_desde": now,
+                        "vigente_hasta": None,
+                        "fecha_creacion": now,
                     }
                 )
 
@@ -291,35 +291,35 @@ class REPDLoader(Stage):
         # Insertar registros nuevos
         if new_current:
             with self.db.get_session() as session:
-                bulk_insert(session, new_current, CaseCurrent, chunk_size=batch_size)
+                bulk_insert(session, new_current, Casos, chunk_size=batch_size)
 
             with self.db.get_session() as session:
-                feb_to_id = get_mapping(session, CaseCurrent, "feb", "id")
+                feb_to_id = get_mapping(session, Casos, "feb", "id")
             for rec in new_history:
-                rec["case_current_id"] = feb_to_id.get(rec["feb"])
+                rec["caso_id"] = feb_to_id.get(rec["feb"])
 
             with self.db.get_session() as session:
-                bulk_insert(session, new_history, CaseHistory, chunk_size=batch_size)
+                bulk_insert(session, new_history, CasosHistorial, chunk_size=batch_size)
 
         # Actualizar registros que cambiaron
         if updated_current:
             with self.db.get_session() as session:
                 for item in updated_current:
-                    session.query(CaseCurrent).filter(CaseCurrent.id == item["case_id"]).update(item["record"])
+                    session.query(Casos).filter(Casos.id == item["case_id"]).update(item["record"])
 
                 for item in closed_history:
-                    session.query(CaseHistory).filter(
-                        CaseHistory.feb == item["feb"],
-                        CaseHistory.version_num == item["old_version"],
+                    session.query(CasosHistorial).filter(
+                        CasosHistorial.feb == item["feb"],
+                        CasosHistorial.numero_version == item["old_version"],
                     ).update(
                         {
-                            "is_current": False,
-                            "valid_to": item["valid_to"],
+                            "es_vigente": False,
+                            "vigente_hasta": item["vigente_hasta"],
                         }
                     )
 
             with self.db.get_session() as session:
-                bulk_insert(session, updated_history, CaseHistory, chunk_size=batch_size)
+                bulk_insert(session, updated_history, CasosHistorial, chunk_size=batch_size)
 
         unchanged = len(df) - len(new_current) - len(updated_current)
         self.logger.info(
@@ -338,22 +338,22 @@ class REPDLoader(Stage):
     def _build_case_record(row: pd.Series) -> dict:
         return {
             "feb": row["feb"],
-            "sex_id": row.get("sex_id"),
-            "nationality_id": row.get("nationality_id"),
-            "age_range_id": row.get("age_range_id"),
-            "report_date": row.get("report_date"),
-            "disappearance_date": row.get("disappearance_date"),
-            "disappearance_state_name": row.get("disappearance_state_name"),
-            "disappearance_municipality_id": row.get("disappearance_municipality_id"),
-            "status_id": row.get("status_id"),
-            "location_date": row.get("location_date"),
-            "location_condition_id": row.get("location_condition_id"),
-            "location_classification_id": row.get("location_classification_id"),
-            "location_state_name": row.get("location_state_name"),
-            "location_municipality_id": row.get("location_municipality_id"),
-            "closure_date": row.get("closure_date"),
-            "closure_type_id": row.get("closure_type_id"),
-            "linked_feb": row.get("linked_feb"),
-            "has_investigation_folder": row.get("has_investigation_folder"),
+            "sexo_id": row.get("sexo_id"),
+            "nacionalidad_id": row.get("nacionalidad_id"),
+            "rango_edad_id": row.get("rango_edad_id"),
+            "fecha_reporte": row.get("fecha_reporte"),
+            "fecha_desaparicion": row.get("fecha_desaparicion"),
+            "estado_desaparicion": row.get("estado_desaparicion"),
+            "municipio_desaparicion_id": row.get("municipio_desaparicion_id"),
+            "estatus_id": row.get("estatus_id"),
+            "fecha_localizacion": row.get("fecha_localizacion"),
+            "condicion_localizacion_id": row.get("condicion_localizacion_id"),
+            "clasificacion_localizacion_id": row.get("clasificacion_localizacion_id"),
+            "estado_localizacion": row.get("estado_localizacion"),
+            "municipio_localizacion_id": row.get("municipio_localizacion_id"),
+            "fecha_cierre": row.get("fecha_cierre"),
+            "tipo_cierre_id": row.get("tipo_cierre_id"),
+            "feb_vinculado": row.get("feb_vinculado"),
+            "tiene_carpeta_investigacion": row.get("tiene_carpeta_investigacion"),
             "record_hash": row.get("record_hash"),
         }

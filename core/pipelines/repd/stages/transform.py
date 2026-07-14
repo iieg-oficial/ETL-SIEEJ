@@ -52,15 +52,15 @@ class REPDTransformer(Stage):
                 df[col] = df[col].apply(parse_month_year)
 
         # Convertir carpeta de investigacion a boolean
-        df["has_investigation_folder"] = df["has_investigation_folder"].apply(parse_boolean)
+        df["tiene_carpeta_investigacion"] = df["tiene_carpeta_investigacion"].apply(parse_boolean)
 
         # Normalizar estados a UPPER
-        for col in ["disappearance_state_name", "location_state_name"]:
+        for col in ["estado_desaparicion", "estado_localizacion"]:
             if col in df.columns:
                 uppercase_col(df, col)
 
         # Normalizar municipios a UPPER
-        for col in ["disappearance_municipality", "location_municipality"]:
+        for col in ["municipio_desaparicion", "municipio_localizacion"]:
             if col in df.columns:
                 uppercase_col(df, col)
 
