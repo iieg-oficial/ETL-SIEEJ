@@ -30,3 +30,20 @@ def test_resolve_municipio_ids_maps_each_role():
     assert records[0]["municipio_ocurr_id"] == 250
     assert records[1]["municipio_resid_id"] is None
     assert records[1]["municipio_ocurr_id"] is None
+
+
+def test_localidad_code_builds_nine_digit_key():
+    assert geo.localidad_code(14, 39, 1) == 140390001
+    assert geo.localidad_code(1, 1, 1) == 10010001
+
+
+def test_localidad_code_preserves_sentinel_values():
+    assert geo.localidad_code(88, 999, 9999) == 889999999
+    assert geo.localidad_code(99, 999, 7777) == 999997777
+
+
+def test_localidad_code_rejects_invalid_or_missing():
+    assert geo.localidad_code(None, 39, 1) is None
+    assert geo.localidad_code(14, None, 1) is None
+    assert geo.localidad_code(14, 39, None) is None
+    assert geo.localidad_code("", "", "") is None

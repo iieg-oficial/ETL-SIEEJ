@@ -80,3 +80,22 @@ def test_find_registro_csv_picks_largest(make_zip):
     zip_bytes = make_zip({"diccionario.csv": b"a,b\n1,2\n", "datos.csv": b"x,y\n" + b"1,2\n" * 50})
     name, _ = source.find_registro_csv(zip_bytes)
     assert name == "datos.csv"
+
+
+LOCALIDADES_2022 = (
+    b"cve_ent,cve_mun,cve_loc,nom_loc\n"
+    b'"01","000","0000","Aguascalientes"\n'
+    b'"01","001","0001","Aguascalientes"\n'
+    b'"88","999","9999","Localidad no especificada"\n'
+    b'"99","999","7777","Cifra confidencial"\n'
+)
+
+
+def test_read_localidades_csv_parses_padded_hierarchy_and_sentinels():
+    df = source.read_localidades_csv(LOCALIDADES_2022)
+    assert list(df.columns) == ["cve_ent", "cve_mun", "cve_loc", "descripcion"]
+    assert df.iloc[0].tolist() == ["01", "000", "0000", "Aguascalientes"]
+    sentinel = df[df["cve_ent"] == "88"].iloc[0]
+    assert sentinel["cve_mun"] == "999"
+    assert sentinel["cve_loc"] == "9999"
+    assert sentinel["descripcion"] == "Localidad no especificada"

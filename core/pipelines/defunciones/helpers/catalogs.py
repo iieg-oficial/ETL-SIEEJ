@@ -73,6 +73,21 @@ def build_versioned(df: pd.DataFrame) -> list[dict[str, Any]]:
     return cat[["codigo", "anio", "descripcion"]].to_dict("records")
 
 
+def build_localidades(df: pd.DataFrame) -> list[dict[str, Any]]:
+    catalog = df.copy()
+    for col in ("cve_ent", "cve_mun", "cve_loc"):
+        catalog[col] = pd.to_numeric(catalog[col], errors="coerce")
+    catalog["descripcion"] = catalog["descripcion"].str.strip()
+    catalog = catalog.dropna(subset=["cve_ent", "cve_mun", "cve_loc", "descripcion"]).astype(
+        {"cve_ent": int, "cve_mun": int, "cve_loc": int, "edicion": int}
+    )
+    catalog["codigo"] = catalog.apply(
+        lambda row: int(f"{row['cve_ent']:02d}{row['cve_mun']:03d}{row['cve_loc']:04d}"), axis=1
+    )
+    catalog = catalog.drop_duplicates(subset=["codigo", "edicion"]).rename(columns={"edicion": "anio"})
+    return catalog[["codigo", "cve_ent", "cve_mun", "cve_loc", "anio", "descripcion"]].to_dict("records")
+
+
 def build_catalog(df: pd.DataFrame, text_key: bool) -> list[dict[str, Any]]:
     catalog = df.copy()
     catalog[DESCRIPCION_COL] = catalog[DESCRIPCION_COL].str.strip()

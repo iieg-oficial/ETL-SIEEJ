@@ -8,6 +8,8 @@ CHAPTER_TOTAL_GPO: Final[int] = 0
 
 EDICION_DATASET: Final[str] = "cat_edicion"
 
+LOCALIDADES_DATASET: Final[str] = "cat_localidades"
+
 VERSIONED_SOURCE_COLUMNS: Final[dict[str, str]] = {
     "ocupacion": "cat_ocupacion",
     "tipo_defun": "cat_presunta_defuncion_violenta",
@@ -29,8 +31,20 @@ JALISCO_FILTER_COLUMN: Final[str] = "ent_resid"
 ANIO_COLUMN: Final[str] = "anio_registro_id"
 
 GEO_ROLES: Final[tuple[tuple[str, str, str], ...]] = (
-    ("entidad_resid", "municipio_resid", "municipio_resid_id"),
-    ("entidad_ocurr", "municipio_ocurr", "municipio_ocurr_id"),
+    ("entidad_resid", "municipio_resid", "cvegeo_resid_id"),
+    ("entidad_ocurr", "municipio_ocurr", "cvegeo_ocurr_id"),
+)
+
+# (raw entidad, raw municipio, raw localidad / localidad FK target, entidad FK, municipio FK)
+# Each level resolves from its OWN raw code against cat_localidades: the entidad level uses
+# (ent, 0, 0) and the municipio level (ent, mun, 0). Deriving them from the localidad row's
+# hierarchy would be wrong: (14, 039, 9999) has no row in the catalog while (14, 120, 9999) does,
+# so an unresolved localidad would drag entidad and municipio down with it.
+GEO_LEVEL_ROLES: Final[tuple[tuple[str, str, str, str, str], ...]] = (
+    ("entidad_registro", "municipio_regis", "localidad_regis_id", "entidad_registro_id", "municipio_regis_id"),
+    ("entidad_resid", "municipio_resid", "localidad_resid_id", "entidad_resid_id", "municipio_resid_id"),
+    ("entidad_ocurr", "municipio_ocurr", "localidad_ocurr_id", "entidad_ocurr_id", "municipio_ocurr_id"),
+    ("entidad_ocules", "municipio_ocules", "localidad_ocules_id", "entidad_ocules_id", "municipio_ocules_id"),
 )
 
 COLUMN_CATALOG: Final[dict[str, str]] = {
@@ -44,6 +58,7 @@ COLUMN_CATALOG: Final[dict[str, str]] = {
     "cve_lengua": "cat_lenguas",
     "nacionalid": "cat_nacionalidad",
     "nacesp_cve": "cat_origen",
+    "ent_nac": "cat_entidad_pais",
     "edad": "cat_edad",
     "sem_gest": "cat_edad_gestacional",
     "gramos": "cat_peso_producto",
@@ -101,6 +116,7 @@ EDITION_COLUMN_ALIASES: Final[dict[str, str]] = {
 FK_COLUMN_OVERRIDES: Final[dict[str, str]] = {
     "lista1": "lista_cie_id",
     "nacesp_cve": "origen_id",
+    "ent_nac": "entidad_pais_nac_id",
     "causa_def": "causa_defuncion_id",
     "cod_adicio": "cod_adicional_id",
     "conindig": "cond_indigena_id",
@@ -141,23 +157,31 @@ CATALOG_FK_COLUMNS: Final[dict[str, str]] = {col: FK_COLUMN_OVERRIDES.get(col, f
 GEO_COLUMN_RENAMES: Final[dict[str, str]] = {
     "ent_regis": "entidad_registro",
     "mun_regis": "municipio_regis",
-    "loc_regis": "localidad_regis",
     "ent_resid": "entidad_resid",
     "mun_resid": "municipio_resid",
-    "loc_resid": "localidad_resid",
     "ent_ocurr": "entidad_ocurr",
     "mun_ocurr": "municipio_ocurr",
-    "loc_ocurr": "localidad_ocurr",
-    "ent_nac": "entidad_nac",
     "ent_ocules": "entidad_ocules",
     "mun_ocules": "municipio_ocules",
-    "loc_ocules": "localidad_ocules",
 }
 
-REGISTRO_RENAMES: Final[dict[str, str]] = {**CATALOG_FK_COLUMNS, **GEO_COLUMN_RENAMES}
+LOCALIDAD_FK_COLUMNS: Final[dict[str, str]] = {
+    "loc_regis": "localidad_regis_id",
+    "loc_resid": "localidad_resid_id",
+    "loc_ocurr": "localidad_ocurr_id",
+    "loc_ocules": "localidad_ocules_id",
+}
+
+REGISTRO_RENAMES: Final[dict[str, str]] = {
+    **CATALOG_FK_COLUMNS,
+    **GEO_COLUMN_RENAMES,
+    **LOCALIDAD_FK_COLUMNS,
+}
 
 ETL_MANAGED_COLUMNS: Final[frozenset[str]] = frozenset(
-    {"id", "fecha_actualizacion", "capitulo_grupo_id", "municipio_resid_id", "municipio_ocurr_id"}
+    {"id", "fecha_actualizacion", "capitulo_grupo_id", "cvegeo_resid_id", "cvegeo_ocurr_id"}
+    | {ent_fk for *_, ent_fk, _ in GEO_LEVEL_ROLES}
+    | {mun_fk for *_, mun_fk in GEO_LEVEL_ROLES}
 )
 
 TEXT_FACT_COLUMNS: Final[frozenset[str]] = frozenset(CATALOG_FK_COLUMNS[col] for col in CODED_SOURCE_COLUMNS)
