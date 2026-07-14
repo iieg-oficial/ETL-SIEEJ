@@ -14,6 +14,8 @@ from core.pipelines.defunciones.constants import (
     ENTIDAD_JALISCO,
     FACT_DATASET,
     JALISCO_FILTER_COLUMN,
+    MIRRORED_EDITION,
+    MIRRORED_EDITION_FILENAME,
     PIPELINE_NAME,
 )
 from core.pipelines.defunciones.helpers.source import (
@@ -31,6 +33,7 @@ from core.pipelines.defunciones.helpers.source import (
 )
 from core.pipelines.defunciones.schemas import CATALOG_MODELS, CODED_MODELS, VERSIONED_MODELS
 from core.pipelines.stage import Stage
+from core.utils.gdrive import download_public_file
 from core.utils.logger import get_logger
 
 
@@ -41,10 +44,20 @@ class DefuncionesExtract(Stage):
         self.since_year = since_year
         self.logger = get_logger(f"{PIPELINE_NAME}.extract")
 
+    def _download_catalog_zip(self, url: str) -> bytes:
+        if edition_year(url) != MIRRORED_EDITION:
+            return download_zip(url)
+
+        cache_path = self.work_dir / MIRRORED_EDITION_FILENAME
+        if not cache_path.exists():
+            self.logger.info("[source] %s: downloading Drive mirror", MIRRORED_EDITION)
+            download_public_file(settings.CATALOGO_2021_FILE_ID, cache_path)
+        return cache_path.read_bytes()
+
     def _extract_catalogs(self) -> dict[str, pd.DataFrame]:
         url = settings.CATALOG_URL or latest_catalog_url()
         self.logger.info("[source] Downloading catalog edition: %s", url)
-        zip_bytes = download_zip(url)
+        zip_bytes = self._download_catalog_zip(url)
 
         out: dict[str, pd.DataFrame] = {}
         member, raw = find_catalog_csv(zip_bytes, keyword=EDAD_KEYWORD, exclude=EDAD_EXCLUDE)
@@ -86,7 +99,7 @@ class DefuncionesExtract(Stage):
         for url in urls:
             year = edition_year(url)
             years.append(year)
-            zip_bytes = download_zip(url)
+            zip_bytes = self._download_catalog_zip(url)
             for model in VERSIONED_MODELS:
                 try:
                     member, raw = find_catalog_csv(zip_bytes, keyword=model.keyword)

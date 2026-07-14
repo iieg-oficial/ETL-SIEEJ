@@ -12,6 +12,8 @@ class Settings(BaseConfig):
     CATALOG_URL: str | None = Field(default=None)
     REGISTRO_URL: str | None = Field(default=None)
 
+    CATALOGO_2021_FILE_ID: str
+
     BACKFILL_MIN_YEAR: int = Field(default=2019)
 
     CHUNK_SIZE: int = Field(default=10_000)

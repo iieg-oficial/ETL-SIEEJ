@@ -126,6 +126,26 @@ Cada columna `*_id` es FK a su catálogo (`cat_*`). Las columnas `ent_*` / `mun_
 | `CHUNK_SIZE` | Tamaño de lote al insertar la tabla de hechos (default 10000) |
 | `BACKFILL_MIN_YEAR` | Año mínimo del backfill en bootstrap (default 2019) |
 | `CATALOG_URL` / `REGISTRO_URL` | Opcional: fija una edición específica en vez de descubrir la última |
+| `CATALOGO_2021_FILE_ID` | **Requerido.** Id del espejo en Drive del catálogo 2021 (ver nota abajo) |
+
+### Nota: catálogo 2021 servido desde Drive
+
+El catálogo `CATALOGOS_DEFUN_2021.zip` **no es alcanzable desde la red del IIEG**: el proxy de salida
+(Cisco WSA) intercepta la petición y devuelve un HTTP 500 sintético. La misma URL responde 200 desde
+fuera de la red, y otras ediciones del mismo host (2022, 2024) sí descargan, así que no es un bloqueo
+de dominio ni un límite de tasa. El caso está escalado a redes.
+
+La edición 2021 no es prescindible: aporta 2 catálogos que no existen en 2022
+(`entidad_municipio_localidad_2021`, `violencia_familiar`) y 28 de los 34 catálogos compartidos tienen
+contenido distinto. Como los catálogos son versionados, cada defunción se resuelve contra el catálogo
+de su propia edición, así que omitirla no falla: etiqueta mal los registros de 2021.
+
+Por eso se mantiene un espejo del ZIP original en Drive, byte a byte idéntico a la fuente (incluyendo
+su ZIP anidado). El extract lo descarga por id cuando la edición es 2021; el resto se baja de DGIS
+como siempre.
+
+Cuando redes libere el acceso directo, basta con eliminar `MIRRORED_EDITION` de `constants/source.py`
+y esta variable.
 
 ## Notas metodológicas
 
