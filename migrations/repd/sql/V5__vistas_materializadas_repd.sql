@@ -2,9 +2,13 @@
 -- V5: Vistas materializadas REPD para consumo GIS (iieg_gis)
 -- =======================================================================
 -- 6 vistas materializadas con geometrias municipales y tasas CONAPO.
--- Status: 2 = PERSONA DESAPARECIDA, 3 = PERSONA LOCALIZADA
--- Fecha base: disappearance_date truncado a mes (YYYY-MM-01)
--- Tasa: (conteo / pob_total CONAPO) * 100000
+-- El estatus y el sexo del REPD se resuelven por NOMBRE (JOIN a catalogos),
+-- no por id, para no depender del orden de insercion de los catalogos.
+-- Nombres de estatus: 'PERSONA DESAPARECIDA', 'PERSONA LOCALIZADA'.
+-- Nombres de sexo REPD: 'HOMBRE', 'MUJER'.
+-- CONAPO usa ids fijos (1 = HOMBRES, 2 = MUJERES) en conapo_poblacion.
+-- Fecha base: fecha_desaparicion truncada a mes (YYYY-MM-01).
+-- Tasa: (conteo / pob_total CONAPO) * 100000.
 -- =======================================================================
 
 -- ---------------------------------------------------------------------------
@@ -13,15 +17,16 @@
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_desaparecidas AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total,
-        COUNT(*) FILTER (WHERE c.sex_id = 1)             AS total_hombres,
-        COUNT(*) FILTER (WHERE c.sex_id = 2)             AS total_mujeres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 2
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+        COUNT(*) FILTER (WHERE sx.nombre = 'HOMBRE')     AS total_hombres,
+        COUNT(*) FILTER (WHERE sx.nombre = 'MUJER')      AS total_mujeres
+    FROM stg_repd_casos c
+    JOIN cat_estatus e    ON c.estatus_id = e.id AND e.nombre = 'PERSONA DESAPARECIDA'
+    LEFT JOIN cat_sexo sx ON c.sexo_id = sx.id
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (
@@ -74,14 +79,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_personas_desaparecidas_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_desaparecidas_hombres AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total_hombres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 2
-      AND c.sex_id = 1
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+    FROM stg_repd_casos c
+    JOIN cat_estatus e ON c.estatus_id = e.id AND e.nombre = 'PERSONA DESAPARECIDA'
+    JOIN cat_sexo sx   ON c.sexo_id = sx.id AND sx.nombre = 'HOMBRE'
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (
@@ -123,14 +128,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_personas_desaparecidas_hombres_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_desaparecidas_mujeres AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total_mujeres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 2
-      AND c.sex_id = 2
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+    FROM stg_repd_casos c
+    JOIN cat_estatus e ON c.estatus_id = e.id AND e.nombre = 'PERSONA DESAPARECIDA'
+    JOIN cat_sexo sx   ON c.sexo_id = sx.id AND sx.nombre = 'MUJER'
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (
@@ -172,15 +177,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_personas_desaparecidas_mujeres_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_localizadas AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total,
-        COUNT(*) FILTER (WHERE c.sex_id = 1)             AS total_hombres,
-        COUNT(*) FILTER (WHERE c.sex_id = 2)             AS total_mujeres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 3
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+        COUNT(*) FILTER (WHERE sx.nombre = 'HOMBRE')     AS total_hombres,
+        COUNT(*) FILTER (WHERE sx.nombre = 'MUJER')      AS total_mujeres
+    FROM stg_repd_casos c
+    JOIN cat_estatus e    ON c.estatus_id = e.id AND e.nombre = 'PERSONA LOCALIZADA'
+    LEFT JOIN cat_sexo sx ON c.sexo_id = sx.id
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (
@@ -233,14 +239,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_personas_localizadas_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_localizadas_hombres AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total_hombres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 3
-      AND c.sex_id = 1
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+    FROM stg_repd_casos c
+    JOIN cat_estatus e ON c.estatus_id = e.id AND e.nombre = 'PERSONA LOCALIZADA'
+    JOIN cat_sexo sx   ON c.sexo_id = sx.id AND sx.nombre = 'HOMBRE'
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (
@@ -282,14 +288,14 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_personas_localizadas_hombres_fid
 CREATE MATERIALIZED VIEW IF NOT EXISTS personas_localizadas_mujeres AS
 WITH agg AS (
     SELECT
-        DATE_TRUNC('month', c.disappearance_date)::date AS fecha,
-        c.disappearance_municipality_id                  AS mun_id,
+        DATE_TRUNC('month', c.fecha_desaparicion)::date AS fecha,
+        c.municipio_desaparicion_id                      AS mun_id,
         COUNT(*)                                         AS total_mujeres
-    FROM stg_repd_case_current c
-    WHERE c.status_id = 3
-      AND c.sex_id = 2
-      AND c.disappearance_date IS NOT NULL
-      AND c.disappearance_municipality_id IS NOT NULL
+    FROM stg_repd_casos c
+    JOIN cat_estatus e ON c.estatus_id = e.id AND e.nombre = 'PERSONA LOCALIZADA'
+    JOIN cat_sexo sx   ON c.sexo_id = sx.id AND sx.nombre = 'MUJER'
+    WHERE c.fecha_desaparicion IS NOT NULL
+      AND c.municipio_desaparicion_id IS NOT NULL
     GROUP BY 1, 2
 ),
 pob AS (

@@ -32,44 +32,44 @@ SERVER cvegeo_server
 OPTIONS (schema_name 'public', table_name 'cvegeo_municipalities');
 
 -- Catalogos
-CREATE TABLE IF NOT EXISTS stg_repd_cat_sex (
+CREATE TABLE IF NOT EXISTS cat_sexo (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(60) NOT NULL,
-    CONSTRAINT uq_repd_cat_sex_name UNIQUE (name)
+    nombre      VARCHAR(60) NOT NULL,
+    CONSTRAINT uq_cat_sexo_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_nationality (
+CREATE TABLE IF NOT EXISTS cat_nacionalidad (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    CONSTRAINT uq_repd_cat_nationality_name UNIQUE (name)
+    nombre      VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_cat_nacionalidad_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_age_range (
+CREATE TABLE IF NOT EXISTS cat_rango_edad (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(50) NOT NULL,
-    CONSTRAINT uq_repd_cat_age_range_name UNIQUE (name)
+    nombre      VARCHAR(50) NOT NULL,
+    CONSTRAINT uq_cat_rango_edad_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_status (
+CREATE TABLE IF NOT EXISTS cat_estatus (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    CONSTRAINT uq_repd_cat_status_name UNIQUE (name)
+    nombre      VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_cat_estatus_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_location_condition (
+CREATE TABLE IF NOT EXISTS cat_condicion_localizacion (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(60) NOT NULL,
-    CONSTRAINT uq_repd_cat_location_condition_name UNIQUE (name)
+    nombre      VARCHAR(60) NOT NULL,
+    CONSTRAINT uq_cat_condicion_localizacion_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_location_classification (
+CREATE TABLE IF NOT EXISTS cat_clasificacion_localizacion (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    CONSTRAINT uq_repd_cat_location_classification_name UNIQUE (name)
+    nombre      VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_cat_clasificacion_localizacion_nombre UNIQUE (nombre)
 );
 
-CREATE TABLE IF NOT EXISTS stg_repd_cat_closure_type (
+CREATE TABLE IF NOT EXISTS cat_tipo_cierre (
     id          SERIAL PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
-    CONSTRAINT uq_repd_cat_closure_type_name UNIQUE (name)
+    nombre      VARCHAR(100) NOT NULL,
+    CONSTRAINT uq_cat_tipo_cierre_nombre UNIQUE (nombre)
 );
