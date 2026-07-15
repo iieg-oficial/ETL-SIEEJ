@@ -25,12 +25,12 @@ from core.pipelines.edafologia.helpers.boundaries import (
 from core.pipelines.edafologia.helpers.download import prepare_source_zip, sha256_file, validate_zip
 from core.pipelines.edafologia.helpers.inventory import select_canonical_candidate
 from core.pipelines.edafologia.mappings import (
-    CALIFICADORES_PRIMARIOS_EDAFOLOGICOS,
-    CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS,
+    CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,
     catalog_manifest,
     catalog_sha256,
 )
+from core.pipelines.edafologia import schemas
 
 
 def _zip_bytes(files: dict[str, bytes]) -> bytes:
@@ -333,13 +333,12 @@ def test_write_boundary_layers_atomic_preserves_previous_file_on_failure(tmp_pat
 
 def test_versioned_catalog_counts_are_exact():
     assert len(GRUPOS_EDAFOLOGICOS) == 24
-    assert len(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS) == 63
-    assert len(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == 71
+    assert len(CALIFICADORES_EDAFOLOGICOS) == 87
 
 
 @pytest.mark.parametrize(
     "mapping",
-    [GRUPOS_EDAFOLOGICOS, CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS],
+    [GRUPOS_EDAFOLOGICOS, CALIFICADORES_EDAFOLOGICOS],
 )
 def test_versioned_catalog_keys_are_unique_and_non_empty(mapping):
     assert len(mapping) == len(set(mapping))
@@ -349,26 +348,52 @@ def test_versioned_catalog_keys_are_unique_and_non_empty(mapping):
 
 def test_versioned_catalog_hash_is_deterministic():
     reversed_mapping = dict(reversed(list(GRUPOS_EDAFOLOGICOS.items())))
-    reversed_secondary = dict(reversed(list(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS.items())))
+    reversed_qualifiers = dict(reversed(list(CALIFICADORES_EDAFOLOGICOS.items())))
 
     assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == catalog_sha256(reversed_mapping)
     assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == "7a4d3930bc05f59d74a2cdb20c85c41b31a166db044cb3e7668512dc24be7192"
-    assert catalog_sha256(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == catalog_sha256(reversed_secondary)
+    assert catalog_sha256(CALIFICADORES_EDAFOLOGICOS) == catalog_sha256(reversed_qualifiers)
     assert (
-        catalog_sha256(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS)
-        == "1a813808e32ea3cfb65f3337d75b3d47fe1e2f096cb59c83c7e3340eb62a9a55"
+        catalog_sha256(CALIFICADORES_EDAFOLOGICOS) == "df479e0c8d93437717dee301e7158cf16863209f257063b862f851391019917c"
     )
 
 
-def test_secondary_catalog_resolves_fl_as_ferralico():
-    assert CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS["fl"] == "Ferrálico"
+def test_qualifier_catalog_resolves_fl_as_ferralico():
+    assert CALIFICADORES_EDAFOLOGICOS["fl"] == "Ferrálico"
+
+
+def test_qualifier_roles_reference_same_sqlalchemy_model():
+    edafologias_columns = schemas.Edafologias.__table__.columns
+    resumenes_columns = schemas.EdafologiaResumenesMunicipales.__table__.columns
+
+    assert "calificador_primario_id" in edafologias_columns
+    assert "calificador_secundario_id" in edafologias_columns
+    assert "calificador_primario_edafologico_id" not in edafologias_columns
+    assert "calificador_secundario_edafologico_id" not in edafologias_columns
+    assert next(iter(edafologias_columns["calificador_primario_id"].foreign_keys)).target_fullname == (
+        "calificadores_edafologicos.id"
+    )
+    assert next(iter(edafologias_columns["calificador_secundario_id"].foreign_keys)).target_fullname == (
+        "calificadores_edafologicos.id"
+    )
+    assert next(iter(resumenes_columns["calificador_primario_id"].foreign_keys)).target_fullname == (
+        "calificadores_edafologicos.id"
+    )
+    assert next(iter(resumenes_columns["calificador_secundario_id"].foreign_keys)).target_fullname == (
+        "calificadores_edafologicos.id"
+    )
+
+
+def test_separate_qualifier_catalog_models_no_longer_exist():
+    assert hasattr(schemas, "CalificadoresEdafologicos")
+    assert not hasattr(schemas, "CalificadoresPrimariosEdafologicos")
+    assert not hasattr(schemas, "CalificadoresSecundariosEdafologicos")
 
 
 def test_controlled_catalog_manifest_has_no_local_csv_paths():
     manifest = {
         "grupo1": catalog_manifest(GRUPOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
-        "calificador_primario": catalog_manifest(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
-        "calificador_secundario": catalog_manifest(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+        "calificadores": catalog_manifest(CALIFICADORES_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
     }
     serialized = json.dumps(manifest, ensure_ascii=False)
 
@@ -412,8 +437,8 @@ def test_versioned_catalogs_cover_observed_jalisco_values():
 
     missing = {
         "Grupo1": sorted(set(frame["Grupo1"].dropna().astype(str)) - set(GRUPOS_EDAFOLOGICOS)),
-        "Califp_g1": sorted(set(frame["Califp_g1"].dropna().astype(str)) - set(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS)),
-        "Califs_g1": sorted(set(frame["Califs_g1"].dropna().astype(str)) - set(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS)),
+        "Califp_g1": sorted(set(frame["Califp_g1"].dropna().astype(str)) - set(CALIFICADORES_EDAFOLOGICOS)),
+        "Califs_g1": sorted(set(frame["Califs_g1"].dropna().astype(str)) - set(CALIFICADORES_EDAFOLOGICOS)),
     }
 
     assert missing == {"Grupo1": [], "Califp_g1": [], "Califs_g1": []}

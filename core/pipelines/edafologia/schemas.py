@@ -23,16 +23,8 @@ class GruposEdafologicos(EdafologiaBase):
     descripcion: Mapped[str] = mapped_column(String(255), nullable=False)
 
 
-class CalificadoresPrimariosEdafologicos(EdafologiaBase):
-    __tablename__ = T.CALIFICADORES_PRIMARIOS_EDAFOLOGICOS
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    clave: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
-    descripcion: Mapped[str] = mapped_column(String(255), nullable=False)
-
-
-class CalificadoresSecundariosEdafologicos(EdafologiaBase):
-    __tablename__ = T.CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS
+class CalificadoresEdafologicos(EdafologiaBase):
+    __tablename__ = T.CALIFICADORES_EDAFOLOGICOS
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     clave: Mapped[str] = mapped_column(String(20), nullable=False, unique=True)
@@ -66,11 +58,11 @@ class Edafologias(EdafologiaBase):
     grupo_edafologico_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.GRUPOS_EDAFOLOGICOS}.id"), nullable=False
     )
-    calificador_primario_edafologico_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_PRIMARIOS_EDAFOLOGICOS}.id"), nullable=False
+    calificador_primario_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
     )
-    calificador_secundario_edafologico_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS}.id"), nullable=False
+    calificador_secundario_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
     )
     grupo1_origen: Mapped[str] = mapped_column(String(20), nullable=False)
     califp_g1_origen: Mapped[str] = mapped_column(String(20), nullable=False)
@@ -138,8 +130,8 @@ class EdafologiaResumenesMunicipales(EdafologiaBase):
             "municipality_cvegeo",
             "source_version",
             "grupo_edafologico_id",
-            "calificador_primario_edafologico_id",
-            "calificador_secundario_edafologico_id",
+            "calificador_primario_id",
+            "calificador_secundario_id",
             "fuente_limite_municipal_id",
             name="uq_edafologia_resumenes_categoria_limite",
         ),
@@ -155,11 +147,11 @@ class EdafologiaResumenesMunicipales(EdafologiaBase):
     grupo_edafologico_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.GRUPOS_EDAFOLOGICOS}.id"), nullable=False
     )
-    calificador_primario_edafologico_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_PRIMARIOS_EDAFOLOGICOS}.id"), nullable=False
+    calificador_primario_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
     )
-    calificador_secundario_edafologico_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS}.id"), nullable=False
+    calificador_secundario_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
     )
     fuente_limite_municipal_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.FUENTES_LIMITES_MUNICIPALES}.id"), nullable=False

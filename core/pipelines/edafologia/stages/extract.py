@@ -33,8 +33,7 @@ from core.pipelines.edafologia.helpers.download import prepare_source_zip
 from core.pipelines.edafologia.helpers.inventory import inspect_vector_candidates, select_canonical_candidate
 from core.pipelines.edafologia.helpers.manifest import read_manifest, write_manifest
 from core.pipelines.edafologia.mappings import (
-    CALIFICADORES_PRIMARIOS_EDAFOLOGICOS,
-    CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS,
+    CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,
     catalog_manifest,
 )
@@ -98,10 +97,7 @@ class EdafologiaExtract(Stage):
                 "pending_metadata": CONTROLLED_CATALOG_PENDING_METADATA,
             },
             "grupo1": catalog_manifest(GRUPOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
-            "calificador_primario": catalog_manifest(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
-            "calificador_secundario": catalog_manifest(
-                CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION
-            ),
+            "calificadores": catalog_manifest(CALIFICADORES_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
         }
 
         manifest = {

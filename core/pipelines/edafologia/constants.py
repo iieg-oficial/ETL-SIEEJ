@@ -21,7 +21,8 @@ CONTROLLED_CATALOG_VERSION_DATE: Final[str | None] = None
 CONTROLLED_CATALOG_METHODOLOGY: Final[str] = (
     "Catalogos controlados versionados en el pipeline. Los nombres y codigos confirmados "
     "documentalmente provienen del Diccionario de Datos Edafologicos de INEGI; las decisiones "
-    "de seleccion e interpretacion para el pipeline son elaboracion propia del IIEG."
+    "de seleccion e interpretacion para el pipeline son elaboracion propia del IIEG. "
+    "Califp_g1 y Califs_g1 consultan el mismo listado comun de calificadores de los grupos de suelo."
 )
 CONTROLLED_CATALOG_REFERENCE_INSTITUTION: Final[str] = "INEGI"
 CONTROLLED_CATALOG_REFERENCE_DOCUMENT: Final[str] = "Diccionario de Datos Edafologicos"
