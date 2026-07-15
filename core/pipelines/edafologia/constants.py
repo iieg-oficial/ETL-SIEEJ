@@ -19,12 +19,21 @@ CONTROLLED_CATALOG_VERSION: Final[str] = "v1"
 CONTROLLED_CATALOG_ORIGIN: Final[str] = "elaboracion_propia"
 CONTROLLED_CATALOG_VERSION_DATE: Final[str | None] = None
 CONTROLLED_CATALOG_METHODOLOGY: Final[str] = (
-    "Catalogos controlados versionados en el pipeline para interpretar codigos edafologicos "
-    "observados en INEGI Edafologia historica 1:250 000 Serie III."
+    "Catalogos controlados versionados en el pipeline. Los nombres y codigos confirmados "
+    "documentalmente provienen del Diccionario de Datos Edafologicos de INEGI; las decisiones "
+    "de seleccion e interpretacion para el pipeline son elaboracion propia del IIEG."
+)
+CONTROLLED_CATALOG_REFERENCE_INSTITUTION: Final[str] = "INEGI"
+CONTROLLED_CATALOG_REFERENCE_DOCUMENT: Final[str] = "Diccionario de Datos Edafologicos"
+CONTROLLED_CATALOG_REFERENCE_SCALE: Final[str] = "1:250 000"
+CONTROLLED_CATALOG_REFERENCE_DOCUMENT_VERSION: Final[str] = "4"
+CONTROLLED_CATALOG_REFERENCE_YEAR: Final[int] = 2016
+CONTROLLED_CATALOG_FL_REFERENCE_PAGE: Final[int] = 57
+CONTROLLED_CATALOG_STATUS: Final[str] = (
+    "catalogo elaborado y transcrito de manera controlada, con verificacion documental progresiva"
 )
 CONTROLLED_CATALOG_PENDING_METADATA: Final[tuple[str, ...]] = (
-    "fecha de version",
-    "bibliografia",
+    "fecha exacta de version del catalogo IIEG",
     "responsable",
 )
 MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {

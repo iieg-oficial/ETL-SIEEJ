@@ -123,6 +123,7 @@ CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS: Final[dict[str, str]] = {
     "dyp": "Epidístrico",
     "eu": "Éutrico",
     "fr": "Férrico",
+    "fl": "Ferrálico",
     "fv": "Flúvico",
     "gl": "Gléyico",
     "gm": "Grúmico",

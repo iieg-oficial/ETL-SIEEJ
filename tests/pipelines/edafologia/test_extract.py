@@ -334,7 +334,7 @@ def test_write_boundary_layers_atomic_preserves_previous_file_on_failure(tmp_pat
 def test_versioned_catalog_counts_are_exact():
     assert len(GRUPOS_EDAFOLOGICOS) == 24
     assert len(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS) == 63
-    assert len(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == 70
+    assert len(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == 71
 
 
 @pytest.mark.parametrize(
@@ -349,9 +349,19 @@ def test_versioned_catalog_keys_are_unique_and_non_empty(mapping):
 
 def test_versioned_catalog_hash_is_deterministic():
     reversed_mapping = dict(reversed(list(GRUPOS_EDAFOLOGICOS.items())))
+    reversed_secondary = dict(reversed(list(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS.items())))
 
     assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == catalog_sha256(reversed_mapping)
     assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == "7a4d3930bc05f59d74a2cdb20c85c41b31a166db044cb3e7668512dc24be7192"
+    assert catalog_sha256(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == catalog_sha256(reversed_secondary)
+    assert (
+        catalog_sha256(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS)
+        == "1a813808e32ea3cfb65f3337d75b3d47fe1e2f096cb59c83c7e3340eb62a9a55"
+    )
+
+
+def test_secondary_catalog_resolves_fl_as_ferralico():
+    assert CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS["fl"] == "Ferrálico"
 
 
 def test_controlled_catalog_manifest_has_no_local_csv_paths():
