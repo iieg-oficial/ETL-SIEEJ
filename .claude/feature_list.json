@@ -1,8 +1,8 @@
 {
   "project": "ETL-SIEEJ",
-  "pipeline": null,
-  "issue": null,
-  "branch": null,
+  "pipeline": "edafologia",
+  "issue": 182,
+  "branch": "182-pipeline-edafologia",
   "rules": {
     "one_phase_at_a_time": true,
     "require_verification_to_close": true,
@@ -22,7 +22,7 @@
         "Pipeline name, source type (iterable/non-iterable), schedule del DAG confirmados",
         "Catálogos estáticos identificados"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 1,
@@ -35,7 +35,7 @@
         "schemas.py creado con modelos SQLAlchemy 2.0",
         ".env y .env.example creados con URLs como variables de entorno"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 2,
