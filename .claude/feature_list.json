@@ -78,7 +78,7 @@
         "Estrategia correcta: upsert_records (iterable) o insert_records (no-iterable)",
         "cleanup_pipeline_data llamado en finalization()"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 5,
