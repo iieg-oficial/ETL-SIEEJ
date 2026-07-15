@@ -63,7 +63,7 @@
         "FKs mapeados con normalize_col() antes de .map()",
         "Guard contra DataFrame vacío"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 4,
