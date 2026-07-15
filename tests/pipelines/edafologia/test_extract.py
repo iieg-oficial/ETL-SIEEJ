@@ -1,26 +1,36 @@
 from __future__ import annotations
 
 import io
+import importlib
 import json
 import os
+import sys
 import zipfile
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+import pyogrio
 import pytest
 import requests
 from shapely.geometry import MultiPolygon, Polygon
 
+from core.pipelines.edafologia.constants import CONTROLLED_CATALOG_VERSION
 from core.pipelines.edafologia.helpers.archive import safe_extract_zip
 from core.pipelines.edafologia.helpers.boundaries import (
     prepare_municipal_boundaries,
     validate_boundary_layer,
     write_boundary_layers_atomic,
 )
-from core.pipelines.edafologia.helpers.dictionaries import copy_dictionary, validate_dictionary
 from core.pipelines.edafologia.helpers.download import prepare_source_zip, sha256_file, validate_zip
 from core.pipelines.edafologia.helpers.inventory import select_canonical_candidate
+from core.pipelines.edafologia.mappings import (
+    CALIFICADORES_PRIMARIOS_EDAFOLOGICOS,
+    CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS,
+    GRUPOS_EDAFOLOGICOS,
+    catalog_manifest,
+    catalog_sha256,
+)
 
 
 def _zip_bytes(files: dict[str, bytes]) -> bytes:
@@ -53,12 +63,6 @@ def _municipal_boundaries(count: int = 125, srid: int = 6368) -> gpd.GeoDataFram
         )
         geometries.append(MultiPolygon([polygon]))
     return gpd.GeoDataFrame(pd.DataFrame(rows), geometry=geometries, crs=f"EPSG:{srid}")
-
-
-def _dictionary(path: Path, key_field: str, description_field: str, rows: list[tuple[str, str]]) -> Path:
-    frame = pd.DataFrame(rows, columns=[key_field, description_field])
-    frame.to_csv(path, index=False)
-    return path
 
 
 def _candidate(
@@ -327,46 +331,82 @@ def test_write_boundary_layers_atomic_preserves_previous_file_on_failure(tmp_pat
     assert not (tmp_path / "municipal_boundaries.tmp.gpkg").exists()
 
 
-def test_dictionary_validation_accepts_complete_dictionary(tmp_path):
-    source = _dictionary(tmp_path / "grupo1.csv", "Grupo1", "D_grupo1", [("A", "Descripcion A")])
-
-    result = validate_dictionary(source, "Grupo1", "D_grupo1")
-
-    assert result["row_count"] == 1
-    assert result["duplicated_keys"] == []
-    assert result["empty_keys"] == 0
-    assert result["empty_descriptions"] == 0
+def test_versioned_catalog_counts_are_exact():
+    assert len(GRUPOS_EDAFOLOGICOS) == 24
+    assert len(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS) == 63
+    assert len(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS) == 70
 
 
-def test_dictionary_validation_rejects_duplicate_keys(tmp_path):
-    source = _dictionary(tmp_path / "grupo1.csv", "Grupo1", "D_grupo1", [("A", "Uno"), ("A", "Dos")])
-
-    with pytest.raises(ValueError, match="duplicated keys"):
-        validate_dictionary(source, "Grupo1", "D_grupo1")
-
-
-def test_dictionary_validation_rejects_missing_columns(tmp_path):
-    source = tmp_path / "grupo1.csv"
-    pd.DataFrame({"Grupo1": ["A"]}).to_csv(source, index=False)
-
-    with pytest.raises(ValueError, match="missing required columns"):
-        validate_dictionary(source, "Grupo1", "D_grupo1")
+@pytest.mark.parametrize(
+    "mapping",
+    [GRUPOS_EDAFOLOGICOS, CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS],
+)
+def test_versioned_catalog_keys_are_unique_and_non_empty(mapping):
+    assert len(mapping) == len(set(mapping))
+    assert all(key != "" for key in mapping)
+    assert all(description != "" for description in mapping.values())
 
 
-def test_copy_dictionary_copies_without_modifying_source(tmp_path):
-    source = _dictionary(tmp_path / "calificador.csv", "Califp_g1", "D_cp", [("ab", "Descripcion")])
-    result = copy_dictionary(
-        name="calificador_primario",
-        source_path=source,
-        output_dir=tmp_path / "dictionaries",
-        key_field="Califp_g1",
-        description_field="D_cp",
-        previous_manifest=None,
-        force=False,
+def test_versioned_catalog_hash_is_deterministic():
+    reversed_mapping = dict(reversed(list(GRUPOS_EDAFOLOGICOS.items())))
+
+    assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == catalog_sha256(reversed_mapping)
+    assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == "7a4d3930bc05f59d74a2cdb20c85c41b31a166db044cb3e7668512dc24be7192"
+
+
+def test_controlled_catalog_manifest_has_no_local_csv_paths():
+    manifest = {
+        "grupo1": catalog_manifest(GRUPOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+        "calificador_primario": catalog_manifest(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+        "calificador_secundario": catalog_manifest(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+    }
+    serialized = json.dumps(manifest, ensure_ascii=False)
+
+    assert "versioned_mapping" in serialized
+    assert "/home/serviciosocial" not in serialized
+    assert ".csv" not in serialized
+
+
+def test_extract_imports_without_dictionary_path_env(monkeypatch):
+    for variable in ("GRUPO1_DICTIONARY_PATH", "CALIFP_G1_DICTIONARY_PATH", "CALIFS_G1_DICTIONARY_PATH"):
+        monkeypatch.delenv(variable, raising=False)
+    monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
+    monkeypatch.setenv("CVEGEO_DB_USER", "user")
+    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
+    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
+    monkeypatch.setenv("CVEGEO_DB_PORT", "5433")
+    monkeypatch.setenv("CVEGEO_DB_NAME", "cvegeo")
+    sys.modules.pop("core.pipelines.edafologia.config", None)
+    sys.modules.pop("core.pipelines.edafologia.stages.extract", None)
+
+    module = importlib.import_module("core.pipelines.edafologia.stages.extract")
+
+    assert module.EdafologiaExtract.__name__ == "EdafologiaExtract"
+
+
+def test_versioned_catalogs_cover_observed_jalisco_values():
+    observed_gpkg = Path(
+        os.getenv(
+            "EDAFOLOGIA_OBSERVED_JALISCO_GPKG",
+            "/home/serviciosocial/iieg_2026/06_cuadernillos/Insumos/capas/edafologia/edafologiav1.gpkg",
+        )
+    )
+    if not observed_gpkg.exists():
+        pytest.skip("Observed Jalisco Edafologia GPKG is not available locally")
+
+    frame = pyogrio.read_dataframe(
+        observed_gpkg,
+        layer="edafologiav1",
+        columns=["Grupo1", "Califp_g1", "Califs_g1"],
     )
 
-    assert Path(result["temporary_path"]).read_bytes() == source.read_bytes()
-    assert result["sha256"] == sha256_file(source)
+    missing = {
+        "Grupo1": sorted(set(frame["Grupo1"].dropna().astype(str)) - set(GRUPOS_EDAFOLOGICOS)),
+        "Califp_g1": sorted(set(frame["Califp_g1"].dropna().astype(str)) - set(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS)),
+        "Califs_g1": sorted(set(frame["Califs_g1"].dropna().astype(str)) - set(CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS)),
+    }
+
+    assert missing == {"Grupo1": [], "Califp_g1": [], "Califs_g1": []}
 
 
 def test_auxiliary_manifest_has_no_credentials():

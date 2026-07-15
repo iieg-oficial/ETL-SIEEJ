@@ -7,7 +7,11 @@ from typing import Any
 from core.pipelines.edafologia.config import settings
 from core.pipelines.edafologia.constants import (
     BOUNDARIES_GPKG_FILENAME,
-    DICTIONARY_SOURCES,
+    CONTROLLED_CATALOG_METHODOLOGY,
+    CONTROLLED_CATALOG_ORIGIN,
+    CONTROLLED_CATALOG_PENDING_METADATA,
+    CONTROLLED_CATALOG_VERSION,
+    CONTROLLED_CATALOG_VERSION_DATE,
     EXPECTED_SOURCE_COLUMNS,
     MANIFEST_FILENAME,
     MUNICIPAL_BOUNDARY_SOURCES,
@@ -18,10 +22,15 @@ from core.pipelines.edafologia.constants import (
 )
 from core.pipelines.edafologia.helpers.archive import safe_extract_zip
 from core.pipelines.edafologia.helpers.boundaries import prepare_municipal_boundaries
-from core.pipelines.edafologia.helpers.dictionaries import prepare_dictionaries
 from core.pipelines.edafologia.helpers.download import prepare_source_zip
 from core.pipelines.edafologia.helpers.inventory import inspect_vector_candidates, select_canonical_candidate
 from core.pipelines.edafologia.helpers.manifest import read_manifest, write_manifest
+from core.pipelines.edafologia.mappings import (
+    CALIFICADORES_PRIMARIOS_EDAFOLOGICOS,
+    CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS,
+    GRUPOS_EDAFOLOGICOS,
+    catalog_manifest,
+)
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
 
@@ -33,7 +42,6 @@ class EdafologiaExtract(Stage):
         self.raw_dir = self.work_dir / "raw"
         self.extraction_dir = self.work_dir / "extracted"
         self.boundaries_path = self.work_dir / "auxiliary" / BOUNDARIES_GPKG_FILENAME
-        self.dictionaries_dir = self.work_dir / "dictionaries"
         self.manifest_path = self.work_dir / MANIFEST_FILENAME
 
     def source(self, input_data: Any | None = None) -> dict[str, object]:
@@ -66,16 +74,19 @@ class EdafologiaExtract(Stage):
                 previous_manifest=previous_auxiliary.get("municipal_boundaries"),
                 force=settings.FORCE_DOWNLOAD,
             ),
-            "dictionaries": prepare_dictionaries(
-                specs=DICTIONARY_SOURCES,
-                paths_by_setting={
-                    "GRUPO1_DICTIONARY_PATH": settings.GRUPO1_DICTIONARY_PATH,
-                    "CALIFP_G1_DICTIONARY_PATH": settings.CALIFP_G1_DICTIONARY_PATH,
-                    "CALIFS_G1_DICTIONARY_PATH": settings.CALIFS_G1_DICTIONARY_PATH,
-                },
-                output_dir=self.dictionaries_dir,
-                previous_manifest=previous_auxiliary.get("dictionaries"),
-                force=settings.FORCE_DOWNLOAD,
+        }
+        controlled_catalogs = {
+            "metadata": {
+                "origin_type": CONTROLLED_CATALOG_ORIGIN,
+                "version": CONTROLLED_CATALOG_VERSION,
+                "version_date": CONTROLLED_CATALOG_VERSION_DATE,
+                "methodology": CONTROLLED_CATALOG_METHODOLOGY,
+                "pending_metadata": CONTROLLED_CATALOG_PENDING_METADATA,
+            },
+            "grupo1": catalog_manifest(GRUPOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+            "calificador_primario": catalog_manifest(CALIFICADORES_PRIMARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION),
+            "calificador_secundario": catalog_manifest(
+                CALIFICADORES_SECUNDARIOS_EDAFOLOGICOS, CONTROLLED_CATALOG_VERSION
             ),
         }
 
@@ -96,6 +107,7 @@ class EdafologiaExtract(Stage):
             "selected_feature_count": selected["feature_count"],
             "selected_fields": selected["fields"],
             "auxiliary_inputs": auxiliary_inputs,
+            "controlled_catalogs": controlled_catalogs,
             "pipeline_version": PIPELINE_VERSION,
             "manifest_created_at": datetime.now().astimezone().isoformat(),
         }

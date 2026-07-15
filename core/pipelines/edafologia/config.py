@@ -25,10 +25,6 @@ class Settings(BaseConfig):
     CVEGEO_DB_PORT: str = Field(default="5432")
     CVEGEO_DB_NAME: str = Field(default="cvegeo")
 
-    GRUPO1_DICTIONARY_PATH: str
-    CALIFP_G1_DICTIONARY_PATH: str
-    CALIFS_G1_DICTIONARY_PATH: str
-
     CHUNK_SIZE: int = Field(default=10_000)
 
     @property

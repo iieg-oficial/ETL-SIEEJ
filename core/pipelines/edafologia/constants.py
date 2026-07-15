@@ -15,6 +15,18 @@ MANIFEST_FILENAME: Final[str] = "manifest.json"
 CVEGEO_TABLE: Final[str] = "public.cvegeo_municipalities"
 CVEGEO_ENTITY_FILTER: Final[str] = "cve_ent = 14"
 BOUNDARIES_GPKG_FILENAME: Final[str] = "municipal_boundaries.gpkg"
+CONTROLLED_CATALOG_VERSION: Final[str] = "v1"
+CONTROLLED_CATALOG_ORIGIN: Final[str] = "elaboracion_propia"
+CONTROLLED_CATALOG_VERSION_DATE: Final[str | None] = None
+CONTROLLED_CATALOG_METHODOLOGY: Final[str] = (
+    "Catalogos controlados versionados en el pipeline para interpretar codigos edafologicos "
+    "observados en INEGI Edafologia historica 1:250 000 Serie III."
+)
+CONTROLLED_CATALOG_PENDING_METADATA: Final[tuple[str, ...]] = (
+    "fecha de version",
+    "bibliografia",
+    "responsable",
+)
 MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
     "iieg": {
         "layer": "municipios_iieg",
@@ -25,23 +37,6 @@ MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
         "layer": "municipios_inegi",
         "geometry_column": "geom_inegi",
         "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
-    },
-}
-DICTIONARY_SOURCES: Final[dict[str, dict[str, str]]] = {
-    "grupo1": {
-        "path_setting": "GRUPO1_DICTIONARY_PATH",
-        "key_field": "Grupo1",
-        "description_field": "D_grupo1",
-    },
-    "calificador_primario": {
-        "path_setting": "CALIFP_G1_DICTIONARY_PATH",
-        "key_field": "Califp_g1",
-        "description_field": "D_cp",
-    },
-    "calificador_secundario": {
-        "path_setting": "CALIFS_G1_DICTIONARY_PATH",
-        "key_field": "Califs_g1",
-        "description_field": "D_cs",
     },
 }
 
