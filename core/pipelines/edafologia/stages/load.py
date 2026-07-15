@@ -14,6 +14,7 @@ from core.pipelines.edafologia.helpers.load import (
     read_transform_manifest,
     read_transformed_layer,
     resolve_catalog_ids,
+    source_identity,
     validate_catalog_counts,
     validate_transform_manifest,
     validate_transformed_frame,
@@ -86,11 +87,6 @@ class EdafologiaLoad(Stage):
         return catalog_count_summary(group_records, qualifier_records, limit_records)
 
     def _canonical_records(self, session, frame) -> list[dict[str, Any]]:
-        source_versions = frame["source_version"].dropna().astype(str).unique().tolist()
-        source_hashes = frame["source_file_sha256"].dropna().astype(str).unique().tolist()
-        if len(source_versions) != 1 or len(source_hashes) != 1:
-            raise ValueError("Transformed data must contain exactly one source_version and source_file_sha256")
-        validate_version_collision(session, source_versions[0], source_hashes[0])
         grupo_ids = get_mapping(session, GruposEdafologicos, GruposEdafologicos.clave.key, GruposEdafologicos.id.key)
         calificador_ids = get_mapping(
             session,
@@ -109,6 +105,8 @@ class EdafologiaLoad(Stage):
         try:
             self.db.connect()
             with self.db.get_session() as session:
+                source_version, source_file_sha256 = source_identity(frame)
+                validate_version_collision(session, source_version, source_file_sha256)
                 catalog_counts = self._load_catalogs(session)
                 records_before = count_records(session, Edafologias)
                 records = self._canonical_records(session, frame)

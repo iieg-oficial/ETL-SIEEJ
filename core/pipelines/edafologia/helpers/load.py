@@ -197,6 +197,14 @@ def dataframe_to_nullable_records(gdf: gpd.GeoDataFrame, columns: list[str]) -> 
     return records
 
 
+def source_identity(gdf: gpd.GeoDataFrame) -> tuple[str, str]:
+    source_versions = gdf["source_version"].dropna().astype(str).unique().tolist()
+    source_hashes = gdf["source_file_sha256"].dropna().astype(str).unique().tolist()
+    if len(source_versions) != 1 or len(source_hashes) != 1:
+        raise ValueError("Transformed data must contain exactly one source_version and source_file_sha256")
+    return source_versions[0], source_hashes[0]
+
+
 def validate_version_collision(session: Any, source_version: str, source_file_sha256: str) -> None:
     existing_hashes = {
         row[0]

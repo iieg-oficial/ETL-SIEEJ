@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +11,7 @@ import pandas as pd
 import pytest
 from geoalchemy2.elements import WKBElement
 from shapely.geometry import MultiPolygon, Polygon
+from sqlalchemy import create_engine, text
 
 from core.pipelines.edafologia.constants import CANONICAL_SRID, TRANSFORM_OUTPUT_LAYER
 from core.pipelines.edafologia.helpers.download import sha256_file
@@ -20,6 +22,7 @@ from core.pipelines.edafologia.helpers.load import (
     dataframe_to_nullable_records,
     resolve_catalog_ids,
     shapely_to_wkb_element,
+    source_identity,
     validate_catalog_counts,
     validate_transformed_frame,
     validate_transform_manifest,
@@ -203,6 +206,16 @@ def test_validate_version_collision_rejects_same_version_different_hash():
         validate_version_collision(_Session([("different",)]), "Serie III", "abc123")
 
 
+def test_source_identity_requires_single_version_and_hash():
+    frame = _frame()
+
+    assert source_identity(frame) == ("Serie III", "abc123")
+
+    frame.loc[1, "source_version"] = "Otra version"
+    with pytest.raises(ValueError, match="exactly one source_version"):
+        source_identity(frame)
+
+
 def test_catalogs_have_expected_counts_and_non_empty_values():
     group_records = catalog_records(GRUPOS_EDAFOLOGICOS)
     qualifier_records = catalog_records(CALIFICADORES_EDAFOLOGICOS)
@@ -271,7 +284,7 @@ def test_load_rolls_back_transaction_on_error(monkeypatch):
         rolled_back = False
 
         def __enter__(self):
-            return SimpleNamespace()
+            return _Session([])
 
         def __exit__(self, exc_type, _exc, _traceback):
             self.rolled_back = exc_type is not None
@@ -304,9 +317,113 @@ def test_load_rolls_back_transaction_on_error(monkeypatch):
     assert fake_db.disconnected is True
 
 
+def test_load_checks_version_collision_before_catalog_writes(monkeypatch):
+    monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
+    monkeypatch.setenv("CVEGEO_DB_USER", "user")
+    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
+    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
+    sys.modules.pop("core.pipelines.edafologia.config", None)
+    sys.modules.pop("core.pipelines.edafologia.stages.load", None)
+    load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
+
+    class FakeSessionContext:
+        def __enter__(self):
+            return _Session([("different",)])
+
+        def __exit__(self, *_args):
+            return False
+
+    class FakeDb:
+        def connect(self):
+            return None
+
+        def get_session(self):
+            return FakeSessionContext()
+
+        def disconnect(self):
+            return None
+
+    stage = load_stage.EdafologiaLoad()
+    stage.db = FakeDb()
+    catalog_writes_called = False
+
+    def fail_if_called(_session):
+        nonlocal catalog_writes_called
+        catalog_writes_called = True
+        raise AssertionError("catalog writes should not run when source_version collides")
+
+    monkeypatch.setattr(stage, "_load_catalogs", fail_if_called)
+
+    with pytest.raises(ValueError, match="source_version collision"):
+        stage.action({"manifest": {}, "frame": _frame()})
+
+    assert catalog_writes_called is False
+
+
 def test_load_does_not_transform_geometry_before_wkb():
     frame = resolve_catalog_ids(_frame(), {"AC": 1}, {"ab": 2, "N": 3})
     original_wkb = frame.geometry.iloc[0].wkb
     records = canonical_records(frame)
 
     assert bytes(records[0]["geom"].data) == original_wkb
+
+
+def _load_env_file(env_path: Path, monkeypatch) -> None:
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        monkeypatch.setenv(key.strip(), value.strip().strip('"').strip("'"))
+
+
+@pytest.mark.integration
+def test_edafologia_load_real_integration(monkeypatch):
+    env_path = Path("migrations/edafologia/.env")
+    transform_manifest_path = Path("data/transform/edafologia/transform_manifest.json")
+    if not env_path.exists() or not transform_manifest_path.exists():
+        pytest.skip("Local edafologia env and transform manifest are required")
+
+    _load_env_file(env_path, monkeypatch)
+    monkeypatch.setenv("SOURCE_URL", os.getenv("SOURCE_URL", "https://example.test/source.zip"))
+    monkeypatch.setenv("CVEGEO_DB_USER", os.getenv("CVEGEO_DB_USER", "user"))
+    monkeypatch.setenv("CVEGEO_DB_PASSWORD", os.getenv("CVEGEO_DB_PASSWORD", "secret"))
+    monkeypatch.setenv("CVEGEO_DB_HOST", os.getenv("CVEGEO_DB_HOST", "localhost"))
+    monkeypatch.setenv("CVEGEO_DB_PORT", os.getenv("CVEGEO_DB_PORT", "5433"))
+    monkeypatch.setenv("CVEGEO_DB_NAME", os.getenv("CVEGEO_DB_NAME", "cvegeo"))
+    sys.modules.pop("core.pipelines.edafologia.config", None)
+    sys.modules.pop("core.pipelines.edafologia.stages.load", None)
+    load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
+
+    result = load_stage.EdafologiaLoad().execute()
+
+    assert result["catalog_counts"] == {
+        "grupos_edafologicos": 24,
+        "calificadores_edafologicos": 87,
+        "fuentes_limites_municipales": 2,
+    }
+    assert result["canonical_records"] == 3765
+
+    settings = importlib.import_module("core.pipelines.edafologia.config").settings
+    engine = create_engine(settings.database_url)
+    with engine.connect() as connection:
+        counts = dict(
+            connection.execute(
+                text(
+                    """
+                    SELECT 'grupos_edafologicos', count(*) FROM grupos_edafologicos
+                    UNION ALL SELECT 'calificadores_edafologicos', count(*) FROM calificadores_edafologicos
+                    UNION ALL SELECT 'fuentes_limites_municipales', count(*) FROM fuentes_limites_municipales
+                    UNION ALL SELECT 'edafologias', count(*) FROM edafologias
+                    """
+                )
+            ).all()
+        )
+    engine.dispose()
+
+    assert counts == {
+        "grupos_edafologicos": 24,
+        "calificadores_edafologicos": 87,
+        "fuentes_limites_municipales": 2,
+        "edafologias": 3765,
+    }
