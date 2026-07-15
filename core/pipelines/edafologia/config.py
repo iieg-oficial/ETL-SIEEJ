@@ -19,11 +19,24 @@ class Settings(BaseConfig):
     DOWNLOAD_CONNECT_TIMEOUT: int = Field(default=30)
     DOWNLOAD_READ_TIMEOUT: int = Field(default=300)
 
+    CVEGEO_DB_USER: str
+    CVEGEO_DB_PASSWORD: str
+    CVEGEO_DB_HOST: str
+    CVEGEO_DB_PORT: str = Field(default="5432")
+    CVEGEO_DB_NAME: str = Field(default="cvegeo")
+
     GRUPO1_DICTIONARY_PATH: str
     CALIFP_G1_DICTIONARY_PATH: str
     CALIFS_G1_DICTIONARY_PATH: str
 
     CHUNK_SIZE: int = Field(default=10_000)
+
+    @property
+    def cvegeo_database_url(self) -> str:
+        return (
+            f"postgresql://{self.CVEGEO_DB_USER}:{self.CVEGEO_DB_PASSWORD}"
+            f"@{self.CVEGEO_DB_HOST}:{self.CVEGEO_DB_PORT}/{self.CVEGEO_DB_NAME}"
+        )
 
 
 settings = Settings()

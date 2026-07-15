@@ -12,6 +12,38 @@ SOURCE_URL_ENV: Final[str] = "SOURCE_URL"
 EXPECTED_AREA_LAYER_STEM: Final[str] = "conj_nac_inf_edaf_esc_250k_ser_III_area"
 EXCLUDED_POINT_LAYER_SUFFIX: Final[str] = "_pto"
 MANIFEST_FILENAME: Final[str] = "manifest.json"
+CVEGEO_TABLE: Final[str] = "public.cvegeo_municipalities"
+CVEGEO_ENTITY_FILTER: Final[str] = "cve_ent = 14"
+BOUNDARIES_GPKG_FILENAME: Final[str] = "municipal_boundaries.gpkg"
+MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
+    "iieg": {
+        "layer": "municipios_iieg",
+        "geometry_column": "geom_iieg",
+        "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
+    },
+    "inegi": {
+        "layer": "municipios_inegi",
+        "geometry_column": "geom_inegi",
+        "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
+    },
+}
+DICTIONARY_SOURCES: Final[dict[str, dict[str, str]]] = {
+    "grupo1": {
+        "path_setting": "GRUPO1_DICTIONARY_PATH",
+        "key_field": "Grupo1",
+        "description_field": "D_grupo1",
+    },
+    "calificador_primario": {
+        "path_setting": "CALIFP_G1_DICTIONARY_PATH",
+        "key_field": "Califp_g1",
+        "description_field": "D_cp",
+    },
+    "calificador_secundario": {
+        "path_setting": "CALIFS_G1_DICTIONARY_PATH",
+        "key_field": "Califs_g1",
+        "description_field": "D_cs",
+    },
+}
 
 RENAME_HEADER: Final[dict[str, str]] = {
     "OBJECTID": "source_objectid",

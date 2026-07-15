@@ -6,17 +6,22 @@ from typing import Any
 
 from core.pipelines.edafologia.config import settings
 from core.pipelines.edafologia.constants import (
+    BOUNDARIES_GPKG_FILENAME,
+    DICTIONARY_SOURCES,
     EXPECTED_SOURCE_COLUMNS,
     MANIFEST_FILENAME,
+    MUNICIPAL_BOUNDARY_SOURCES,
     PIPELINE_NAME,
     PIPELINE_VERSION,
     SOURCE_NAME,
     SOURCE_VERSION,
 )
 from core.pipelines.edafologia.helpers.archive import safe_extract_zip
+from core.pipelines.edafologia.helpers.boundaries import prepare_municipal_boundaries
+from core.pipelines.edafologia.helpers.dictionaries import prepare_dictionaries
 from core.pipelines.edafologia.helpers.download import prepare_source_zip
 from core.pipelines.edafologia.helpers.inventory import inspect_vector_candidates, select_canonical_candidate
-from core.pipelines.edafologia.helpers.manifest import write_manifest
+from core.pipelines.edafologia.helpers.manifest import read_manifest, write_manifest
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
 
@@ -27,6 +32,9 @@ class EdafologiaExtract(Stage):
         self.logger = get_logger(f"{pipeline_name}.extract")
         self.raw_dir = self.work_dir / "raw"
         self.extraction_dir = self.work_dir / "extracted"
+        self.boundaries_path = self.work_dir / "auxiliary" / BOUNDARIES_GPKG_FILENAME
+        self.dictionaries_dir = self.work_dir / "dictionaries"
+        self.manifest_path = self.work_dir / MANIFEST_FILENAME
 
     def source(self, input_data: Any | None = None) -> dict[str, object]:
         self.logger.info("[source] Preparing Edafologia source ZIP")
@@ -47,6 +55,29 @@ class EdafologiaExtract(Stage):
         safe_extract_zip(zip_path, self.extraction_dir, force=settings.FORCE_DOWNLOAD, logger=self.logger)
         candidates = inspect_vector_candidates(self.extraction_dir, EXPECTED_SOURCE_COLUMNS)
         selected = select_canonical_candidate(candidates, EXPECTED_SOURCE_COLUMNS)
+        previous_manifest = read_manifest(self.manifest_path)
+        previous_auxiliary = (previous_manifest or {}).get("auxiliary_inputs", {})
+        auxiliary_inputs = {
+            "municipal_boundaries": prepare_municipal_boundaries(
+                database_url=settings.cvegeo_database_url,
+                database_name=settings.CVEGEO_DB_NAME,
+                output_path=self.boundaries_path,
+                boundary_sources=MUNICIPAL_BOUNDARY_SOURCES,
+                previous_manifest=previous_auxiliary.get("municipal_boundaries"),
+                force=settings.FORCE_DOWNLOAD,
+            ),
+            "dictionaries": prepare_dictionaries(
+                specs=DICTIONARY_SOURCES,
+                paths_by_setting={
+                    "GRUPO1_DICTIONARY_PATH": settings.GRUPO1_DICTIONARY_PATH,
+                    "CALIFP_G1_DICTIONARY_PATH": settings.CALIFP_G1_DICTIONARY_PATH,
+                    "CALIFS_G1_DICTIONARY_PATH": settings.CALIFS_G1_DICTIONARY_PATH,
+                },
+                output_dir=self.dictionaries_dir,
+                previous_manifest=previous_auxiliary.get("dictionaries"),
+                force=settings.FORCE_DOWNLOAD,
+            ),
+        }
 
         manifest = {
             "source_url": input_data["source_url"],
@@ -64,13 +95,13 @@ class EdafologiaExtract(Stage):
             "selected_crs": selected["crs"],
             "selected_feature_count": selected["feature_count"],
             "selected_fields": selected["fields"],
+            "auxiliary_inputs": auxiliary_inputs,
             "pipeline_version": PIPELINE_VERSION,
             "manifest_created_at": datetime.now().astimezone().isoformat(),
         }
         return manifest
 
     def finalization(self, input_data: dict[str, object]) -> dict[str, object]:
-        manifest_path = self.work_dir / MANIFEST_FILENAME
-        write_manifest(input_data, manifest_path)
-        self.logger.info("[finalization] Extract manifest written to %s", manifest_path)
+        write_manifest(input_data, self.manifest_path)
+        self.logger.info("[finalization] Extract manifest written to %s", self.manifest_path)
         return input_data

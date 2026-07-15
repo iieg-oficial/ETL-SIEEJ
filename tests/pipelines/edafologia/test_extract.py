@@ -1,13 +1,24 @@
 from __future__ import annotations
 
 import io
+import json
+import os
 import zipfile
 from pathlib import Path
 
+import geopandas as gpd
+import pandas as pd
 import pytest
 import requests
+from shapely.geometry import MultiPolygon, Polygon
 
 from core.pipelines.edafologia.helpers.archive import safe_extract_zip
+from core.pipelines.edafologia.helpers.boundaries import (
+    prepare_municipal_boundaries,
+    validate_boundary_layer,
+    write_boundary_layers_atomic,
+)
+from core.pipelines.edafologia.helpers.dictionaries import copy_dictionary, validate_dictionary
 from core.pipelines.edafologia.helpers.download import prepare_source_zip, sha256_file, validate_zip
 from core.pipelines.edafologia.helpers.inventory import select_canonical_candidate
 
@@ -22,6 +33,31 @@ def _zip_bytes(files: dict[str, bytes]) -> bytes:
 
 def _write_zip(path: Path, files: dict[str, bytes]) -> Path:
     path.write_bytes(_zip_bytes(files))
+    return path
+
+
+def _municipal_boundaries(count: int = 125, srid: int = 6368) -> gpd.GeoDataFrame:
+    rows = []
+    geometries = []
+    for idx in range(count):
+        x = float(idx)
+        polygon = Polygon([(x, 0.0), (x + 0.5, 0.0), (x + 0.5, 0.5), (x, 0.5), (x, 0.0)])
+        rows.append(
+            {
+                "cvegeo": f"14{idx + 1:03d}",
+                "cve_ent": "14",
+                "cve_mun": f"{idx + 1:03d}",
+                "nomgeo": f"Municipio {idx + 1}",
+                "nom_ent": "Jalisco",
+            }
+        )
+        geometries.append(MultiPolygon([polygon]))
+    return gpd.GeoDataFrame(pd.DataFrame(rows), geometry=geometries, crs=f"EPSG:{srid}")
+
+
+def _dictionary(path: Path, key_field: str, description_field: str, rows: list[tuple[str, str]]) -> Path:
+    frame = pd.DataFrame(rows, columns=[key_field, description_field])
+    frame.to_csv(path, index=False)
     return path
 
 
@@ -211,3 +247,179 @@ def test_download_raises_after_http_failure(tmp_path, monkeypatch):
             connect_timeout=1,
             read_timeout=1,
         )
+
+
+def test_boundary_validation_accepts_125_unique_multipolygons():
+    result = validate_boundary_layer(_municipal_boundaries(), "geom_iieg", gist_index_present=True)
+
+    assert result["count"] == 125
+    assert result["unique_cvegeo"] == 125
+    assert result["srid"] == 6368
+    assert result["geometry_type"] == "MultiPolygon"
+
+
+def test_boundary_validation_rejects_duplicate_cvegeo():
+    gdf = _municipal_boundaries()
+    gdf.loc[1, "cvegeo"] = gdf.loc[0, "cvegeo"]
+
+    with pytest.raises(ValueError, match="unique_cvegeo"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_wrong_srid():
+    with pytest.raises(ValueError, match="srid"):
+        validate_boundary_layer(_municipal_boundaries(srid=6372), "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_null_geometry():
+    gdf = _municipal_boundaries()
+    gdf.loc[0, "geometry"] = None
+
+    with pytest.raises(ValueError, match="null_geometries"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_invalid_geometry():
+    gdf = _municipal_boundaries()
+    invalid_polygon = Polygon([(0, 0), (1, 1), (1, 0), (0, 1), (0, 0)])
+    gdf.loc[0, "geometry"] = MultiPolygon([invalid_polygon])
+
+    with pytest.raises(ValueError, match="invalid_geometries"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_write_boundary_layers_atomic_writes_two_distinct_layers(tmp_path):
+    output_path = tmp_path / "municipal_boundaries.gpkg"
+
+    write_boundary_layers_atomic(
+        {
+            "municipios_iieg": _municipal_boundaries(),
+            "municipios_inegi": _municipal_boundaries(),
+        },
+        output_path,
+    )
+
+    iieg = gpd.read_file(output_path, layer="municipios_iieg")
+    inegi = gpd.read_file(output_path, layer="municipios_inegi")
+    assert len(iieg) == 125
+    assert len(inegi) == 125
+    assert iieg.geometry.name == "geometry"
+    assert inegi.geometry.name == "geometry"
+
+
+def test_write_boundary_layers_atomic_preserves_previous_file_on_failure(tmp_path):
+    output_path = tmp_path / "municipal_boundaries.gpkg"
+    output_path.write_bytes(b"previous")
+
+    class FakeLayer:
+        def __init__(self, fail: bool = False):
+            self.fail = fail
+
+        def to_file(self, path, layer, driver):
+            Path(path).write_bytes(b"partial")
+            if self.fail:
+                raise RuntimeError("write failed")
+
+    with pytest.raises(RuntimeError, match="write failed"):
+        write_boundary_layers_atomic({"municipios_iieg": FakeLayer(), "municipios_inegi": FakeLayer(True)}, output_path)
+
+    assert output_path.read_bytes() == b"previous"
+    assert not (tmp_path / "municipal_boundaries.tmp.gpkg").exists()
+
+
+def test_dictionary_validation_accepts_complete_dictionary(tmp_path):
+    source = _dictionary(tmp_path / "grupo1.csv", "Grupo1", "D_grupo1", [("A", "Descripcion A")])
+
+    result = validate_dictionary(source, "Grupo1", "D_grupo1")
+
+    assert result["row_count"] == 1
+    assert result["duplicated_keys"] == []
+    assert result["empty_keys"] == 0
+    assert result["empty_descriptions"] == 0
+
+
+def test_dictionary_validation_rejects_duplicate_keys(tmp_path):
+    source = _dictionary(tmp_path / "grupo1.csv", "Grupo1", "D_grupo1", [("A", "Uno"), ("A", "Dos")])
+
+    with pytest.raises(ValueError, match="duplicated keys"):
+        validate_dictionary(source, "Grupo1", "D_grupo1")
+
+
+def test_dictionary_validation_rejects_missing_columns(tmp_path):
+    source = tmp_path / "grupo1.csv"
+    pd.DataFrame({"Grupo1": ["A"]}).to_csv(source, index=False)
+
+    with pytest.raises(ValueError, match="missing required columns"):
+        validate_dictionary(source, "Grupo1", "D_grupo1")
+
+
+def test_copy_dictionary_copies_without_modifying_source(tmp_path):
+    source = _dictionary(tmp_path / "calificador.csv", "Califp_g1", "D_cp", [("ab", "Descripcion")])
+    result = copy_dictionary(
+        name="calificador_primario",
+        source_path=source,
+        output_dir=tmp_path / "dictionaries",
+        key_field="Califp_g1",
+        description_field="D_cp",
+        previous_manifest=None,
+        force=False,
+    )
+
+    assert Path(result["temporary_path"]).read_bytes() == source.read_bytes()
+    assert result["sha256"] == sha256_file(source)
+
+
+def test_auxiliary_manifest_has_no_credentials():
+    manifest = {
+        "auxiliary_inputs": {
+            "municipal_boundaries": {
+                "database": "cvegeo",
+                "table": "public.cvegeo_municipalities",
+                "entity_filter": "cve_ent = 14",
+            }
+        }
+    }
+
+    serialized = json.dumps(manifest)
+
+    assert "not_a_password" not in serialized
+    assert "CVEGEO_DB_PASSWORD" not in serialized
+
+
+@pytest.mark.integration
+def test_prepare_municipal_boundaries_against_local_cvegeo(tmp_path):
+    required = ["CVEGEO_DB_USER", "CVEGEO_DB_PASSWORD", "CVEGEO_DB_HOST", "CVEGEO_DB_PORT", "CVEGEO_DB_NAME"]
+    if any(not os.getenv(name) for name in required):
+        pytest.skip("CVEGEO_DB_* variables are required for cvegeo integration test")
+
+    database_url = (
+        f"postgresql://{os.environ['CVEGEO_DB_USER']}:{os.environ['CVEGEO_DB_PASSWORD']}"
+        f"@{os.environ['CVEGEO_DB_HOST']}:{os.environ['CVEGEO_DB_PORT']}/{os.environ['CVEGEO_DB_NAME']}"
+    )
+    try:
+        manifest = prepare_municipal_boundaries(
+            database_url=database_url,
+            database_name=os.environ["CVEGEO_DB_NAME"],
+            output_path=tmp_path / "municipal_boundaries.gpkg",
+            boundary_sources={
+                "iieg": {
+                    "layer": "municipios_iieg",
+                    "geometry_column": "geom_iieg",
+                    "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
+                },
+                "inegi": {
+                    "layer": "municipios_inegi",
+                    "geometry_column": "geom_inegi",
+                    "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
+                },
+            },
+            previous_manifest=None,
+            force=True,
+        )
+    except ConnectionError as exc:
+        pytest.skip(str(exc))
+
+    assert manifest["database"] == os.environ["CVEGEO_DB_NAME"]
+    assert set(manifest["layers"]) == {"municipios_iieg", "municipios_inegi"}
+    assert manifest["layers"]["municipios_iieg"]["count"] == 125
+    assert manifest["layers"]["municipios_inegi"]["count"] == 125
