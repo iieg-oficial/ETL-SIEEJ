@@ -13,6 +13,11 @@ class Settings(BaseConfig):
     SOURCE_URL: str
     SOURCE_VERSION: str = Field(default=SOURCE_VERSION)
     CANONICAL_SRID: int = Field(default=CANONICAL_SRID)
+    SOURCE_ZIP_PATH: str | None = Field(default=None)
+    FORCE_DOWNLOAD: bool = Field(default=False)
+    DOWNLOAD_RETRIES: int = Field(default=5)
+    DOWNLOAD_CONNECT_TIMEOUT: int = Field(default=30)
+    DOWNLOAD_READ_TIMEOUT: int = Field(default=300)
 
     GRUPO1_DICTIONARY_PATH: str
     CALIFP_G1_DICTIONARY_PATH: str

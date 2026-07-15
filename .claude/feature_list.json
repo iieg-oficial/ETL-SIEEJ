@@ -49,7 +49,7 @@
         "Guard contra DataFrame vacío",
         "Rutas de archivo incluyen parámetro iterable si aplica"
       ],
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": 3,
