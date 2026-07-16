@@ -15,6 +15,10 @@ MANIFEST_FILENAME: Final[str] = "manifest.json"
 TRANSFORM_MANIFEST_FILENAME: Final[str] = "transform_manifest.json"
 TRANSFORM_OUTPUT_FILENAME: Final[str] = "edafologias_transformadas.gpkg"
 TRANSFORM_OUTPUT_LAYER: Final[str] = "edafologias"
+MUNICIPAL_OVERLAY_DIRNAME: Final[str] = "municipal_overlay"
+MUNICIPAL_OVERLAY_OUTPUT_FILENAME: Final[str] = "edafologia_fragmentos_municipales.gpkg"
+MUNICIPAL_OVERLAY_OUTPUT_LAYER: Final[str] = "edafologia_fragmentos_municipales"
+MUNICIPAL_OVERLAY_MANIFEST_FILENAME: Final[str] = "overlay_manifest.json"
 CVEGEO_TABLE: Final[str] = "public.cvegeo_municipalities"
 CVEGEO_ENTITY_FILTER: Final[str] = "cve_ent = 14"
 BOUNDARIES_GPKG_FILENAME: Final[str] = "municipal_boundaries.gpkg"
@@ -86,6 +90,7 @@ POLYGON_GEOMETRY_TYPES: Final[tuple[str, ...]] = (
 )
 
 LIMIT_SOURCE_KEYS: Final[tuple[str, str]] = ("iieg", "inegi")
+SMALL_FRAGMENT_THRESHOLDS_M2: Final[tuple[float, ...]] = (0.01, 1.0, 10.0, 100.0, 1000.0)
 
 EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",
