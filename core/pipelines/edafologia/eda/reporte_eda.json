@@ -1,0 +1,307 @@
+{
+  "boundaries": {
+    "gpkg": "data/extract/edafologia/auxiliary/municipal_boundaries.gpkg",
+    "gpkg_sha256": "76ff4353fc2a3a9d84589a74249e1bb4fd7b8ec4aad5085db87db777239e4ec3",
+    "method_note": "IIEG and INEGI boundaries are both preserved; neither source is declared correct.",
+    "municipios_iieg": {
+      "bbox": [
+        427476.0028089704,
+        2096901.9979557816,
+        865450.6422532809,
+        2515726.070928028
+      ],
+      "boundary_source": "iieg",
+      "count": 125,
+      "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
+      "geometry_type": "MultiPolygon",
+      "invalid_geometries": 0,
+      "null_geometries": 0,
+      "source_geometry_column": "geom_iieg",
+      "srid": 6368,
+      "unique_cvegeo": 125,
+      "validations": {
+        "expected_count": true,
+        "gist_index_present": true,
+        "invalid_geometries": true,
+        "multipolygon": true,
+        "null_geometries": true,
+        "srid": true,
+        "unique_cvegeo": true
+      }
+    },
+    "municipios_inegi": {
+      "bbox": [
+        427444.25314636226,
+        2093647.7804851735,
+        860852.704354289,
+        2516272.871545511
+      ],
+      "boundary_source": "inegi",
+      "count": 125,
+      "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
+      "geometry_type": "MultiPolygon",
+      "invalid_geometries": 0,
+      "null_geometries": 0,
+      "source_geometry_column": "geom_inegi",
+      "srid": 6368,
+      "unique_cvegeo": 125,
+      "validations": {
+        "expected_count": true,
+        "gist_index_present": true,
+        "invalid_geometries": true,
+        "multipolygon": true,
+        "null_geometries": true,
+        "srid": true,
+        "unique_cvegeo": true
+      }
+    },
+    "symmetric_difference_km2": 6837.704723885479,
+    "symmetric_difference_m2": 6837704723.885479
+  },
+  "canonical_hashes": {
+    "formula": {
+      "algorithm": "sha256",
+      "canonical_key_fields": [
+        "source_version",
+        "source_objectid"
+      ],
+      "encoding": "utf-8",
+      "field_order": "logical key fields followed by payload fields exactly as listed per hash",
+      "field_separator": "U+001F",
+      "geometry_serialization": "ST_AsEWKB(geom, 'NDR') encoded as lowercase hexadecimal; EWKB includes SRID",
+      "null_token": "<NULL>",
+      "overlay_key_fields": [
+        "source_version",
+        "source_objectid",
+        "fuente_limite_clave",
+        "municipality_cvegeo"
+      ],
+      "row_order": "lexicographic order by the declared logical key fields",
+      "row_separator": "\\n",
+      "serial_ids": "excluded from keys and payloads; catalog and boundary source claves are used instead",
+      "version": "edafologia-hash-v1"
+    },
+    "source_version": "Serie III",
+    "values": {
+      "canonical_geometry": "daa46329c032430757a44f2cfbe55d0aba02752fc3f4ce9792e8de2287ca2954",
+      "canonical_relations": "8a1a6ac417513609a5de3c503b34fd3300569ecb1d7edcac54bb0bcd4f85d1cd",
+      "overlay_geometry_iieg": "f027b9236e44a50a443a00ab4e3dc1e6162769349318ddea6ab4257c329726f3",
+      "overlay_geometry_inegi": "878af884b3f522076b99ac92b8bfb4b4e5beb3d4460baa0445285b04fa8d5433",
+      "overlay_logical_iieg": "255d13f816d212b1ee0904834e785aaf403de2ba89c4551e27e28efba767e4dd",
+      "overlay_logical_inegi": "f02c8b5bceae0c2cc4c5d3969c29448ad84a5742c2808c64e98a559e40ad7301"
+    }
+  },
+  "catalogs": {
+    "coverage": {
+      "califp_g1_origen": {
+        "mapped_codes": 63,
+        "observed_codes": 63,
+        "unmapped_codes": 0
+      },
+      "califs_g1_origen": {
+        "mapped_codes": 71,
+        "observed_codes": 71,
+        "unmapped_codes": 0
+      },
+      "grupo1_origen": {
+        "mapped_codes": 24,
+        "observed_codes": 24,
+        "unmapped_codes": 0
+      }
+    },
+    "fl": "Ferrálico",
+    "groups": {
+      "count": 24,
+      "sha256": "7a4d3930bc05f59d74a2cdb20c85c41b31a166db044cb3e7668512dc24be7192"
+    },
+    "limitations": "Mappings are transcribed and versioned in code; N and N/A are operational controlled values, not official documentary codes.",
+    "operational_values": {
+      "N": "No aplica",
+      "N/A": "No aplica"
+    },
+    "qualifiers": {
+      "count": 87,
+      "sha256": "df479e0c8d93437717dee301e7158cf16863209f257063b862f851391019917c"
+    },
+    "unified_qualifier_catalog": true
+  },
+  "database": {
+    "counts": {
+      "btree_indexes": 20,
+      "calificadores_edafologicos": 87,
+      "columns_commented": 63,
+      "columns_expected": 63,
+      "constraints": 59,
+      "edafologias": 3765,
+      "fragmentos_total": 10498,
+      "fuentes_limites_municipales": 2,
+      "gist_indexes": 2,
+      "grupos_edafologicos": 24,
+      "objects_commented": 6,
+      "objects_expected": 6,
+      "resumen_total": 5854
+    },
+    "strategy": "Bootstrap-only load with upsert for catalogs/canonical records and idempotent replacement of municipal fragments by source_version and boundary source.",
+    "tables": [
+      "grupos_edafologicos",
+      "calificadores_edafologicos",
+      "fuentes_limites_municipales",
+      "edafologias",
+      "edafologia_fragmentos_municipales"
+    ],
+    "view": "edafologia_resumenes_municipales"
+  },
+  "inventory": {
+    "candidate_count": 2,
+    "fields": [
+      "OBJECTID",
+      "Clave_wrb",
+      "Grupo1",
+      "Califp_g1",
+      "Califs_g1",
+      "Grupo2",
+      "Califp_g2",
+      "Califs_g2",
+      "Grupo3",
+      "Califp_g3",
+      "Clase_tex",
+      "Lmte_sup",
+      "Fase_fis_u",
+      "Fase_qui_u",
+      "Shape_Leng",
+      "Shape_Area"
+    ],
+    "format": "ESRI Shapefile",
+    "geometry_type": "Polygon",
+    "initial_invalid_geometries": 23,
+    "national_feature_count": 73356,
+    "original_crs": "PROJCS[\"ITRF_1992_Lambert_Conformal_Conic\",GEOGCS[\"ITRF92\",DATUM[\"International_Terrestrial_Reference_Frame_1992\",SPHEROID[\"GRS 1980\",6378137,298.257222101,AUTHORITY[\"EPSG\",\"7019\"]],AUTHORITY[\"EPSG\",\"6651\"]],PRIMEM[\"Greenwich\",0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Lambert_Conformal_Conic_2SP\"],PARAMETER[\"latitude_of_origin\",12],PARAMETER[\"central_meridian\",-102],PARAMETER[\"standard_parallel_1\",17.5],PARAMETER[\"standard_parallel_2\",29.5],PARAMETER[\"false_easting\",2500000],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+    "selected_layer": "conj_nac_inf_edaf_esc_250k_ser_III_area",
+    "selected_path": "data/extract/edafologia/extracted/conjunto_de_datos/conj_nac_inf_edaf_esc_250k_ser_III_area.shp",
+    "selection_criteria": [
+      "polygonal layer",
+      "contains Grupo1, Califp_g1 and Califs_g1",
+      "matches *_area",
+      "excludes *_pto"
+    ]
+  },
+  "limitations": [
+    "Historical non-iterable publication; only bootstrap is implemented.",
+    "No automatic update schedule exists for new INEGI publications.",
+    "source_objectid is not guaranteed to remain stable across future publications.",
+    "IIEG and INEGI municipal boundaries differ and are both retained.",
+    "Mappings are transcribed and versioned; they are not regenerated from the PDF at runtime.",
+    "Positive-area sliver fragments are preserved and monitored instead of removed by tolerance.",
+    "Intermediate artifacts are ignored by Git but preserved during execution for traceability."
+  ],
+  "overlay": {
+    "contacts_policy": "Non-polygonal and non-positive components are discarded; all positive-area polygonal fragments are kept.",
+    "coverage_iieg_pct": 99.99090879405597,
+    "coverage_inegi_pct": 99.98801317939171,
+    "fragments_iieg": 5215,
+    "fragments_inegi": 5283,
+    "fragments_total": 10498,
+    "output_gpkg": "data/transform/edafologia/municipal_overlay/edafologia_fragmentos_municipales.gpkg",
+    "output_sha256": "bdc70842aabd2f527f376ecbb832897c9a2fa36b2f7c6d95043cb5dbb95bbcb3",
+    "small_fragments_iieg": {
+      "0.01": {
+        "area_m2": 0.0,
+        "count": 0,
+        "pct_fragments": 0.0,
+        "pct_territorial_area": 0.0
+      },
+      "1.0": {
+        "area_m2": 0.02514396935174434,
+        "count": 1,
+        "pct_fragments": 0.019175455417066157,
+        "pct_territorial_area": 3.173479513407923e-11
+      },
+      "10.0": {
+        "area_m2": 9.865471643313631,
+        "count": 2,
+        "pct_fragments": 0.038350910834132314,
+        "pct_territorial_area": 1.2451443808330386e-08
+      },
+      "100.0": {
+        "area_m2": 162.85136019889342,
+        "count": 5,
+        "pct_fragments": 0.09587727708533078,
+        "pct_territorial_area": 2.0553853215938232e-07
+      },
+      "1000.0": {
+        "area_m2": 7413.834292164132,
+        "count": 23,
+        "pct_fragments": 0.44103547459252157,
+        "pct_territorial_area": 9.357174642098345e-06
+      }
+    },
+    "small_fragments_inegi": {
+      "0.01": {
+        "area_m2": 0.0,
+        "count": 0,
+        "pct_fragments": 0.0,
+        "pct_territorial_area": 0.0
+      },
+      "1.0": {
+        "area_m2": 0.46183511210703226,
+        "count": 1,
+        "pct_fragments": 0.01892863903085368,
+        "pct_territorial_area": 5.87593552634263e-10
+      },
+      "10.0": {
+        "area_m2": 0.46183511210703226,
+        "count": 1,
+        "pct_fragments": 0.01892863903085368,
+        "pct_territorial_area": 5.87593552634263e-10
+      },
+      "100.0": {
+        "area_m2": 279.00564836363213,
+        "count": 8,
+        "pct_fragments": 0.15142911224682945,
+        "pct_territorial_area": 3.5497933316299766e-07
+      },
+      "1000.0": {
+        "area_m2": 13304.808211836049,
+        "count": 34,
+        "pct_fragments": 0.6435737270490252,
+        "pct_territorial_area": 1.692772879186901e-05
+      }
+    }
+  },
+  "pipeline": "edafologia",
+  "pipeline_version": "0.2.0",
+  "source": {
+    "documentary_pdf": "data/extract/edafologia/extracted/diccionario_de_datos/702825092023.pdf",
+    "documentary_pdf_sha256": "25a7bd01e2822afea90bf5ff31ecfdac12f349ec18f9ea404c310ca782c53407",
+    "documentary_reference": {
+      "document": "Diccionario de Datos Edafologicos",
+      "document_version": "4",
+      "fl_reference_page": 57,
+      "institution": "INEGI",
+      "scale": "1:250 000",
+      "year": 2016
+    },
+    "institution": "INEGI",
+    "product": "INEGI Edafologia historica 1:250 000 Serie III",
+    "scale": "1:250,000",
+    "source_url": "https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/tematicas/Edafologia_hist/1_250_000/serie%20III/794551118313_s.zip",
+    "source_version": "Serie III",
+    "zip_file": "794551118313_s.zip",
+    "zip_sha256": "9277315fd3bf82ca49f089798428ca1ffa6a23f5b668c74df8ae74a95a087926"
+  },
+  "transform": {
+    "canonical_srid": 6368,
+    "empty_geometries": 0,
+    "final_area_m2": 82321461422.09332,
+    "final_feature_count": 3765,
+    "geometry_types": [
+      "MultiPolygon"
+    ],
+    "invalid_geometries": 0,
+    "null_geometries": 0,
+    "output_gpkg": "data/transform/edafologia/edafologias_transformadas.gpkg",
+    "output_sha256": "572ad73f65f843d9971e161612855f1f67199b3add2ba5f9e5518767cd133cac",
+    "repair_policy": "Repair invalid source geometries, extract polygonal components, clip to canonical coverage and keep positive-area MultiPolygons.",
+    "source_invalid_repaired": 23
+  }
+}

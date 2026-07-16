@@ -94,6 +94,17 @@ POLYGON_GEOMETRY_TYPES: Final[tuple[str, ...]] = (
 LIMIT_SOURCE_KEYS: Final[tuple[str, str]] = ("iieg", "inegi")
 SMALL_FRAGMENT_THRESHOLDS_M2: Final[tuple[float, ...]] = (0.01, 1.0, 10.0, 100.0, 1000.0)
 
+CANONICAL_HASH_FORMULA_VERSION: Final[str] = "edafologia-hash-v1"
+CANONICAL_HASH_ALGORITHM: Final[str] = "sha256"
+CANONICAL_HASH_FIELD_SEPARATOR: Final[str] = "\u001f"
+CANONICAL_HASH_ROW_SEPARATOR: Final[str] = "\n"
+CANONICAL_HASH_NULL_TOKEN: Final[str] = "<NULL>"
+CANONICAL_HASH_GEOMETRY_SERIALIZATION: Final[str] = (
+    "ST_AsEWKB(geom, 'NDR') encoded as lowercase hexadecimal; EWKB includes SRID"
+)
+EDA_REPORT_FILENAME: Final[str] = "reporte_eda.json"
+ERD_FILENAME: Final[str] = "er_edafologia.png"
+
 EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",
     "municipality_cvegeo",
