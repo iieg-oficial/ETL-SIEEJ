@@ -15,7 +15,10 @@ import pytest
 import requests
 from shapely.geometry import MultiPolygon, Polygon
 
-from core.pipelines.edafologia.constants import CONTROLLED_CATALOG_VERSION
+from core.pipelines.edafologia.constants import (
+    CONTROLLED_CATALOG_VERSION,
+    EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS,
+)
 from core.pipelines.edafologia.helpers.archive import safe_extract_zip
 from core.pipelines.edafologia.helpers.boundaries import (
     prepare_municipal_boundaries,
@@ -364,7 +367,6 @@ def test_qualifier_catalog_resolves_fl_as_ferralico():
 
 def test_qualifier_roles_reference_same_sqlalchemy_model():
     edafologias_columns = schemas.Edafologias.__table__.columns
-    resumenes_columns = schemas.EdafologiaResumenesMunicipales.__table__.columns
 
     assert "calificador_primario_id" in edafologias_columns
     assert "calificador_secundario_id" in edafologias_columns
@@ -376,12 +378,9 @@ def test_qualifier_roles_reference_same_sqlalchemy_model():
     assert next(iter(edafologias_columns["calificador_secundario_id"].foreign_keys)).target_fullname == (
         "calificadores_edafologicos.id"
     )
-    assert next(iter(resumenes_columns["calificador_primario_id"].foreign_keys)).target_fullname == (
-        "calificadores_edafologicos.id"
-    )
-    assert next(iter(resumenes_columns["calificador_secundario_id"].foreign_keys)).target_fullname == (
-        "calificadores_edafologicos.id"
-    )
+    assert "calificador_primario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert "calificador_secundario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert not hasattr(schemas, "EdafologiaResumenesMunicipales")
 
 
 def test_separate_qualifier_catalog_models_no_longer_exist():

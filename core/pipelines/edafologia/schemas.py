@@ -2,7 +2,8 @@ from datetime import date, datetime
 from typing import Any
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 from core.pipelines.edafologia.attributes import EdafologiaTables as T
@@ -99,8 +100,20 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
             "fuente_limite_municipal_id",
             name="uq_edafologia_fragmentos_fuente_municipio",
         ),
+        CheckConstraint("area_m2 > 0", name="ck_edafologia_fragmentos_area_m2_positive"),
+        CheckConstraint("area_ha > 0", name="ck_edafologia_fragmentos_area_ha_positive"),
+        CheckConstraint("pct_poligono_fuente >= 0", name="ck_edafologia_fragmentos_pct_poligono_non_negative"),
+        CheckConstraint("pct_municipio_total >= 0", name="ck_edafologia_fragmentos_pct_municipio_non_negative"),
+        CheckConstraint("pct_cobertura_edafologica >= 0", name="ck_edafologia_fragmentos_pct_cobertura_non_negative"),
         Index("idx_edafologia_fragmentos_municipality_cvegeo", "municipality_cvegeo"),
         Index("idx_edafologia_fragmentos_source_version", "source_version"),
+        Index(
+            "idx_edafologia_fragmentos_fuente_municipio_version",
+            "fuente_limite_municipal_id",
+            "municipality_cvegeo",
+            "source_version",
+        ),
+        Index("idx_edafologia_fragmentos_edafologia_id", "edafologia_id"),
         Index("idx_edafologia_fragmentos_fuente_limite", "fuente_limite_municipal_id"),
         Index("idx_edafologia_fragmentos_geom", "geom", postgresql_using="gist"),
     )
@@ -121,43 +134,3 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
     geom: Mapped[Any] = mapped_column(
         Geometry("MULTIPOLYGON", srid=CANONICAL_SRID, spatial_index=False), nullable=False
     )
-
-
-class EdafologiaResumenesMunicipales(EdafologiaBase):
-    __tablename__ = T.EDAFOLOGIA_RESUMENES_MUNICIPALES
-    __table_args__ = (
-        UniqueConstraint(
-            "municipality_cvegeo",
-            "source_version",
-            "grupo_edafologico_id",
-            "calificador_primario_id",
-            "calificador_secundario_id",
-            "fuente_limite_municipal_id",
-            name="uq_edafologia_resumenes_categoria_limite",
-        ),
-        Index("idx_edafologia_resumenes_municipality_cvegeo", "municipality_cvegeo"),
-        Index("idx_edafologia_resumenes_source_version", "source_version"),
-        Index("idx_edafologia_resumenes_grupo_edafologico_id", "grupo_edafologico_id"),
-        Index("idx_edafologia_resumenes_fuente_limite", "fuente_limite_municipal_id"),
-    )
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    municipality_cvegeo: Mapped[int] = mapped_column(Integer, nullable=False)
-    source_version: Mapped[str] = mapped_column(String(80), nullable=False)
-    grupo_edafologico_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.GRUPOS_EDAFOLOGICOS}.id"), nullable=False
-    )
-    calificador_primario_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
-    )
-    calificador_secundario_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.CALIFICADORES_EDAFOLOGICOS}.id"), nullable=False
-    )
-    fuente_limite_municipal_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey(f"{T.FUENTES_LIMITES_MUNICIPALES}.id"), nullable=False
-    )
-    area_m2: Mapped[float] = mapped_column(Float, nullable=False)
-    area_ha: Mapped[float] = mapped_column(Float, nullable=False)
-    pct_municipio_total: Mapped[float] = mapped_column(Float, nullable=False)
-    pct_cobertura_edafologica: Mapped[float] = mapped_column(Float, nullable=False)
-    fragmentos_count: Mapped[int] = mapped_column(Integer, nullable=False)

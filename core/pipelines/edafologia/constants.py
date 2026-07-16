@@ -86,3 +86,16 @@ POLYGON_GEOMETRY_TYPES: Final[tuple[str, ...]] = (
 )
 
 LIMIT_SOURCE_KEYS: Final[tuple[str, str]] = ("iieg", "inegi")
+
+EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
+    "fuente_limite_municipal_id",
+    "municipality_cvegeo",
+    "source_version",
+    "grupo_edafologico_id",
+    "calificador_primario_id",
+    "calificador_secundario_id",
+    "area_m2",
+    "area_ha",
+    "pct_municipio",
+    "fragment_count",
+)
