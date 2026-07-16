@@ -27,13 +27,17 @@ from core.pipelines.edafologia.schemas import (
     FuentesLimitesMunicipales,
     GruposEdafologicos,
 )
+from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import count_records, get_mapping, sync_id_sequence, upsert_records
 from core.utils.logger import get_logger
 
 
 class EdafologiaLoad(Stage):
-    def __init__(self, pipeline_name: str = PIPELINE_NAME):
+    """Canonical load stage for the bootstrap-only Edafologia historical source."""
+
+    def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
+        self.mode = validate_bootstrap_mode(mode)
         super().__init__(pipeline_name, "load")
         self.logger = get_logger(f"{pipeline_name}.load")
         self.db = Database(settings.DB_NAME, settings.database_url)

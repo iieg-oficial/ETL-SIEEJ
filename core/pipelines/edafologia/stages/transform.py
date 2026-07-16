@@ -30,12 +30,16 @@ from core.pipelines.edafologia.helpers.transform import (
     validate_extract_manifest,
     write_gpkg_atomic,
 )
+from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
 
 
 class EdafologiaTransform(Stage):
-    def __init__(self, pipeline_name: str = PIPELINE_NAME):
+    """Transform stage for the bootstrap-only Edafologia historical source."""
+
+    def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
+        self.mode = validate_bootstrap_mode(mode)
         super().__init__(pipeline_name, "transform")
         self.logger = get_logger(f"{pipeline_name}.transform")
         self.extract_manifest_path = Path("data") / "extract" / pipeline_name / MANIFEST_FILENAME

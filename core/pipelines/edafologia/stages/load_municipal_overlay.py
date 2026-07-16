@@ -18,12 +18,16 @@ from core.pipelines.edafologia.helpers.municipal_overlay_load import (
     resolve_boundary_source_ids,
     resolve_edafologia_ids,
 )
+from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
 
 
 class EdafologiaMunicipalOverlayLoad(Stage):
-    def __init__(self, pipeline_name: str = PIPELINE_NAME):
+    """Municipal overlay load stage for the bootstrap-only Edafologia historical source."""
+
+    def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
+        self.mode = validate_bootstrap_mode(mode)
         super().__init__(pipeline_name, "load")
         self.logger = get_logger(f"{pipeline_name}.municipal_overlay_load")
         self.db = Database(settings.DB_NAME, settings.database_url)

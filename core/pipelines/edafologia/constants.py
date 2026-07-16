@@ -7,6 +7,8 @@ SOURCE_FILENAME: Final[str] = "794551118313_s.zip"
 CANONICAL_SRID: Final[int] = 6368
 JALISCO_CVE_ENT: Final[int] = 14
 PIPELINE_VERSION: Final[str] = "0.2.0"
+BOOTSTRAP_MODE: Final[str] = "bootstrap"
+ALLOWED_PIPELINE_MODES: Final[tuple[str, ...]] = (BOOTSTRAP_MODE,)
 
 SOURCE_URL_ENV: Final[str] = "SOURCE_URL"
 EXPECTED_AREA_LAYER_STEM: Final[str] = "conj_nac_inf_edaf_esc_250k_ser_III_area"

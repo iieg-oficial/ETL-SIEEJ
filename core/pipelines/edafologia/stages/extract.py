@@ -37,12 +37,16 @@ from core.pipelines.edafologia.mappings import (
     GRUPOS_EDAFOLOGICOS,
     catalog_manifest,
 )
+from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
 from core.utils.logger import get_logger
 
 
 class EdafologiaExtract(Stage):
-    def __init__(self, pipeline_name: str = PIPELINE_NAME):
+    """Extract stage for the bootstrap-only Edafologia historical source."""
+
+    def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
+        self.mode = validate_bootstrap_mode(mode)
         super().__init__(pipeline_name, "extract")
         self.logger = get_logger(f"{pipeline_name}.extract")
         self.raw_dir = self.work_dir / "raw"
