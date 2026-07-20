@@ -205,13 +205,6 @@ flyway-config pipeline: (_load-env pipeline)
         FDW_DB_USER=$(grep '^DB_USER=' migrations/cvegeo/.env | cut -d= -f2)
         FDW_DB_PASSWORD=$(grep '^DB_PASSWORD=' migrations/cvegeo/.env | cut -d= -f2)
     fi
-    INPC_DB_HOST="" INPC_DB_PORT="" INPC_DB_USER="" INPC_DB_PASSWORD=""
-    if [ -f core/pipelines/inpc/.env ]; then
-        INPC_DB_HOST=$(grep '^DB_HOST=' core/pipelines/inpc/.env | cut -d= -f2)
-        INPC_DB_PORT=$(grep '^DB_PORT=' core/pipelines/inpc/.env | cut -d= -f2)
-        INPC_DB_USER=$(grep '^DB_USER=' core/pipelines/inpc/.env | cut -d= -f2)
-        INPC_DB_PASSWORD=$(grep '^DB_PASSWORD=' core/pipelines/inpc/.env | cut -d= -f2)
-    fi
     sed \
       -e "s|<DB_HOST>|$DB_HOST|g" \
       -e "s|<DB_PORT>|$DB_PORT|g" \
@@ -223,10 +216,6 @@ flyway-config pipeline: (_load-env pipeline)
       -e "s|<FDW_DB_PORT>|$FDW_DB_PORT|g" \
       -e "s|<FDW_DB_USER>|$FDW_DB_USER|g" \
       -e "s|<FDW_DB_PASSWORD>|$FDW_DB_PASSWORD|g" \
-      -e "s|<INPC_DB_HOST>|$INPC_DB_HOST|g" \
-      -e "s|<INPC_DB_PORT>|$INPC_DB_PORT|g" \
-      -e "s|<INPC_DB_USER>|$INPC_DB_USER|g" \
-      -e "s|<INPC_DB_PASSWORD>|$INPC_DB_PASSWORD|g" \
       migrations/{{pipeline}}/flyway.conf.example > migrations/{{pipeline}}/flyway.conf
     echo "Generated: migrations/{{pipeline}}/flyway.conf"
 
