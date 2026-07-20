@@ -16,21 +16,9 @@
 
 ---
 
-## Dependencias
-
-Este pipeline depende de que las siguientes bases estén creadas, migradas y, en su caso, pobladas:
-
-| Pipeline | Requerimiento                                                                  |
-|----------|--------------------------------------------------------------------------------|
-| `cvegeo` | Migración aplicada (proporciona `cvegeo_municipalities` y `cvegeo_states` vía FDW). |
-| `conapo` | Migración + DAG bootstrap (proporciona `stg_poblacion_mitad_anio` vía FDW).    |
-| `inpc`   | Migración + bootstrap (proporciona `inpc_nacional` y `objetos_gasto` vía FDW). |
-
----
-
 ## Esquema de Base de Datos
 
-![Diagrama ER](assets/erd.svg)
+![Diagrama ER](assets/er_efipem.svg)
 
 ### Tablas catálogo
 
@@ -96,8 +84,8 @@ core/pipelines/efipem/
 │   ├── extract.py
 │   ├── transform.py
 │   └── load.py
-    └── assets/
-        └── erd.svg
+└── assets/
+    └── er_efipem.svg
 
 dags/
 └── etl_efipem.py
@@ -169,25 +157,9 @@ Definidas en `.env.example`. Crear `.env` local con los valores reales (no commi
    conda run -n etl python dags/etl_efipem.py
    ```
 
----
-
-## Notas metodológicas
-
-- **Deflactado**: las vistas reales usan `inpc_nacional.objeto_gasto_id = 1` (`Índice general`). El bootstrap de `inpc` en este repo inicia en `2000`, por lo que los años 1989–1999 quedan con `valor = NULL` en las vistas reales y per cápita.
-- **Per cápita**: la población se obtiene sumando `pob_total` de `conapo_poblacion` por `municipio_id` y `anio`.
-- **Ingresos propios**: se definen como `Impuestos + Productos + Aprovechamientos` (clasificador `Capítulo`).
-- **Consistencia de porcentajes**: la suma `participaciones + propios + financiamiento` no necesariamente es 100 %, ya que el total de ingresos incluye otros capítulos (aportaciones, transferencias, otros ingresos, etc.).
-- **Geometrías**: las vistas incluyen `geom_iieg` y `geom_inegi` (SRID 6368) desde `cvegeo_municipalities`.
-
----
-
-## Ejecución
-
-**Bootstrap** (carga histórica completa):
-
-```bash
-just pipeline-deploy efipem
-conda run -n etl python dags/etl_efipem.py
-```
-
-No tiene flujo `update` automatizado.
+> **Notas metodológicas:**
+> - El deflactado usa `inpc_nacional.objeto_gasto_id = 1` (`Índice general`). El bootstrap de `inpc` inicia en `2000`, por lo que los años 1989–1999 quedan con `valor = NULL` en las vistas reales y per cápita.
+> - La población per cápita se obtiene sumando `pob_total` de `conapo_poblacion` por `municipio_id` y `anio`.
+> - Ingresos propios = `Impuestos + Productos + Aprovechamientos` (clasificador `Capítulo`).
+> - La suma `participaciones + propios + financiamiento` no necesariamente es 100 %, ya que el total de ingresos incluye otros capítulos.
+> - Las vistas incluyen `geom_iieg` y `geom_inegi` (SRID 6368) desde `cvegeo_municipalities`.
