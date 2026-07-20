@@ -5,8 +5,12 @@ flyway.locations=migrations/delitos_fuero_comun/sql
 flyway.schemas=public
 flyway.cleanDisabled=false
 
+# FDW — cvegeo_server (municipios) y conapo_server (población a mitad de año)
+# Ambos servidores comparten host/port/user/password. conapo_server usa dbname='conapo' fijo.
 flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
 flyway.placeholders.fdw_host=<FDW_DB_HOST>
 flyway.placeholders.fdw_port=<FDW_DB_PORT>
 flyway.placeholders.fdw_user=<FDW_DB_USER>
 flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
+# Puerto de la BD conapo (puede diferir del puerto de cvegeo)
+flyway.placeholders.fdw_conapo_port=<CONAPO_DB_PORT>
