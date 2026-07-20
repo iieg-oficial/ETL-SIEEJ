@@ -2,7 +2,7 @@
 
 ## Descripción general
 
-Pipeline ETL para las proyecciones de población municipal de CONAPO (Consejo Nacional de Población) en el estado de Jalisco. Contiene estimaciones anuales de población por grupos de edad quinquenales, grandes grupos de edad e indicadores demográficos diversos, cubriendo el periodo 1990–2040. Los datos están desagregados a nivel municipal y por sexo. Es la fuente base del schema `iieg_gis.demografia` y denominador de cruce en economía, desarrollo social y gobierno.
+Pipeline ETL para las proyecciones de población municipal de CONAPO (Consejo Nacional de Población) en el estado de Jalisco. Contiene estimaciones anuales de población por grupos de edad quinquenales, grandes grupos de edad e indicadores demográficos diversos, cubriendo el periodo 1990–2040. Los datos están desagregados a nivel municipal y por sexo. Es la fuente base de las vistas materializadas de población en el esquema `public` (consumo GIS) y denominador de cruce en economía, desarrollo social y gobierno.
 
 ## Fuente general
 
@@ -119,6 +119,24 @@ CONAPO_URL=https://conapo.segob.gob.mx/work/models/CONAPO/pry23/DBMun/14_Jalisco
 | `V3__tables_conapo.sql` | Crea las 3 tablas de staging: `stg_poblacion_mitad_anio`, `stg_grandes_grupos_edad`, `stg_indicadores_demograficos` |
 | `V4__views_conapo.sql` | Crea las 3 vistas de integración con JOIN a `cvegeo` y filtro por Jalisco (`cve_ent = 14`) |
 | `V5__comments_conapo.sql` | Agrega comentarios descriptivos a todas las tablas, columnas y vistas |
+| `V6__postgis_cvegeo_geometry_conapo.sql` | Activa PostGIS y agrega las columnas `geom_iieg` y `geom_inegi` a la foreign table de `cvegeo_municipalities` |
+| `V7__vistas_materializadas_conapo.sql` | Crea las 8 vistas materializadas para consumo GIS |
+| `V8__comments_vistas_materializadas_conapo.sql` | Agrega comentarios a las vistas materializadas |
+
+## Vistas materializadas
+
+| vista | columnas clave | descripción |
+|---|---|---|
+| `poblacion` | `poblacion_total`, `poblacion_hombres`, `poblacion_mujeres`, `poblacion_respecto_jalisco` | Proyección anual de población total por municipio |
+| `poblacion_hombres` | `poblacion_hombres` | Proyección anual de población masculina |
+| `poblacion_mujeres` | `poblacion_mujeres` | Proyección anual de población femenina |
+| `edad_mediana` | `edad_mediana` | Edad mediana proyectada por municipio y año |
+| `porcentaje_poblacional_municipal_en_entidad` | `porcentaje` | Peso demográfico del municipio respecto al total de Jalisco |
+| `razon_dependencia` | `razon_dependencia` | Razón de dependencia total (dependientes / PEA) |
+| `razon_dependencia_adulta` | `razon_dependencia_adulta` | Razón de dependencia adulta (60+ / PEA) |
+| `razon_dependencia_infantil` | `razon_dependencia_infantil` | Razón de dependencia infantil (0-14 / PEA) |
+
+Todas las vistas incluyen geometrías municipales (`geom_iieg`, `geom_inegi`, SRID 6368), `fecha = YYYY-01-01`, `clave_entidad = 14` y `clave_municipio` de 5 dígitos. Se refrescan automáticamente al finalizar la carga.
 
 ## Variables de entorno
 
@@ -165,6 +183,7 @@ No requiere credenciales. Se descarga en memoria y se extrae usando `zipfile`. S
 - Sincronización de secuencias autoincrementales con `sync_id_sequence`
 - Limpieza automática de archivos temporales (`.pkl`) al finalizar con `cleanup_pipeline_data`
 - Modo append-only: no hay lógica de upsert ni SCD
+- Refresco automático de las 8 vistas materializadas GIS con `refresh_materialized_views` al finalizar la carga
 
 ## Ejecución
 
@@ -182,4 +201,4 @@ conda run -n etl python -m core.pipelines.conapo bootstrap
 - Se usa FDW a `cvegeo_municipalities` y `cvegeo_states` para resolver nombres de municipios y entidades, sin duplicar datos geográficos.
 - Las 3 vistas de integración (`view_poblacion_mitad_anio`, `view_grandes_grupos_edad`, `view_indicadores_demograficos`) filtran por `cve_ent = 14` y hacen JOIN con las tablas foráneas de cvegeo.
 - Total de registros en bootstrap: 31,875 (12,750 PMA + 12,750 GGE + 6,375 IDD).
-- Este pipeline es prerequisito de `iieg_gis.demografia.*` y de pipelines de economía, desarrollo social y gobierno que usan población como denominador.
+- Este pipeline es prerequisito de las vistas materializadas de población (consumo GIS) y de pipelines de economía, desarrollo social y gobierno que usan población como denominador.
