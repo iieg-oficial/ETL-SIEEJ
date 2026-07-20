@@ -341,6 +341,30 @@ db-list dump:
       pg_restore --list /project/{{dump}}
 
 [group('database')]
+[doc("Restaurar un dump comprimido en la base de datos de un pipeline")]
+[confirm("Esto ejecuta pg_restore con --clean --if-exists y SOBRESCRIBE los objetos existentes en la base destino. ¿Continuar? (y/N)")]
+db-restore pipeline dump: (_load-env pipeline) (create-db pipeline)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    env_file="core/pipelines/{{pipeline}}/.env"
+    [ -f "$env_file" ] || env_file="migrations/{{pipeline}}/.env"
+    DB_HOST=$(grep '^DB_HOST=' "$env_file" | cut -d= -f2-)
+    DB_PORT=$(grep '^DB_PORT=' "$env_file" | cut -d= -f2-)
+    DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
+    DB_USER=$(grep '^DB_USER=' "$env_file" | cut -d= -f2-)
+    DB_PASSWORD=$(grep '^DB_PASSWORD=' "$env_file" | cut -d= -f2-)
+    [ -f "{{dump}}" ] || { echo "Dump not found: {{dump}}"; exit 1; }
+    echo "Restoring {{dump}} into ${DB_NAME} (${DB_HOST}:${DB_PORT}) ..."
+    docker run --rm --network host \
+      -e PGPASSWORD="$DB_PASSWORD" \
+      -v "$(pwd)/{{dump}}:/restore.dump:ro" \
+      postgis/postgis:17-3.5 \
+      pg_restore -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" \
+      -d "$DB_NAME" --no-owner --no-acl --clean --if-exists --verbose \
+      /restore.dump
+    echo "Restored: ${DB_NAME}"
+
+[group('database')]
 [doc("Resumen de estado de todos los pipelines (env, db, datos)")]
 summary:
     #!/usr/bin/env bash
