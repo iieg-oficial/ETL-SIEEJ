@@ -11,3 +11,9 @@ flyway.placeholders.fdw_host=<FDW_DB_HOST>
 flyway.placeholders.fdw_port=<FDW_DB_PORT>
 flyway.placeholders.fdw_user=<FDW_DB_USER>
 flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
+
+# Foreign Data Wrapper - conexion a la BD de inpc
+flyway.placeholders.inpc_host=<INPC_DB_HOST>
+flyway.placeholders.inpc_port=<INPC_DB_PORT>
+flyway.placeholders.inpc_user=<INPC_DB_USER>
+flyway.placeholders.inpc_password=<INPC_DB_PASSWORD>
