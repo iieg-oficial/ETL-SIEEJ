@@ -14,6 +14,7 @@ from core.pipelines.repd.consts import (
     PIPELINE_NAME,
     SKIP_MUNICIPALITY_VALUES,
 )
+from core.pipelines.repd.queries import MATERIALIZED_VIEWS
 from core.pipelines.repd.schemas import (
     CATALOG_MODELS,
     CaseCurrent,
@@ -74,17 +75,7 @@ class REPDLoader(Stage):
         else:
             stats = self._load_update(df)
 
-        refresh_materialized_views(
-            self.db,
-            [
-                "personas_desaparecidas",
-                "personas_desaparecidas_hombres",
-                "personas_desaparecidas_mujeres",
-                "personas_localizadas",
-                "personas_localizadas_hombres",
-                "personas_localizadas_mujeres",
-            ],
-        )
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         return stats
 
