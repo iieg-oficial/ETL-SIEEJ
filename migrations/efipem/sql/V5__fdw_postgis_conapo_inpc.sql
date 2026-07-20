@@ -53,15 +53,15 @@ CREATE SERVER IF NOT EXISTS inpc_server
 FOREIGN DATA WRAPPER postgres_fdw
 OPTIONS (
     dbname 'inpc',
-    host '${inpc_host}',
-    port '${inpc_port}'
+    host '${fdw_host}',
+    port '${fdw_port}'
 );
 
 CREATE USER MAPPING IF NOT EXISTS FOR CURRENT_USER
 SERVER inpc_server
 OPTIONS (
-    user '${inpc_user}',
-    password '${inpc_password}'
+    user '${fdw_user}',
+    password '${fdw_password}'
 );
 
 CREATE FOREIGN TABLE IF NOT EXISTS inpc_nacional (
