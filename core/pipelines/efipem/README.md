@@ -11,14 +11,14 @@ https://www.inegi.org.mx/programas/finanzas/
 ## Fuente específica
 
 ```shell
-https://www.inegi.org.mx/contenidos/programas/finanzas/datosabiertos/conjunto_de_datos_efipem_municipal_csv.zip
+EFIPEM_SOURCE_URL=https://www.inegi.org.mx/contenidos/programas/finanzas/datosabiertos/conjunto_de_datos_efipem_municipal_csv.zip
 ```
 
 ## Características de los datos
 
 | Característica | Valor |
 |---|---|
-| Última fecha disponible | `2023` |
+| Última fecha disponible | `2024` |
 | Frecuencia de actualización | Anual |
 | Desagregación | Municipal |
 | ¿Tiene update? | No |
