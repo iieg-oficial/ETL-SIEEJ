@@ -30,7 +30,7 @@ Este pipeline depende de que las siguientes bases estén creadas, migradas y, en
 
 ## Esquema de Base de Datos
 
-![Diagrama ER](assets/er_efipem.png)
+![Diagrama ER](assets/erd.svg)
 
 ### Tablas catálogo
 
@@ -96,9 +96,8 @@ core/pipelines/efipem/
 │   ├── extract.py
 │   ├── transform.py
 │   └── load.py
-└── assets/
-    ├── erd.svg
-    └── er_efipem.png
+    └── assets/
+        └── erd.svg
 
 dags/
 └── etl_efipem.py
