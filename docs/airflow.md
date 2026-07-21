@@ -16,6 +16,7 @@
 - [Límites de recursos](#límites-de-recursos)
 - [Operación con Docker](#operación-con-docker)
 - [Operación con la API REST](#operación-con-la-api-rest)
+- [flowrs: la TUI de Airflow](#flowrs-la-tui-de-airflow)
 - [Flujo completo: REPD](#flujo-completo-repd)
 - [Diagnóstico](#diagnóstico)
 - [Notas para clientes automatizados](#notas-para-clientes-automatizados)
@@ -193,6 +194,84 @@ Devuelve JSON con una lista `content`, cada elemento un objeto con el campo `eve
 
 ---
 
+## flowrs: la TUI de Airflow
+
+[flowrs](https://github.com/jvanbuel/flowrs) es una interfaz de terminal para Airflow. Sirve para ver DAGs, corridas y logs sin abrir el navegador. Habla la misma API REST v2 de la sección anterior, así que hereda sus mismos requisitos de autenticación.
+
+### Instalación
+
+```bash
+curl -sSL https://github.com/jvanbuel/flowrs/releases/download/flowrs-tui-v0.13.2/flowrs-tui-x86_64-unknown-linux-gnu.tar.xz | tar -xJ
+install -m 755 flowrs-tui-x86_64-unknown-linux-gnu/flowrs ~/.local/bin/flowrs
+```
+
+También hay `brew install flowrs` y `cargo install flowrs-tui --locked`.
+
+### Configuración
+
+El archivo va en `~/.config/flowrs/config.toml` y **se escribe a mano**:
+
+```toml
+managed_services = []
+poll_interval_ms = 2000
+theme = "auto"
+
+[[servers]]
+name = "local"
+endpoint = "http://localhost:8080"
+version = "V3"
+timeout_secs = 30
+insecure = false
+
+[servers.auth.Token]
+cmd = """curl -sS -X POST http://localhost:8080/auth/token -H "Content-Type: application/json" -d '{"username":"airflow","password":"airflow"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])""""
+```
+
+Para apuntar a otra instancia se duplica el bloque `[[servers]]` cambiando `name`, `endpoint` y la URL dentro de `cmd`.
+
+Luego:
+
+```bash
+just up
+flowrs run
+```
+
+### Por qué la config es así
+
+Tres decisiones que no son obvias y que cuestan tiempo si se descubren a golpes:
+
+**`version = "V3"` significa Airflow 3.** flowrs traduce `V2` a la ruta `/api/v1/` y `V3` a `/api/v2/`. Como este despliegue corre Airflow 3, un `V2` produce **404** en todas las llamadas.
+
+**La autenticación debe ser `Token`, nunca `Basic`.** Airflow 3 eliminó Basic Auth de la API: responde **401**. flowrs con `auth.Basic` manda las credenciales directo a `/api/v2/dags` y no hace el intercambio a JWT por su cuenta.
+
+**Se usa la variante `Token` con `cmd`, no con `token`.** flowrs admite un token fijo (`token = "..."`) o un comando que lo imprima (`cmd = "..."`). El JWT de Airflow caduca a las **24 horas**, así que un token fijo obliga a reeditar el archivo a diario. Con `cmd`, flowrs ejecuta el comando mediante `sh -c` y cachea el resultado 60 segundos.
+
+### No usar `flowrs config add`
+
+El asistente interactivo solo ofrece usuario y contraseña, así que escribe `auth.Basic` — que no funciona contra Airflow 3. Peor aún: **reescribe el archivo completo**, de modo que puede pisar la configuración `Token` de instancias que ya funcionaban.
+
+Si aparece un 401 después de tocar la configuración, lo primero es verificar que no se haya revertido a `Basic`:
+
+```bash
+python3 -c "
+import tomllib
+d=tomllib.load(open('$HOME/.config/flowrs/config.toml','rb'))
+for s in d['servers']: print(s['name'],'->',list(s['auth'].keys()))"
+```
+
+La salida debe decir `Token` en cada instancia.
+
+### Errores frecuentes
+
+| Síntoma | Causa |
+|:--------|:------|
+| 404 en `/api/v1/dags` | `version = "V2"` en un Airflow 3 |
+| 401 en `/api/v2/dags` | La instancia quedó con `auth.Basic` |
+| `Token helper command failed` | El `cmd` falló; su stderr aparece en el propio error |
+| 500 al pedir el token | Ver la tabla de la sección [Diagnóstico](#diagnóstico) |
+
+---
+
 ## Flujo completo: REPD
 
 Probado de extremo a extremo el 2026-07-21.
@@ -259,6 +338,8 @@ sudo dmesg -T | grep -Ei 'out of memory|oom|killed process'
 | Síntoma | Causa |
 |:--------|:------|
 | `POST /auth/token` → 500, `Issuer (iss) must be a string` | `AIRFLOW_BASE_URL` vacío |
+| `POST /auth/token` → 500, `Flask app is not initialized` | `apache-airflow-providers-fab` 3.6.1; se requiere 3.7.2 o superior |
+| UI con `Invalid issuer` y 403 al entrar por IP | `AIRFLOW_BASE_URL` sin definir: el token se emite para `localhost` y se consume desde otro host |
 | Tareas fallan con `Token is missing the "iss" claim` | Servicios recreados a medias, con entornos distintos |
 | Corrida atorada en `queued` | DAG pausado, o `parallelism` saturado |
 | Tarea con `deferrable=True` colgada | No hay triggerer |
