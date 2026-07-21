@@ -18,7 +18,7 @@ PyYAML
 wget
 GeoAlchemy2
 asyncpg
-apache-airflow-providers-fab[common.sql]
+apache-airflow-providers-fab[common.sql]>=3.7.2
 pydantic-settings
 more-itertools
 pydantic_settings
