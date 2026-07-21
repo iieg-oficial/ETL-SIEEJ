@@ -9,6 +9,7 @@ from core.pipelines.efipem.consts import (
     CATALOG_COLUMNS,
     PIPELINE_NAME,
 )
+from core.pipelines.efipem.queries import MATERIALIZED_VIEWS
 from core.pipelines.efipem.schemas import (
     CATALOG_MODELS,
     CatConcepto,
@@ -23,6 +24,7 @@ from core.utils.bulk_ops import (
     sync_id_sequence,
 )
 from core.utils.files import clean_directory
+from core.utils.views import refresh_materialized_views
 
 
 class EfipemLoader(Stage):
@@ -64,6 +66,8 @@ class EfipemLoader(Stage):
             for model in CATALOG_MODELS.values():
                 sync_id_sequence(session, model)
             sync_id_sequence(session, CatConcepto)
+
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         return {
             "mode": self.mode,
