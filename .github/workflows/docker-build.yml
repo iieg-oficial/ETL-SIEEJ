@@ -19,8 +19,8 @@ jobs:
       - name: Build Airflow image
         run: docker compose build
 
-      - name: Start Postgres and Redis
-        run: docker compose up -d postgres redis
+      - name: Start Postgres
+        run: docker compose up -d postgres
 
       - name: Initialize Airflow
         run: docker compose up airflow-init
