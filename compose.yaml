@@ -60,6 +60,11 @@ x-airflow-common: &airflow-common
     AIRFLOW__DAG_PROCESSOR__PARSING_PROCESSES: "1"
     AIRFLOW__DAG_PROCESSOR__MIN_FILE_PROCESS_INTERVAL: "120"
     AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    # El issuer del JWT y los enlaces que genera la UI salen de api.base_url;
+    # si va vacío, POST /auth/token devuelve 500. En el servidor se define
+    # AIRFLOW_BASE_URL en el .env con el host real, p. ej. http://10.0.0.5:8080
+    AIRFLOW__API__BASE_URL: ${AIRFLOW_BASE_URL:-http://localhost:8080}
+    AIRFLOW__API_AUTH__JWT_ISSUER: ${AIRFLOW_BASE_URL:-http://localhost:8080}
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ""
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
@@ -88,6 +93,11 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/core:/opt/airflow/core
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
   user: "${AIRFLOW_UID:-50000}:0"
+  # Con LocalExecutor las tareas corren dentro del contenedor, así que un
+  # DB_HOST=localhost en el .env de un pipeline apunta al contenedor, no al host.
+  # Los pipelines que hablen con una base fuera de compose usan host.docker.internal.
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
   depends_on: &airflow-common-depends-on
     postgres:
       condition: service_healthy
