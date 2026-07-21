@@ -29,8 +29,6 @@ ASG_IMSS_DATA_URL=http://datos.imss.gob.mx/sites/default/files/asg-{date}.csv
 
 ![ERD](assets/erd.svg)
 
-Versión con vistas materializadas GIS: [`assets/er_asg_imss.png`](assets/er_asg_imss.png).
-
 ## Diccionario de variables
 
 ### stg_asg_imss
