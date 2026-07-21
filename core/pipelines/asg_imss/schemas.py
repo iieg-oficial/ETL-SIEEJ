@@ -4,6 +4,11 @@ Sincronizado con las migraciones Flyway:
     * migrations/asg_imss/sql/V1__catalogs_asg_imss.sql
     * migrations/asg_imss/sql/V2__table_asg_imss.sql
     * migrations/asg_imss/sql/V3__view_asg_imss.sql
+    * migrations/asg_imss/sql/V4__cvegeo_link_asg_imss.sql
+    * migrations/asg_imss/sql/V5__postgis_cvegeo_geometry_asg_imss.sql
+    * migrations/asg_imss/sql/V6__vistas_materializadas_asg_imss.sql
+    * migrations/asg_imss/sql/V7__comments_vistas_materializadas_asg_imss.sql
+    * migrations/asg_imss/sql/V8__spatial_indexes_vistas_materializadas_asg_imss.sql
 
 Convenciones del pipeline:
     * Modelo append-only: PK sintética BIGSERIAL en `stg_asg_imss`, sin
@@ -18,9 +23,11 @@ Convenciones del pipeline:
 from datetime import date, datetime
 from typing import Optional
 
+from geoalchemy2 import Geometry
 from sqlalchemy import (
     CHAR,
     BigInteger,
+    Date,
     ForeignKey,
     Index,
     Integer,
@@ -268,3 +275,77 @@ class StgAsgImss(AsgImssBase):
     rango_edad_rel: Mapped["CatRangoEdad"] = relationship(back_populates="registros")
     rango_salario_rel: Mapped["CatRangoSalario"] = relationship(back_populates="registros")
     rango_uma_rel: Mapped["CatRangoUma"] = relationship(back_populates="registros")
+
+
+# ---------------------------------------------------------------------------
+# Vistas materializadas GIS (solo lectura, creadas por Flyway)
+# ---------------------------------------------------------------------------
+
+
+class TrabajadoresAsegurados(AsgImssBase):
+    """Vista materializada: puestos de trabajo afiliados al IMSS por municipio."""
+
+    __tablename__ = "trabajadores_asegurados"
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    nombre: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
+    fecha: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(CHAR(2), nullable=True)
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)
+    total: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    total_no_binario: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    porcentaje_mujeres: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
+    porcentaje_hombres: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
+
+
+class TrabajadoresAseguradosHombres(AsgImssBase):
+    """Vista materializada: puestos de trabajo afiliados al IMSS ocupados por hombres."""
+
+    __tablename__ = "trabajadores_asegurados_hombres"
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    nombre: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
+    fecha: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(CHAR(2), nullable=True)
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)
+    total_hombres: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    porcentaje_hombres: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
+
+
+class TrabajadoresAseguradosMujeres(AsgImssBase):
+    """Vista materializada: puestos de trabajo afiliados al IMSS ocupados por mujeres."""
+
+    __tablename__ = "trabajadores_asegurados_mujeres"
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    nombre: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
+    fecha: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(CHAR(2), nullable=True)
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)
+    total_mujeres: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    porcentaje_mujeres: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
+
+
+class BrechaSalarial(AsgImssBase):
+    """Vista materializada: brecha salarial entre hombres y mujeres."""
+
+    __tablename__ = "brecha_salarial"
+
+    fid: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    geom_iieg: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    geom_inegi: Mapped[Optional[object]] = mapped_column(Geometry("MULTIPOLYGON", srid=6368), nullable=True)
+    nombre: Mapped[Optional[str]] = mapped_column(String(254), nullable=True)
+    fecha: Mapped[Optional[Date]] = mapped_column(Date, nullable=True)
+    clave_entidad: Mapped[Optional[str]] = mapped_column(CHAR(2), nullable=True)
+    clave_municipio: Mapped[Optional[str]] = mapped_column(String(5), nullable=True)
+    brecha_salarial: Mapped[Optional[float]] = mapped_column(Numeric(5, 2), nullable=True)
+    salario_promedio_diario_mujeres: Mapped[Optional[float]] = mapped_column(Numeric(18, 2), nullable=True)
+    salario_promedio_diario_hombres: Mapped[Optional[float]] = mapped_column(Numeric(18, 2), nullable=True)
