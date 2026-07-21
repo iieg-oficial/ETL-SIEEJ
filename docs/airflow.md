@@ -81,8 +81,10 @@ Concurrencia: `PARALLELISM=2`, `MAX_ACTIVE_TASKS_PER_DAG=1`, `MAX_ACTIVE_RUNS_PE
 ```bash
 # .env
 AIRFLOW_UID=1000
-AIRFLOW_BASE_URL=http://10.0.0.5:8080
+AIRFLOW_BASE_URL=http://<ip-del-servidor>:8080
 ```
+
+Debe ser la URL por la que **se accede realmente** a Airflow. Si se entra por IP pero aquí queda `localhost`, el token se emite para un host y se consume desde otro, y la UI responde `Invalid issuer` con 403.
 
 Si queda vacío, `POST /auth/token` responde **500 Internal Server Error** con `TypeError: Issuer (iss) must be a string` en los logs del apiserver.
 
@@ -125,14 +127,23 @@ docker compose exec airflow-scheduler airflow dags trigger etl_repd_bootstrap
 
 Airflow 3 expone **API v2** bajo `/api/v2` y usa **JWT**, no Basic Auth.
 
+Los ejemplos de esta sección usan `$AIRFLOW_URL`. Definirla primero, según dónde corra Airflow:
+
+```bash
+AIRFLOW_URL=http://localhost:8080          # local, con just up
+# AIRFLOW_URL=http://<ip-del-servidor>:8080  # servidor
+```
+
 ### 1. Obtener token
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/auth/token \
+TOKEN=$(curl -s -X POST "$AIRFLOW_URL/auth/token" \
   -H "Content-Type: application/json" \
   -d '{"username":"airflow","password":"airflow"}' \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 ```
+
+> Escribir el comando en **una sola línea** o cuidar que no quede un espacio después de las barras de continuación: `\ ` seguido de espacio deja de ser continuación y el shell corta ahí, con un `-H: command not found` que despista.
 
 El token dura **24 horas**. Sus claims incluyen `iss` (el `base_url`), `exp` e `iat`.
 
@@ -159,11 +170,11 @@ Un DAG pausado acepta el `POST` pero la corrida se queda en `queued` para siempr
 
 ```bash
 curl -s -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "http://localhost:8080/api/v2/dags/etl_repd_bootstrap?update_mask=is_paused" \
+  "$AIRFLOW_URL/api/v2/dags/etl_repd_bootstrap?update_mask=is_paused" \
   -d '{"is_paused": false}'
 
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "http://localhost:8080/api/v2/dags/etl_repd_bootstrap/dagRuns" \
+  "$AIRFLOW_URL/api/v2/dags/etl_repd_bootstrap/dagRuns" \
   -d '{"logical_date": null, "conf": {}}'
 ```
 
@@ -178,7 +189,7 @@ manual__2026-07-21T18:08:20.621631+00:00
 ```bash
 RUN_ENC=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1],safe=''))" "$RUN_ID")
 curl -s -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/api/v2/dags/etl_repd_bootstrap/dagRuns/$RUN_ENC"
+  "$AIRFLOW_URL/api/v2/dags/etl_repd_bootstrap/dagRuns/$RUN_ENC"
 ```
 
 Estados de una corrida: `queued` → `running` → `success` o `failed`.
@@ -209,7 +220,9 @@ También hay `brew install flowrs` y `cargo install flowrs-tui --locked`.
 
 ### Configuración
 
-El archivo va en `~/.config/flowrs/config.toml` y **se escribe a mano**:
+El archivo va en `~/.config/flowrs/config.toml` y **se escribe a mano**.
+
+En la plantilla, `<AIRFLOW_HOST>` es la URL de la instancia, con esquema y puerto. Aparece **dos veces** y ambas deben coincidir: en `endpoint` y dentro de `cmd`.
 
 ```toml
 managed_services = []
@@ -217,22 +230,31 @@ poll_interval_ms = 2000
 theme = "auto"
 
 [[servers]]
-name = "local"
-endpoint = "http://localhost:8080"
+name = "<NOMBRE>"
+endpoint = "<AIRFLOW_HOST>"
 version = "V3"
 timeout_secs = 30
 insecure = false
 
 [servers.auth.Token]
-cmd = """curl -sS -X POST http://localhost:8080/auth/token -H "Content-Type: application/json" -d '{"username":"airflow","password":"airflow"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])""""
+cmd = """curl -sS -X POST <AIRFLOW_HOST>/auth/token -H "Content-Type: application/json" -d '{"username":"airflow","password":"airflow"}' | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])""""
 ```
 
-Para apuntar a otra instancia se duplica el bloque `[[servers]]` cambiando `name`, `endpoint` y la URL dentro de `cmd`.
+Valores según dónde corra Airflow:
+
+| Entorno | `<AIRFLOW_HOST>` |
+|:--------|:-----------------|
+| Local, con `just up` | `http://localhost:8080` |
+| Servidor | `http://<ip-del-servidor>:8080` |
+
+> **`endpoint` no admite variables de entorno.** TOML no interpola, así que la URL va literal. El `cmd` sí se ejecuta con `sh -c`, por lo que ahí sí funcionarían `$VAR` o `$(...)`, pero solo si la variable existe en el entorno desde el que se lanza `flowrs` — conviene no depender de eso y escribir la URL completa.
+
+Se pueden declarar varias instancias repitiendo el bloque `[[servers]]` con distinto `name` y `<AIRFLOW_HOST>`; flowrs permite cambiar entre ellas.
 
 Luego:
 
 ```bash
-just up
+just up          # solo si Airflow corre en local
 flowrs run
 ```
 
@@ -288,17 +310,17 @@ just pipeline-deploy repd        # env-init + flyway-config + create-db + flyway
 ### Ejecutar
 
 ```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/auth/token \
+TOKEN=$(curl -s -X POST "$AIRFLOW_URL/auth/token" \
   -H "Content-Type: application/json" \
   -d '{"username":"airflow","password":"airflow"}' \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
 
 curl -s -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "http://localhost:8080/api/v2/dags/etl_repd_bootstrap?update_mask=is_paused" \
+  "$AIRFLOW_URL/api/v2/dags/etl_repd_bootstrap?update_mask=is_paused" \
   -d '{"is_paused": false}'
 
 curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  "http://localhost:8080/api/v2/dags/etl_repd_bootstrap/dagRuns" \
+  "$AIRFLOW_URL/api/v2/dags/etl_repd_bootstrap/dagRuns" \
   -d '{"logical_date": null, "conf": {}}'
 ```
 
