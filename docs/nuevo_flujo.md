@@ -85,10 +85,11 @@ core/pipelines/mi_pipeline/
 ```
 
 - **`extract.py`**:  descarga los datos de la fuente y guarda en `data/extract/<pipeline>/` en caso de ser necesario.
-- **`transform.py`**:  lee el inventario de extract, aplica `core/utils/` (`normalize_headers`, `list_values_to_null`, etc.).
+- **`transform.py`**:  lee el inventario de extract, aplica `core/utils/` (`lowercase_headers`, `list_values_to_null`, etc.).
 - **`load.py`**:  abre sesión con `Database` e  inserta los datos con las operaciones que se encuentranm en [bulk_ops]("core/utils/bulk_ops.py")  y cierra la conexión.
 
 > 💡 Toma los pipelines existentes como referencia antes de empezar.
+> 📐 Para nomenclatura de tablas/vistas, tipos de campos comunes y el uso estándar de `core/utils/`, consulta [`docs/estandares_datos.md`](estandares_datos.md).
 
 ---
 
