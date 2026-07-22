@@ -108,7 +108,6 @@ def lowercase_headers(df: pd.DataFrame) -> pd.DataFrame:
 
 Baja a minúsculas los nombres de columnas del DataFrame extraído, para que coincidan con los nombres definidos en `schemas.py`. Se aplica típicamente al inicio de `transform.py`, justo después de leer el inventario de `extract.py`.
 
-> ⚠️ **Nota de corrección:** en `docs/nuevo_flujo.md` esta función aparece referenciada erróneamente como `normalize_headers`. El nombre real y correcto es **`lowercase_headers`**.
 
 ### `list_values_to_null()` — `core/utils/clean.py`
 
