@@ -59,16 +59,28 @@ Este bloque (`postgres_fdw` + `CREATE SERVER cvegeo_server` + `CREATE USER MAPPI
 
 ### Relación con los pipelines
 
-- `entidad_id` en un pipeline es una FK lógica hacia `cvegeo_states.id`
-- `municipio_id` en un pipeline es una FK lógica hacia `cvegeo_municipalities.id`
-- No son FKs declaradas a nivel de motor (son tablas foráneas de otra base), por lo que la relación normalmente solo queda documentada en un comentario junto a la columna, ej.:
+No son FKs declaradas a nivel de motor (son tablas foráneas de otra base), y **la columna exacta contra la que se hace `JOIN` no está estandarizada** — coexisten tres patrones distintos en las vistas de `migrations/*/sql/`. Antes de escribir un `JOIN` nuevo, identifica cuál usa tu pipeline revisando cómo se pobló `municipio_id`/`entidad_id` en `load.py`:
+
+| Patrón | `JOIN` típico | Pipelines que lo usan |
+|---|---|---|
+| **Compuesto** (`cve_mun` + `cve_ent`) | `m.cve_mun = x.municipio_id AND m.cve_ent = x.entidad_id` | `agropecuario_siap`, `censo_poblacion`, `censos_economicos`, `centros_educativos`, `denue`, `escuelas`, `establecimientos_de_salud`, `participacion_ciudadana`, `produccion_ganadera`, `enoe_microdatos`, `fiscalia` |
+| **Código CVEGEO directo** (`cvegeo`, 5 dígitos) | `m.cvegeo = x.municipio_id` | `conapo`, `intensidad_migratoria`, `marginacion`, `nacimientos_dgis`, `delitos_fuero_comun` (con `::INTEGER`), `efipem` (con `LPAD(...::text, 5, '0')`) |
+| **Surrogate key** (`id` interno de `cvegeo_municipalities`) | `m.id = x.municipio_id` | `defunciones`, `repd` |
+
+`entidad_id` en cambio sí es consistente en todos los pipelines: siempre se une contra `cvegeo_states.cve_ent`, nunca contra `cvegeo_states.id`:
+
+```sql
+LEFT JOIN cvegeo_states s ON s.cve_ent = p.entidad_id
+```
+
+En `schemas.py` esta relación normalmente solo queda documentada en un comentario junto a la columna, sin indicar el patrón exacto — otra razón para verificar la vista SQL real del pipeline en vez de asumir:
 
 ```python
 entidad_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ref. cvegeo_states
 municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ref. cvegeo_municipalities
 ```
 
-- Antes de crear un pipeline nuevo que use geografía, levanta primero la base `cvegeo` (`just create-cvegeo-db user=sieej_user && just flyway-migrate cvegeo`, ver [`docs/nuevo_flujo.md`](nuevo_flujo.md)) y luego agrega el bloque FDW anterior a tu propia migración.
+- Antes de crear un pipeline nuevo que use geografía, levanta primero la base `cvegeo` (`just create-cvegeo-db user=sieej_user && just flyway-migrate cvegeo`, ver [`docs/nuevo_flujo.md`](nuevo_flujo.md)) y luego agrega el bloque FDW anterior a tu propia migración. Al definir cómo poblar `municipio_id`, elige uno de los tres patrones de la tabla anterior de forma explícita y documéntalo en el `README.md` del pipeline.
 
 ---
 
@@ -77,8 +89,8 @@ municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)  # ref.
 | Campo | Tipo típico | Notas |
 |---|---|---|
 | `anio` | `INTEGER` | La mayoría de pipelines usa `Integer` (ej. `conapo`, `efipem`, `defunciones`). **Excepción:** `delitos_fuero_comun` usa `SmallInteger` — revisa el pipeline análogo antes de asumir `Integer` a ciegas. |
-| `entidad_id` | `INTEGER` | FK lógica → `cvegeo_states.id` (ver sección 2). En pipelines con catálogo propio de entidad (ej. `asg_imss`) puede ser una FK real (`ForeignKey(T.CAT_ENTIDAD.id)`) en vez de apuntar directo a `cvegeo`. |
-| `municipio_id` | `INTEGER` | FK lógica → `cvegeo_municipalities.id`, misma salvedad que `entidad_id`. |
+| `entidad_id` | `INTEGER` | FK lógica → `cvegeo_states.cve_ent` (ver sección 2). En pipelines con catálogo propio de entidad (ej. `asg_imss`) puede ser una FK real (`ForeignKey(T.CAT_ENTIDAD.id)`) en vez de apuntar directo a `cvegeo`. |
+| `municipio_id` | `INTEGER` | FK lógica → `cvegeo_municipalities`, pero la columna exacta (`cve_mun`+`cve_ent`, `cvegeo`, o `id`) **varía por pipeline** — ver la tabla de patrones en la sección 2 antes de escribir un `JOIN` nuevo. |
 | `valor*` | **No es un tipo único** — es un patrón de nombre | No existe una columna estándar llamada `valor` con tipo fijo `FLOAT`/`NUMERIC`. El patrón real es un prefijo/sufijo `valor_*` en el nombre de la columna, con tipo que varía según el pipeline: mayormente `Float` (ej. `valor_produccion` en `agropecuario_siap`, `valor_comercio` en `datamexico`, múltiples columnas `valor_*_mdp` en `censos_economicos`), pero `BigInteger` en `efipem.valor`. **Al definir un campo `valor_*` nuevo, elige el tipo según la naturaleza real del dato (moneda/proporción → `Float`; conteo entero grande → `BigInteger`), no asumas un tipo único.** |
 
 ---
