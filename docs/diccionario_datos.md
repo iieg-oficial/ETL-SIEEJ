@@ -1,4 +1,4 @@
-# Diccionario de datos institucional — SIEEJ ETL
+# Diccionario de datos institucional
 
 ## Convenciones de nomenclatura
 
@@ -23,20 +23,19 @@ México (verificado directamente en el servidor `iieg-db-etl`, contenedor `postg
 pipeline que requiere referencias geográficas la accede mediante `postgres_fdw`, declarando
 tablas foráneas en su migración `V1__foreign_tables.sql`.
 
-La base contiene 5 tablas en total, pero los pipelines solo consumen 2 de ellas vía FDW:
-
-| Tabla | Alcance | Filas | ¿Expuesta vía FDW a los pipelines? |
-|---|---|---|---|
-| `cvegeo_states` | Nacional (32 entidades) | 32 | ✅ Sí |
-| `cvegeo_municipalities` | Nacional (todos los municipios de México) | 2,475 | ✅ Sí |
-| `cvegeo_regions` | Solo Jalisco (12 regiones administrativas IIEG) | 12 | ❌ No |
-| `cvegeo_county_seats` | Solo Jalisco (cabeceras municipales) | 125 | ❌ No |
-| `cvegeo_state_boundary` | Solo Jalisco (límite estatal) | 1 | ❌ No |
+La base contiene 5 tablas en total:
+| Tabla | Alcance | Filas | 
+|---|---|---|
+| `cvegeo_states` | Nacional (32 entidades) | 32 |
+| `cvegeo_municipalities` | Nacional (todos los municipios de México) | 2,475 |
+| `cvegeo_regions` | Solo Jalisco (12 regiones administrativas IIEG) | 12 |
+| `cvegeo_county_seats` | Solo Jalisco (cabeceras municipales) | 125 |
+| `cvegeo_state_boundary` | Solo Jalisco (límite estatal) | 1 |
 
 ### Relación con los pipelines
 
-`entidad_id` sí es consistente en todos los pipelines: siempre se une contra
-`cvegeo_states.cve_ent`. `municipio_id`, en cambio, **no tiene una columna de unión única** —
+`entidad_id` se une contra
+`cvegeo_states.cve_ent`. `municipio_id`, en cambio, **no tiene una columna de unión única**; 
 coexisten tres patrones distintos según el pipeline:
 
 | Patrón | `JOIN` típico | Pipelines que lo usan |
@@ -57,5 +56,5 @@ LEFT JOIN cvegeo_municipalities m ON m.cvegeo = i.municipio_id
 ```
 
 Antes de escribir un `JOIN` nuevo, verifica cuál de los tres patrones usa tu pipeline revisando
-cómo se pobló `municipio_id` en `load.py` — no asumas el patrón de `intensidad_migratoria` por
+cómo se pobló `municipio_id` en `load.py`; no asumas el patrón de `intensidad_migratoria` por
 defecto.
