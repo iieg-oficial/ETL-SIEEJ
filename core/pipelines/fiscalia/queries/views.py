@@ -1,0 +1,18 @@
+MATERIALIZED_VIEWS = [
+    "delitos_fiscalia_abuso_sexual_infantil",
+    "delitos_fiscalia_feminicidio",
+    "delitos_fiscalia_homicidio_doloso",
+    "delitos_fiscalia_lesiones_dolosas",
+    "delitos_fiscalia_robo_bancos",
+    "delitos_fiscalia_robo_carga_pesada",
+    "delitos_fiscalia_robo_cuentahabientes",
+    "delitos_fiscalia_robo_int_vehiculos",
+    "delitos_fiscalia_robo_negocio",
+    "delitos_fiscalia_robo_persona",
+    "delitos_fiscalia_robo_vehiculos_particulares",
+    "delitos_fiscalia_robo_casa_habitacion",
+    "delitos_fiscalia_robo_autopartes",
+    "delitos_fiscalia_robo_motocicleta",
+    "delitos_fiscalia_violacion",
+    "delitos_fiscalia_violencia_familiar",
+]

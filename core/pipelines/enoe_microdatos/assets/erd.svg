@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200.0" height="600.0" style="font-family: system-ui, -apple-system, sans-serif;">
+  <defs>
+    <pattern id="erd-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#d1d5db" />
+    </pattern>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c4cad4" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f9fafb" />
+  <rect width="100%" height="100%" fill="url(#erd-dots)" />
+
+  <!-- Relación: cat_enoe_sector -> stg_enoe_microdatos -->
+  <g class="erd-rel" data-from="cat_enoe_sector" data-to="stg_enoe_microdatos">
+    <path d="M 150.0 200.0 C 350.0 200.0 350.0 300.0 550.0 300.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 150.0 200.0 C 350.0 200.0 350.0 300.0 550.0 300.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="250.0" y="190.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="450.0" y="310.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+
+  <!-- Relación: cat_enoe_ocupacion -> stg_enoe_microdatos -->
+  <g class="erd-rel" data-from="cat_enoe_ocupacion" data-to="stg_enoe_microdatos">
+    <path d="M 350.0 50.0 C 350.0 150.0 550.0 250.0 550.0 350.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 350.0 50.0 C 350.0 150.0 550.0 250.0 550.0 350.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="400.0" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="500.0" y="300.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+
+  <!-- Relación: cat_enoe_situacion_trabajo -> stg_enoe_microdatos -->
+  <g class="erd-rel" data-from="cat_enoe_situacion_trabajo" data-to="stg_enoe_microdatos">
+    <path d="M 550.0 50.0 C 550.0 150.0 550.0 250.0 550.0 350.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 550.0 50.0 C 550.0 150.0 550.0 250.0 550.0 350.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="580.0" y="150.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="580.0" y="300.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+
+  <!-- cat_enoe_sector -->
+  <g class="erd-node" data-table="cat_enoe_sector" transform="translate(30.0, 130.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="240" height="140" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="240" height="140" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="240" height="36" fill="#065f46" />
+    <rect y="29" width="240" height="7" fill="#065f46" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">cat_enoe_sector</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="232" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="232" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="232" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">TEXT</text>
+  </g>
+
+  <!-- cat_enoe_ocupacion -->
+  <g class="erd-node" data-table="cat_enoe_ocupacion" transform="translate(270.0, 0.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="240" height="140" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="240" height="140" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="240" height="36" fill="#065f46" />
+    <rect y="29" width="240" height="7" fill="#065f46" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">cat_enoe_ocupacion</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="232" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="232" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="232" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">TEXT</text>
+  </g>
+
+  <!-- cat_enoe_situacion_trabajo -->
+  <g class="erd-node" data-table="cat_enoe_situacion_trabajo" transform="translate(510.0, 0.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="280" height="140" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="280" height="140" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="280" height="36" fill="#065f46" />
+    <rect y="29" width="280" height="7" fill="#065f46" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">cat_enoe_situacion_trabajo</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="272" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="272" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">descripcion</text>
+    <text x="272" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">TEXT</text>
+  </g>
+
+  <!-- stg_enoe_microdatos -->
+  <g class="erd-node" data-table="stg_enoe_microdatos" transform="translate(550.0, 250.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="500" height="500" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="500" height="500" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="500" height="36" fill="#1e40af" />
+    <rect y="29" width="500" height="7" fill="#1e40af" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">stg_enoe_microdatos</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="492" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="492" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">anio</text>
+    <text x="10" y="96.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">trimestre</text>
+    <text x="10" y="117.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">cd_a, entidad_id, con, v_sel, n_hog, h_mud, n_ent, n_ren</text>
+    <text x="10" y="139.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">municipio_id, tipo_localidad_id, ur, zona</text>
+    <text x="10" y="160.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">sex, eda, e_con, niv_ins, anios_esc, clase1, clase2</text>
+    <text x="10" y="182.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">sector_id (FK)</text>
+    <text x="10" y="203.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">ocupacion_id (FK)</text>
+    <text x="10" y="225.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">situacion_trabajo_id (FK)</text>
+    <text x="10" y="246.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">rama, scian, hrsocup, ingocup, ing_x_hrs, salario</text>
+    <text x="10" y="268.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tue1, tue2, tue3, tue_ppal, seg_soc, fac, fac_men</text>
+    <text x="10" y="289.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">p3b, p3i, p10b (COE1/COE2)</text>
+    <text x="10" y="311.0" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">es_pea, es_ocupado, es_desocupado, es_informal</text>
+    <text x="10" y="332.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">+ 100+ columnas SDEM (diseño muestral, educación, migración...)</text>
+  </g>
+</svg>

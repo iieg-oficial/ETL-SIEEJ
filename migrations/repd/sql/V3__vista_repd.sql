@@ -2,37 +2,37 @@
 -- V3: Vista analitica REPD -- resuelve catalogos y municipios
 -- =======================================================================
 
-CREATE OR REPLACE VIEW stg_repd_case_current_vw AS
+CREATE OR REPLACE VIEW vw_repd AS
 SELECT
     c.id,
     c.feb,
-    s.name                          AS sex,
-    n.name                          AS nationality,
-    ar.name                         AS age_range,
-    c.report_date,
-    c.disappearance_date,
-    c.disappearance_state_name,
-    md.nomgeo                       AS disappearance_municipality,
-    st.name                         AS status,
-    c.location_date,
-    lc.name                         AS location_condition,
-    lcl.name                        AS location_classification,
-    c.location_state_name,
-    ml.nomgeo                       AS location_municipality,
-    c.closure_date,
-    ct.name                         AS closure_type,
-    c.linked_feb,
-    c.has_investigation_folder,
-    c.current_version,
-    c.created_at,
-    c.updated_at
-FROM stg_repd_case_current c
-LEFT JOIN stg_repd_cat_sex s                        ON c.sex_id = s.id
-LEFT JOIN stg_repd_cat_nationality n                ON c.nationality_id = n.id
-LEFT JOIN stg_repd_cat_age_range ar                 ON c.age_range_id = ar.id
-LEFT JOIN stg_repd_cat_status st                    ON c.status_id = st.id
-LEFT JOIN stg_repd_cat_location_condition lc        ON c.location_condition_id = lc.id
-LEFT JOIN stg_repd_cat_location_classification lcl  ON c.location_classification_id = lcl.id
-LEFT JOIN stg_repd_cat_closure_type ct              ON c.closure_type_id = ct.id
-LEFT JOIN cvegeo_municipalities md                  ON c.disappearance_municipality_id = md.id
-LEFT JOIN cvegeo_municipalities ml                  ON c.location_municipality_id = ml.id;
+    s.nombre                        AS sexo,
+    n.nombre                        AS nacionalidad,
+    ar.nombre                       AS rango_edad,
+    c.fecha_reporte,
+    c.fecha_desaparicion,
+    c.estado_desaparicion,
+    md.nomgeo                       AS municipio_desaparicion,
+    st.nombre                       AS estatus,
+    c.fecha_localizacion,
+    lc.nombre                       AS condicion_localizacion,
+    lcl.nombre                      AS clasificacion_localizacion,
+    c.estado_localizacion,
+    ml.nomgeo                       AS municipio_localizacion,
+    c.fecha_cierre,
+    ct.nombre                       AS tipo_cierre,
+    c.feb_vinculado,
+    c.tiene_carpeta_investigacion,
+    c.version_actual,
+    c.fecha_creacion,
+    c.fecha_actualizacion
+FROM stg_repd_casos c
+LEFT JOIN cat_sexo s                            ON c.sexo_id = s.id
+LEFT JOIN cat_nacionalidad n                    ON c.nacionalidad_id = n.id
+LEFT JOIN cat_rango_edad ar                     ON c.rango_edad_id = ar.id
+LEFT JOIN cat_estatus st                        ON c.estatus_id = st.id
+LEFT JOIN cat_condicion_localizacion lc         ON c.condicion_localizacion_id = lc.id
+LEFT JOIN cat_clasificacion_localizacion lcl    ON c.clasificacion_localizacion_id = lcl.id
+LEFT JOIN cat_tipo_cierre ct                    ON c.tipo_cierre_id = ct.id
+LEFT JOIN cvegeo_municipalities md              ON c.municipio_desaparicion_id = md.id
+LEFT JOIN cvegeo_municipalities ml              ON c.municipio_localizacion_id = ml.id;

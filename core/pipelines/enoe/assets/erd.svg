@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200.0" height="800.0" style="font-family: system-ui, -apple-system, sans-serif;">
+  <defs>
+    <pattern id="erd-dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#d1d5db" />
+    </pattern>
+    <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c4cad4" />
+    </marker>
+  </defs>
+  <rect width="100%" height="100%" fill="#f9fafb" />
+  <rect width="100%" height="100%" fill="url(#erd-dots)" />
+
+  <!-- stg_enoe (main table) -->
+  <g class="erd-entity">
+    <rect x="350" y="300" width="300" height="180" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="500" y="325" font-size="14" font-weight="bold" text-anchor="middle" fill="#000000">stg_enoe</text>
+    <line x1="350" y1="335" x2="650" y2="335" stroke="#374151" stroke-width="1" />
+    <text x="360" y="355" font-size="11" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="360" y="370" font-size="11" font-family="monospace" fill="#000000">anio, trimestre</text>
+    <text x="360" y="385" font-size="11" font-family="monospace" fill="#000000">tipo_localidad_id (FK)</text>
+    <text x="360" y="400" font-size="11" font-family="monospace" fill="#000000">estado_civil_id (FK)</text>
+    <text x="360" y="415" font-size="11" font-family="monospace" fill="#000000">nivel_educativo_id (FK)</text>
+    <text x="360" y="430" font-size="11" font-family="monospace" fill="#000000">sector_id (FK)</text>
+    <text x="360" y="445" font-size="11" font-family="monospace" fill="#000000">ocupacion_id (FK)</text>
+    <text x="360" y="460" font-size="11" font-family="monospace" fill="#000000">situacion_trabajo_id (FK)</text>
+  </g>
+
+  <!-- cat_tipo_localidad -->
+  <g class="erd-entity">
+    <rect x="80" y="80" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="170" y="105" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_tipo_localidad</text>
+    <line x1="80" y1="115" x2="260" y2="115" stroke="#374151" stroke-width="1" />
+    <text x="90" y="135" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="90" y="150" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- cat_estado_civil -->
+  <g class="erd-entity">
+    <rect x="80" y="240" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="170" y="265" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_estado_civil</text>
+    <line x1="80" y1="275" x2="260" y2="275" stroke="#374151" stroke-width="1" />
+    <text x="90" y="295" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="90" y="310" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- cat_nivel_educativo -->
+  <g class="erd-entity">
+    <rect x="80" y="400" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="170" y="425" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_nivel_educativo</text>
+    <line x1="80" y1="435" x2="260" y2="435" stroke="#374151" stroke-width="1" />
+    <text x="90" y="455" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="90" y="470" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- cat_sector -->
+  <g class="erd-entity">
+    <rect x="80" y="560" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="170" y="585" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_sector</text>
+    <line x1="80" y1="595" x2="260" y2="595" stroke="#374151" stroke-width="1" />
+    <text x="90" y="615" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="90" y="630" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- cat_ocupacion -->
+  <g class="erd-entity">
+    <rect x="800" y="80" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="890" y="105" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_ocupacion</text>
+    <line x1="800" y1="115" x2="980" y2="115" stroke="#374151" stroke-width="1" />
+    <text x="810" y="135" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="810" y="150" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- cat_situacion_trabajo -->
+  <g class="erd-entity">
+    <rect x="800" y="240" width="180" height="100" fill="#ffffff" stroke="#374151" stroke-width="2" rx="4" />
+    <text x="890" y="265" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">cat_situacion_trabajo</text>
+    <line x1="800" y1="275" x2="980" y2="275" stroke="#374151" stroke-width="1" />
+    <text x="810" y="295" font-size="10" font-family="monospace" fill="#000000">id (PK)</text>
+    <text x="810" y="310" font-size="10" font-family="monospace" fill="#000000">descripcion</text>
+  </g>
+
+  <!-- Relationships -->
+  <g class="erd-rel">
+    <path d="M 260 130 L 350 330" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="290" y="220" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="320" y="330" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+
+  <g class="erd-rel">
+    <path d="M 260 290 L 350 360" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="290" y="310" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="320" y="360" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+
+  <g class="erd-rel">
+    <path d="M 260 450 L 350 390" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="290" y="440" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="320" y="390" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+
+  <g class="erd-rel">
+    <path d="M 260 610 L 350 420" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="290" y="530" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="320" y="420" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+
+  <g class="erd-rel">
+    <path d="M 800 130 L 650 340" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="710" y="220" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="680" y="340" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+
+  <g class="erd-rel">
+    <path d="M 800 290 L 650 360" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="710" y="310" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">1</text>
+    <text x="680" y="360" font-size="10" font-family="monospace" fill="#c4cad4" text-anchor="middle">N</text>
+  </g>
+</svg>

@@ -6,7 +6,7 @@ from typing import Any, Optional
 from sqlalchemy import delete, extract
 from core.db import Database
 from core.pipelines.stage import Stage
-from core.utils import normalize_col, df_to_records, records_to_map
+from core.utils import normalize_col, df_to_records, records_to_map, refresh_materialized_views
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
 from core.utils.bulk_ops import (
@@ -37,6 +37,7 @@ from core.pipelines.fiscalia.mappings import (
     BienesAfectados,
 )
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaColumns
+from core.pipelines.fiscalia.queries import MATERIALIZED_VIEWS
 
 
 class FiscaliaLoad(Stage):
@@ -121,6 +122,9 @@ class FiscaliaLoad(Stage):
         bulk_insert(session, casos_records, CasosSchema, chunk_size=50_000 if self.mode == "bootstrap" else 10_000)
         return records_before
 
+    def _refresh_views(self) -> None:
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
+
     def source(self, input_data: Optional[Any]) -> Any:
         self.logger.info(f"[source] Records received: {list(input_data.keys())}")
         self.logger.info(f"[source] with {len(input_data['df'])} values")
@@ -144,6 +148,8 @@ class FiscaliaLoad(Stage):
                 session.rollback()
                 self.logger.error(e)
                 raise
+
+        self._refresh_views()
 
         return {"data": input_data, "records_before_upsert": records_before_upsert}
 

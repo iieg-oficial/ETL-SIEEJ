@@ -25,6 +25,7 @@ from core.pipelines.asg_imss.attributes import (
     MUNICIPIO_ALIASES,
 )
 from core.pipelines.asg_imss.config import PIPELINE_NAME, settings
+from core.pipelines.asg_imss.queries.views import MATERIALIZED_VIEWS
 from core.pipelines.asg_imss.schemas import (
     CatDelegacion,
     CatEntidad,
@@ -42,6 +43,7 @@ from core.pipelines.asg_imss.schemas import (
 )
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, insert_records, sync_id_sequence
+from core.utils.views import refresh_materialized_views
 
 
 # ---------------------------------------------------------------------------
@@ -205,6 +207,7 @@ class AsgImssDataLoader(Stage):
         self._cache_subdelegacion: dict[tuple[int, str], int] = {}
         self._cache_municipio: dict[tuple[int, str], int] = {}
         self._auto_inserted_counter: dict[str, int] = {}
+        self._rows_loaded: int = 0
 
     # ---------- Lifecycle externo ----------
     def setup(self) -> None:
@@ -214,6 +217,12 @@ class AsgImssDataLoader(Stage):
 
     def teardown(self) -> None:
         if self.db is not None:
+            if self._rows_loaded > 0:
+                try:
+                    refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
+                except Exception as exc:
+                    self.logger.error(f"No se pudo refrescar vistas materializadas: {exc}")
+                    raise
             self.db.disconnect()
             self.db = None
         if self._auto_inserted_counter:
@@ -454,6 +463,7 @@ class AsgImssDataLoader(Stage):
             bulk_insert(session, records, StgAsgImss, chunk_size=settings.BATCH_SIZE)
             rows_inserted = len(records)
 
+        self._rows_loaded += rows_inserted
         self.logger.info(f"✅ {target_date}: {rows_inserted:,} filas insertadas.")
         return {"rows_inserted": rows_inserted, "target_date": target_date}
 
