@@ -27,7 +27,9 @@ class DelitosExtract(Stage):
             url_historico = resolved["url_historico"]
             self._persist_urls(resolved)
         else:
-            self.logger.warning("No se resolvieron los links vigentes de SESNSP; usando los valores del .env como fallback")
+            self.logger.warning(
+                "No se resolvieron los links vigentes de SESNSP; usando los valores del .env como fallback"
+            )
 
         if not url_2026:
             raise ValueError("URL_2026 no configurada")

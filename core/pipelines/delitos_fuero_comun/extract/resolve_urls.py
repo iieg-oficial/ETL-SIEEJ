@@ -55,7 +55,11 @@ def _normalize(text: str) -> str:
 
 
 def _is_vigente(normalized_text: str) -> bool:
-    return "fuero" in normalized_text and "victimas" in normalized_text and "incidencia delictiva municipal" in normalized_text
+    return (
+        "fuero" in normalized_text
+        and "victimas" in normalized_text
+        and "incidencia delictiva municipal" in normalized_text
+    )
 
 
 def _is_historico(normalized_text: str) -> bool:
