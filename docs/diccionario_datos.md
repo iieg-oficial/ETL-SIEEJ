@@ -24,7 +24,7 @@ pipeline que requiere referencias geográficas la accede mediante `postgres_fdw`
 tablas foráneas en su migración `V1__foreign_tables.sql`.
 
 La base contiene 5 tablas en total:
-| Tabla | Alcance | Filas | 
+| Tabla | Alcance | Filas |
 |---|---|---|
 | `cvegeo_states` | Nacional (32 entidades) | 32 |
 | `cvegeo_municipalities` | Nacional (todos los municipios de México) | 2,475 |
@@ -35,7 +35,7 @@ La base contiene 5 tablas en total:
 ### Relación con los pipelines
 
 `entidad_id` se une contra
-`cvegeo_states.cve_ent`. `municipio_id`, en cambio, **no tiene una columna de unión única**; 
+`cvegeo_states.cve_ent`. `municipio_id`, en cambio, **no tiene una columna de unión única**;
 coexisten tres patrones distintos según el pipeline:
 
 | Patrón | `JOIN` típico | Pipelines que lo usan |
