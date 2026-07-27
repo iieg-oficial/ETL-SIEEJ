@@ -69,7 +69,7 @@ Descarga los ZIPs desde las URLs de SharePoint del SESNSP. En bootstrap descarga
 
 **Resolución dinámica de las URLs de descarga**
 
-Los links de SharePoint publicados en https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva cambian cada mes y sus IDs no son predecibles (no siguen un patrón). Antes de descargar, `DelitosExtract.source()` intenta resolver las URLs vigentes leyendo esa página en vivo, en vez de depender de que alguien actualice el `.env` a mano cada mes. El proceso, en `core/pipelines/delitos_fuero_comun/extract/resolve_urls.py`:
+Los links de SharePoint publicados en https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva cambian cada mes y sus IDs no son predecibles (no siguen un patrón). Antes de descargar, `DelitosExtract.source()` intenta resolver las URLs vigentes leyendo esa página en vivo, en vez de depender de que alguien actualice el `.env` a mano cada mes. El proceso, en `core/pipelines/delitos_fuero_comun/helpers/resolve_urls.py`:
 
 1. **Descarga la página** con `http_get` (reintentos automáticos ante fallas transitorias).
 2. **Extrae todos los `<a>`** de la página como pares `(texto, href)`, usando `html.parser` de la librería estándar (la página es HTML estático, no requiere JavaScript).

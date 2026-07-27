@@ -8,7 +8,7 @@ from dotenv import set_key
 
 from core.config import env_path
 from core.pipelines.delitos_fuero_comun.config import PIPELINE_NAME, settings
-from core.pipelines.delitos_fuero_comun.extract.resolve_urls import resolve_urls
+from core.pipelines.delitos_fuero_comun.helpers.resolve_urls import resolve_urls
 from core.pipelines.stage import Stage
 
 

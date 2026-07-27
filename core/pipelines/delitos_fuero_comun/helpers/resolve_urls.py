@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 from html.parser import HTMLParser
 from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -9,6 +8,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from core.pipelines.delitos_fuero_comun.constants import SESNSP_URL
 from core.utils.http import http_get
 from core.utils.logger import get_console_logger
+from core.utils.normalize import strip_accents
 
 logger = get_console_logger(__name__)
 
@@ -50,8 +50,7 @@ def _as_direct_download(href: str) -> str:
 
 
 def _normalize(text: str) -> str:
-    stripped = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
-    return " ".join(stripped.split()).lower()
+    return " ".join(strip_accents(text).split()).lower()
 
 
 def _is_vigente(normalized_text: str) -> bool:
