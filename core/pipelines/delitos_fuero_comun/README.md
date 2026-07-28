@@ -15,6 +15,8 @@ URL_HISTORICO=https://sspcgob-my.sharepoint.com/:u:/g/personal/cni_sspc_gob_mx/I
 URL_2026=https://sspcgob-my.sharepoint.com/:u:/g/personal/cni_sspc_gob_mx/IQDd-W9ogDiVTbtqEmJOcuhfAfvhKP_Ler2jAMpkVWlHUuI?e=8jFc9R&download=1
 ```
 
+Estos valores son solo un ejemplo/caché de la última corrida: se resuelven y sobrescriben automáticamente en cada ejecución (ver [Extract](#extract)), porque los links de SharePoint de SESNSP cambian cada mes.
+
 ## Características de los datos
 
 | Característica | Valor |
@@ -56,14 +58,29 @@ URL_2026=https://sspcgob-my.sharepoint.com/:u:/g/personal/cni_sspc_gob_mx/IQDd-W
 
 | variable | descripción |
 |---|---|
-| `URL_HISTORICO` | URL de descarga del ZIP histórico 2015-2025 |
-| `URL_2026` | URL de descarga del ZIP del año en curso |
+| `URL_HISTORICO` | URL de descarga del ZIP histórico 2015-2025. Se resuelve y actualiza sola en cada corrida (ver [Extract](#extract)); el valor en `.env` es solo el último caché conocido |
+| `URL_2026` | URL de descarga del ZIP del año en curso. Mismo mecanismo de auto-resolución que `URL_HISTORICO` |
 
 ## Notas metodológicas
 
 ### Extract
 
 Descarga los ZIPs desde las URLs de SharePoint del SESNSP. En bootstrap descarga ambos archivos; en update solo descarga `URL_2026`.
+
+**Resolución dinámica de las URLs de descarga**
+
+Los links de SharePoint publicados en https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva cambian cada mes y sus IDs no son predecibles (no siguen un patrón). Antes de descargar, `DelitosExtract.source()` intenta resolver las URLs vigentes leyendo esa página en vivo, en vez de depender de que alguien actualice el `.env` a mano cada mes. El proceso, en `core/pipelines/delitos_fuero_comun/helpers/resolve_urls.py`:
+
+1. **Descarga la página** con `http_get` (reintentos automáticos ante fallas transitorias).
+2. **Extrae todos los `<a>`** de la página como pares `(texto, href)`, usando `html.parser` de la librería estándar (la página es HTML estático, no requiere JavaScript).
+3. **Normaliza el texto** de cada link: quita acentos, colapsa espacios y pasa a minúsculas. Ej. `"Enero - junio 2026 (Fuero común - Víctimas). Incidencia delictiva municipal"` → `"enero - junio 2026 (fuero comun - victimas). incidencia delictiva municipal"`.
+4. **Identifica cada link por palabras clave estables, ignorando la parte que cambia cada mes** (el rango de fechas al inicio del texto nunca se usa para decidir):
+   - Vigente: el texto normalizado contiene `"fuero"` + `"victimas"` + `"incidencia delictiva municipal"`.
+   - Histórico: contiene `"fuero"` + `"delitos"` + `"incidencia delictiva municipal"` + un rango de dos años (regex `\d{4}\s*-\s*\d{4}`, ej. `2015 - 2025`) — este último requisito evita confundirlo con el link mensual, que también dice "incidencia delictiva municipal" pero sin rango de años.
+   - Se toma el primer anchor que matchea cada condición.
+5. **Convierte el href a descarga directa**: el link crudo de SharePoint abre la vista previa web, no el archivo. Se le agrega `download=1` a la query string (preservando cualquier parámetro `e=` existente) con `urllib.parse`.
+6. **Fallback si algo falla**: si no se puede descargar la página, o no se identifican ambos links (p. ej. el sitio cambió de estructura), `resolve_urls()` devuelve `None`. `DelitosExtract.source()` entonces usa el último valor guardado en `.env` y deja un `logger.warning` explícito en el log de Airflow, para que se revise manualmente ese mes sin que el pipeline se caiga.
+7. **Persistencia**: si la resolución tiene éxito y el link es distinto al que ya había, se sobrescribe `URL_HISTORICO`/`URL_2026` en el `.env` (vía `python-dotenv.set_key`) como caché/auditoría de la última corrida exitosa.
 
 ### Transform
 
