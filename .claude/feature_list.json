@@ -1,8 +1,8 @@
 {
   "project": "ETL-SIEEJ",
-  "pipeline": "edafologia",
-  "issue": 182,
-  "branch": "182-pipeline-edafologia",
+  "pipeline": null,
+  "issue": null,
+  "branch": null,
   "rules": {
     "one_phase_at_a_time": true,
     "require_verification_to_close": true,
@@ -22,7 +22,7 @@
         "Pipeline name, source type (iterable/non-iterable), schedule del DAG confirmados",
         "Catálogos estáticos identificados"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 1,
@@ -35,7 +35,7 @@
         "schemas.py creado con modelos SQLAlchemy 2.0",
         ".env y .env.example creados con URLs como variables de entorno"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 2,
@@ -49,7 +49,7 @@
         "Guard contra DataFrame vacío",
         "Rutas de archivo incluyen parámetro iterable si aplica"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 3,
@@ -63,7 +63,7 @@
         "FKs mapeados con normalize_col() antes de .map()",
         "Guard contra DataFrame vacío"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 4,
@@ -78,7 +78,7 @@
         "Estrategia correcta: upsert_records (iterable) o insert_records (no-iterable)",
         "cleanup_pipeline_data llamado en finalization()"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 5,
@@ -90,7 +90,7 @@
         "bootstrap y/o incremental según tipo de fuente",
         "retries y retry_delay configurados"
       ],
-      "status": "done"
+      "status": "pending"
     },
     {
       "id": 6,
