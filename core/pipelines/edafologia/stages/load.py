@@ -5,20 +5,37 @@ from typing import Any
 
 from core.db import Database
 from core.pipelines.edafologia.config import settings
-from core.pipelines.edafologia.constants import PIPELINE_NAME, TRANSFORM_MANIFEST_FILENAME
+from core.pipelines.edafologia.constants import (
+    MUNICIPAL_OVERLAY_DIRNAME,
+    MUNICIPAL_OVERLAY_MANIFEST_FILENAME,
+    PIPELINE_NAME,
+    TRANSFORM_MANIFEST_FILENAME,
+)
 from core.pipelines.edafologia.helpers.load import (
-    boundary_source_records,
     canonical_records,
-    catalog_count_summary,
-    catalog_records,
-    read_transform_manifest,
-    read_transformed_layer,
     resolve_catalog_ids,
     source_identity,
+    validate_version_collision,
+)
+from core.pipelines.edafologia.helpers.load_catalogs import (
+    boundary_source_records,
+    catalog_count_summary,
+    catalog_records,
     validate_catalog_counts,
+)
+from core.pipelines.edafologia.helpers.load_inputs import (
+    read_transform_manifest,
+    read_transformed_layer,
     validate_transform_manifest,
     validate_transformed_frame,
-    validate_version_collision,
+)
+from core.pipelines.edafologia.helpers.municipal_overlay_load import (
+    analyze_overlay_tables,
+    overlay_records,
+    read_validated_overlay,
+    replace_overlay_scope,
+    resolve_boundary_source_ids,
+    resolve_edafologia_ids,
 )
 from core.pipelines.edafologia.mappings import CALIFICADORES_EDAFOLOGICOS, GRUPOS_EDAFOLOGICOS
 from core.pipelines.edafologia.schemas import (
@@ -27,7 +44,6 @@ from core.pipelines.edafologia.schemas import (
     FuentesLimitesMunicipales,
     GruposEdafologicos,
 )
-from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import count_records, get_mapping, sync_id_sequence, upsert_records
 from core.utils.logger import get_logger
@@ -37,11 +53,14 @@ class EdafologiaLoad(Stage):
     """Canonical load stage for the bootstrap-only Edafologia historical source."""
 
     def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
-        self.mode = validate_bootstrap_mode(mode)
+        self.mode = mode
         super().__init__(pipeline_name, "load")
         self.logger = get_logger(f"{pipeline_name}.load")
         self.db = Database(settings.DB_NAME, settings.database_url)
         self.transform_manifest_path = Path("data") / "transform" / pipeline_name / TRANSFORM_MANIFEST_FILENAME
+        self.overlay_manifest_path = (
+            Path("data") / "transform" / pipeline_name / MUNICIPAL_OVERLAY_DIRNAME / MUNICIPAL_OVERLAY_MANIFEST_FILENAME
+        )
 
     def source(self, input_data: Any | None = None) -> dict[str, Any]:
         self.logger.info("[source] Reading transform manifest")
@@ -49,7 +68,13 @@ class EdafologiaLoad(Stage):
         validate_transform_manifest(manifest, self.transform_manifest_path)
         frame = read_transformed_layer(manifest)
         validate_transformed_frame(frame, manifest)
-        return {"manifest": manifest, "frame": frame}
+        overlay_manifest, overlay_frame = read_validated_overlay(self.overlay_manifest_path)
+        return {
+            "manifest": manifest,
+            "frame": frame,
+            "overlay_manifest": overlay_manifest,
+            "overlay_frame": overlay_frame,
+        }
 
     def _load_catalogs(self, session) -> dict[str, int]:
         group_records = catalog_records(GRUPOS_EDAFOLOGICOS)
@@ -79,7 +104,7 @@ class EdafologiaLoad(Stage):
             FuentesLimitesMunicipales,
             conflict_keys=[FuentesLimitesMunicipales.clave.key],
             update_keys=[
-                FuentesLimitesMunicipales.nombre.key,
+                FuentesLimitesMunicipales.nombre_fuente.key,
                 FuentesLimitesMunicipales.descripcion.key,
                 FuentesLimitesMunicipales.version.key,
                 FuentesLimitesMunicipales.procedencia.key,
@@ -127,6 +152,11 @@ class EdafologiaLoad(Stage):
                     chunk_size=settings.CHUNK_SIZE,
                 )
                 records_after = count_records(session, Edafologias)
+                source_ids = resolve_boundary_source_ids(session)
+                edafologia_ids = resolve_edafologia_ids(session, input_data["overlay_frame"])
+                fragment_records = overlay_records(input_data["overlay_frame"], edafologia_ids, source_ids)
+                overlay_result = replace_overlay_scope(session, fragment_records, chunk_size=settings.CHUNK_SIZE)
+                analyze_overlay_tables(session)
         except Exception:
             self.db.disconnect()
             raise
@@ -138,6 +168,8 @@ class EdafologiaLoad(Stage):
             "records_before": records_before,
             "records_after": records_after,
             "inserted_or_net_new": records_after - records_before,
+            "overlay_manifest": input_data["overlay_manifest"],
+            "overlay": overlay_result,
         }
 
     def finalization(self, input_data: dict[str, Any]) -> dict[str, Any]:
@@ -146,6 +178,11 @@ class EdafologiaLoad(Stage):
                 "[finalization] %s canonical edafologia records processed; %s net new rows",
                 input_data["canonical_records"],
                 input_data["inserted_or_net_new"],
+            )
+            self.logger.info(
+                "[finalization] %s municipal overlay fragments loaded across %s scopes",
+                input_data["overlay"]["records"],
+                len(input_data["overlay"]["scopes"]),
             )
             return input_data
         finally:

@@ -12,17 +12,18 @@ from shapely.geometry import GeometryCollection, MultiPolygon, Polygon
 from core.pipelines.edafologia.constants import CANONICAL_SRID, EXPECTED_SOURCE_COLUMNS
 from core.pipelines.edafologia.helpers.transform import (
     apply_catalog_ids,
+    validate_catalog_coverage,
+)
+from core.pipelines.edafologia.helpers.transform_geometry import (
     build_canonical_mask,
     clip_to_mask,
     dissolve_by_source_objectid,
     final_spatial_validation,
     polygonal_part,
-    read_source_layer,
     repair_and_polygonize,
-    validate_catalog_coverage,
-    validate_extract_manifest,
     write_gpkg_atomic,
 )
+from core.pipelines.edafologia.helpers.transform_inputs import read_source_layer, validate_extract_manifest
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,

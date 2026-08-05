@@ -18,8 +18,6 @@ def run_bootstrap() -> None:
     from core.pipelines.edafologia.constants import BOOTSTRAP_MODE, PIPELINE_NAME
     from core.pipelines.edafologia.stages.extract import EdafologiaExtract
     from core.pipelines.edafologia.stages.load import EdafologiaLoad
-    from core.pipelines.edafologia.stages.load_municipal_overlay import EdafologiaMunicipalOverlayLoad
-    from core.pipelines.edafologia.stages.municipal_overlay import EdafologiaMunicipalOverlay
     from core.pipelines.edafologia.stages.transform import EdafologiaTransform
 
     pipeline = Pipeline(
@@ -28,8 +26,6 @@ def run_bootstrap() -> None:
             EdafologiaExtract(mode=BOOTSTRAP_MODE),
             EdafologiaTransform(mode=BOOTSTRAP_MODE),
             EdafologiaLoad(mode=BOOTSTRAP_MODE),
-            EdafologiaMunicipalOverlay(mode=BOOTSTRAP_MODE),
-            EdafologiaMunicipalOverlayLoad(mode=BOOTSTRAP_MODE),
         ],
     )
     pipeline.run(mode=BOOTSTRAP_MODE)
@@ -41,7 +37,7 @@ def main() -> None:
 
 
 default_args_bootstrap = {
-    "owner": "José Velazco H.",
+    "owner": "Gerardo Rubalcava",
     "retries": 2,
     "retry_delay": timedelta(minutes=20),
 }

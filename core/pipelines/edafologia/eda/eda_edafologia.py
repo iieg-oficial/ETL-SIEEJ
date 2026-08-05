@@ -36,7 +36,7 @@ from core.pipelines.edafologia.constants import (
     SOURCE_NAME,
     SOURCE_VERSION,
 )
-from core.pipelines.edafologia.helpers.download import sha256_file
+from core.utils.files import sha256_file
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,

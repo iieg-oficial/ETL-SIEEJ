@@ -14,20 +14,21 @@ from shapely.geometry import MultiPolygon, Polygon
 from sqlalchemy import create_engine, text
 
 from core.pipelines.edafologia.constants import CANONICAL_SRID, TRANSFORM_OUTPUT_LAYER
-from core.pipelines.edafologia.helpers.download import sha256_file
+from core.utils.files import sha256_file
 from core.pipelines.edafologia.helpers.load import (
-    boundary_source_records,
     canonical_records,
-    catalog_records,
     dataframe_to_nullable_records,
     resolve_catalog_ids,
     shapely_to_wkb_element,
     source_identity,
-    validate_catalog_counts,
-    validate_transformed_frame,
-    validate_transform_manifest,
     validate_version_collision,
 )
+from core.pipelines.edafologia.helpers.load_catalogs import (
+    boundary_source_records,
+    catalog_records,
+    validate_catalog_counts,
+)
+from core.pipelines.edafologia.helpers.load_inputs import validate_transform_manifest, validate_transformed_frame
 from core.pipelines.edafologia.mappings import CALIFICADORES_EDAFOLOGICOS, GRUPOS_EDAFOLOGICOS
 from core.pipelines.edafologia.schemas import Edafologias
 

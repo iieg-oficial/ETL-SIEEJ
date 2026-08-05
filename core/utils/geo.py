@@ -68,3 +68,12 @@ def localidad_code(ent: Any, mun: Any, loc: Any) -> int | None:
     except (TypeError, ValueError):
         return None
     return int(f"{entidad:02d}{municipio:03d}{localidad:04d}")
+
+
+def format_bounds(bounds: Any) -> list[float] | None:
+    if bounds is None:
+        return None
+    try:
+        return [float(value) for value in bounds]
+    except (TypeError, ValueError):
+        return None

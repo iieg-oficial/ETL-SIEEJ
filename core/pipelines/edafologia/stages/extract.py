@@ -27,18 +27,16 @@ from core.pipelines.edafologia.constants import (
     SOURCE_NAME,
     SOURCE_VERSION,
 )
-from core.pipelines.edafologia.helpers.archive import safe_extract_zip
 from core.pipelines.edafologia.helpers.boundaries import prepare_municipal_boundaries
 from core.pipelines.edafologia.helpers.download import prepare_source_zip
 from core.pipelines.edafologia.helpers.inventory import inspect_vector_candidates, select_canonical_candidate
-from core.pipelines.edafologia.helpers.manifest import read_manifest, write_manifest
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,
     catalog_manifest,
 )
-from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
 from core.pipelines.stage import Stage
+from core.utils.files import read_json, safe_extract_zip, write_json_atomic
 from core.utils.logger import get_logger
 
 
@@ -46,7 +44,7 @@ class EdafologiaExtract(Stage):
     """Extract stage for the bootstrap-only Edafologia historical source."""
 
     def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
-        self.mode = validate_bootstrap_mode(mode)
+        self.mode = mode
         super().__init__(pipeline_name, "extract")
         self.logger = get_logger(f"{pipeline_name}.extract")
         self.raw_dir = self.work_dir / "raw"
@@ -64,16 +62,15 @@ class EdafologiaExtract(Stage):
             retries=settings.DOWNLOAD_RETRIES,
             connect_timeout=settings.DOWNLOAD_CONNECT_TIMEOUT,
             read_timeout=settings.DOWNLOAD_READ_TIMEOUT,
-            logger=self.logger,
         )
 
     def action(self, input_data: dict[str, object]) -> dict[str, object]:
         zip_path = Path(str(input_data["zip_path"]))
         self.logger.info("[action] Extracting and inventorying %s", zip_path.name)
-        safe_extract_zip(zip_path, self.extraction_dir, force=settings.FORCE_DOWNLOAD, logger=self.logger)
+        safe_extract_zip(zip_path, self.extraction_dir, force=settings.FORCE_DOWNLOAD)
         candidates = inspect_vector_candidates(self.extraction_dir, EXPECTED_SOURCE_COLUMNS)
         selected = select_canonical_candidate(candidates, EXPECTED_SOURCE_COLUMNS)
-        previous_manifest = read_manifest(self.manifest_path)
+        previous_manifest = read_json(self.manifest_path)
         previous_auxiliary = (previous_manifest or {}).get("auxiliary_inputs", {})
         auxiliary_inputs = {
             "municipal_boundaries": prepare_municipal_boundaries(
@@ -128,6 +125,6 @@ class EdafologiaExtract(Stage):
         return manifest
 
     def finalization(self, input_data: dict[str, object]) -> dict[str, object]:
-        write_manifest(input_data, self.manifest_path)
+        write_json_atomic(input_data, self.manifest_path)
         self.logger.info("[finalization] Extract manifest written to %s", self.manifest_path)
         return input_data

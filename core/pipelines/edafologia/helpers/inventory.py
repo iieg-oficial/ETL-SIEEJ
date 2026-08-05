@@ -11,21 +11,13 @@ from core.pipelines.edafologia.constants import (
     POLYGON_GEOMETRY_TYPES,
     VECTOR_EXTENSIONS,
 )
+from core.utils.geo import format_bounds
 
 
 def _layers_for(path: Path) -> list[str | None]:
     if path.suffix.lower() == ".gpkg":
         return [str(layer) for layer, _ in pyogrio.list_layers(path)]
     return [None]
-
-
-def _format_bounds(bounds: Any) -> list[float] | None:
-    if bounds is None:
-        return None
-    try:
-        return [float(value) for value in bounds]
-    except (TypeError, ValueError):
-        return None
 
 
 def _candidate_path_name(path: Path, layer: str | None) -> str:
@@ -69,7 +61,7 @@ def inspect_vector_candidates(extract_dir: Path, required_fields: tuple[str, ...
                     "fields": fields,
                     "required_fields_found": required_found,
                     "required_fields_missing": required_missing,
-                    "extent": _format_bounds(info.get("total_bounds")),
+                    "extent": format_bounds(info.get("total_bounds")),
                 }
             )
 

@@ -8,7 +8,6 @@ CANONICAL_SRID: Final[int] = 6368
 JALISCO_CVE_ENT: Final[int] = 14
 PIPELINE_VERSION: Final[str] = "0.2.0"
 BOOTSTRAP_MODE: Final[str] = "bootstrap"
-ALLOWED_PIPELINE_MODES: Final[tuple[str, ...]] = (BOOTSTRAP_MODE,)
 
 SOURCE_URL_ENV: Final[str] = "SOURCE_URL"
 EXPECTED_AREA_LAYER_STEM: Final[str] = "conj_nac_inf_edaf_esc_250k_ser_III_area"
@@ -93,6 +92,33 @@ POLYGON_GEOMETRY_TYPES: Final[tuple[str, ...]] = (
 
 LIMIT_SOURCE_KEYS: Final[tuple[str, str]] = ("iieg", "inegi")
 SMALL_FRAGMENT_THRESHOLDS_M2: Final[tuple[float, ...]] = (0.01, 1.0, 10.0, 100.0, 1000.0)
+REQUIRED_TRANSFORM_FIELDS: Final[tuple[str, ...]] = (
+    "source_version",
+    "source_objectid",
+    "clave_wrb",
+    "grupo1_origen",
+    "califp_g1_origen",
+    "califs_g1_origen",
+    "source_name",
+    "source_url",
+    "source_file_name",
+    "source_file_sha256",
+    "source_downloaded_at",
+    "processed_at",
+    "fecha_actualizacion",
+)
+OVERLAY_COLUMNS: Final[tuple[str, ...]] = (
+    "source_version",
+    "source_objectid",
+    "source_file_sha256",
+    "fuente_limite_clave",
+    "municipality_cvegeo",
+    "area_m2",
+    "area_ha",
+    "pct_poligono_fuente",
+    "pct_municipio_total",
+    "pct_cobertura_edafologica",
+)
 
 CANONICAL_HASH_FORMULA_VERSION: Final[str] = "edafologia-hash-v1"
 CANONICAL_HASH_ALGORITHM: Final[str] = "sha256"
@@ -103,7 +129,7 @@ CANONICAL_HASH_GEOMETRY_SERIALIZATION: Final[str] = (
     "ST_AsEWKB(geom, 'NDR') encoded as lowercase hexadecimal; EWKB includes SRID"
 )
 EDA_REPORT_FILENAME: Final[str] = "reporte_eda.json"
-ERD_FILENAME: Final[str] = "er_edafologia.png"
+ERD_FILENAME: Final[str] = "erd.svg"
 
 EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -8,30 +7,41 @@ from typing import Any
 from core.pipelines.edafologia.constants import (
     CANONICAL_SRID,
     MANIFEST_FILENAME,
+    MUNICIPAL_OVERLAY_DIRNAME,
+    MUNICIPAL_OVERLAY_MANIFEST_FILENAME,
+    MUNICIPAL_OVERLAY_OUTPUT_FILENAME,
     PIPELINE_NAME,
     PIPELINE_VERSION,
     TRANSFORM_MANIFEST_FILENAME,
     TRANSFORM_OUTPUT_FILENAME,
     TRANSFORM_OUTPUT_LAYER,
 )
-from core.pipelines.edafologia.helpers.download import sha256_file
+from core.pipelines.edafologia.helpers.municipal_overlay import (
+    calculate_municipal_overlay,
+    read_overlay_inputs,
+    write_overlay_artifacts,
+)
 from core.pipelines.edafologia.helpers.transform import (
     add_traceability,
     apply_catalog_ids,
+    prepare_attributes,
+    validate_catalog_coverage,
+)
+from core.pipelines.edafologia.helpers.transform_geometry import (
     build_canonical_mask,
     clip_to_mask,
     dissolve_by_source_objectid,
     final_spatial_validation,
-    prepare_attributes,
-    read_boundary_layers,
-    read_source_layer,
     repair_and_polygonize,
-    validate_catalog_coverage,
-    validate_extract_manifest,
     write_gpkg_atomic,
 )
-from core.pipelines.edafologia.helpers.mode import validate_bootstrap_mode
+from core.pipelines.edafologia.helpers.transform_inputs import (
+    read_boundary_layers,
+    read_source_layer,
+    validate_extract_manifest,
+)
 from core.pipelines.stage import Stage
+from core.utils.files import sha256_file, write_json_atomic
 from core.utils.logger import get_logger
 
 
@@ -39,12 +49,15 @@ class EdafologiaTransform(Stage):
     """Transform stage for the bootstrap-only Edafologia historical source."""
 
     def __init__(self, pipeline_name: str = PIPELINE_NAME, mode: str = "bootstrap") -> None:
-        self.mode = validate_bootstrap_mode(mode)
+        self.mode = mode
         super().__init__(pipeline_name, "transform")
         self.logger = get_logger(f"{pipeline_name}.transform")
         self.extract_manifest_path = Path("data") / "extract" / pipeline_name / MANIFEST_FILENAME
         self.output_path = self.work_dir / TRANSFORM_OUTPUT_FILENAME
         self.transform_manifest_path = self.work_dir / TRANSFORM_MANIFEST_FILENAME
+        self.overlay_dir = self.work_dir / MUNICIPAL_OVERLAY_DIRNAME
+        self.overlay_output_path = self.overlay_dir / MUNICIPAL_OVERLAY_OUTPUT_FILENAME
+        self.overlay_manifest_path = self.overlay_dir / MUNICIPAL_OVERLAY_MANIFEST_FILENAME
 
     def source(self, input_data: Any | None = None) -> dict[str, Any]:
         self.logger.info("[source] Reading extract manifest")
@@ -103,14 +116,23 @@ class EdafologiaTransform(Stage):
             "processed_at": processed_at.isoformat(),
             "pipeline_version": PIPELINE_VERSION,
         }
-        return {"gdf": transformed, "manifest": manifest}
+        write_json_atomic(manifest, self.transform_manifest_path)
+        overlay_inputs = read_overlay_inputs(self.transform_manifest_path)
+        fragments, overlay_manifest = calculate_municipal_overlay(overlay_inputs)
+        overlay_manifest = write_overlay_artifacts(
+            fragments,
+            overlay_manifest,
+            self.overlay_output_path,
+            self.overlay_manifest_path,
+        )
+        return {
+            "gdf": transformed,
+            "manifest": manifest,
+            "fragments": fragments,
+            "overlay_manifest": overlay_manifest,
+        }
 
     def finalization(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        self.transform_manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = self.transform_manifest_path.with_suffix(".tmp.json")
-        temporary.write_text(
-            json.dumps(input_data["manifest"], ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8"
-        )
-        temporary.replace(self.transform_manifest_path)
         self.logger.info("[finalization] Transform manifest written to %s", self.transform_manifest_path)
+        self.logger.info("[finalization] Municipal overlay written to %s", self.overlay_dir)
         return input_data

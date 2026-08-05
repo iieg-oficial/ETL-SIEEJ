@@ -14,13 +14,10 @@ for key, value in {
 }.items():
     os.environ.setdefault(key, value)
 
-import pytest
 from airflow.models.dag import DAG
 
 from core.pipelines.edafologia.stages.extract import EdafologiaExtract
 from core.pipelines.edafologia.stages.load import EdafologiaLoad
-from core.pipelines.edafologia.stages.load_municipal_overlay import EdafologiaMunicipalOverlayLoad
-from core.pipelines.edafologia.stages.municipal_overlay import EdafologiaMunicipalOverlay
 from core.pipelines.edafologia.stages.transform import EdafologiaTransform
 
 
@@ -28,8 +25,6 @@ stage_classes = (
     EdafologiaExtract,
     EdafologiaTransform,
     EdafologiaLoad,
-    EdafologiaMunicipalOverlay,
-    EdafologiaMunicipalOverlayLoad,
 )
 
 
@@ -49,12 +44,6 @@ def test_edafologia_stages_keep_default_bootstrap_mode():
         stage = stage_class()
 
         assert stage.mode == "bootstrap"
-
-
-def test_edafologia_stages_reject_non_bootstrap_mode():
-    for stage_class in stage_classes:
-        with pytest.raises(ValueError, match="only supports mode='bootstrap'"):
-            stage_class(mode="update")
 
 
 def test_edafologia_dag_imports_without_runtime_inputs(monkeypatch):
@@ -105,25 +94,10 @@ def test_run_bootstrap_builds_expected_stage_order(monkeypatch):
     monkeypatch.setattr("core.pipelines.edafologia.stages.extract.EdafologiaExtract", fake_stage("extract"))
     monkeypatch.setattr("core.pipelines.edafologia.stages.transform.EdafologiaTransform", fake_stage("transform"))
     monkeypatch.setattr("core.pipelines.edafologia.stages.load.EdafologiaLoad", fake_stage("load"))
-    monkeypatch.setattr(
-        "core.pipelines.edafologia.stages.municipal_overlay.EdafologiaMunicipalOverlay",
-        fake_stage("municipal_overlay"),
-    )
-    monkeypatch.setattr(
-        "core.pipelines.edafologia.stages.load_municipal_overlay.EdafologiaMunicipalOverlayLoad",
-        fake_stage("load_municipal_overlay"),
-    )
-
     module.run_bootstrap()
 
-    assert [stage.name for stage in built_stages] == [
-        "extract",
-        "transform",
-        "load",
-        "municipal_overlay",
-        "load_municipal_overlay",
-    ]
-    assert [stage.mode for stage in built_stages] == ["bootstrap"] * 5
+    assert [stage.name for stage in built_stages] == ["extract", "transform", "load"]
+    assert [stage.mode for stage in built_stages] == ["bootstrap"] * 3
     assert run_modes == ["bootstrap"]
 
 

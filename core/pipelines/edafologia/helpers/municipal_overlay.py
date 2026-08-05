@@ -8,7 +8,7 @@ from typing import Any
 import geopandas as gpd
 import pandas as pd
 from shapely import make_valid
-from shapely.geometry import GeometryCollection, MultiPolygon, Polygon
+from shapely.geometry import MultiPolygon
 from shapely.ops import unary_union
 
 from core.pipelines.edafologia.constants import (
@@ -16,49 +16,19 @@ from core.pipelines.edafologia.constants import (
     LIMIT_SOURCE_KEYS,
     MUNICIPAL_BOUNDARY_SOURCES,
     MUNICIPAL_OVERLAY_OUTPUT_LAYER,
+    OVERLAY_COLUMNS,
     PIPELINE_VERSION,
     SMALL_FRAGMENT_THRESHOLDS_M2,
 )
-from core.pipelines.edafologia.helpers.download import sha256_file
-from core.pipelines.edafologia.helpers.load import (
+from core.pipelines.edafologia.helpers.load_inputs import (
     read_transform_manifest,
     read_transformed_layer,
     validate_transform_manifest,
     validate_transformed_frame,
 )
-from core.pipelines.edafologia.helpers.transform import read_boundary_layers
-
-
-OVERLAY_COLUMNS: tuple[str, ...] = (
-    "source_version",
-    "source_objectid",
-    "source_file_sha256",
-    "fuente_limite_clave",
-    "municipality_cvegeo",
-    "area_m2",
-    "area_ha",
-    "pct_poligono_fuente",
-    "pct_municipio_total",
-    "pct_cobertura_edafologica",
-)
-
-
-def polygonal_part(geometry: Any) -> MultiPolygon | None:
-    if geometry is None or geometry.is_empty:
-        return None
-    if isinstance(geometry, Polygon):
-        return MultiPolygon([geometry]) if geometry.area > 0 else None
-    if isinstance(geometry, MultiPolygon):
-        parts = [part for part in geometry.geoms if not part.is_empty and part.area > 0]
-        return MultiPolygon(parts) if parts else None
-    if isinstance(geometry, GeometryCollection):
-        parts = []
-        for child in geometry.geoms:
-            child_polygonal = polygonal_part(child)
-            if child_polygonal is not None:
-                parts.extend(list(child_polygonal.geoms))
-        return MultiPolygon(parts) if parts else None
-    return None
+from core.pipelines.edafologia.helpers.transform_geometry import polygonal_part
+from core.pipelines.edafologia.helpers.transform_inputs import read_boundary_layers
+from core.utils.files import sha256_file
 
 
 def valid_multipolygon(geometry: Any) -> tuple[MultiPolygon | None, bool]:

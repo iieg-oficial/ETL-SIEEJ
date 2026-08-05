@@ -3,8 +3,6 @@ from __future__ import annotations
 import importlib
 import sys
 from pathlib import Path
-from types import SimpleNamespace
-
 import geopandas as gpd
 import pytest
 from shapely.geometry import GeometryCollection, LineString, MultiPolygon, Polygon
@@ -14,9 +12,9 @@ from core.pipelines.edafologia.constants import CANONICAL_SRID
 from core.pipelines.edafologia.helpers.municipal_overlay import (
     calculate_municipal_overlay,
     calculate_overlay_for_source,
-    polygonal_part,
     validate_overlay_frame,
 )
+from core.pipelines.edafologia.helpers.transform_geometry import polygonal_part
 
 
 def _mpoly(coords) -> MultiPolygon:
@@ -135,56 +133,6 @@ def test_overlay_manifest_covers_both_sources(tmp_path):
     assert manifest["input_counts"]["municipios_inegi"] == 2
 
 
-def test_municipal_overlay_load_rolls_back_on_error(monkeypatch):
-    monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
-    sys.modules.pop("core.pipelines.edafologia.config", None)
-    sys.modules.pop("core.pipelines.edafologia.stages.load_municipal_overlay", None)
-    load_stage = importlib.import_module("core.pipelines.edafologia.stages.load_municipal_overlay")
-
-    class FakeSessionContext:
-        rolled_back = False
-
-        def __enter__(self):
-            return SimpleNamespace()
-
-        def __exit__(self, exc_type, _exc, _traceback):
-            self.rolled_back = exc_type is not None
-            return False
-
-    class FakeDb:
-        def __init__(self, context):
-            self.context = context
-            self.disconnected = False
-
-        def connect(self):
-            return None
-
-        def get_session(self):
-            return self.context
-
-        def disconnect(self):
-            self.disconnected = True
-
-    context = FakeSessionContext()
-    stage = load_stage.EdafologiaMunicipalOverlayLoad()
-    stage.db = FakeDb(context)
-    monkeypatch.setattr(load_stage, "resolve_boundary_source_ids", lambda _session: {"iieg": 1})
-    monkeypatch.setattr(load_stage, "resolve_edafologia_ids", lambda _session, _frame: {("Serie III", 1): 1})
-    monkeypatch.setattr(load_stage, "overlay_records", lambda _frame, _eda, _sources: [{"source_version": "Serie III"}])
-    monkeypatch.setattr(
-        load_stage, "replace_overlay_scope", lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("boom"))
-    )
-
-    with pytest.raises(RuntimeError, match="boom"):
-        stage.action({"manifest": {}, "frame": _edafologias()})
-
-    assert context.rolled_back is True
-    assert stage.db.disconnected is True
-
-
 def _load_env_file(env_path: Path, monkeypatch) -> None:
     for line in env_path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
@@ -211,15 +159,15 @@ def test_edafologia_municipal_overlay_real_integration(monkeypatch):
     monkeypatch.setenv("CVEGEO_DB_NAME", "cvegeo")
     for module in (
         "core.pipelines.edafologia.config",
-        "core.pipelines.edafologia.stages.municipal_overlay",
-        "core.pipelines.edafologia.stages.load_municipal_overlay",
+        "core.pipelines.edafologia.stages.transform",
+        "core.pipelines.edafologia.stages.load",
     ):
         sys.modules.pop(module, None)
 
-    overlay_stage = importlib.import_module("core.pipelines.edafologia.stages.municipal_overlay")
-    load_stage = importlib.import_module("core.pipelines.edafologia.stages.load_municipal_overlay")
-    overlay_result = overlay_stage.EdafologiaMunicipalOverlay().execute()
-    load_result = load_stage.EdafologiaMunicipalOverlayLoad().execute()
+    transform_stage = importlib.import_module("core.pipelines.edafologia.stages.transform")
+    load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
+    transform_result = transform_stage.EdafologiaTransform().execute()
+    load_result = load_stage.EdafologiaLoad().execute()
 
     settings = importlib.import_module("core.pipelines.edafologia.config").settings
     engine = create_engine(settings.database_url)
@@ -243,8 +191,8 @@ def test_edafologia_municipal_overlay_real_integration(monkeypatch):
         ).scalar_one()
     engine.dispose()
 
-    assert set(overlay_result["manifest"]["fragments_by_source"]) == {"iieg", "inegi"}
+    assert set(transform_result["overlay_manifest"]["fragments_by_source"]) == {"iieg", "inegi"}
     assert counts["iieg"] > 0
     assert counts["inegi"] > 0
-    assert load_result["records"] == counts["iieg"] + counts["inegi"]
+    assert load_result["overlay"]["records"] == counts["iieg"] + counts["inegi"]
     assert view_count > 0

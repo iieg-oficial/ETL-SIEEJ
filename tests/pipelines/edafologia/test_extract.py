@@ -19,13 +19,13 @@ from core.pipelines.edafologia.constants import (
     CONTROLLED_CATALOG_VERSION,
     EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS,
 )
-from core.pipelines.edafologia.helpers.archive import safe_extract_zip
 from core.pipelines.edafologia.helpers.boundaries import (
     prepare_municipal_boundaries,
     validate_boundary_layer,
     write_boundary_layers_atomic,
 )
-from core.pipelines.edafologia.helpers.download import prepare_source_zip, sha256_file, validate_zip
+from core.pipelines.edafologia.helpers.download import prepare_source_zip
+from core.utils.files import safe_extract_zip, sha256_file, validate_zip
 from core.pipelines.edafologia.helpers.inventory import select_canonical_candidate
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
