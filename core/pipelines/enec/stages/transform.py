@@ -90,8 +90,7 @@ class EnecTransform(Stage):
             self.logger.info(f"{table}: {len(records)} entries")
         return catalogs
 
-    @staticmethod
-    def _estatus_records(nacional: pd.DataFrame, entidad: pd.DataFrame) -> list[dict]:
+    def _estatus_records(self, nacional: pd.DataFrame, entidad: pd.DataFrame) -> list[dict]:
         """Seed the documented statuses in a fixed order, then add anything new."""
         published = pd.concat([nacional["estatus"], entidad["estatus"]], ignore_index=True).dropna().tolist()
         estatus = pd.DataFrame({"estatus": ESTATUS_SEED + published})
