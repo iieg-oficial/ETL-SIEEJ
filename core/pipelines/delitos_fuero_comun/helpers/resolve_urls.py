@@ -56,8 +56,10 @@ def _normalize(text: str) -> str:
 def _is_vigente(normalized_text: str) -> bool:
     return (
         "fuero" in normalized_text
-        and "victimas" in normalized_text
+        and "delitos" in normalized_text
         and "incidencia delictiva municipal" in normalized_text
+        and "tablero" not in normalized_text
+        and not _YEAR_RANGE.search(normalized_text)
     )
 
 
@@ -66,6 +68,7 @@ def _is_historico(normalized_text: str) -> bool:
         "fuero" in normalized_text
         and "delitos" in normalized_text
         and "incidencia delictiva municipal" in normalized_text
+        and "tablero" not in normalized_text
         and bool(_YEAR_RANGE.search(normalized_text))
     )
 

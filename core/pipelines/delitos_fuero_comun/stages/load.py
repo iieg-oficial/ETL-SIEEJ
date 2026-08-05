@@ -45,7 +45,7 @@ class DelitosLoad(Stage):
         return input_data
 
     def action(self, input_data: Optional[Any] = None) -> dict:
-        df_historico: Optional[pd.DataFrame] = input_data.get("df_historico")
+        df_historico: pd.DataFrame = input_data["df_historico"]
         df_2026: pd.DataFrame = input_data["df_2026"]
         catalogs: dict = input_data["catalogs"]
 
@@ -89,49 +89,15 @@ class DelitosLoad(Stage):
             subtipo_map_full: dict[str, int] = get_mapping(session, CatSubtipoDelito, "subtipo_delito", "id")
             modalidad_map_full: dict[str, int] = get_mapping(session, CatModalidad, "modalidad", "id")
 
-            # 3. Load historical staging (bootstrap only)
-            rows_hist = 0
-            if df_historico is not None:
-                df_hist = self._resolve_ids(df_historico, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
-                records_hist = _prepare_records(df_hist, StgDelitosFueroComunHistorico, ("id", "created_at"))
-                bulk_insert_do_nothing(
-                    session,
-                    records_hist,
-                    StgDelitosFueroComunHistorico,
-                    conflict_keys=NK_COLS,
-                    chunk_size=settings.LOAD_BATCH_SIZE,
-                )
-                sync_id_sequence(session, StgDelitosFueroComunHistorico)
-                rows_hist = len(records_hist)
-                self.logger.info(f"Histórico cargado: {rows_hist} filas")
+            # 3. Load historical staging — SESNSP revisa el histórico cada mes, así
+            # que en update también se re-carga (upsert), igual que la tabla 2026.
+            df_hist = self._resolve_ids(df_historico, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
+            rows_hist = self._load_staging(session, df_hist, StgDelitosFueroComunHistorico)
+            self.logger.info(f"Histórico cargado: {rows_hist} filas")
 
             # 4. Load 2026 staging
             df_26 = self._resolve_ids(df_2026, bja_map, tipo_map_full, subtipo_map_full, modalidad_map_full)
-            rows_2026 = 0
-
-            if self.mode == "bootstrap":
-                records_2026 = _prepare_records(df_26, StgDelitosFueroComun2026, ("id", "created_at", "updated_at"))
-                bulk_insert_do_nothing(
-                    session,
-                    records_2026,
-                    StgDelitosFueroComun2026,
-                    conflict_keys=NK_COLS,
-                    chunk_size=settings.LOAD_BATCH_SIZE,
-                )
-            else:
-                df_26["updated_at"] = datetime.utcnow()
-                records_2026 = _prepare_records(df_26, StgDelitosFueroComun2026, ("id", "created_at"))
-                upsert_records(
-                    session,
-                    records_2026,
-                    StgDelitosFueroComun2026,
-                    conflict_keys=NK_COLS,
-                    update_keys=UPDATE_COLS,
-                    chunk_size=settings.LOAD_BATCH_SIZE,
-                )
-
-            sync_id_sequence(session, StgDelitosFueroComun2026)
-            rows_2026 = len(records_2026)
+            rows_2026 = self._load_staging(session, df_26, StgDelitosFueroComun2026)
             self.logger.info(f"2026 cargado: {rows_2026} filas")
 
         self._refresh_gold()
@@ -151,6 +117,33 @@ class DelitosLoad(Stage):
         if self.db:
             self.db.disconnect()
         return input_data
+
+    def _load_staging(self, session, df: pd.DataFrame, model) -> int:
+        """Bootstrap: inserta ignorando conflictos (no hay filas previas que pisar).
+        Update: upsert por NK, ya que la fuente (2026 e histórico) se revisa cada mes."""
+        if self.mode == "bootstrap":
+            records = _prepare_records(df, model, ("id", "created_at", "updated_at"))
+            bulk_insert_do_nothing(
+                session,
+                records,
+                model,
+                conflict_keys=NK_COLS,
+                chunk_size=settings.LOAD_BATCH_SIZE,
+            )
+        else:
+            df = df.copy()
+            df["updated_at"] = datetime.utcnow()
+            records = _prepare_records(df, model, ("id", "created_at"))
+            upsert_records(
+                session,
+                records,
+                model,
+                conflict_keys=NK_COLS,
+                update_keys=UPDATE_COLS,
+                chunk_size=settings.LOAD_BATCH_SIZE,
+            )
+        sync_id_sequence(session, model)
+        return len(records)
 
     def _resolve_ids(
         self,
