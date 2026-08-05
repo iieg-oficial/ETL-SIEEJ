@@ -5,10 +5,19 @@ from typing import Any, Optional
 import pandas as pd
 
 from core.pipelines.ems.config import PIPELINE_NAME, settings
-from core.pipelines.ems.constants import CATALOG_RENAME_HEADER, RENAME_HEADER, SOURCE_ENCODING, ZIP_MAGIC
-from core.pipelines.ems.helpers import resolve_catalog_member, resolve_dataset_member
+from core.pipelines.ems.constants import (
+    CATALOG_DESCRIPTION,
+    CATALOG_MEMBER_PATTERN,
+    CATALOG_RENAME_HEADER,
+    DATASET_DESCRIPTION,
+    DATASET_MEMBER_PATTERN,
+    RENAME_HEADER,
+    SOURCE_ENCODING,
+    ZIP_MAGIC,
+)
 from core.pipelines.stage import Stage
 from core.utils.http import http_get
+from core.utils.zip_members import resolve_member, resolve_year_member
 
 
 class EmsExtract(Stage):
@@ -47,8 +56,21 @@ class EmsExtract(Stage):
     def action(self, input_data: bytes) -> dict[str, pd.DataFrame]:
         with zipfile.ZipFile(io.BytesIO(input_data)) as zf:
             names = zf.namelist()
-            df = self._read_member(zf, resolve_dataset_member(names), RENAME_HEADER)
-            actividades = self._read_member(zf, resolve_catalog_member(names), CATALOG_RENAME_HEADER)
+            dataset = resolve_year_member(
+                names,
+                template=settings.EMS_CSV,
+                pattern=DATASET_MEMBER_PATTERN,
+                description=DATASET_DESCRIPTION,
+            )
+            catalog = resolve_member(
+                names,
+                expected=settings.EMS_CATALOG_CSV,
+                pattern=CATALOG_MEMBER_PATTERN,
+                description=CATALOG_DESCRIPTION,
+            )
+
+            df = self._read_member(zf, dataset, RENAME_HEADER)
+            actividades = self._read_member(zf, catalog, CATALOG_RENAME_HEADER)
 
         self.logger.info(f"{len(df):,} rows and {len(actividades):,} activities extracted")
         return {"df": df, "actividades": actividades}

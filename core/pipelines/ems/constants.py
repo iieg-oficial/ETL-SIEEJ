@@ -30,6 +30,9 @@ CATALOG_RENAME_HEADER: dict[str, str] = {
     "DESCRIPCION_ACTIVIDAD": "descripcion",
 }
 
+DATASET_DESCRIPTION = "tr_ems_entidad_federativa_indice"
+CATALOG_DESCRIPTION = "tc_actividad"
+
 NULL_VALUES: list[str] = [
     "null",
     "nan",
