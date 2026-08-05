@@ -1,10 +1,11 @@
 import io
-import pandas as pd
 import zipfile
 from typing import Any, Optional
 
-from core.pipelines.emec.config import PIPELINE_NAME, settings
-from core.pipelines.emec.constants import (
+import pandas as pd
+
+from core.pipelines.ems.config import PIPELINE_NAME, settings
+from core.pipelines.ems.constants import (
     CATALOG_DESCRIPTION,
     CATALOG_MEMBER_PATTERN,
     CATALOG_RENAME_HEADER,
@@ -19,8 +20,8 @@ from core.utils.http import http_get
 from core.utils.zip_members import resolve_member, resolve_year_member
 
 
-class EmecExtract(Stage):
-    """Download the EMEC monthly ZIP and read its dataset and activity catalog."""
+class EmsExtract(Stage):
+    """Download the EMS monthly ZIP and read its dataset and activity catalog."""
 
     def __init__(self):
         super().__init__(PIPELINE_NAME, "extract")
@@ -38,18 +39,18 @@ class EmecExtract(Stage):
         Raises:
             FileNotFoundError: if the URL no longer serves a ZIP.
         """
-        url = settings.EMEC_URL
-        self.logger.info(f"Downloading EMEC dataset: {url}")
+        url = settings.EMS_URL
+        self.logger.info(f"Downloading EMS dataset: {url}")
         response = http_get(url, timeout=settings.DOWNLOAD_TIMEOUT)
 
         if response.status_code != 200 or not response.content.startswith(ZIP_MAGIC):
             raise FileNotFoundError(
                 f"{url} did not serve a ZIP (status {response.status_code}). INEGI most likely moved "
-                f"the publication: check the program page and update EMEC_URL in "
+                f"the publication: check the program page and update EMS_URL in "
                 f"core/pipelines/{settings.PIPELINE_NAME}/.env."
             )
 
-        self.logger.info(f"EMEC dataset downloaded ({len(response.content):,} bytes)")
+        self.logger.info(f"EMS dataset downloaded ({len(response.content):,} bytes)")
         return response.content
 
     def action(self, input_data: bytes) -> dict[str, pd.DataFrame]:
@@ -57,13 +58,13 @@ class EmecExtract(Stage):
             names = zf.namelist()
             dataset = resolve_year_member(
                 names,
-                template=settings.EMEC_CSV,
+                template=settings.EMS_CSV,
                 pattern=DATASET_MEMBER_PATTERN,
                 description=DATASET_DESCRIPTION,
             )
             catalog = resolve_member(
                 names,
-                expected=settings.EMEC_CATALOG_CSV,
+                expected=settings.EMS_CATALOG_CSV,
                 pattern=CATALOG_MEMBER_PATTERN,
                 description=CATALOG_DESCRIPTION,
             )

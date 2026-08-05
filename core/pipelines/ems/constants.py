@@ -1,10 +1,10 @@
 import re
 from typing import Literal
 
-DATASET_MEMBER_PATTERN = re.compile(r"tr_emec_entidad_federativa_indice_2008_(\d{4})\.csv$")
+DATASET_MEMBER_PATTERN = re.compile(r"tr_ems_entidad_federativa_indice_2013_(\d{4})\.csv$")
 CATALOG_MEMBER_PATTERN = re.compile(r"tc_actividad\.csv$")
-DATASET_DESCRIPTION = "tr_emec_entidad_federativa_indice"
-CATALOG_DESCRIPTION = "tc_actividad"
+
+
 SOURCE_ENCODING: str = "utf-8"
 
 # Firma de un archivo ZIP. INEGI responde 200 con HTML cuando la ruta no existe,
@@ -13,14 +13,15 @@ ZIP_MAGIC: Literal[b"PK"] = b"PK"
 
 RENAME_HEADER: dict[str, str] = {
     "CODIGO_ACTIVIDAD": "codigo_actividad",
+    "CVEGEO": "entidad_id",
     "ANIO": "anio",
     "MES": "mes",
-    "ENTIDAD": "entidad",
-    "H000W_I000W": "per_ocu_tot",
-    "J000W": "remuneraciones_tot",
-    "REMUNERACION_MEDIA": "remuneraciones_media",
-    "M000W": "ind_ingresos_bienes_serv",
-    "K100W": "ind_compras_reventa",
+    "M000": "ind_ingresos_bienes_serv",
+    "K000": "ind_gastos_consumo",
+    "H000A": "per_ocu_tot",
+    "H000": "per_ocu_dependiente",
+    "I000A": "per_ocu_no_dependiente",
+    "J000": "remuneraciones_tot",
     "ESTATUS": "estatus",
 }
 
@@ -28,6 +29,9 @@ CATALOG_RENAME_HEADER: dict[str, str] = {
     "CODIGO_ACTIVIDAD": "codigo_actividad",
     "DESCRIPCION_ACTIVIDAD": "descripcion",
 }
+
+DATASET_DESCRIPTION = "tr_ems_entidad_federativa_indice"
+CATALOG_DESCRIPTION = "tc_actividad"
 
 NULL_VALUES: list[str] = [
     "null",
@@ -41,14 +45,12 @@ NULL_VALUES: list[str] = [
 ]
 
 FLOAT_COLS: list[str] = [
-    "per_ocu_tot",
-    "remuneraciones_tot",
-    "remuneraciones_media",
     "ind_ingresos_bienes_serv",
-    "ind_compras_reventa",
+    "ind_gastos_consumo",
+    "per_ocu_tot",
+    "per_ocu_dependiente",
+    "per_ocu_no_dependiente",
+    "remuneraciones_tot",
 ]
 
 CONFLICT_KEYS: list[str] = ["fecha", "entidad_id", "codigo_actividad"]
-CVEGEO_STATES_TABLE: str = "cvegeo_states"
-CVEGEO_STATES_NAME_COL: str = "nom_ent"
-CVEGEO_STATES_KEY_COL: str = "cve_ent"
