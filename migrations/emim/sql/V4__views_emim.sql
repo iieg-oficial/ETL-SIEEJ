@@ -37,15 +37,15 @@ COMMENT ON COLUMN vw_emim.codigo_actividad IS
 COMMENT ON COLUMN vw_emim.actividad_descripcion IS
     'Nombre de la actividad manufacturera según el clasificador SCIAN 2018 (ej. Industria alimentaria).';
 COMMENT ON COLUMN vw_emim.per_ocu_tot IS
-    'Personal ocupado total: personal dependiente más no dependiente de la razón social. Considera hombres y mujeres.';
+    'Personal ocupado total, en NÚMERO DE PERSONAS: personal dependiente más no dependiente de la razón social. Considera hombres y mujeres.';
 COMMENT ON COLUMN vw_emim.horas_trabajadas IS
-    'Horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total.';
+    'Horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total, en MILES DE HORAS.';
 COMMENT ON COLUMN vw_emim.remuneraciones IS
-    'Remuneraciones pagadas al personal dependiente de la razón social: todos los pagos y aportaciones, en dinero y especie, antes de cualquier deducción.';
+    'Remuneraciones pagadas al personal dependiente de la razón social, en MILES DE PESOS CORRIENTES: todos los pagos y aportaciones, en dinero y especie, antes de cualquier deducción.';
 COMMENT ON COLUMN vw_emim.valor_produccion IS
-    'Total de valor de producción de los productos elaborados por el establecimiento con materias primas propias.';
+    'Total de valor de producción de los productos elaborados por el establecimiento con materias primas propias, en MILES DE PESOS CORRIENTES.';
 COMMENT ON COLUMN vw_emim.valor_ventas IS
-    'Total de valor de ventas: ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
+    'Total de valor de ventas, en MILES DE PESOS CORRIENTES: ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
 COMMENT ON COLUMN vw_emim.estatus_id IS
     'Identificador del estatus de los datos en cat_estatus.';
 COMMENT ON COLUMN vw_emim.estatus IS
@@ -81,15 +81,15 @@ COMMENT ON COLUMN vw_emim_jalisco.codigo_actividad IS
 COMMENT ON COLUMN vw_emim_jalisco.actividad_descripcion IS
     'Nombre de la actividad manufacturera según el clasificador SCIAN 2018 (ej. Industria alimentaria).';
 COMMENT ON COLUMN vw_emim_jalisco.per_ocu_tot IS
-    'Personal ocupado total: personal dependiente más no dependiente de la razón social. Considera hombres y mujeres.';
+    'Personal ocupado total, en NÚMERO DE PERSONAS: personal dependiente más no dependiente de la razón social. Considera hombres y mujeres.';
 COMMENT ON COLUMN vw_emim_jalisco.horas_trabajadas IS
-    'Horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total.';
+    'Horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total, en MILES DE HORAS.';
 COMMENT ON COLUMN vw_emim_jalisco.remuneraciones IS
-    'Remuneraciones pagadas al personal dependiente de la razón social: todos los pagos y aportaciones, en dinero y especie, antes de cualquier deducción.';
+    'Remuneraciones pagadas al personal dependiente de la razón social, en MILES DE PESOS CORRIENTES: todos los pagos y aportaciones, en dinero y especie, antes de cualquier deducción.';
 COMMENT ON COLUMN vw_emim_jalisco.valor_produccion IS
-    'Total de valor de producción de los productos elaborados por el establecimiento con materias primas propias.';
+    'Total de valor de producción de los productos elaborados por el establecimiento con materias primas propias, en MILES DE PESOS CORRIENTES.';
 COMMENT ON COLUMN vw_emim_jalisco.valor_ventas IS
-    'Total de valor de ventas: ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
+    'Total de valor de ventas, en MILES DE PESOS CORRIENTES: ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
 COMMENT ON COLUMN vw_emim_jalisco.estatus_id IS
     'Identificador del estatus de los datos en cat_estatus.';
 COMMENT ON COLUMN vw_emim_jalisco.estatus IS

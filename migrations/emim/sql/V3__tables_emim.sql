@@ -31,15 +31,15 @@ COMMENT ON COLUMN stg_emim.entidad_id IS
 COMMENT ON COLUMN stg_emim.codigo_actividad IS
     'Código que identifica las diversas actividades económicas bajo estudio (sector, subsector, rama o clase). El valor que se presenta es un código dentro del clasificador SCIAN 2018. Es TEXTO: el sector manufacturero se publica como el rango "31-33". FK a cat_actividad.codigo_actividad.';
 COMMENT ON COLUMN stg_emim.per_ocu_tot IS
-    'Personal ocupado total. Comprende al personal ocupado dependiente de la razón social más el personal no dependiente de la razón social. Considera hombres y mujeres.';
+    'Personal ocupado total, en NÚMERO DE PERSONAS. Comprende al personal ocupado dependiente de la razón social más el personal no dependiente de la razón social. Considera hombres y mujeres.';
 COMMENT ON COLUMN stg_emim.horas_trabajadas IS
-    'Horas trabajadas por el personal ocupado total. Comprende las horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total. Considera las horas trabajadas por los hombres y las mujeres.';
+    'Horas trabajadas por el personal ocupado total, en MILES DE HORAS. Comprende las horas normales y extraordinarias efectivamente trabajadas por el personal ocupado total. Considera las horas trabajadas por los hombres y las mujeres.';
 COMMENT ON COLUMN stg_emim.remuneraciones IS
-    'Remuneraciones pagadas al personal dependiente de la razón social. Son todos los pagos y aportaciones normales y extraordinarias que realizó el establecimiento, en dinero y especie, antes de cualquier deducción, para retribuir el trabajo del personal remunerado dependiente de la razón social, en forma de salarios, sueldos, prestaciones sociales y utilidades repartidas, ya sea que este pago se calcule sobre la base de una jornada de trabajo o por la cantidad de trabajo desarrollado (destajo) o mediante un salario base que se complementa con comisiones por ventas u otros conceptos como: bonos, premios, compensaciones, etc.';
+    'Remuneraciones pagadas al personal dependiente de la razón social, en MILES DE PESOS CORRIENTES. Son todos los pagos y aportaciones normales y extraordinarias que realizó el establecimiento, en dinero y especie, antes de cualquier deducción, para retribuir el trabajo del personal remunerado dependiente de la razón social, en forma de salarios, sueldos, prestaciones sociales y utilidades repartidas, ya sea que este pago se calcule sobre la base de una jornada de trabajo o por la cantidad de trabajo desarrollado (destajo) o mediante un salario base que se complementa con comisiones por ventas u otros conceptos como: bonos, premios, compensaciones, etc.';
 COMMENT ON COLUMN stg_emim.valor_produccion IS
-    'Total de valor de producción de los productos elaborados. Es el valor de los productos elaborados por el establecimiento con materias primas propias, ya sea en la propia unidad económica o mediante la contratación de servicios de maquila.';
+    'Total de valor de producción de los productos elaborados, en MILES DE PESOS CORRIENTES. Es el valor de los productos elaborados por el establecimiento con materias primas propias, ya sea en la propia unidad económica o mediante la contratación de servicios de maquila.';
 COMMENT ON COLUMN stg_emim.valor_ventas IS
-    'Total de valor de ventas de los productos elaborados. Es el ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
+    'Total de valor de ventas de los productos elaborados, en MILES DE PESOS CORRIENTES. Es el ingreso por la venta de los productos elaborados por el establecimiento con materias primas propias.';
 COMMENT ON COLUMN stg_emim.estatus_id IS
     'FK a cat_estatus; indica si el registro corresponde a cifras definitivas, revisadas o preliminares.';
 COMMENT ON COLUMN stg_emim.fecha_actualizacion IS

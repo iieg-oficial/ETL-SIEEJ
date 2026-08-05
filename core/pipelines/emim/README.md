@@ -45,22 +45,22 @@ diccionario_de_datos/ | metadatos/ | modelo_entidad_relacion/
 
 ### stg_emim
 
-| variable | descripción |
-|---|---|
-| `fecha` | Primer día del mes de referencia (derivado de `ANIO` + `MES`) |
-| `entidad_id` | Clave de la entidad federativa, 1 a 32 (`CODIGO_ENTIDAD`; ref. `cvegeo_states.cve_ent`) |
-| `codigo_actividad` | **TEXTO**. Código SCIAN 2018; FK a `cat_actividad.codigo_actividad` |
-| `per_ocu_tot` | Personal ocupado total (fuente: `H001A`) |
-| `horas_trabajadas` | Horas trabajadas por el personal ocupado total (fuente: `H001D`) |
-| `remuneraciones` | Remuneraciones pagadas al personal dependiente (fuente: `J000A`) |
-| `valor_produccion` | Total de valor de producción de los productos elaborados (fuente: `O101A`) |
-| `valor_ventas` | Total de valor de ventas de los productos elaborados (fuente: `M312A`) |
-| `estatus_id` | FK a `cat_estatus` |
-| `fecha_actualizacion` | Fecha en que el pipeline cargó o actualizó el registro |
+| variable | unidad | descripción |
+|---|---|---|
+| `fecha` | — | Primer día del mes de referencia (derivado de `ANIO` + `MES`) |
+| `entidad_id` | — | Clave de la entidad federativa, 1 a 32 (`CODIGO_ENTIDAD`; ref. `cvegeo_states.cve_ent`) |
+| `codigo_actividad` | — | **TEXTO**. Código SCIAN 2018; FK a `cat_actividad.codigo_actividad` |
+| `per_ocu_tot` | Número de personas | Personal ocupado total (fuente: `H001A`) |
+| `horas_trabajadas` | **Miles de horas** | Horas trabajadas por el personal ocupado total (fuente: `H001D`) |
+| `remuneraciones` | **Miles de pesos corrientes** | Remuneraciones pagadas al personal dependiente (fuente: `J000A`) |
+| `valor_produccion` | **Miles de pesos corrientes** | Total de valor de producción de los productos elaborados (fuente: `O101A`) |
+| `valor_ventas` | **Miles de pesos corrientes** | Total de valor de ventas de los productos elaborados (fuente: `M312A`) |
+| `estatus_id` | — | FK a `cat_estatus` |
+| `fecha_actualizacion` | — | Fecha en que el pipeline cargó o actualizó el registro |
 
 Los textos completos del diccionario del INEGI viven en los `COMMENT ON COLUMN` de `V3__tables_emim.sql`.
 
-> ⚠️ **La fuente no declara las unidades de las variables monetarias.** Ni el diccionario de datos ni los metadatos dicen si `remuneraciones`, `valor_produccion` y `valor_ventas` están en pesos o en miles de pesos. Los `COMMENT ON` reproducen el diccionario **al pie de la letra** en vez de inventar una unidad. Las magnitudes son consistentes con **miles de pesos** (para Aguascalientes 2018-01: 1,153,818 entre 79,150 personas ocupadas dan ~14,578 pesos por persona al mes, cifra plausible; en pesos serían 14 pesos), pero **eso es una inferencia, no un dato de la fuente**: confirmar contra los tabulados publicados del INEGI antes de usarlas en un reporte.
+> **Las unidades salen de la columna `UNIDAD_MEDIDA` del diccionario de datos**, que EMIM sí incluye y EMEC y EMS no. Los montos son **miles de pesos corrientes**: no están deflactados, así que comparar dos periodos distintos sin ajustar por inflación mide precios además de volumen.
 
 `ENTIDAD` (el nombre) se descarta: `CODIGO_ENTIDAD` ya trae la clave y el nombre lo aporta la vista al unir contra `cvegeo_states`.
 
