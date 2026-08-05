@@ -4,7 +4,7 @@
 
 Pipeline geográfico de la Edafología histórica 1:250 000, Serie III, publicada por INEGI. Conserva los atributos originales, normaliza el grupo y los calificadores mediante catálogos controlados, recorta el conjunto nacional a la unión de las delimitaciones municipales IIEG e INEGI para Jalisco y almacena geometrías `MultiPolygon` en EPSG:6368.
 
-El bootstrap también calcula fragmentos municipales para ambas fuentes de límites. El costo de `ST_Intersection` se materializa en `edafologia_fragmentos_municipales`; el resumen municipal es una vista SQL normal.
+El bootstrap también calcula fragmentos municipales para ambas fuentes de límites. El costo de la intersección espacial se materializa en `edafologia_fragmentos_municipales`; el resumen municipal es una vista SQL normal.
 
 ## Fuente general
 
