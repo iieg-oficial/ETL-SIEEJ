@@ -1,0 +1,44 @@
+from datetime import date
+
+from sqlalchemy import Date, Float, ForeignKey, Integer, Text, UniqueConstraint
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from core.pipelines.emec.attributes import EmecTables as T
+
+
+class EmecBase(DeclarativeBase):
+    @classmethod
+    def columns(cls) -> list[str]:
+        return [c.key for c in cls.__table__.columns]
+
+
+class CatEstatus(EmecBase):
+    __tablename__ = T.CAT_ESTATUS
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    estatus: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
+
+
+class CatActividad(EmecBase):
+    __tablename__ = T.CAT_ACTIVIDAD
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    codigo_actividad: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    descripcion: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class StgEmec(EmecBase):
+    __tablename__ = T.STG_EMEC
+    __table_args__ = (UniqueConstraint("fecha", "entidad_id", "codigo_actividad", name="uq_stg_emec"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    fecha: Mapped[date] = mapped_column(Date, nullable=False)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ref. cvegeo_states.cve_ent
+    codigo_actividad: Mapped[int] = mapped_column(ForeignKey(f"{T.CAT_ACTIVIDAD}.codigo_actividad"), nullable=False)
+    per_ocu_tot: Mapped[float | None] = mapped_column(Float, nullable=True)
+    remuneraciones_tot: Mapped[float | None] = mapped_column(Float, nullable=True)
+    remuneraciones_media: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ind_ingresos_bienes_serv: Mapped[float | None] = mapped_column(Float, nullable=True)
+    ind_compras_reventa: Mapped[float | None] = mapped_column(Float, nullable=True)
+    estatus_id: Mapped[int | None] = mapped_column(ForeignKey(f"{T.CAT_ESTATUS}.id"), nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
