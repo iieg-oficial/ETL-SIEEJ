@@ -61,7 +61,7 @@ def overlay_records(
     edafologia_ids: dict[tuple[str, int], int],
     source_ids: dict[str, int],
 ) -> list[dict[str, Any]]:
-    key_columns = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_cvegeo"]
+    key_columns = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"]
     if frame.duplicated(key_columns).any():
         raise ValueError("Overlay artifact contains duplicated logical keys")
     records: list[dict[str, Any]] = []
@@ -77,7 +77,7 @@ def overlay_records(
         records.append(
             {
                 "edafologia_id": edafologia_ids[(source_version, source_objectid)],
-                "municipality_cvegeo": int(row.municipality_cvegeo),
+                "municipality_id": int(row.municipality_id),
                 "source_version": source_version,
                 "fuente_limite_municipal_id": source_ids[fuente_clave],
                 "area_m2": float(row.area_m2),
@@ -97,8 +97,7 @@ def validate_records(records: list[dict[str, Any]]) -> None:
     if not records:
         raise ValueError("Overlay load received no records")
     logical_keys = [
-        (record["edafologia_id"], record["municipality_cvegeo"], record["fuente_limite_municipal_id"])
-        for record in records
+        (record["edafologia_id"], record["municipality_id"], record["fuente_limite_municipal_id"]) for record in records
     ]
     if len(logical_keys) != len(set(logical_keys)):
         raise ValueError("Prepared overlay records contain duplicate database logical keys")
@@ -111,12 +110,40 @@ def validate_records(records: list[dict[str, Any]]) -> None:
             raise ValueError("Prepared overlay records have inconsistent hectares")
 
 
+def validate_municipality_ids(session: Any, records: list[dict[str, Any]]) -> None:
+    rows = session.execute(
+        text(
+            """
+            SELECT cve_mun, cvegeo
+            FROM cvegeo_municipalities
+            WHERE cve_ent = 14
+            ORDER BY cve_mun
+            """
+        )
+    ).all()
+    mapping: dict[int, int] = {}
+    for cve_mun, cvegeo in rows:
+        municipality_id = int(cve_mun)
+        expected_cvegeo = 14_000 + municipality_id
+        if municipality_id in mapping or int(cvegeo) != expected_cvegeo:
+            raise ValueError("cvegeo Jalisco municipality mapping is ambiguous or incoherent")
+        mapping[municipality_id] = int(cvegeo)
+    if len(mapping) != 125:
+        raise ValueError(f"cvegeo Jalisco municipality catalog must contain 125 unique cve_mun values: {len(mapping)}")
+
+    requested = {int(record["municipality_id"]) for record in records}
+    missing = sorted(requested - set(mapping))
+    if missing:
+        raise ValueError(f"Overlay records reference municipality_id values outside Jalisco: {missing}")
+
+
 def scopes(records: Iterable[dict[str, Any]]) -> list[tuple[str, int]]:
     return sorted({(str(record["source_version"]), int(record["fuente_limite_municipal_id"])) for record in records})
 
 
 def replace_overlay_scope(session: Any, records: list[dict[str, Any]], chunk_size: int = 10_000) -> dict[str, Any]:
     validate_records(records)
+    validate_municipality_ids(session, records)
     scope_values = scopes(records)
     before_counts = count_fragment_scopes(session, scope_values)
     for source_version, fuente_id in scope_values:

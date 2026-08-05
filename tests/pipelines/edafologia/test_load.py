@@ -29,6 +29,7 @@ from core.pipelines.edafologia.helpers.load_catalogs import (
     validate_catalog_counts,
 )
 from core.pipelines.edafologia.helpers.load_inputs import validate_transform_manifest, validate_transformed_frame
+from core.pipelines.edafologia.helpers.municipal_overlay_load import overlay_records, validate_municipality_ids
 from core.pipelines.edafologia.mappings import CALIFICADORES_EDAFOLOGICOS, GRUPOS_EDAFOLOGICOS
 from core.pipelines.edafologia.schemas import Edafologias
 
@@ -367,6 +368,46 @@ def test_load_does_not_transform_geometry_before_wkb():
     records = canonical_records(frame)
 
     assert bytes(records[0]["geom"].data) == original_wkb
+
+
+def test_overlay_load_persists_cve_mun_as_municipality_id():
+    frame = gpd.GeoDataFrame(
+        [
+            {
+                "source_version": "Serie III",
+                "source_objectid": 1,
+                "fuente_limite_clave": "iieg",
+                "municipality_id": 39,
+                "area_m2": 0.5,
+                "area_ha": 0.00005,
+                "pct_poligono_fuente": 50.0,
+                "pct_municipio_total": 25.0,
+                "pct_cobertura_edafologica": 25.0,
+            }
+        ],
+        geometry=[_square()],
+        crs=f"EPSG:{CANONICAL_SRID}",
+    )
+
+    records = overlay_records(frame, {("Serie III", 1): 10}, {"iieg": 20})
+
+    assert records[0]["municipality_id"] == 39
+    assert "municipality_cvegeo" not in records[0]
+
+
+def test_overlay_load_validates_municipality_id_against_fdw_catalog():
+    class Result:
+        def all(self):
+            return [(municipality_id, 14_000 + municipality_id) for municipality_id in range(1, 126)]
+
+    class Session:
+        def execute(self, *_args, **_kwargs):
+            return Result()
+
+    validate_municipality_ids(Session(), [{"municipality_id": 39}])
+
+    with pytest.raises(ValueError, match="outside Jalisco"):
+        validate_municipality_ids(Session(), [{"municipality_id": 999}])
 
 
 def _load_env_file(env_path: Path, monkeypatch) -> None:

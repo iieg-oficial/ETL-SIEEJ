@@ -96,7 +96,7 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
     __table_args__ = (
         UniqueConstraint(
             "edafologia_id",
-            "municipality_cvegeo",
+            "municipality_id",
             "fuente_limite_municipal_id",
             name="uq_edafologia_fragmentos_fuente_municipio",
         ),
@@ -105,12 +105,12 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
         CheckConstraint("pct_poligono_fuente >= 0", name="ck_edafologia_fragmentos_pct_poligono_non_negative"),
         CheckConstraint("pct_municipio_total >= 0", name="ck_edafologia_fragmentos_pct_municipio_non_negative"),
         CheckConstraint("pct_cobertura_edafologica >= 0", name="ck_edafologia_fragmentos_pct_cobertura_non_negative"),
-        Index("idx_edafologia_fragmentos_municipality_cvegeo", "municipality_cvegeo"),
+        Index("idx_edafologia_fragmentos_municipality_id", "municipality_id"),
         Index("idx_edafologia_fragmentos_source_version", "source_version"),
         Index(
             "idx_edafologia_fragmentos_fuente_municipio_version",
             "fuente_limite_municipal_id",
-            "municipality_cvegeo",
+            "municipality_id",
             "source_version",
         ),
         Index("idx_edafologia_fragmentos_edafologia_id", "edafologia_id"),
@@ -120,7 +120,7 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     edafologia_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.EDAFOLOGIAS}.id"), nullable=False)
-    municipality_cvegeo: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipality_id: Mapped[int] = mapped_column(Integer, nullable=False)
     source_version: Mapped[str] = mapped_column(String(80), nullable=False)
     fuente_limite_municipal_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.FUENTES_LIMITES_MUNICIPALES}.id"), nullable=False

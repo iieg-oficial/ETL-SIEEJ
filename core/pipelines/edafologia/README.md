@@ -80,7 +80,7 @@ La capa canónica es `conj_nac_inf_edaf_esc_250k_ser_III_area`; la capa puntual 
 | variable | descripción |
 |---|---|
 | `edafologia_id` | FK local al polígono edafológico canónico |
-| `municipality_cvegeo` | Clave geoestadística municipal usada como relación lógica territorial |
+| `municipality_id` | `cve_mun` de Jalisco (1-125); relación lógica territorial, no ID sustituto ni FK física |
 | `fuente_limite_municipal_id` | FK local a la delimitación IIEG o INEGI |
 | `area_m2` | Superficie del fragmento en metros cuadrados |
 | `area_ha` | `area_m2 / 10 000` |
@@ -92,7 +92,7 @@ La capa canónica es `conj_nac_inf_edaf_esc_250k_ser_III_area`; la capa puntual 
 
 ### edafologia_resumenes_municipales
 
-Vista de solo lectura agrupada por fuente territorial, municipio, versión, grupo y calificadores. Expone `area_m2`, `area_ha`, `pct_municipio` y `fragment_count`; no almacena geometría ni admite un Load independiente.
+Vista de solo lectura agrupada por fuente territorial, municipio, versión, grupo y calificadores. Expone `municipality_id`, la clave EEMMM `cvegeo`, `area_m2`, `area_ha`, `pct_municipio` y `fragment_count`; no almacena geometría ni admite un Load independiente. Resuelve el territorio por FDW con `f.municipality_id = m.cve_mun AND m.cve_ent = 14`.
 
 ## Migraciones
 
@@ -104,6 +104,7 @@ Vista de solo lectura agrupada por fuente territorial, municipio, versión, grup
 | `V4__municipal_products_edafologia.sql` | Crea fragmentos y la vista de resúmenes |
 | `V5__comments_edafologia.sql` | Documenta el esquema |
 | `V6__rename_boundary_source_name.sql` | Renombra el nombre genérico de la fuente territorial |
+| `V7__municipality_reference_edafologia.sql` | Vincula lógicamente los fragmentos con `cvegeo` mediante FDW y migra EEMMM a `cve_mun` |
 
 ## Variables de entorno
 
@@ -117,6 +118,7 @@ Vista de solo lectura agrupada por fuente territorial, municipio, versión, grup
 | `DOWNLOAD_RETRIES` | Número de intentos de descarga |
 | `DOWNLOAD_CONNECT_TIMEOUT`, `DOWNLOAD_READ_TIMEOUT` | Timeouts HTTP en segundos |
 | `CVEGEO_DB_USER`, `CVEGEO_DB_PASSWORD`, `CVEGEO_DB_HOST`, `CVEGEO_DB_PORT`, `CVEGEO_DB_NAME` | Conexión de solo lectura a `cvegeo` durante Extract |
+| `FDW_DB_USER`, `FDW_DB_PASSWORD`, `FDW_DB_HOST`, `FDW_DB_PORT`, `FDW_DB_NAME` | Placeholders Flyway para la foreign table de `cvegeo`; no se almacenan en archivos versionados |
 | `CANONICAL_SRID` | SRID canónico, `6368` |
 | `CHUNK_SIZE` | Tamaño de lote durante Load |
 

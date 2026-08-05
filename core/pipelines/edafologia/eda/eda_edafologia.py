@@ -126,7 +126,7 @@ def canonical_hash_formula() -> dict[str, Any]:
         "geometry_serialization": CANONICAL_HASH_GEOMETRY_SERIALIZATION,
         "serial_ids": "excluded from keys and payloads; catalog and boundary source claves are used instead",
         "canonical_key_fields": ["source_version", "source_objectid"],
-        "overlay_key_fields": ["source_version", "source_objectid", "fuente_limite_clave", "municipality_cvegeo"],
+        "overlay_key_fields": ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"],
     }
 
 
@@ -195,7 +195,7 @@ def compute_database_hashes() -> dict[str, str]:
             f.source_version,
             e.source_objectid::text AS source_objectid,
             l.clave AS fuente_limite_clave,
-            f.municipality_cvegeo::text AS municipality_cvegeo,
+            f.municipality_id::text AS municipality_id,
             lower(encode(ST_AsEWKB(f.geom, 'NDR'), 'hex')) AS geom_ewkb_hex
         FROM edafologia_fragmentos_municipales AS f
         JOIN edafologias AS e ON e.id = f.edafologia_id
@@ -208,7 +208,7 @@ def compute_database_hashes() -> dict[str, str]:
             f.source_version,
             e.source_objectid::text AS source_objectid,
             l.clave AS fuente_limite_clave,
-            f.municipality_cvegeo::text AS municipality_cvegeo,
+            f.municipality_id::text AS municipality_id,
             to_char(f.area_m2, 'FM999999999999999990.999999999999999') AS area_m2,
             to_char(f.area_ha, 'FM999999999999999990.999999999999999') AS area_ha,
             to_char(f.pct_poligono_fuente, 'FM999999999999999990.999999999999999') AS pct_poligono_fuente,
@@ -221,7 +221,7 @@ def compute_database_hashes() -> dict[str, str]:
         """
     )
     key_canonical = ["source_version", "source_objectid"]
-    key_overlay = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_cvegeo"]
+    key_overlay = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"]
     return {
         "canonical_geometry": canonical_hash(canonical_geom, key_canonical, ["geom_ewkb_hex"]),
         "canonical_relations": canonical_hash(

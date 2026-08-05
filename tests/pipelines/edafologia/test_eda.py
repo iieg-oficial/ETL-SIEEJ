@@ -68,7 +68,7 @@ def test_canonical_hash_formula_documents_logical_keys_and_geometry_serializatio
         "source_version",
         "source_objectid",
         "fuente_limite_clave",
-        "municipality_cvegeo",
+        "municipality_id",
     ]
     assert "ST_AsEWKB" in formula["geometry_serialization"]
     assert "SERIAL" not in " ".join(formula["canonical_key_fields"] + formula["overlay_key_fields"]).upper()

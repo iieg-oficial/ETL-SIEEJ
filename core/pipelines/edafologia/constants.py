@@ -112,7 +112,7 @@ OVERLAY_COLUMNS: Final[tuple[str, ...]] = (
     "source_objectid",
     "source_file_sha256",
     "fuente_limite_clave",
-    "municipality_cvegeo",
+    "municipality_id",
     "area_m2",
     "area_ha",
     "pct_poligono_fuente",
@@ -133,7 +133,8 @@ ERD_FILENAME: Final[str] = "erd.svg"
 
 EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",
-    "municipality_cvegeo",
+    "municipality_id",
+    "cvegeo",
     "source_version",
     "grupo_edafologico_id",
     "calificador_primario_id",

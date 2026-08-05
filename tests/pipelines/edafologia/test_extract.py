@@ -261,6 +261,7 @@ def test_boundary_validation_accepts_125_unique_multipolygons():
 
     assert result["count"] == 125
     assert result["unique_cvegeo"] == 125
+    assert result["unique_cve_mun"] == 125
     assert result["srid"] == 6368
     assert result["geometry_type"] == "MultiPolygon"
 
@@ -270,6 +271,38 @@ def test_boundary_validation_rejects_duplicate_cvegeo():
     gdf.loc[1, "cvegeo"] = gdf.loc[0, "cvegeo"]
 
     with pytest.raises(ValueError, match="unique_cvegeo"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_duplicate_cve_mun():
+    gdf = _municipal_boundaries()
+    gdf.loc[1, "cve_mun"] = gdf.loc[0, "cve_mun"]
+
+    with pytest.raises(ValueError, match="unique_cve_mun"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_non_jalisco_entity():
+    gdf = _municipal_boundaries()
+    gdf.loc[0, "cve_ent"] = "13"
+
+    with pytest.raises(ValueError, match="jalisco_entity"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_null_cve_mun():
+    gdf = _municipal_boundaries()
+    gdf.loc[0, "cve_mun"] = None
+
+    with pytest.raises(ValueError, match="nonnull_cve_mun"):
+        validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
+
+
+def test_boundary_validation_rejects_incoherent_cvegeo():
+    gdf = _municipal_boundaries()
+    gdf.loc[0, "cvegeo"] = "14999"
+
+    with pytest.raises(ValueError, match="coherent_cvegeo"):
         validate_boundary_layer(gdf, "geom_iieg", gist_index_present=True)
 
 
@@ -380,6 +413,8 @@ def test_qualifier_roles_reference_same_sqlalchemy_model():
     )
     assert "calificador_primario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
     assert "calificador_secundario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert "municipality_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert "cvegeo" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
     assert not hasattr(schemas, "EdafologiaResumenesMunicipales")
 
 
@@ -495,5 +530,9 @@ def test_prepare_municipal_boundaries_against_local_cvegeo(tmp_path):
 
     assert manifest["database"] == os.environ["CVEGEO_DB_NAME"]
     assert set(manifest["layers"]) == {"municipios_iieg", "municipios_inegi"}
-    assert manifest["layers"]["municipios_iieg"]["count"] == 125
-    assert manifest["layers"]["municipios_inegi"]["count"] == 125
+    for layer_name in ("municipios_iieg", "municipios_inegi"):
+        layer = manifest["layers"][layer_name]
+        assert layer["count"] == 125
+        assert layer["unique_cvegeo"] == 125
+        assert layer["unique_cve_mun"] == 125
+        assert all(layer["validations"].values())

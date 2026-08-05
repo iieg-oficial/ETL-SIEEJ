@@ -7,6 +7,7 @@ from typing import Any
 import geopandas as gpd
 
 from core.pipelines.edafologia.constants import CANONICAL_SRID, EXPECTED_SOURCE_COLUMNS
+from core.pipelines.edafologia.helpers.boundaries import validate_municipal_keys
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,
@@ -102,15 +103,15 @@ def read_source_layer(manifest: dict[str, Any]) -> gpd.GeoDataFrame:
 
 
 def validate_boundary_gdf(gdf: gpd.GeoDataFrame, layer_name: str) -> dict[str, Any]:
-    count = int(len(gdf))
-    unique_cvegeo = int(gdf["cvegeo"].nunique(dropna=True)) if "cvegeo" in gdf else 0
+    municipal_keys = validate_municipal_keys(gdf)
+    count = municipal_keys["count"]
+    unique_cvegeo = municipal_keys["unique_cvegeo"]
     srid = gdf.crs.to_epsg() if gdf.crs is not None else None
     geometry_types = sorted(gdf.geometry.geom_type.dropna().unique().tolist())
     null_geometries = int(gdf.geometry.isna().sum())
     invalid_geometries = int((~gdf.geometry.is_valid & gdf.geometry.notna()).sum())
     validations = {
-        "expected_count": count == 125,
-        "unique_cvegeo": unique_cvegeo == 125,
+        **municipal_keys["validations"],
         "srid": srid == CANONICAL_SRID,
         "multipolygon": geometry_types == ["MultiPolygon"],
         "null_geometries": null_geometries == 0,
@@ -122,6 +123,8 @@ def validate_boundary_gdf(gdf: gpd.GeoDataFrame, layer_name: str) -> dict[str, A
     return {
         "count": count,
         "unique_cvegeo": unique_cvegeo,
+        "unique_cve_mun": municipal_keys["unique_cve_mun"],
+        "municipal_keys": {key: value for key, value in municipal_keys.items() if key != "validations"},
         "srid": srid,
         "geometry_type": "MultiPolygon",
         "bbox": [float(value) for value in gdf.total_bounds],

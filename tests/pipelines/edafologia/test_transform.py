@@ -23,7 +23,11 @@ from core.pipelines.edafologia.helpers.transform_geometry import (
     repair_and_polygonize,
     write_gpkg_atomic,
 )
-from core.pipelines.edafologia.helpers.transform_inputs import read_source_layer, validate_extract_manifest
+from core.pipelines.edafologia.helpers.transform_inputs import (
+    read_source_layer,
+    validate_boundary_gdf,
+    validate_extract_manifest,
+)
 from core.pipelines.edafologia.mappings import (
     CALIFICADORES_EDAFOLOGICOS,
     GRUPOS_EDAFOLOGICOS,
@@ -194,6 +198,14 @@ def test_canonical_mask_preserves_inegi_only_area():
     _, stats = build_canonical_mask(iieg, inegi)
 
     assert stats["area_exclusive_inegi_m2"] > 0
+
+
+def test_transform_boundary_validation_rejects_incoherent_municipal_key():
+    boundary = _boundary(_square(0, 0, 1, 1))
+    boundary.loc[0, "cve_mun"] = "002"
+
+    with pytest.raises(ValueError, match="coherent_cvegeo"):
+        validate_boundary_gdf(boundary, "municipios_iieg")
 
 
 def test_dissolve_keeps_one_row_per_source_objectid():

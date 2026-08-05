@@ -37,7 +37,10 @@ def _edafologias() -> gpd.GeoDataFrame:
 
 def _municipios(offset: float = 0) -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(
-        [{"cvegeo": 14001}, {"cvegeo": 14002}],
+        [
+            {"cvegeo": 14001, "cve_ent": 14, "cve_mun": 1},
+            {"cvegeo": 14002, "cve_ent": 14, "cve_mun": 2},
+        ],
         geometry=[
             _mpoly([(0 + offset, 0), (1 + offset, 0), (1 + offset, 2), (0 + offset, 2), (0 + offset, 0)]),
             _mpoly([(1 + offset, 0), (3 + offset, 0), (3 + offset, 2), (1 + offset, 2), (1 + offset, 0)]),
@@ -63,7 +66,10 @@ def test_polygonal_part_extracts_polygons_from_geometry_collection():
 def test_overlay_discards_line_contacts_and_keeps_polygonal_intersections():
     edafologias = _edafologias()
     municipios = gpd.GeoDataFrame(
-        [{"cvegeo": 14001}, {"cvegeo": 14002}],
+        [
+            {"cvegeo": 14001, "cve_ent": 14, "cve_mun": 1},
+            {"cvegeo": 14002, "cve_ent": 14, "cve_mun": 2},
+        ],
         geometry=[
             _mpoly([(0, 0), (1, 0), (1, 2), (0, 2), (0, 0)]),
             _mpoly([(2, 0), (3, 0), (3, 2), (2, 2), (2, 0)]),
@@ -74,7 +80,7 @@ def test_overlay_discards_line_contacts_and_keeps_polygonal_intersections():
     fragments, metrics = calculate_overlay_for_source(edafologias, municipios, "iieg")
 
     assert len(fragments) == 1
-    assert fragments["municipality_cvegeo"].tolist() == [14001]
+    assert fragments["municipality_id"].tolist() == [1]
     assert metrics["non_polygonal_discarded"] == 1
 
 
@@ -86,8 +92,8 @@ def test_overlay_denominators_and_multipart_grouping():
 
     assert len(fragments) == 2
     assert pytest.approx(fragments["area_m2"].sum()) == 4.0
-    first = fragments.loc[fragments["municipality_cvegeo"] == 14001].iloc[0]
-    second = fragments.loc[fragments["municipality_cvegeo"] == 14002].iloc[0]
+    first = fragments.loc[fragments["municipality_id"] == 1].iloc[0]
+    second = fragments.loc[fragments["municipality_id"] == 2].iloc[0]
     assert pytest.approx(first["pct_poligono_fuente"]) == 50.0
     assert pytest.approx(first["pct_municipio_total"]) == 100.0
     assert pytest.approx(second["pct_poligono_fuente"]) == 50.0
