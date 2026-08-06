@@ -61,6 +61,10 @@ ASG_IMSS_DATA_URL=http://datos.imss.gob.mx/sites/default/files/asg-{date}.csv
 | `V2__table_asg_imss.sql` | Tabla principal `stg_asg_imss` |
 | `V3__view_asg_imss.sql` | Vista `vw_asg_imss` desnormalizada |
 | `V4__cvegeo_link_asg_imss.sql` | FDW hacia `cvegeo` y enriquecimiento geográfico de la vista |
+| `V5__postgis_cvegeo_geometry_asg_imss.sql` | Extensión PostGIS y columnas de geometría en FDW `cvegeo_municipalities` |
+| `V6__vistas_materializadas_asg_imss.sql` | Vistas materializadas GIS (trabajadores asegurados y brecha salarial) |
+| `V7__comments_vistas_materializadas_asg_imss.sql` | Comentarios en vistas y columnas para catálogos GIS |
+| `V8__spatial_indexes_vistas_materializadas_asg_imss.sql` | Índices espaciales GiST y de fecha sobre las vistas materializadas |
 
 ## Variables de entorno
 
@@ -86,7 +90,26 @@ Normaliza texto de catálogos, filtra registros a Jalisco por delegación, const
 
 ### Load
 
-Upsert de catálogos con `insert_records` e inserción masiva de registros mensuales con `bulk_insert` en `stg_asg_imss` (append-only).
+Upsert de catálogos con `insert_records` e inserción masiva de registros mensuales con `bulk_insert` en `stg_asg_imss` (append-only). Al finalizar la carga, si se insertó al menos una fila, se refrescan las vistas materializadas GIS (`trabajadores_asegurados`, `trabajadores_asegurados_hombres`, `trabajadores_asegurados_mujeres`, `brecha_salarial`) mediante `refresh_materialized_views` de `core.utils`.
+
+## Vistas materializadas GIS
+
+Las vistas materializadas se crean en el esquema `public` y se refrescan automáticamente al final de la carga de datos cuando se inserta al menos una fila. El filtro geográfico es Jalisco (`cve_ent = 14`) y la fecha se agrupa al primer día del mes de corte.
+
+| vista | descripción | métrica principal |
+|---|---|---|
+| `trabajadores_asegurados` | Puestos de trabajo afiliados al IMSS por municipio, con desagregación por sexo | `ta` |
+| `trabajadores_asegurados_hombres` | Puestos de trabajo afiliados al IMSS ocupados por hombres | `ta` (sexo = 1) |
+| `trabajadores_asegurados_mujeres` | Puestos de trabajo afiliados al IMSS ocupados por mujeres | `ta` (sexo = 2) |
+| `brecha_salarial` | Brecha salarial estimada entre hombres y mujeres | `masa_sal_ta` / `ta_sal` |
+
+### Notas metodológicas de las vistas
+
+- `fid` es un identificador sintético para consumo GIS (QGIS, GeoServer, etc.).
+- `clave_municipio` se presenta como 5 dígitos (entidad + municipio) para compatibilidad con catálogos geográficos.
+- La brecha salarial se calcula como `((salario_hombres - salario_mujeres) / salario_hombres) * 100` usando el salario promedio diario estimado (`masa_sal_ta / (ta_sal * días del mes de corte)`).
+- El refresco se realiza en `teardown` del `AsgImssDataLoader` solo cuando se cargaron nuevas filas, evitando trabajo innecesario en meses sin actualización.
+- Cada vista cuenta con un indice GiST sobre `geom_iieg` y un indice B-tree sobre `fecha` para consumo GIS y dashboards.
 
 ## Ejecución
 

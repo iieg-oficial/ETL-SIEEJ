@@ -16,6 +16,7 @@ _SECRETARIADO_VIEWS = [
     "vwm_datos_delitos_violacion_secretariado",
     "vwm_datos_delitos_violencia_familiar_secretariado",
     "vwm_datos_delitos_violencia_genero_no_familiar_secretariado",
+    "vwm_feminicidios",
 ]
 
 REFRESH_SECRETARIADO = [f"REFRESH MATERIALIZED VIEW {v};" for v in _SECRETARIADO_VIEWS]

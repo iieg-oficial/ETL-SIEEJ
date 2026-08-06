@@ -6,6 +6,7 @@ import pandas as pd
 from core.db import Database
 from core.pipelines.conapo.attributes import ConapoTables as T
 from core.pipelines.conapo.config import settings
+from core.pipelines.conapo.queries import MATERIALIZED_VIEWS
 from core.pipelines.conapo.schemas import (
     CatSexo,
     StgGrandesGruposEdad,
@@ -22,6 +23,7 @@ from core.utils.bulk_ops import (
 )
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 
 class ConapoLoad(Stage):
@@ -108,6 +110,8 @@ class ConapoLoad(Stage):
                         df_to_records(df_idd.astype(object).where(df_idd.notna(), None), idd_cols),
                         StgIndicadoresDemograficos,
                     )
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception:
             self.db.disconnect()

@@ -1,3 +1,5 @@
+SESNSP_URL: str = "https://www.gob.mx/sesnsp/acciones-y-programas/datos-abiertos-de-incidencia-delictiva"
+
 NK_COLS: list[str] = [
     "anio",
     "cvegeo",
