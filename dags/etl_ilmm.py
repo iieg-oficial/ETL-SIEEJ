@@ -57,6 +57,7 @@ with DAG(
     description="ILMM Bootstrap - Carga histórica completa 2017-2024 (On Demand)",
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "ilmm", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -71,6 +72,7 @@ with DAG(
     schedule="0 0 1 6 *",
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "ilmm", "update"],
 ) as dag_update:
     update_task = PythonOperator(

@@ -59,6 +59,7 @@ with DAG(
     description="Establecimientos de Salud Bootstrap - Initial full load (On Demand)",
     start_date=datetime(year=2024, month=1, day=22, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "establecimientos_de_salud", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -73,6 +74,7 @@ with DAG(
     schedule="@monthly",
     start_date=datetime(year=2024, month=1, day=22, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "establecimientos_de_salud", "update"],
 ) as dag_update:
     update_task = PythonOperator(

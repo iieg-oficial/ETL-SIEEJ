@@ -37,6 +37,7 @@ with DAG(
     description="Intensidad Migratoria Bootstrap - CONAPO 2010 y 2020 (On Demand)",
     start_date=datetime(year=2024, month=1, day=1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "intensidad_migratoria", "bootstrap", "on-demand", "conapo"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(

@@ -38,6 +38,7 @@ with DAG(
     description="Fiscalia Bootstrap - Initial full load (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "fiscalia", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
@@ -69,6 +70,7 @@ with DAG(
     schedule="@monthly",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "fiscalia", "update", "monthly"],
 ) as dag_update:
     update_task = PythonOperator(task_id="run_update", python_callable=run_update)

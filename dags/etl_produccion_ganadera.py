@@ -60,6 +60,7 @@ with DAG(
     description="Produccion Ganadera Bootstrap — Carga inicial desde 2003 (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "produccion_ganadera", "bootstrap", "on-demand", "siap"],
 ) as dag_bootstrap:
@@ -72,6 +73,7 @@ with DAG(
     description="Produccion Ganadera Update — Actualización anual (SIAP)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@yearly",
     tags=["etl", "produccion_ganadera", "update", "siap"],
 ) as dag_update:

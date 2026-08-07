@@ -38,6 +38,7 @@ with DAG(
     start_date=datetime(year=2023, month=1, day=1),
     schedule=None,
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "scian", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(

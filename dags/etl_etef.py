@@ -46,6 +46,7 @@ with DAG(
     description="ETEF Bootstrap — Carga inicial completa (on demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "etef", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
@@ -63,6 +64,7 @@ with DAG(
     schedule="@quarterly",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "etef", "update"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

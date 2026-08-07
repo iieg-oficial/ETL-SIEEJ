@@ -56,6 +56,7 @@ with DAG(
     description="REPD Bootstrap - Carga inicial completa (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "repd", "bootstrap", "on-demand", "personas-desaparecidas"],
 ) as dag_bootstrap:
@@ -82,6 +83,7 @@ with DAG(
     schedule="0 3 1 * *",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "repd", "update", "monthly", "personas-desaparecidas"],
 ) as dag_update:
     update_task = PythonOperator(
