@@ -106,13 +106,13 @@ Compara hashes con los registros actuales en `stg_repd_casos`. Los registros nue
 
 ```shell
 just flyway-migrate repd
-conda run -n etl python -m core.pipelines.repd bootstrap
+conda run -n etl python dags/etl_repd.py
 ```
 
 **Update mensual** (DAG `etl_repd_update`, cron `0 3 1 * *`):
 
 ```shell
-conda run -n etl python -m core.pipelines.repd update
+conda run -n etl python -c "from dags.etl_repd import run_update; run_update()"
 ```
 
 ## Notas adicionales
