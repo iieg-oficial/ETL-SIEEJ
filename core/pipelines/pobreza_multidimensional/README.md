@@ -88,7 +88,7 @@ Inserta el catálogo de entidades e inserta masivamente los registros tidy en `p
 
 ```shell
 just flyway-migrate pobreza_multidimensional
-conda run -n etl python -m core.pipelines.pobreza_multidimensional bootstrap
+conda run -n etl python dags/etl_pobreza_multidimensional.py
 ```
 
 No tiene flujo update.
