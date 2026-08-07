@@ -72,6 +72,38 @@ Dimensionados para un servidor de 16 GB, dejando ~3 GB al host (kernel, SSH, Doc
 
 Concurrencia: `PARALLELISM=2`, `MAX_ACTIVE_TASKS_PER_DAG=1`, `MAX_ACTIVE_RUNS_PER_DAG=1`. Dos pipelines distintos a la vez como máximo, y nunca dos corridas del mismo DAG.
 
+### Pipelines pesados
+
+Los límites globales no bastan por sí solos: dos pipelines "pesados" (alto fan-out de tareas, mucha memoria pico, payloads grandes o corridas largas) pueden coincidir en los dos slots de `PARALLELISM` y saturar la memoria del `airflow-scheduler`. Un pipeline se clasifica como pesado si cumple **cualquiera** de estas señales:
+
+| Señal | Umbral |
+|:------|:------:|
+| Fan-out (task instances por corrida) | > ~20 |
+| Memoria pico del scheduler | > ~25% de `mem_limit` |
+| Payload de un solo extract | > ~500 MB |
+| Duración de la corrida completa | > ~30 min |
+
+Clasificación actual:
+
+| Pipeline | Señal que dispara |
+|:---------|:-------------------|
+| `denue` | Fan-out: 97 task instances por corrida (32 entidades × 3 stages + `cleanup`) |
+| `nacimientos_dgis` | Payload: extract anual > 500 MB |
+
+**Topología de pools.** Un único pool, `heavy_pipeline`, con 1 slot, asignado a **todas** las tareas de cada DAG pesado (extract, transform, load y `cleanup` — no solo extract/load). Un pool con más slots, o pools separados por stage, no evita que dos DAGs pesados corran tareas simultáneas: solo un pool único con 1 slot para todas las tareas garantiza que como máximo una tarea pesada se ejecute a la vez en todo el clúster.
+
+Esa serialización deja al menos un slot de `PARALLELISM` libre para pipelines livianos: cada tarea pesada declara `priority_weight` negativo (`weight_rule="absolute"`), así que cuando se libera un slot compartido, el trabajo liviano en cola gana sobre el pesado en cola.
+
+**Provisión.** El pool se define en `core/constants/concurrency.py` (única fuente) y se provisiona con:
+
+```bash
+just airflow-pools   # también se ejecuta automáticamente con `just up`
+```
+
+Es idempotente: correrlo de nuevo no duplica ni falla si el pool ya existe.
+
+**Envolvente de concurrencia resultante.** Como máximo una tarea pesada y una tarea liviana corriendo a la vez, en todo el clúster.
+
 ---
 
 ## Configuración del host
@@ -367,6 +399,7 @@ sudo dmesg -T | grep -Ei 'out of memory|oom|killed process'
 | Tarea con `deferrable=True` colgada | No hay triggerer |
 | Pipeline no conecta a la base | `DB_HOST=localhost` en vez de `host.docker.internal` |
 | 404 al consultar una corrida | `run_id` sin codificar en URL |
+| Tarea atorada indefinidamente en `scheduled`, sin fallar nunca | Referencia a un pool no provisionado (`NONEXISTENT_POOL`); confirmar con `docker compose exec -T airflow-scheduler airflow pools list` — si el pool no aparece, correr `just airflow-pools` |
 
 ---
 
