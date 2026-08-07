@@ -8,6 +8,7 @@ default:
 [doc("Levantar servicios")]
 up:
     docker compose up --build -d
+    just airflow-pools
 
 [group('docker')]
 [doc("Detener servicios")]
@@ -184,6 +185,24 @@ env-diff:
         fi
     done
     if [ "$issues" -eq 0 ]; then echo "All passed"; fi
+
+[group('airflow')]
+[doc("Provisionar los pools de Airflow desde core/constants/concurrency.py (idempotente)")]
+airflow-pools:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PYTHONPATH=. python3 -c 'import json; from core.constants.concurrency import POOLS; json.dump(POOLS, open("config/airflow_pools.json", "w"), indent=2)'
+    echo "Generated: config/airflow_pools.json"
+    for _ in $(seq 1 30); do
+        if docker compose exec -T airflow-scheduler airflow version >/dev/null 2>&1; then
+            docker compose exec -T airflow-scheduler airflow pools import /opt/airflow/config/airflow_pools.json
+            docker compose exec -T airflow-scheduler airflow pools list
+            exit 0
+        fi
+        sleep 5
+    done
+    echo "airflow-scheduler no respondió en 150s. Ejecutar 'just airflow-pools' cuando esté arriba."
+    exit 1
 
 [group('flyway')]
 [doc("Generar flyway.conf desde flyway.conf.example usando variables del .env")]
