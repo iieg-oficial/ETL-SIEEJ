@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from airflow.task.priority_strategy import _AbsolutePriorityWeightStrategy
+
 from core.constants.concurrency import (
     HEAVY_PIPELINES,
     MAX_ACTIVE_RUNS,
@@ -16,6 +18,7 @@ def heavy_dag_ids():
 def test_all_dag_files_import(all_dags, dag_files):  # AC7
     assert all_dags, "no DAG objects collected"
     assert len(dag_files) == 30
+    assert len(all_dags) == 48
 
 
 def test_every_dag_declares_max_active_runs(all_dags):  # AC1
@@ -49,6 +52,14 @@ def test_light_tasks_outrank_heavy_tasks(all_dags):  # AC6
     heavy_max = max(t.priority_weight for d in heavy for t in all_dags[d].tasks)
     assert heavy_max == PRIORITY_HEAVY
     assert light_min > heavy_max
+
+
+def test_heavy_dags_use_absolute_weight_rule(all_dags):  # AC6
+    for dag_id in heavy_dag_ids():
+        offenders = [
+            t.task_id for t in all_dags[dag_id].tasks if not isinstance(t.weight_rule, _AbsolutePriorityWeightStrategy)
+        ]
+        assert not offenders, f"{dag_id}: tasks without weight_rule='absolute': {offenders}"
 
 
 def test_pool_names_are_defined_once():  # AC4
