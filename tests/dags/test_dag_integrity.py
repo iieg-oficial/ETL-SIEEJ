@@ -17,8 +17,8 @@ def heavy_dag_ids():
 
 def test_all_dag_files_import(all_dags, dag_files):  # AC7
     assert all_dags, "no DAG objects collected"
-    assert len(dag_files) == 30
-    assert len(all_dags) == 48
+    assert len(dag_files) == 33
+    assert len(all_dags) == 53
 
 
 def test_every_dag_declares_max_active_runs(all_dags):  # AC1
