@@ -64,21 +64,23 @@ class StgIndiceShfViviendaEstatal(IndiceTrimestral, IndiceShfViviendaBase):
     """Desglose por entidad federativa."""
 
     __tablename__ = T.STG_INDICE_SHF_VIVIENDA_ESTATAL
-    __table_args__ = (UniqueConstraint("cve_ent", "anio", "trimestre", name="uq_stg_indice_shf_vivienda_estatal"),)
+    __table_args__ = (UniqueConstraint("entidad_id", "anio", "trimestre", name="uq_stg_indice_shf_vivienda_estatal"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    cve_ent: Mapped[int] = mapped_column(SmallInteger, nullable=False)  # ref. cvegeo_states.cve_ent
+    entidad_id: Mapped[int] = mapped_column(SmallInteger, nullable=False)  # ref. cvegeo_states.cve_ent
 
 
 class StgIndiceShfViviendaMunicipal(IndiceTrimestral, IndiceShfViviendaBase):
     """Desglose de los 74 municipios que SHF publica, no de los 2,469 del país."""
 
     __tablename__ = T.STG_INDICE_SHF_VIVIENDA_MUNICIPAL
-    __table_args__ = (UniqueConstraint("cvegeo", "anio", "trimestre", name="uq_stg_indice_shf_vivienda_municipal"),)
+    __table_args__ = (
+        UniqueConstraint("municipio_id", "anio", "trimestre", name="uq_stg_indice_shf_vivienda_municipal"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    cvegeo: Mapped[int] = mapped_column(Integer, nullable=False)  # ref. cvegeo_municipalities.cvegeo
-    cve_ent: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)  # ref. cvegeo_municipalities.cvegeo
+    entidad_id: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
 
 # El destino de cada nivel y la llave con la que se resuelve el conflicto al

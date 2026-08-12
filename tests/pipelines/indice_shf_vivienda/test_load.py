@@ -114,8 +114,8 @@ def test_resolves_every_key_and_upserts_the_three_levels(load, captured):
     upserted = {model: records for model, records, _ in captured["upserts"]}
     assert set(upserted) == {StgIndiceShfViviendaGlobal, StgIndiceShfViviendaEstatal, StgIndiceShfViviendaMunicipal}
     assert upserted[StgIndiceShfViviendaGlobal][0]["serie_global_id"] == 9
-    assert upserted[StgIndiceShfViviendaEstatal][0]["cve_ent"] == 14
-    assert upserted[StgIndiceShfViviendaMunicipal][0]["cvegeo"] == 14120
+    assert upserted[StgIndiceShfViviendaEstatal][0]["entidad_id"] == 14
+    assert upserted[StgIndiceShfViviendaMunicipal][0]["municipio_id"] == 14120
 
 
 def test_applies_the_alias_for_the_short_state_names(load, captured):
@@ -125,7 +125,7 @@ def test_applies_the_alias_for_the_short_state_names(load, captured):
     load.action(_input(**{LEVEL_ESTATAL: estatal}))
 
     upserted = {model: records for model, records, _ in captured["upserts"]}
-    assert upserted[StgIndiceShfViviendaEstatal][0]["cve_ent"] == 5
+    assert upserted[StgIndiceShfViviendaEstatal][0]["entidad_id"] == 5
 
 
 def test_resolves_repeated_municipality_names_inside_their_own_state(load, captured):
@@ -140,7 +140,7 @@ def test_resolves_repeated_municipality_names_inside_their_own_state(load, captu
     load.action(_input(**{LEVEL_MUNICIPAL: municipal}))
 
     upserted = {model: records for model, records, _ in captured["upserts"]}
-    assert sorted(r["cvegeo"] for r in upserted[StgIndiceShfViviendaMunicipal]) == [9014, 23005]
+    assert sorted(r["municipio_id"] for r in upserted[StgIndiceShfViviendaMunicipal]) == [9014, 23005]
 
 
 def test_aborts_instead_of_loading_a_row_without_its_key(load, captured):
@@ -169,5 +169,5 @@ def test_state_aliases_do_not_leak_into_municipality_names(load, captured):
 
     upserted = {model: records for model, records, _ in captured["upserts"]}
     registro = upserted[StgIndiceShfViviendaMunicipal][0]
-    assert registro["cve_ent"] == 30
-    assert registro["cvegeo"] == 30193
+    assert registro["entidad_id"] == 30
+    assert registro["municipio_id"] == 30193

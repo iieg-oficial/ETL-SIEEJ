@@ -31,13 +31,13 @@ COMMENT ON COLUMN stg_indice_shf_vivienda_global.fecha_actualizacion IS
 
 CREATE TABLE IF NOT EXISTS stg_indice_shf_vivienda_estatal (
     id                  SERIAL PRIMARY KEY,
-    cve_ent             SMALLINT NOT NULL,
+    entidad_id          SMALLINT NOT NULL,
     fecha               DATE NOT NULL,
     anio                SMALLINT NOT NULL,
     trimestre           SMALLINT NOT NULL,
     indice              NUMERIC(8, 2) NOT NULL,
     fecha_actualizacion DATE NOT NULL,
-    CONSTRAINT uq_stg_indice_shf_vivienda_estatal UNIQUE (cve_ent, anio, trimestre)
+    CONSTRAINT uq_stg_indice_shf_vivienda_estatal UNIQUE (entidad_id, anio, trimestre)
 );
 
 COMMENT ON TABLE stg_indice_shf_vivienda_estatal IS
@@ -45,7 +45,7 @@ COMMENT ON TABLE stg_indice_shf_vivienda_estatal IS
     'de los cuatro trimestres de 2017 es exactamente 100 en las 121 series.';
 COMMENT ON COLUMN stg_indice_shf_vivienda_estatal.id IS
     'Identificador interno del registro.';
-COMMENT ON COLUMN stg_indice_shf_vivienda_estatal.cve_ent IS
+COMMENT ON COLUMN stg_indice_shf_vivienda_estatal.entidad_id IS
     'Clave de la entidad federativa (1 a 32) del INEGI. Referencia lógica a cvegeo_states.cve_ent, que es una tabla '
     'foránea y por eso no admite llave foránea declarada.';
 COMMENT ON COLUMN stg_indice_shf_vivienda_estatal.fecha IS
@@ -62,14 +62,14 @@ COMMENT ON COLUMN stg_indice_shf_vivienda_estatal.fecha_actualizacion IS
 
 CREATE TABLE IF NOT EXISTS stg_indice_shf_vivienda_municipal (
     id                  SERIAL PRIMARY KEY,
-    cvegeo              INTEGER NOT NULL,
-    cve_ent             SMALLINT NOT NULL,
+    municipio_id        INTEGER NOT NULL,
+    entidad_id          SMALLINT NOT NULL,
     fecha               DATE NOT NULL,
     anio                SMALLINT NOT NULL,
     trimestre           SMALLINT NOT NULL,
     indice              NUMERIC(8, 2) NOT NULL,
     fecha_actualizacion DATE NOT NULL,
-    CONSTRAINT uq_stg_indice_shf_vivienda_municipal UNIQUE (cvegeo, anio, trimestre)
+    CONSTRAINT uq_stg_indice_shf_vivienda_municipal UNIQUE (municipio_id, anio, trimestre)
 );
 
 COMMENT ON TABLE stg_indice_shf_vivienda_municipal IS
@@ -78,9 +78,9 @@ COMMENT ON TABLE stg_indice_shf_vivienda_municipal IS
     'de los cuatro trimestres de 2017 es exactamente 100 en las 121 series.';
 COMMENT ON COLUMN stg_indice_shf_vivienda_municipal.id IS
     'Identificador interno del registro.';
-COMMENT ON COLUMN stg_indice_shf_vivienda_municipal.cvegeo IS
+COMMENT ON COLUMN stg_indice_shf_vivienda_municipal.municipio_id IS
     'Clave geoestadística del municipio (cve_ent * 1000 + cve_mun). Referencia lógica a cvegeo_municipalities.cvegeo.';
-COMMENT ON COLUMN stg_indice_shf_vivienda_municipal.cve_ent IS
+COMMENT ON COLUMN stg_indice_shf_vivienda_municipal.entidad_id IS
     'Clave de la entidad federativa a la que pertenece el municipio. Se conserva porque la fuente identifica al '
     'municipio solo por nombre y hay nombres repetidos entre entidades '
     '("Benito Juárez", "Juárez").';

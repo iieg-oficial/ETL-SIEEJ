@@ -91,8 +91,8 @@ class IndiceShfViviendaLoad(Stage):
 
         mapping = get_cvegeo_mapping(session, table="cvegeo_states", key="nom_ent", value="cve_ent", is_normalize=True)
         nombres = df["estado"].replace(ENTITY_NAME_ALIASES).map(normalize_text)
-        df["cve_ent"] = nombres.map(mapping).astype("Int64")
-        self._require_resolved(df, "cve_ent", "estado", "cvegeo_states")
+        df["entidad_id"] = nombres.map(mapping).astype("Int64")
+        self._require_resolved(df, "entidad_id", "estado", "cvegeo_states")
         return df
 
     def _resolve_municipio(self, session, df: pd.DataFrame) -> pd.DataFrame:
@@ -113,20 +113,20 @@ class IndiceShfViviendaLoad(Stage):
         df = self._resolve_entidad(session, df)
         nombres = df["municipio"].map(normalize_text)
 
-        df["cvegeo"] = pd.Series(pd.NA, index=df.index, dtype="Int64")
-        for cve_ent in sorted(df["cve_ent"].dropna().unique()):
+        df["municipio_id"] = pd.Series(pd.NA, index=df.index, dtype="Int64")
+        for entidad_id in sorted(df["entidad_id"].dropna().unique()):
             mapping = get_cvegeo_mapping(
                 session,
                 table="cvegeo_municipalities",
                 key="nomgeo",
                 value="cvegeo",
-                cve_ent=int(cve_ent),
+                cve_ent=int(entidad_id),
                 is_normalize=True,
             )
-            rows = df["cve_ent"] == cve_ent
-            df.loc[rows, "cvegeo"] = nombres[rows].map(mapping).astype("Int64")
+            rows = df["entidad_id"] == entidad_id
+            df.loc[rows, "municipio_id"] = nombres[rows].map(mapping).astype("Int64")
 
-        self._require_resolved(df, "cvegeo", "municipio", "cvegeo_municipalities")
+        self._require_resolved(df, "municipio_id", "municipio", "cvegeo_municipalities")
         return df
 
     def _require_resolved(self, df: pd.DataFrame, column: str, source_column: str, catalog: str) -> None:

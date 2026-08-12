@@ -26,8 +26,8 @@ INT_COLS: list[str] = ["anio", "trimestre"]
 FLOAT_COLS: list[str] = ["indice"]
 
 GLOBAL_CONFLICT_KEYS: list[str] = ["serie_global_id", "anio", "trimestre"]
-ESTATAL_CONFLICT_KEYS: list[str] = ["cve_ent", "anio", "trimestre"]
-MUNICIPAL_CONFLICT_KEYS: list[str] = ["cvegeo", "anio", "trimestre"]
+ESTATAL_CONFLICT_KEYS: list[str] = ["entidad_id", "anio", "trimestre"]
+MUNICIPAL_CONFLICT_KEYS: list[str] = ["municipio_id", "anio", "trimestre"]
 
 # Los tres niveles del Excel viven en columnas mutuamente excluyentes: cuando
 # una trae valor las otras van vacías. Son las máscaras que parten la hoja.
