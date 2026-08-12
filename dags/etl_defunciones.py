@@ -74,6 +74,7 @@ with DAG(
     start_date=datetime(year=2026, month=1, day=1),
     schedule=None,
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "defunciones", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -88,6 +89,7 @@ with DAG(
     schedule="0 4 1 7 *",
     start_date=datetime(year=2026, month=7, day=1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "defunciones", "update"],
 ) as dag_update:
     update_task = PythonOperator(

@@ -39,6 +39,7 @@ with DAG(
     description="Centros Educativos Bootstrap - All entidades sequential (On Demand)",
     start_date=datetime(year=2024, month=1, day=1, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "centros_educativos", "bootstrap", "on-demand", "escuelas"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(

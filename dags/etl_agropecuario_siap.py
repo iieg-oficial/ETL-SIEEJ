@@ -72,6 +72,7 @@ with DAG(
     description="Agropecuario SIAP Bootstrap — Carga inicial desde 2003 (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "agropecuario_siap", "bootstrap", "on-demand", "siap"],
 ) as dag_bootstrap:
@@ -84,6 +85,7 @@ with DAG(
     description="Agropecuario SIAP Update — Actualización anual (SIAP)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@yearly",
     tags=["etl", "agropecuario_siap", "update", "siap"],
 ) as dag_update:

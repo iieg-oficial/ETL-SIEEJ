@@ -48,6 +48,7 @@ if _AIRFLOW_AVAILABLE:
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
+        max_active_runs=1,
         tags=["etl", "pobreza_multidimensional", "bootstrap", "on-demand", "coneval"],
     ) as dag_bootstrap:
         PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)

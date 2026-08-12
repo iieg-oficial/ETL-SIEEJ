@@ -50,6 +50,7 @@ with DAG(
     description="Índice SHF de Precios de la Vivienda — Carga completa 2005 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "indice_shf_vivienda", "bootstrap", "on-demand", "shf"],
 ) as dag_bootstrap:

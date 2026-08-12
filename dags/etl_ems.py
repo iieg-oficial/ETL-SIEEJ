@@ -53,6 +53,7 @@ with DAG(
     description="EMS Bootstrap — Carga inicial 2013 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "ems", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
@@ -65,6 +66,7 @@ with DAG(
     description="EMS Update — Actualización mensual (INEGI)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@monthly",
     tags=["etl", "ems", "update", "inegi"],
 ) as dag_update:

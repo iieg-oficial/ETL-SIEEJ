@@ -49,6 +49,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     schedule=None,   # On Demand
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "{flujo}", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -87,6 +88,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     schedule="0 6 1 * *",  # Ajustar según la frecuencia del pipeline
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "{flujo}", "update"],
 ) as dag_update:
     update_task = PythonOperator(

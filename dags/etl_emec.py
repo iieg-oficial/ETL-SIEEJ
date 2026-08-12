@@ -53,6 +53,7 @@ with DAG(
     description="EMEC Bootstrap — Carga inicial 2008 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "emec", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
@@ -65,6 +66,7 @@ with DAG(
     description="EMEC Update — Actualización mensual (INEGI)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@monthly",
     tags=["etl", "emec", "update", "inegi"],
 ) as dag_update:

@@ -53,6 +53,7 @@ with DAG(
     description="EMIM Bootstrap — Carga inicial 2018 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "emim", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
@@ -65,6 +66,7 @@ with DAG(
     description="EMIM Update — Actualización mensual (INEGI)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@monthly",
     tags=["etl", "emim", "update", "inegi"],
 ) as dag_update:

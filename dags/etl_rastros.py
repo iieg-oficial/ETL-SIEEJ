@@ -52,6 +52,7 @@ with DAG(
     description="Rastros (ESGRM) Bootstrap — Carga inicial 2008 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "rastros", "bootstrap", "on-demand", "inegi", "esgrm"],
 ) as dag_bootstrap:
@@ -64,6 +65,7 @@ with DAG(
     description="Rastros (ESGRM) Update — Actualización mensual (INEGI)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule="@monthly",
     tags=["etl", "rastros", "update", "inegi", "esgrm"],
 ) as dag_update:

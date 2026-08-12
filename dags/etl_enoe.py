@@ -58,6 +58,7 @@ with DAG(
     schedule=None,
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "enoe", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     PythonOperator(
@@ -73,6 +74,7 @@ with DAG(
     schedule="0 3 10 3,6,9,12 *",
     start_date=datetime(2026, 3, 10, 3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "enoe", "update"],
 ) as dag_update:
     PythonOperator(

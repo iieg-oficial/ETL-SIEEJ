@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
+from core.constants.concurrency import MAX_ACTIVE_RUNS, POOL_HEAVY, PRIORITY_HEAVY
+
 
 def run_extract(year: int):
     from core.pipelines.nacimientos_dgis.stages.extract import NacimientosDgisExtract
@@ -73,7 +75,6 @@ def run_update():
 
 def build_dag(dag_id, mode, description, schedule, tags):
     from core.pipelines.nacimientos_dgis.config import settings
-    from core.pipelines.nacimientos_dgis.constants import EXTRACT_POOL
 
     years = get_years(settings.START_YEAR)
 
@@ -83,11 +84,14 @@ def build_dag(dag_id, mode, description, schedule, tags):
             "owner": "Jose Velazco H.",
             "retries": 3,
             "retry_delay": timedelta(minutes=1),
+            "priority_weight": PRIORITY_HEAVY,
+            "weight_rule": "absolute",
         },
         description=description,
         start_date=datetime(year=2024, month=1, day=1),
         catchup=False,
         schedule=schedule,
+        max_active_runs=MAX_ACTIVE_RUNS,
         tags=tags,
     ) as dag:
         extract_tasks = []
@@ -97,19 +101,21 @@ def build_dag(dag_id, mode, description, schedule, tags):
                 task_id=f"extract_{year}",
                 python_callable=run_extract,
                 op_kwargs={"year": year},
-                pool=EXTRACT_POOL,
+                pool=POOL_HEAVY,
             )
             extract_tasks.append(extract)
 
         transform_task = PythonOperator(
             task_id="transform",
             python_callable=run_transform,
+            pool=POOL_HEAVY,
         )
 
         load_task = PythonOperator(
             task_id="load",
             python_callable=run_load,
             op_kwargs={"mode": mode},
+            pool=POOL_HEAVY,
         )
 
         extract_tasks >> transform_task >> load_task

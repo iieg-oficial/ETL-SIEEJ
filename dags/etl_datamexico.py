@@ -39,6 +39,7 @@ with DAG(
     schedule="0 8 1 */3 *",
     start_date=datetime(year=2026, month=1, day=1, hour=4),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "datamexico", "update", "bootstrap", "comercio-exterior"],
 ) as dag_update:
     update_task = PythonOperator(

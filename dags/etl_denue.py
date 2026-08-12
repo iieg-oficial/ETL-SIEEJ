@@ -7,7 +7,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
-from core.pipelines.denue.constants import ENTIDADES, EXTRACT_POOL, TRANSFORM_POOL, LOAD_POOL
+from core.constants.concurrency import MAX_ACTIVE_RUNS, POOL_HEAVY, PRIORITY_HEAVY
+from core.pipelines.denue.constants import ENTIDADES
 
 
 def run_extract(mode: str, entidad: int):
@@ -61,12 +62,14 @@ def build_dag(dag_id, mode, description, schedule, tags):
             "owner": "José Velazco H.",
             "retries": 3,
             "retry_delay": timedelta(days=10),
+            "priority_weight": PRIORITY_HEAVY,
+            "weight_rule": "absolute",
         },
         description=description,
         start_date=datetime(year=2025, month=1, day=20),
         schedule=schedule,
         catchup=False,
-        max_active_tasks=4,
+        max_active_runs=MAX_ACTIVE_RUNS,
         tags=tags,
     ) as dag:
         load_tasks = []
@@ -76,21 +79,21 @@ def build_dag(dag_id, mode, description, schedule, tags):
                 task_id=f"extract_{entidad}",
                 python_callable=run_extract,
                 op_kwargs={"mode": mode, "entidad": entidad},
-                pool=EXTRACT_POOL,
+                pool=POOL_HEAVY,
             )
 
             transform = PythonOperator(
                 task_id=f"transform_{entidad}",
                 python_callable=run_transform,
                 op_kwargs={"mode": mode, "entidad": entidad},
-                pool=TRANSFORM_POOL,
+                pool=POOL_HEAVY,
             )
 
             load = PythonOperator(
                 task_id=f"load_{entidad}",
                 python_callable=run_load,
                 op_kwargs={"mode": mode, "entidad": entidad},
-                pool=LOAD_POOL,
+                pool=POOL_HEAVY,
             )
 
             extract >> transform >> load
@@ -100,6 +103,7 @@ def build_dag(dag_id, mode, description, schedule, tags):
             task_id="cleanup",
             python_callable=cleanup,
             trigger_rule="all_done",
+            pool=POOL_HEAVY,
         )
 
         load_tasks >> cleanup_task

@@ -67,6 +67,7 @@ with DAG(
     description="INPC Bootstrap - Initial full load (On Demand)",
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "inpc", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -81,6 +82,7 @@ with DAG(
     schedule="@monthly",
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "inpc", "update"],
 ) as dag_update:
     update_task = PythonOperator(

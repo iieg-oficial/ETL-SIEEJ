@@ -117,6 +117,7 @@ with DAG(
     description="ASG IMSS Bootstrap - Catálogos XLSX + datos CSV mensuales (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "asg_imss", "bootstrap", "on-demand", "imss", "empleo"],
 ) as dag_bootstrap:
@@ -148,6 +149,7 @@ with DAG(
     schedule="0 12 10 * *",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "asg_imss", "update", "monthly", "imss", "empleo"],
 ) as dag_update:
     task_update_catalogos = PythonOperator(
