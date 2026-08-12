@@ -6,8 +6,6 @@ from core.utils.logger import get_console_logger
 
 PERIODO_FORMAT = "%Y%m"
 
-# Primer mes de cada trimestre. Un trimestre fuera de 1-4 no mapea y termina en
-# NaT, que es el mismo destino que cualquier otro periodo ilegible.
 QUARTER_FIRST_MONTH = {1: 1, 2: 4, 3: 7, 4: 10}
 
 logger = get_console_logger(__name__)
