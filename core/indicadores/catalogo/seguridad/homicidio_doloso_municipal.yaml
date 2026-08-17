@@ -1,0 +1,46 @@
+id: homicidio_doloso_municipal
+nombre: Presuntos delitos de homicidio doloso, municipal
+tema: seguridad
+definicion: >
+  Conteo mensual de carpetas de investigación abiertas por presuntos delitos de
+  homicidio doloso, por municipio, sumando todas las modalidades reportadas.
+unidad: carpetas de investigación
+fuente: SESNSP — Incidencia delictiva del fuero común
+pipeline: delitos_fuero_comun
+origen: vw_homicidio_doloso
+nivel: municipal
+periodicidad: mensual
+cobertura:
+  geografica: Nacional
+  temporal: "2015-actual"
+notas: |
+  La vista de origen filtra subtipo_delito = 'Homicidio doloso' y excluye la
+  tentativa, que el SESNSP reporta como categoría aparte desde 2026.
+  Los meses sin registros no aparecen: la vista base descarta los ceros y nulos,
+  así que una ausencia de fila no distingue "cero delitos" de "sin dato".
+parametros:
+  - nombre: cve_geo
+    tipo: str
+    requerido: false
+    descripcion: Clave INEGI de 5 dígitos del municipio (ej. 14039). Omitir para todos.
+  - nombre: anio_min
+    tipo: int
+    requerido: false
+    descripcion: Año inicial de la serie. Omitir para la serie completa.
+sql: |
+  SELECT
+      cve_municipio::text AS cve_geo,
+      municipio::text     AS nombre_geo,
+      anio::text || '-' || LPAD(array_position(
+          ARRAY['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+          mes)::text, 2, '0')  AS periodo,
+      SUM(conteo)::numeric AS valor,
+      NULL::text           AS categoria
+  FROM vw_homicidio_doloso
+  WHERE (CAST(:cve_geo AS text) IS NULL
+         OR cve_municipio = CAST(:cve_geo AS text))
+    AND (CAST(:anio_min AS integer) IS NULL
+         OR anio >= CAST(:anio_min AS integer))
+  GROUP BY 1, 2, 3
+  ORDER BY 1, 3
