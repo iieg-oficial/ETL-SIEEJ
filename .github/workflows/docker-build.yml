@@ -38,6 +38,13 @@ jobs:
           print('OK:', list(bag.dags.keys()))
           PYEOF
 
+      - name: Check DAG concurrency and schedule policy
+        run: |
+          docker compose run --rm -T \
+            -v $PWD/tests:/opt/airflow/tests \
+            -v $PWD/pyproject.toml:/opt/airflow/pyproject.toml \
+            airflow-cli pytest tests/dags -q
+
       - name: Cleanup
         if: always()
         run: docker compose down -v

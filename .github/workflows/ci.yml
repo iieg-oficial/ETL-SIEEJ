@@ -14,6 +14,23 @@ jobs:
     name: Pre-commit hooks
     uses: ./.github/workflows/pre-commit.yml
 
+  calendar:
+    name: Calendario de DAGs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install croniter pytest
+
+      - name: Check for schedule collisions
+        run: pytest tests/schedules -q
+
   build:
     name: Docker build & DAGs
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/develop'
