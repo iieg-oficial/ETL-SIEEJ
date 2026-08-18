@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
+from core.schedules import schedule_for
+
+
 PIPELINE_NAME = "ems"
 
 
@@ -67,7 +70,7 @@ with DAG(
     start_date=datetime(2026, 1, 1),
     catchup=False,
     max_active_runs=1,
-    schedule="@monthly",
+    schedule=schedule_for("etl_ems_update"),
     tags=["etl", "ems", "update", "inegi"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

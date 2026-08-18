@@ -8,6 +8,7 @@ from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
 from core.constants.concurrency import MAX_ACTIVE_RUNS, POOL_HEAVY, PRIORITY_HEAVY
+from core.schedules import schedule_for
 
 
 def run_extract(year: int):
@@ -135,7 +136,7 @@ dag_update = build_dag(
     dag_id="etl_nacimientos_dgis_update",
     mode="update",
     description="Nacimientos DGIS Update - Yearly",
-    schedule="@yearly",
+    schedule=schedule_for("etl_nacimientos_dgis_update"),
     tags=["etl", "nacimientos_dgis", "update", "yearly", "demografía"],
 )
 

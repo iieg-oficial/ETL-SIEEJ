@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 
 from core.db import Database
@@ -14,6 +15,7 @@ from core.pipelines.inpc.stages.transform import InpcTransform
 from core.pipelines.inpc.stages.load import InpcLoad
 from core.pipelines.inpc.schemas import InpcCiudades
 from core.pipelines.inpc.config import settings
+from core.schedules import schedule_for
 from core.utils.bulk_ops import get_last_update
 
 
@@ -79,7 +81,7 @@ with DAG(
     "etl_inpc_update",
     default_args=default_args_update,
     description="INPC Update - Monthly update",
-    schedule="@monthly",
+    schedule=schedule_for("etl_inpc_update"),
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
     max_active_runs=1,
