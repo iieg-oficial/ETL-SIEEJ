@@ -175,9 +175,9 @@ Airflow dispara al **cierre** del intervalo de datos: un DAG mensual con `0 0 1 
 1. Correr `just schedules 365` y buscar una hora libre en la fecha de publicación de la fuente.
 2. Agregar la entrada en `core/schedules/registry.py` con el cron explícito.
 3. En el DAG, `schedule=schedule_for("<dag_id>")`.
-4. Correr `pytest tests/dags` — `test_no_two_dags_fire_within_the_separation_window` simula 5 años de disparos y falla si la nueva entrada queda a menos de 60 minutos de otra.
+4. Correr `pytest tests/dags tests/schedules` — `test_no_two_dags_fire_within_the_separation_window` simula 5 años de ejecuciones y falla si la nueva entrada queda a menos de 60 minutos de otra.
 
-El acuerdo documentado no alcanza: el test es el que sostiene el calendario.
+El paso 4 lo dispara solo el hook de `pre-commit` cuando el commit toca `dags/`, `core/schedules/` o `core/constants/concurrency.py`, siempre que hayas corrido `pre-commit install` en la máquina. Ver CONTRIBUTING.md.
 
 ---
 
