@@ -44,13 +44,15 @@ def dag_files():
 
 
 @pytest.fixture(scope="session")
-def all_dags(dag_files):
+def dags_by_file(dag_files):
     from airflow import DAG
 
-    dags = {}
-    for path in dag_files:
-        module = importlib.import_module(f"dags.{path.stem}")
-        for obj in vars(module).values():
-            if isinstance(obj, DAG):
-                dags[obj.dag_id] = obj
-    return dags
+    return {
+        path.name: [obj for obj in vars(importlib.import_module(f"dags.{path.stem}")).values() if isinstance(obj, DAG)]
+        for path in dag_files
+    }
+
+
+@pytest.fixture(scope="session")
+def all_dags(dags_by_file):
+    return {dag.dag_id: dag for dags in dags_by_file.values() for dag in dags}

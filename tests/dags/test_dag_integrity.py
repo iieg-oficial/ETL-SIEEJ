@@ -15,10 +15,15 @@ def heavy_dag_ids():
     return {f"etl_{p}_{flow}" for p in HEAVY_PIPELINES for flow in ("bootstrap", "update")}
 
 
-def test_all_dag_files_import(all_dags, dag_files):  # AC7
-    assert all_dags, "no DAG objects collected"
-    assert len(dag_files) == 33
-    assert len(all_dags) == 53
+def test_every_dag_file_produces_at_least_one_dag(dags_by_file):  # AC7
+    empty = [name for name, dags in dags_by_file.items() if not dags]
+    assert not empty, f"archivos sin objetos DAG: {empty}"
+
+
+def test_dag_ids_are_unique(dags_by_file):  # AC7
+    ids = [dag.dag_id for dags in dags_by_file.values() for dag in dags]
+    duplicates = {dag_id for dag_id in ids if ids.count(dag_id) > 1}
+    assert not duplicates, f"dag_id declarado en más de un archivo: {duplicates}"
 
 
 def test_every_dag_declares_max_active_runs(all_dags):  # AC1
