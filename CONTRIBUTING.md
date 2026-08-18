@@ -129,9 +129,22 @@ Usamos **Conventional Commits** con scope específico al proyecto (`feat(pipelin
 
 ### Airflow
 - [ ] El DAG aparece en la interfaz sin errores de importación
-- [ ] Los schedules están configurados correctamente
+- [ ] El horario está registrado en `core/schedules/registry.py`, no como literal en el DAG
+- [ ] `pytest tests/dags tests/schedules` pasa en local
 - [ ] El DAG tiene `catchup=False` si no se necesita backfill
 ```
+
+### Los tests de DAGs corren en local, no en CI
+
+`pytest tests/dags tests/schedules` valida el calendario (que ningún par de DAGs dispare a menos de 60 minutos) y la concurrencia (`max_active_runs`, pools provisionados, prioridades). Son ~3 segundos y **no corren en el CI**: los ejecuta un hook de `pre-commit` cuando el commit toca `dags/`, `core/schedules/`, `core/constants/concurrency.py` o sus tests.
+
+Eso obliga a una cosa, una sola vez por máquina:
+
+```bash
+pre-commit install
+```
+
+Sin eso el hook no existe y nada te avisa. Y `git commit --no-verify` lo saltea: si lo usás, corré `pytest tests/dags tests/schedules` a mano antes de abrir el PR.
 
 ### Plantilla de descripción
 

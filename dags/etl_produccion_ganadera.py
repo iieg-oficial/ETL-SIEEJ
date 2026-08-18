@@ -13,6 +13,7 @@ from core.pipelines.produccion_ganadera.helpers import get_update_start_year, ye
 from core.pipelines.produccion_ganadera.stages.extract import GanaderaExtract
 from core.pipelines.produccion_ganadera.stages.load import GanaderaLoad
 from core.pipelines.produccion_ganadera.stages.transform import GanaderaTransform
+from core.schedules import schedule_for
 from core.utils.logger import get_logger
 
 logger = get_logger(settings.PIPELINE_NAME)
@@ -74,7 +75,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     catchup=False,
     max_active_runs=1,
-    schedule="@yearly",
+    schedule=schedule_for("etl_produccion_ganadera_update"),
     tags=["etl", "produccion_ganadera", "update", "siap"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

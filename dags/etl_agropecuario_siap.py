@@ -15,6 +15,7 @@ from core.pipelines.agropecuario_siap.schemas import StgAgricola
 from core.pipelines.agropecuario_siap.stages.extract import AgropecuarioExtract
 from core.pipelines.agropecuario_siap.stages.load import AgropecuarioLoad
 from core.pipelines.agropecuario_siap.stages.transform import AgropecuarioTransform
+from core.schedules import schedule_for
 from core.utils.bulk_ops import get_last_update
 from core.utils.logger import get_logger
 
@@ -86,7 +87,7 @@ with DAG(
     start_date=datetime(2024, 1, 1),
     catchup=False,
     max_active_runs=1,
-    schedule="@yearly",
+    schedule=schedule_for("etl_agropecuario_siap_update"),
     tags=["etl", "agropecuario_siap", "update", "siap"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 
 from core.pipeline import Pipeline
@@ -12,6 +13,7 @@ from core.pipelines.ilmm.stages.extract import IlmmExtract
 from core.pipelines.ilmm.stages.transform import IlmmTransform
 from core.pipelines.ilmm.stages.load import IlmmLoad
 from core.pipelines.ilmm.config import settings
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -69,7 +71,7 @@ with DAG(
     "etl_ilmm_update",
     default_args=default_args_update,
     description="ILMM Update - Actualización anual (1 de junio)",
-    schedule="0 0 1 6 *",
+    schedule=schedule_for("etl_ilmm_update"),
     start_date=datetime(year=2026, month=1, day=12, hour=3),
     catchup=False,
     max_active_runs=1,

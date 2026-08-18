@@ -5,12 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 
 from core.pipeline import Pipeline
 from core.pipelines.enoe_microdatos.stages.extract import EnoeMicrodatosExtract
 from core.pipelines.enoe_microdatos.stages.transform import EnoeMicrodatosTransform
 from core.pipelines.enoe_microdatos.stages.load import EnoeMicrodatosLoad
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -63,7 +65,7 @@ with DAG(
     default_args=default_args,
     description="ENOE Microdatos Incremental — nuevo trimestre ~70 días después del cierre",
     start_date=datetime(year=2026, month=1, day=1),
-    schedule="0 0 10 3,6,9,12 *",
+    schedule=schedule_for("etl_enoe_microdatos_incremental"),
     catchup=False,
     max_active_runs=1,
     tags=["etl", "enoe_microdatos", "incremental", "trimestral", "inegi"],

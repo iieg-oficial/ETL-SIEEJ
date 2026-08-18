@@ -5,12 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 
 from core.pipeline import Pipeline
 from core.pipelines.fiscalia.stages.extract import FiscaliaExtract
 from core.pipelines.fiscalia.stages.transform import FiscaliaTransform
 from core.pipelines.fiscalia.stages.load import FiscaliaLoad
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -67,7 +69,7 @@ with DAG(
     "etl_fiscalia_update",
     default_args=default_args_update,
     description="Fiscalia Update - Monthly incremental load",
-    schedule="@monthly",
+    schedule=schedule_for("etl_fiscalia_update"),
     start_date=datetime(2026, 1, 1),
     catchup=False,
     max_active_runs=1,

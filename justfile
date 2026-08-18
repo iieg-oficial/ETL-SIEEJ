@@ -187,6 +187,13 @@ env-diff:
     if [ "$issues" -eq 0 ]; then echo "All passed"; fi
 
 [group('airflow')]
+[doc("Mostrar el calendario de DAGs ordenado por instante de disparo")]
+schedules days="90":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PYTHONPATH=. AIRFLOW_HOME=$(pwd) python3 scripts/schedules.py {{days}}
+
+[group('airflow')]
 [doc("Provisionar los pools de Airflow desde core/constants/concurrency.py (idempotente)")]
 airflow-pools:
     #!/usr/bin/env bash

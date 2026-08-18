@@ -9,6 +9,7 @@ from airflow.providers.standard.operators.python import PythonOperator
 
 from core.constants.concurrency import MAX_ACTIVE_RUNS, POOL_HEAVY, PRIORITY_HEAVY
 from core.pipelines.denue.constants import ENTIDADES
+from core.schedules import schedule_for
 
 
 def run_extract(mode: str, entidad: int):
@@ -123,7 +124,7 @@ dag_update = build_dag(
     dag_id="etl_denue_update",
     mode="update",
     description="DENUE Update - All entidades",
-    schedule=timedelta(days=10),
+    schedule=schedule_for("etl_denue_update"),
     tags=["etl", "denue", "update", "inegi"],
 )
 

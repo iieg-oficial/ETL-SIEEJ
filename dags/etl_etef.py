@@ -12,6 +12,7 @@ from core.pipeline import Pipeline
 from core.pipelines.etef.stages.extract import EtefExtractor
 from core.pipelines.etef.stages.transform import EtefTransformer
 from core.pipelines.etef.stages.load import EtefLoader
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -61,7 +62,7 @@ with DAG(
         "retry_delay": timedelta(minutes=5),
     },
     description="ETEF Update — Carga trimestral de nuevos datos",
-    schedule="@quarterly",
+    schedule=schedule_for("etl_etef_update"),
     start_date=datetime(2024, 1, 1),
     catchup=False,
     max_active_runs=1,
