@@ -14,6 +14,7 @@
 
 - [Arquitectura](#arquitectura)
 - [Límites de recursos](#límites-de-recursos)
+- [Calendario de actualización](#calendario-de-actualización)
 - [Operación con Docker](#operación-con-docker)
 - [Operación con la API REST](#operación-con-la-api-rest)
 - [flowrs: la TUI de Airflow](#flowrs-la-tui-de-airflow)
@@ -103,6 +104,80 @@ just airflow-pools   # también se ejecuta automáticamente con `just up`
 Es idempotente: correrlo de nuevo no duplica ni falla si el pool ya existe.
 
 **Envolvente de concurrencia resultante.** Como máximo una tarea pesada y una tarea liviana corriendo a la vez, en todo el clúster.
+
+---
+
+## Calendario de actualización
+
+Los pools evitan que dos pipelines pesados se pisen mientras corren. El calendario es el frente anterior: evitar que arranquen todos en el mismo instante.
+
+Cada DAG tenía su `schedule` como literal en su propio archivo, y los alias de cron ocultaban las colisiones: `@monthly`, `@yearly` y `@quarterly` expanden todos a `0 0 1 * *`, así que el 1 de enero a las 00:00 disparaban siete DAGs a la vez con `PARALLELISM=2`. Nadie podía verlo sin abrir los 27 archivos.
+
+### El registro
+
+`core/schedules/` es la única fuente del calendario:
+
+| Módulo | Contiene |
+|:-------|:---------|
+| `registry.py` | El mapeo `dag_id → Schedule(pipeline, cron, frecuencia)`. **Esto es lo que se edita.** |
+| `policy.py` | El modelo `Schedule` y las reglas: `MIN_SEPARATION_MINUTES`, `SIMULATED_YEARS` |
+| `firings.py` | Expande los crons a instantes de disparo con el parser de Airflow |
+
+Los DAGs no llevan literal: piden su horario al registro.
+
+```python
+from core.schedules import schedule_for
+
+schedule=schedule_for("etl_rastros_update"),
+```
+
+`schedule_for` levanta `KeyError` si el DAG no está registrado: no se puede programar un pipeline sin entrar a la reja.
+
+`pool` y `priority` no se declaran en el registro, se **derivan** de `HEAVY_PIPELINES` en `core/constants/concurrency.py`. Un pipeline no puede ser pesado en un archivo y liviano en otro.
+
+Reglas del registro:
+
+- **Solo crons explícitos.** Nada de alias ni de `timedelta`: si el horario no se lee, la colisión no se ve.
+
+```python
+# No: el alias esconde que dispara a la misma hora que otros seis DAGs
+Schedule("rastros", "@monthly", "cada mes, el día 1")
+
+# No: un timedelta deriva a instantes que no se pueden leer en un calendario
+Schedule("denue", timedelta(days=10), "cada 10 días")
+
+# Sí
+Schedule("rastros", "0 9 1 * *", "cada mes, el día 1")
+Schedule("denue", "0 11 11 * *", "cada mes, el día 11")
+```
+
+- **Solo DAGs programados.** Los `bootstrap` corren bajo demanda con `schedule=None` y no están en el registro.
+
+### Política: separación mínima, no solo colisión
+
+Dos DAGs no pueden disparar a menos de **60 minutos** (`MIN_SEPARATION_MINUTES`). Es una ventana, no una igualdad: con `PARALLELISM=2` un vecino se tolera, pero un amontonamiento deja al resto en cola detrás de la corrida más lenta.
+
+La reja actual asigna **una hora por DAG en el día 1**, de modo que un mensual, un trimestral y un anual que caen en la misma fecha nunca comparten instante. Los pipelines que publican otro día (el 10) conservan su fecha.
+
+### Ver el calendario
+
+```bash
+just schedules        # próximos 90 días
+just schedules 365    # ventana explícita en días
+```
+
+Ordena todas las ejecuciones por fecha y muestra la frecuencia y si el DAG es pesado. Si dos quedan a menos de la ventana mínima, lo marca en la fila y termina con código de salida 1.
+
+Airflow dispara al **cierre** del intervalo de datos: un DAG mensual con `0 0 1 * *` corre el 1 de octubre procesando septiembre. La columna `SE EJECUTA` es el momento real de ejecución, no el inicio del período.
+
+### Elegir horario para un pipeline nuevo
+
+1. Correr `just schedules 365` y buscar una hora libre en la fecha de publicación de la fuente.
+2. Agregar la entrada en `core/schedules/registry.py` con el cron explícito.
+3. En el DAG, `schedule=schedule_for("<dag_id>")`.
+4. Correr `pytest tests/dags` — `test_no_two_dags_fire_within_the_separation_window` simula 5 años de disparos y falla si la nueva entrada queda a menos de 60 minutos de otra.
+
+El acuerdo documentado no alcanza: el test es el que sostiene el calendario.
 
 ---
 
