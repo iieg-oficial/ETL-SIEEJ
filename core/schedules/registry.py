@@ -1,7 +1,4 @@
-"""Qué DAG corre cuándo. Solo datos: ver docs/airflow.md para elegir horario.
-
-Los DAGs bootstrap no están aquí: declaran `schedule=None` y corren bajo demanda.
-"""
+"""Cronógrama de los DAGs. Para elegir horario ver: docs/airflow.md."""
 
 from typing import Final
 
@@ -13,15 +10,16 @@ SCHEDULES: Final[dict[str, Schedule]] = {
     "etl_emec_update": Schedule("emec", "0 0 1 * *", "cada mes, el día 1"),
     "etl_emim_update": Schedule("emim", "0 1 1 * *", "cada mes, el día 1"),
     "etl_ems_update": Schedule("ems", "0 2 1 * *", "cada mes, el día 1"),
+    "etl_repd_update": Schedule("repd", "0 3 1 * *", "cada mes, el día 1"),
     "etl_enec_update": Schedule("enec", "0 4 1 * *", "cada mes, el día 1"),
     "etl_establecimientos_de_salud_update": Schedule("establecimientos_de_salud", "0 5 1 * *", "cada mes, el día 1"),
     "etl_fiscalia_update": Schedule("fiscalia", "0 6 1 * *", "cada mes, el día 1"),
     "etl_inpc_update": Schedule("inpc", "0 7 1 * *", "cada mes, el día 1"),
-    "etl_rastros_update": Schedule("rastros", "0 9 1 * *", "cada mes, el día 1"),
-    "etl_repd_update": Schedule("repd", "0 3 1 * *", "cada mes, el día 1"),
-    "etl_delitos_fuero_comun_update": Schedule("delitos_fuero_comun", "0 12 1 * *", "cada mes, el día 1"),
     "etl_datamexico_update": Schedule("datamexico", "0 8 1 */3 *", "cada 3 meses, el día 1"),
+    "etl_rastros_update": Schedule("rastros", "0 9 1 * *", "cada mes, el día 1"),
     "etl_etef_update": Schedule("etef", "0 10 1 */3 *", "cada 3 meses, el día 1"),
+    "etl_denue_update": Schedule("denue", "0 11 11 * *", "cada mes, el día 11"),
+    "etl_delitos_fuero_comun_update": Schedule("delitos_fuero_comun", "0 12 1 * *", "cada mes, el día 1"),
     "etl_agropecuario_siap_update": Schedule("agropecuario_siap", "0 13 1 1 *", "cada año, el 1 de enero"),
     "etl_nacimientos_dgis_update": Schedule("nacimientos_dgis", "0 14 1 1 *", "cada año, el 1 de enero"),
     "etl_produccion_ganadera_update": Schedule("produccion_ganadera", "0 15 1 1 *", "cada año, el 1 de enero"),
