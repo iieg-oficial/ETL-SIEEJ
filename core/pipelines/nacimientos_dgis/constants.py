@@ -12,8 +12,6 @@ EDADPADRE_INVALID = {888, 999}
 
 DOWNLOAD_TIMEOUT = 300
 
-EXTRACT_POOL = "extract_pool"
-
 COPY_COLS = [
     "anio",
     "cve_geo",

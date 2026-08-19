@@ -22,6 +22,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: dag-tests
+        name: DAG concurrency and schedule tests
+        language: system
+        entry: pytest tests/dags tests/schedules -q
+        pass_filenames: false
+        files: ^(dags/|core/schedules/|core/constants/concurrency\.py|tests/(dags|schedules)/)
+
       - id: commitlint
         name: commitlint
         language: script

@@ -1,0 +1,41 @@
+id: pobreza_extrema_municipal
+nombre: Población en situación de pobreza extrema, municipal
+tema: pobreza
+definicion: >
+  Porcentaje de personas en pobreza extrema: con tres o más carencias sociales y
+  un ingreso inferior a la línea de pobreza extrema por ingresos.
+unidad: porcentaje
+fuente: CONEVAL — Medición de la pobreza multidimensional municipal
+pipeline: pobreza_multidimensional
+origen: vw_pobreza_multidimencional
+nivel: municipal
+periodicidad: quinquenal
+cobertura:
+  geografica: Nacional
+  temporal: "2010, 2015, 2020"
+notas: |
+  Subconjunto de pobreza_municipal, no una serie independiente.
+  Los tres cortes usan metodologías distintas del CONEVAL: la serie no es
+  estrictamente comparable año contra año.
+parametros:
+  - nombre: cve_geo
+    tipo: str
+    requerido: false
+    descripcion: Clave INEGI de 5 dígitos del municipio (ej. 14039). Omitir para todos.
+  - nombre: anio_min
+    tipo: int
+    requerido: false
+    descripcion: Año inicial de la serie. Omitir para los tres cortes.
+sql: |
+  SELECT
+      cve_mun::text            AS cve_geo,
+      nombre_municipio::text   AS nombre_geo,
+      anio::text               AS periodo,
+      pobreza_ext_porcentaje::numeric AS valor,
+      NULL::text               AS categoria
+  FROM vw_pobreza_multidimencional
+  WHERE (CAST(:cve_geo AS text) IS NULL
+         OR cve_mun = CAST(:cve_geo AS text))
+    AND (CAST(:anio_min AS integer) IS NULL
+         OR anio >= CAST(:anio_min AS integer))
+  ORDER BY cve_geo, periodo

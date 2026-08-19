@@ -8,6 +8,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
+from core.schedules import schedule_for
+
 
 def run_bootstrap() -> None:
     from core.pipeline import Pipeline
@@ -74,6 +76,7 @@ with DAG(
     start_date=datetime(year=2026, month=1, day=1),
     schedule=None,
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "defunciones", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -85,9 +88,10 @@ with DAG(
     "etl_defunciones_update",
     default_args=default_args_update,
     description="Defunciones Update - carga anual de la ultima edicion publicada por DGIS",
-    schedule="0 4 1 7 *",
+    schedule=schedule_for("etl_defunciones_update"),
     start_date=datetime(year=2026, month=7, day=1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "defunciones", "update"],
 ) as dag_update:
     update_task = PythonOperator(

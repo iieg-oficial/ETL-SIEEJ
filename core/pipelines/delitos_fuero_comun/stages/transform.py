@@ -21,7 +21,7 @@ class DelitosTransform(Stage):
 
     def action(self, input_data: Optional[Any] = None) -> dict:
         df_historico = None
-        if self.mode == "bootstrap" and input_data.get("csv_historico"):
+        if input_data.get("csv_historico"):
             df_historico = self._read_and_normalize(input_data["csv_historico"])
             self.logger.info(f"Histórico: {len(df_historico)} filas")
 

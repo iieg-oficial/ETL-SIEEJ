@@ -27,5 +27,7 @@ from .mappings import (
 from .periods import (
     next_month_period,
     generate_monthly_periods,
+    build_fecha,
+    build_fecha_trimestre,
 )
 from .views import refresh_materialized_views

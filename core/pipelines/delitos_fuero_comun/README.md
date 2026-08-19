@@ -24,7 +24,7 @@ Estos valores son solo un ejemplo/caché de la última corrida: se resuelven y s
 | Última fecha disponible | `2025-12` (histórico) / `2026-MM` (en curso) |
 | Frecuencia de actualización | Mensual |
 | Desagregación | Nacional, Municipal |
-| ¿Tiene update? | Sí (tabla 2026 únicamente) |
+| ¿Tiene update? | Sí (histórico y 2026, ambos vía upsert) |
 | Update | Automático |
 
 ## Diagrama de entidad relación
@@ -53,6 +53,7 @@ Estos valores son solo un ejemplo/caché de la última corrida: se resuelven y s
 | `V2__create_stg_2015_2025.sql` | Tabla histórica `stg_delitos_fuero_comun_historico` (2015-2025) |
 | `V3__create_stg_2026.sql` | Tabla de año en curso `stg_delitos_fuero_comun_2026` |
 | `V4__create_vistas.sql` | Vistas analíticas unificadas |
+| `V13__add_updated_at_historico.sql` | Agrega `updated_at` al histórico, para poder hacer upsert en el update mensual |
 
 ## Variables de entorno
 
@@ -65,7 +66,7 @@ Estos valores son solo un ejemplo/caché de la última corrida: se resuelven y s
 
 ### Extract
 
-Descarga los ZIPs desde las URLs de SharePoint del SESNSP. En bootstrap descarga ambos archivos; en update solo descarga `URL_2026`.
+Descarga los ZIPs desde las URLs de SharePoint del SESNSP. Se descargan ambos archivos (histórico y 2026) tanto en bootstrap como en update, porque SESNSP revisa y corrige el histórico cada mes, no solo el año en curso.
 
 **Resolución dinámica de las URLs de descarga**
 
@@ -75,8 +76,10 @@ Los links de SharePoint publicados en https://www.gob.mx/sesnsp/acciones-y-progr
 2. **Extrae todos los `<a>`** de la página como pares `(texto, href)`, usando `html.parser` de la librería estándar (la página es HTML estático, no requiere JavaScript).
 3. **Normaliza el texto** de cada link: quita acentos, colapsa espacios y pasa a minúsculas. Ej. `"Enero - junio 2026 (Fuero común - Víctimas). Incidencia delictiva municipal"` → `"enero - junio 2026 (fuero comun - victimas). incidencia delictiva municipal"`.
 4. **Identifica cada link por palabras clave estables, ignorando la parte que cambia cada mes** (el rango de fechas al inicio del texto nunca se usa para decidir):
-   - Vigente: el texto normalizado contiene `"fuero"` + `"victimas"` + `"incidencia delictiva municipal"`.
-   - Histórico: contiene `"fuero"` + `"delitos"` + `"incidencia delictiva municipal"` + un rango de dos años (regex `\d{4}\s*-\s*\d{4}`, ej. `2015 - 2025`) — este último requisito evita confundirlo con el link mensual, que también dice "incidencia delictiva municipal" pero sin rango de años.
+   - Vigente: el texto normalizado contiene `"fuero"` + `"delitos"` + `"incidencia delictiva municipal"`, sin la palabra `"tablero"` (excluye el link del dashboard) y sin rango de años.
+   - Histórico: mismos criterios, pero exige un rango de dos años (regex `\d{4}\s*-\s*\d{4}`, ej. `2015 - 2025`) — este requisito evita confundirlo con el link mensual, que también dice "incidencia delictiva municipal" pero sin rango de años.
+
+   SESNSP publica un tercer archivo para el periodo vigente, "(Fuero común - Víctimas)", desagregado por Sexo/Rango de edad — se excluye a propósito porque no comparte grano con el histórico (ver issue #223).
    - Se toma el primer anchor que matchea cada condición.
 5. **Convierte el href a descarga directa**: el link crudo de SharePoint abre la vista previa web, no el archivo. Se le agrega `download=1` a la query string (preservando cualquier parámetro `e=` existente) con `urllib.parse`.
 6. **Fallback si algo falla**: si no se puede descargar la página, o no se identifican ambos links (p. ej. el sitio cambió de estructura), `resolve_urls()` devuelve `None`. `DelitosExtract.source()` entonces usa el último valor guardado en `.env` y deja un `logger.warning` explícito en el log de Airflow, para que se revise manualmente ese mes sin que el pipeline se caiga.
@@ -88,7 +91,7 @@ Extrae el CSV del ZIP, normaliza texto, extrae catálogos de bien jurídico/tipo
 
 ### Load
 
-Bootstrap: inserta catálogos y carga masiva en ambas tablas. Update: trunca y recarga `stg_delitos_fuero_comun_2026` con los datos más recientes.
+Bootstrap: inserta catálogos y carga masiva en ambas tablas (`ON CONFLICT DO NOTHING`, no hay filas previas que pisar). Update: upsert por llave natural (`ON CONFLICT DO UPDATE`) en ambas tablas — histórico y 2026 — para reflejar las correcciones que SESNSP publica cada mes tanto en el año en curso como en años anteriores.
 
 ## Ejecución
 
@@ -107,4 +110,4 @@ conda run -n etl python -m core.pipelines.delitos_fuero_comun update
 
 ## Notas adicionales
 
-Las URLs de SharePoint del SESNSP cambian cada año; cuando publiquen el consolidado 2026, habrá que mover los datos a la tabla histórica y crear una nueva tabla para 2027. El update solo actualiza la tabla del año en curso.
+Las URLs de SharePoint del SESNSP cambian cada año; cuando publiquen el consolidado 2026, habrá que mover los datos a la tabla histórica y crear una nueva tabla para 2027.

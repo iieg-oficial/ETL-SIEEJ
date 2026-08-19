@@ -1,0 +1,36 @@
+id: tasa_informalidad_laboral_jalisco
+nombre: Tasa de informalidad laboral 1, Jalisco
+tema: empleo
+definicion: >
+  Porcentaje de la población ocupada que es laboralmente informal (POI, empleo
+  principal informal, entre población ocupada por cien), calculado
+  trimestralmente a partir de los microdatos de la ENOE.
+unidad: porcentaje
+fuente: INEGI — Encuesta Nacional de Ocupación y Empleo (ENOE), microdatos
+pipeline: enoe_microdatos
+origen: mv_enoe_tasas_jalisco
+nivel: estatal
+periodicidad: trimestral
+cobertura:
+  geografica: Jalisco
+  temporal: "2005-actual"
+notas: |
+  Corresponde a la columna til1 de la vista materializada (POI / PO × 100).
+  No confundir con til2, que se calcula sobre la población ocupada no
+  agropecuaria.
+parametros:
+  - nombre: anio_min
+    tipo: int
+    requerido: false
+    descripcion: Año inicial de la serie. Omitir para la serie completa.
+sql: |
+  SELECT
+      '14'::text                             AS cve_geo,
+      'Jalisco'::text                        AS nombre_geo,
+      anio::text || '-Q' || trimestre::text  AS periodo,
+      til1::numeric                          AS valor,
+      NULL::text                             AS categoria
+  FROM mv_enoe_tasas_jalisco
+  WHERE (CAST(:anio_min AS integer) IS NULL
+         OR anio >= CAST(:anio_min AS integer))
+  ORDER BY anio, trimestre

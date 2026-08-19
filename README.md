@@ -182,6 +182,8 @@ http://localhost:8080
 | [⚙️ Guía de Just](docs/just.md) | Herramienta de comandos para automatizar funciones del sistema |
 | [🗄️ Guía de Flyway](docs/flyway.md) | Migraciones de esquema: setup, comandos y convenciones |
 | [📋 Convención de commits](docs/convencion-commits.md) | Tipos, scopes, ejemplos y git hook de validación |
+| [📊 Banco de indicadores](docs/banco_indicadores.md) | Catálogo YAML de indicadores curados sobre las bases de los pipelines |
+| [🔌 Contrato del banco de indicadores](docs/contrato_banco_indicadores.md) | Reglas de negocio para construir la api/MCP que lo expone a agentes de IA |
 
 
 ---

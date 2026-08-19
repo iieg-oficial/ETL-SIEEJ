@@ -51,6 +51,7 @@ with DAG(
     schedule=None,
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "censos_economicos", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(

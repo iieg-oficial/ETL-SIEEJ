@@ -12,6 +12,7 @@ from core.pipeline import Pipeline
 from core.pipelines.etef.stages.extract import EtefExtractor
 from core.pipelines.etef.stages.transform import EtefTransformer
 from core.pipelines.etef.stages.load import EtefLoader
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -46,6 +47,7 @@ with DAG(
     description="ETEF Bootstrap — Carga inicial completa (on demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "etef", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
@@ -60,9 +62,10 @@ with DAG(
         "retry_delay": timedelta(minutes=5),
     },
     description="ETEF Update — Carga trimestral de nuevos datos",
-    schedule="@quarterly",
+    schedule=schedule_for("etl_etef_update"),
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "etef", "update"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

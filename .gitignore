@@ -38,6 +38,9 @@ dumps/*
 # Migrations
 **/flyway.conf
 
+# Airflow pool provisioning (generated from core/constants/concurrency.py)
+config/airflow_pools.json
+
 # Claude local settings
 .claude/settings.local.json
 

@@ -39,6 +39,7 @@ with DAG(
     description="Marginacion Bootstrap - CONAPO (On Demand)",
     start_date=datetime(year=2024, month=1, day=1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "marginacion", "bootstrap", "on-demand", "conapo"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
