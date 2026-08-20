@@ -6,6 +6,8 @@ from core.utils.logger import get_console_logger
 
 PERIODO_FORMAT = "%Y%m"
 
+QUARTER_FIRST_MONTH = {1: 1, 2: 4, 3: 7, 4: 10}
+
 logger = get_console_logger(__name__)
 
 
@@ -41,6 +43,29 @@ def build_fecha(anio: pd.Series, mes: pd.Series) -> pd.Series:
     invalid = int(fecha.isna().sum())
     if invalid:
         logger.warning(f"{invalid:,} rows with an unreadable period (year/month), they will be dropped")
+
+    return fecha
+
+
+def build_fecha_trimestre(anio: pd.Series, trimestre: pd.Series) -> pd.Series:
+    """Combine a year and a quarter column into the first day of the reference quarter.
+
+    Quarterly sources publish the period as an ordinal (1-4), not as a month, so
+    they cannot go through build_fecha: T2 is April, not February. The quarter is
+    translated to its first month and the pair is parsed as any other period.
+
+    Unparseable periods become NaT so the caller can drop them instead of losing
+    the whole edition to a raise.
+    """
+    quarter = pd.to_numeric(_period_part(trimestre, width=1), errors="coerce")
+    mes = quarter.map(QUARTER_FIRST_MONTH)
+
+    periodo = _period_part(anio, width=4) + _period_part(mes, width=2)
+    fecha = pd.to_datetime(periodo, format=PERIODO_FORMAT, errors="coerce")
+
+    invalid = int(fecha.isna().sum())
+    if invalid:
+        logger.warning(f"{invalid:,} rows with an unreadable period (year/quarter), they will be dropped")
 
     return fecha
 

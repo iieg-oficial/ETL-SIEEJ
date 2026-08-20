@@ -14,6 +14,9 @@ jobs:
           python-version: "3.12"
 
       - uses: pre-commit/action@v3.0.1
+        env:
+          # dag-tests necesita airflow y las deps del proyecto; corre en docker-build
+          SKIP: dag-tests
 
       - name: Ruff check
         run: |

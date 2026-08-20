@@ -1,0 +1,34 @@
+id: tasa_subocupacion_jalisco
+nombre: Tasa de subocupación, Jalisco
+tema: empleo
+definicion: >
+  Porcentaje de la población ocupada con necesidad y disponibilidad de trabajar
+  más horas (PSUB_O / PO × 100), calculado trimestralmente a partir de los
+  microdatos de la ENOE.
+unidad: porcentaje
+fuente: INEGI — Encuesta Nacional de Ocupación y Empleo (ENOE), microdatos
+pipeline: enoe_microdatos
+origen: mv_enoe_tasas_jalisco
+nivel: estatal
+periodicidad: trimestral
+cobertura:
+  geografica: Jalisco
+  temporal: "2005-actual"
+notas: |
+  Corresponde a la columna tsub de la vista materializada.
+parametros:
+  - nombre: anio_min
+    tipo: int
+    requerido: false
+    descripcion: Año inicial de la serie. Omitir para la serie completa.
+sql: |
+  SELECT
+      '14'::text                             AS cve_geo,
+      'Jalisco'::text                        AS nombre_geo,
+      anio::text || '-Q' || trimestre::text  AS periodo,
+      tsub::numeric                          AS valor,
+      NULL::text                             AS categoria
+  FROM mv_enoe_tasas_jalisco
+  WHERE (CAST(:anio_min AS integer) IS NULL
+         OR anio >= CAST(:anio_min AS integer))
+  ORDER BY anio, trimestre

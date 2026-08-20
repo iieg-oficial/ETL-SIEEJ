@@ -37,6 +37,7 @@ with DAG(
     description="Censo Poblacion Bootstrap - INEGI 2010, 2015, 2020 (On Demand)",
     start_date=datetime(year=2024, month=1, day=1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "censo_poblacion", "bootstrap", "on-demand", "inegi"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(

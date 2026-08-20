@@ -12,6 +12,7 @@ from core.pipeline import Pipeline
 from core.pipelines.repd.stages.extract import REPDExtractor
 from core.pipelines.repd.stages.load import REPDLoader
 from core.pipelines.repd.stages.transform import REPDTransformer
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -56,6 +57,7 @@ with DAG(
     description="REPD Bootstrap - Carga inicial completa (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "repd", "bootstrap", "on-demand", "personas-desaparecidas"],
 ) as dag_bootstrap:
@@ -79,9 +81,10 @@ with DAG(
     "etl_repd_update",
     default_args=default_args_update,
     description="REPD Update - Carga incremental mensual",
-    schedule="0 3 1 * *",
+    schedule=schedule_for("etl_repd_update"),
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "repd", "update", "monthly", "personas-desaparecidas"],
 ) as dag_update:
     update_task = PythonOperator(

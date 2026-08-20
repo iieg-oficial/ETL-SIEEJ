@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 
+from core.schedules import schedule_for
+
+
 PIPELINE_NAME = "rastros"
 
 
@@ -52,6 +55,7 @@ with DAG(
     description="Rastros (ESGRM) Bootstrap — Carga inicial 2008 a la fecha (On Demand)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "rastros", "bootstrap", "on-demand", "inegi", "esgrm"],
 ) as dag_bootstrap:
@@ -64,7 +68,8 @@ with DAG(
     description="Rastros (ESGRM) Update — Actualización mensual (INEGI)",
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    schedule="@monthly",
+    max_active_runs=1,
+    schedule=schedule_for("etl_rastros_update"),
     tags=["etl", "rastros", "update", "inegi", "esgrm"],
 ) as dag_update:
     PythonOperator(task_id="run_update", python_callable=run_update)

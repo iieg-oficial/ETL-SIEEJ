@@ -1,0 +1,41 @@
+id: tasa_desocupacion_municipal
+nombre: Tasa de desocupación municipal
+tema: empleo
+definicion: >
+  Porcentaje de la población económicamente activa que se encuentra desocupada,
+  estimado a nivel municipal para todos los municipios del país.
+unidad: porcentaje
+fuente: INEGI — Indicadores del Mercado Laboral Municipal (ILMM)
+pipeline: ilmm
+origen: vw_tasa_desocupacion
+nivel: municipal
+periodicidad: anual
+cobertura:
+  geografica: Nacional
+  temporal: "2017-2024"
+notas: |
+  La vista de origen expone también el error estándar; el banco no lo devuelve
+  porque rompería el formato largo.
+  No comparable con la tasa estatal de la ENOE: distinto diseño muestral.
+parametros:
+  - nombre: cve_geo
+    tipo: str
+    requerido: false
+    descripcion: Clave INEGI de 5 dígitos del municipio (ej. 14039). Omitir para todos.
+  - nombre: anio_min
+    tipo: int
+    requerido: false
+    descripcion: Año inicial de la serie. Omitir para la serie completa.
+sql: |
+  SELECT
+      clave_municipio::text          AS cve_geo,
+      nombre::text                   AS nombre_geo,
+      EXTRACT(YEAR FROM fecha)::text AS periodo,
+      valor::numeric                 AS valor,
+      NULL::text                     AS categoria
+  FROM vw_tasa_desocupacion
+  WHERE (CAST(:cve_geo AS text) IS NULL
+         OR clave_municipio = CAST(:cve_geo AS text))
+    AND (CAST(:anio_min AS integer) IS NULL
+         OR EXTRACT(YEAR FROM fecha) >= CAST(:anio_min AS integer))
+  ORDER BY cve_geo, periodo

@@ -13,6 +13,7 @@ from core.pipelines.enoe.config import settings
 from core.pipelines.enoe.stages.extract import EnoeExtract
 from core.pipelines.enoe.stages.load import EnoeLoad
 from core.pipelines.enoe.stages.transform import EnoeTransform
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -58,6 +59,7 @@ with DAG(
     schedule=None,
     start_date=datetime(2026, 1, 1),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "enoe", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     PythonOperator(
@@ -70,9 +72,10 @@ with DAG(
     "etl_enoe_update",
     default_args=default_args_update,
     description="ENOE Update — Actualización trimestral (día 70 del trimestre)",
-    schedule="0 3 10 3,6,9,12 *",
+    schedule=schedule_for("etl_enoe_update"),
     start_date=datetime(2026, 3, 10, 3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "enoe", "update"],
 ) as dag_update:
     PythonOperator(

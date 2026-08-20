@@ -5,12 +5,14 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 from core.pipeline import Pipeline
 from core.pipelines.datamexico.helpers.quarters import get_start_quarter
 from core.pipelines.datamexico.stages.extract import DataMexicoExtract
 from core.pipelines.datamexico.stages.transform import DataMexicoTransform
 from core.pipelines.datamexico.stages.load import DataMexicoLoad
+from core.schedules import schedule_for
 
 
 def run():
@@ -36,9 +38,10 @@ with DAG(
     "etl_datamexico_update",
     default_args=default_arg,
     description="DataMexico Update - Quarterly update",
-    schedule="0 8 1 */3 *",
+    schedule=schedule_for("etl_datamexico_update"),
     start_date=datetime(year=2026, month=1, day=1, hour=4),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "datamexico", "update", "bootstrap", "comercio-exterior"],
 ) as dag_update:
     update_task = PythonOperator(

@@ -43,6 +43,7 @@ with DAG(
     description="EFIPEM Bootstrap - Carga inicial municipal anual Jalisco (On Demand)",
     start_date=datetime(2024, 1, 1),
     catchup=False,
+    max_active_runs=1,
     schedule=None,
     tags=["etl", "efipem", "bootstrap", "on-demand", "inegi", "finanzas-publicas"],
 ) as dag_bootstrap:

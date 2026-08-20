@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+
 from datetime import datetime, timedelta
 
 from core.pipeline import Pipeline
@@ -12,6 +13,7 @@ from core.pipelines.establecimientos_de_salud.stages.extract import Establecimie
 from core.pipelines.establecimientos_de_salud.stages.transform import EstablecimientosTransform
 from core.pipelines.establecimientos_de_salud.stages.load import EstablecimientosLoad
 from core.pipelines.establecimientos_de_salud.config import settings
+from core.schedules import schedule_for
 
 
 def run_bootstrap():
@@ -59,6 +61,7 @@ with DAG(
     description="Establecimientos de Salud Bootstrap - Initial full load (On Demand)",
     start_date=datetime(year=2024, month=1, day=22, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "establecimientos_de_salud", "bootstrap", "on-demand"],
 ) as dag_bootstrap:
     bootstrap_task = PythonOperator(
@@ -70,9 +73,10 @@ with DAG(
     "etl_establecimientos_de_salud_update",
     default_args=default_args_update,
     description="Establecimientos de Salud Update - Monthly catch-up",
-    schedule="@monthly",
+    schedule=schedule_for("etl_establecimientos_de_salud_update"),
     start_date=datetime(year=2024, month=1, day=22, hour=3),
     catchup=False,
+    max_active_runs=1,
     tags=["etl", "establecimientos_de_salud", "update"],
 ) as dag_update:
     update_task = PythonOperator(

@@ -17,6 +17,7 @@ from core.pipeline import Pipeline
 from core.pipelines.delitos_fuero_comun.stages.extract import DelitosExtract
 from core.pipelines.delitos_fuero_comun.stages.load import DelitosLoad
 from core.pipelines.delitos_fuero_comun.stages.transform import DelitosTransform
+from core.schedules import schedule_for
 
 
 def run_bootstrap() -> None:
@@ -61,6 +62,7 @@ if _AIRFLOW_AVAILABLE:
         start_date=datetime(2024, 1, 1),
         schedule=None,
         catchup=False,
+        max_active_runs=1,
         tags=["etl", "delitos_fuero_comun", "sspc", "bootstrap", "gold"],
     ) as dag_bootstrap:
         PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
@@ -70,8 +72,9 @@ if _AIRFLOW_AVAILABLE:
         default_args=_default_args_update,
         description="Delitos Fuero Común Update — SSPC datos 2026 (mensual)",
         start_date=datetime(2024, 1, 1),
-        schedule="0 12 1 * *",
+        schedule=schedule_for("etl_delitos_fuero_comun_update"),
         catchup=False,
+        max_active_runs=1,
         tags=["etl", "delitos_fuero_comun", "sspc", "update", "gold"],
     ) as dag_update:
         PythonOperator(task_id="run_update", python_callable=run_update)

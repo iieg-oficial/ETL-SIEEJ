@@ -5,6 +5,7 @@ requires-python = ">=3.12"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--import-mode=importlib"
+pythonpath = ["."]
 markers = [
     "integration: tests that require a live PostgreSQL database",
 ]
