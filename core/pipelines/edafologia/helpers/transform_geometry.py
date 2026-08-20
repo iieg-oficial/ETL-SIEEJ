@@ -97,8 +97,12 @@ def clip_to_mask(gdf: gpd.GeoDataFrame, mask: Any) -> tuple[gpd.GeoDataFrame, in
 def dissolve_by_source_objectid(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     if gdf.empty:
         return gdf
-    columns = [column for column in gdf.columns if column != gdf.geometry.name and column != "source_objectid"]
-    dissolved = gdf.dissolve(by="source_objectid", as_index=False, aggfunc={column: "first" for column in columns})
+    columns = [
+        column for column in gdf.columns if column != gdf.geometry.name and column != "identificador_objeto_fuente"
+    ]
+    dissolved = gdf.dissolve(
+        by="identificador_objeto_fuente", as_index=False, aggfunc={column: "first" for column in columns}
+    )
     dissolved[dissolved.geometry.name] = dissolved.geometry.map(polygonal_part)
     dissolved = dissolved.loc[~(dissolved.geometry.isna() | dissolved.geometry.is_empty)].copy()
     return dissolved
@@ -122,13 +126,13 @@ def final_spatial_validation(
         raise ValueError(f"Transformed product must contain only MultiPolygon geometries: {geometry_types}")
     if null_geometries or empty_geometries or invalid_geometries or non_positive_area:
         raise ValueError("Transformed product has null, empty, invalid, or non-positive-area geometries")
-    if not gdf["source_objectid"].is_unique:
-        raise ValueError("Transformed product has duplicated source_objectid")
+    if not gdf["identificador_objeto_fuente"].is_unique:
+        raise ValueError("Transformed product has duplicated identificador_objeto_fuente")
     if not intersects_mask:
         raise ValueError("Transformed product contains geometries outside the canonical coverage")
 
     union = gdf.geometry.union_all()
-    area_by_entity = gdf.set_index("source_objectid").geometry.area
+    area_by_entity = gdf.set_index("identificador_objeto_fuente").geometry.area
     sum_area = float(area_by_entity.sum())
     union_area = float(union.area)
     return {

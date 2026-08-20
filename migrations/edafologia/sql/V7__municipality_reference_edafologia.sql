@@ -66,106 +66,21 @@ BEGIN
 END
 $$;
 
-ALTER TABLE edafologia_fragmentos_municipales
-    ADD COLUMN municipality_id INTEGER;
-
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM edafologia_fragmentos_municipales AS f
-        LEFT JOIN cvegeo_municipalities AS m
-            ON f.municipality_cvegeo = m.cvegeo
-            AND m.cve_ent = 14
-        GROUP BY f.id
-        HAVING count(m.cve_mun) <> 1
-    ) THEN
-        RAISE EXCEPTION 'Cannot migrate fragments: an EEMMM value has zero or multiple Jalisco matches';
-    END IF;
-
-    IF EXISTS (
-        SELECT 1
-        FROM edafologia_fragmentos_municipales AS f
-        JOIN cvegeo_municipalities AS m
-            ON f.municipality_cvegeo = m.cvegeo
-            AND m.cve_ent = 14
-        GROUP BY f.edafologia_id, m.cve_mun, f.fuente_limite_municipal_id
-        HAVING count(*) > 1
-    ) THEN
-        RAISE EXCEPTION 'Cannot migrate fragments: cve_mun would lose logical-key uniqueness';
-    END IF;
-END
-$$;
-
-UPDATE edafologia_fragmentos_municipales AS f
-SET municipality_id = m.cve_mun
-FROM cvegeo_municipalities AS m
-WHERE f.municipality_cvegeo = m.cvegeo
-  AND m.cve_ent = 14;
-
-DO $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM edafologia_fragmentos_municipales AS f
-        WHERE f.municipality_id IS NULL
-           OR NOT EXISTS (
-               SELECT 1
-               FROM cvegeo_municipalities AS m
-               WHERE m.cve_ent = 14
-                 AND m.cve_mun = f.municipality_id
-                 AND m.cvegeo = f.municipality_cvegeo
-           )
-    ) THEN
-        RAISE EXCEPTION 'Cannot migrate fragments: backfill is null, outside Jalisco, or not exact';
-    END IF;
-END
-$$;
-
 DROP VIEW edafologia_resumenes_municipales;
-
-ALTER TABLE edafologia_fragmentos_municipales
-    DROP CONSTRAINT uq_edafologia_fragmentos_fuente_municipio;
-
-DROP INDEX idx_edafologia_fragmentos_municipality_cvegeo;
-DROP INDEX idx_edafologia_fragmentos_fuente_municipio_version;
-
-ALTER TABLE edafologia_fragmentos_municipales
-    ALTER COLUMN municipality_id SET NOT NULL;
-
-ALTER TABLE edafologia_fragmentos_municipales
-    ADD CONSTRAINT uq_edafologia_fragmentos_fuente_municipio UNIQUE (
-        edafologia_id,
-        municipality_id,
-        fuente_limite_municipal_id
-    );
-
-ALTER TABLE edafologia_fragmentos_municipales
-    DROP COLUMN municipality_cvegeo;
-
-CREATE INDEX idx_edafologia_fragmentos_municipality_id
-    ON edafologia_fragmentos_municipales (municipality_id);
-
-CREATE INDEX idx_edafologia_fragmentos_fuente_municipio_version
-    ON edafologia_fragmentos_municipales (
-        fuente_limite_municipal_id,
-        municipality_id,
-        source_version
-    );
 
 CREATE VIEW edafologia_resumenes_municipales AS
 SELECT
     f.fuente_limite_municipal_id,
     f.municipality_id,
     m.cvegeo,
-    e.source_version,
+    e.version_fuente,
     e.grupo_edafologico_id,
     e.calificador_primario_id,
     e.calificador_secundario_id,
-    SUM(f.area_m2)::DOUBLE PRECISION AS area_m2,
-    SUM(f.area_ha)::DOUBLE PRECISION AS area_ha,
-    SUM(f.pct_municipio_total)::DOUBLE PRECISION AS pct_municipio,
-    COUNT(*)::INTEGER AS fragment_count
+    SUM(f.superficie_m2)::DOUBLE PRECISION AS superficie_m2,
+    SUM(f.superficie_ha)::DOUBLE PRECISION AS superficie_ha,
+    SUM(f.porcentaje_municipio_total)::DOUBLE PRECISION AS porcentaje_municipio,
+    COUNT(*)::INTEGER AS cantidad_fragmentos
 FROM edafologia_fragmentos_municipales AS f
 JOIN edafologias AS e
     ON e.id = f.edafologia_id
@@ -176,7 +91,7 @@ GROUP BY
     f.fuente_limite_municipal_id,
     f.municipality_id,
     m.cvegeo,
-    e.source_version,
+    e.version_fuente,
     e.grupo_edafologico_id,
     e.calificador_primario_id,
     e.calificador_secundario_id;
@@ -193,7 +108,7 @@ COMMENT ON COLUMN edafologia_resumenes_municipales.municipality_id IS
     'Clave cve_mun del municipio dentro de Jalisco.';
 COMMENT ON COLUMN edafologia_resumenes_municipales.cvegeo IS
     'Clave geoestadistica EEMMM expuesta desde cvegeo_municipalities para consulta y trazabilidad.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.source_version IS
+COMMENT ON COLUMN edafologia_resumenes_municipales.version_fuente IS
     'Version de la fuente edafologica resumida.';
 COMMENT ON COLUMN edafologia_resumenes_municipales.grupo_edafologico_id IS
     'Grupo edafologico principal de la categoria resumida.';
@@ -201,11 +116,11 @@ COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_primario_id IS
     'Calificador en rol primario de la categoria resumida.';
 COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_secundario_id IS
     'Calificador en rol secundario de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.area_m2 IS
-    'Suma de area_m2 de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.area_ha IS
-    'Suma de area_ha de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.pct_municipio IS
-    'Suma de pct_municipio_total de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.fragment_count IS
+COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_m2 IS
+    'Suma de superficie_m2 de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_ha IS
+    'Suma de superficie_ha de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN edafologia_resumenes_municipales.porcentaje_municipio IS
+    'Suma de porcentaje_municipio_total de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN edafologia_resumenes_municipales.cantidad_fragmentos IS
     'Numero de fragmentos persistentes incluidos en el agregado.';

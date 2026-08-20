@@ -21,7 +21,9 @@ MUNICIPAL_OVERLAY_OUTPUT_FILENAME: Final[str] = "edafologia_fragmentos_municipal
 MUNICIPAL_OVERLAY_OUTPUT_LAYER: Final[str] = "edafologia_fragmentos_municipales"
 MUNICIPAL_OVERLAY_MANIFEST_FILENAME: Final[str] = "overlay_manifest.json"
 CVEGEO_TABLE: Final[str] = "public.cvegeo_municipalities"
+CVEGEO_DATABASE_NAME: Final[str] = "cvegeo"
 CVEGEO_ENTITY_FILTER: Final[str] = "cve_ent = 14"
+MUNICIPAL_BOUNDARY_ARTIFACT_VERSION: Final[str] = "cvegeo V1"
 BOUNDARIES_GPKG_FILENAME: Final[str] = "municipal_boundaries.gpkg"
 CONTROLLED_CATALOG_VERSION: Final[str] = "v1"
 CONTROLLED_CATALOG_ORIGIN: Final[str] = "elaboracion_propia"
@@ -50,16 +52,18 @@ MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
         "layer": "municipios_iieg",
         "geometry_column": "geom_iieg",
         "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
+        "version": MUNICIPAL_BOUNDARY_ARTIFACT_VERSION,
     },
     "inegi": {
         "layer": "municipios_inegi",
         "geometry_column": "geom_inegi",
         "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
+        "version": MUNICIPAL_BOUNDARY_ARTIFACT_VERSION,
     },
 }
 
 RENAME_HEADER: Final[dict[str, str]] = {
-    "OBJECTID": "source_objectid",
+    "OBJECTID": "identificador_objeto_fuente",
     "Clave_wrb": "clave_wrb",
     "Grupo1": "grupo1_origen",
     "Califp_g1": "califp_g1_origen",
@@ -73,8 +77,8 @@ RENAME_HEADER: Final[dict[str, str]] = {
     "Lmte_sup": "limite_superior_origen",
     "Fase_fis_u": "fase_fisica_origen",
     "Fase_qui_u": "fase_quimica_origen",
-    "Shape_Leng": "shape_leng_origen",
-    "Shape_Area": "shape_area_origen",
+    "Shape_Leng": "longitud_origen",
+    "Shape_Area": "superficie_origen",
 }
 
 EXPECTED_SOURCE_COLUMNS: Final[tuple[str, ...]] = tuple(RENAME_HEADER)
@@ -93,31 +97,31 @@ POLYGON_GEOMETRY_TYPES: Final[tuple[str, ...]] = (
 LIMIT_SOURCE_KEYS: Final[tuple[str, str]] = ("iieg", "inegi")
 SMALL_FRAGMENT_THRESHOLDS_M2: Final[tuple[float, ...]] = (0.01, 1.0, 10.0, 100.0, 1000.0)
 REQUIRED_TRANSFORM_FIELDS: Final[tuple[str, ...]] = (
-    "source_version",
-    "source_objectid",
+    "version_fuente",
+    "identificador_objeto_fuente",
     "clave_wrb",
     "grupo1_origen",
     "califp_g1_origen",
     "califs_g1_origen",
-    "source_name",
-    "source_url",
-    "source_file_name",
-    "source_file_sha256",
-    "source_downloaded_at",
-    "processed_at",
+    "nombre_fuente",
+    "url_fuente",
+    "nombre_archivo_fuente",
+    "sha256_archivo_fuente",
+    "fecha_descarga_fuente",
+    "fecha_procesamiento",
     "fecha_actualizacion",
 )
 OVERLAY_COLUMNS: Final[tuple[str, ...]] = (
-    "source_version",
-    "source_objectid",
-    "source_file_sha256",
+    "version_fuente",
+    "identificador_objeto_fuente",
+    "sha256_archivo_fuente",
     "fuente_limite_clave",
     "municipality_id",
-    "area_m2",
-    "area_ha",
-    "pct_poligono_fuente",
-    "pct_municipio_total",
-    "pct_cobertura_edafologica",
+    "superficie_m2",
+    "superficie_ha",
+    "porcentaje_poligono_fuente",
+    "porcentaje_municipio_total",
+    "porcentaje_cobertura_edafologica",
 )
 
 CANONICAL_HASH_FORMULA_VERSION: Final[str] = "edafologia-hash-v1"
@@ -126,7 +130,7 @@ CANONICAL_HASH_FIELD_SEPARATOR: Final[str] = "\u001f"
 CANONICAL_HASH_ROW_SEPARATOR: Final[str] = "\n"
 CANONICAL_HASH_NULL_TOKEN: Final[str] = "<NULL>"
 CANONICAL_HASH_GEOMETRY_SERIALIZATION: Final[str] = (
-    "ST_AsEWKB(geom, 'NDR') encoded as lowercase hexadecimal; EWKB includes SRID"
+    "ST_AsEWKB(geometria, 'NDR') encoded as lowercase hexadecimal; EWKB includes SRID"
 )
 EDA_REPORT_FILENAME: Final[str] = "reporte_eda.json"
 ERD_FILENAME: Final[str] = "erd.svg"
@@ -135,12 +139,12 @@ EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",
     "municipality_id",
     "cvegeo",
-    "source_version",
+    "version_fuente",
     "grupo_edafologico_id",
     "calificador_primario_id",
     "calificador_secundario_id",
-    "area_m2",
-    "area_ha",
-    "pct_municipio",
-    "fragment_count",
+    "superficie_m2",
+    "superficie_ha",
+    "porcentaje_municipio",
+    "cantidad_fragmentos",
 )

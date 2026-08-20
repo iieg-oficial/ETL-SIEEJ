@@ -64,7 +64,7 @@ def validate_transform_manifest(manifest: dict[str, Any], manifest_path: Path) -
     if failed:
         raise ValueError(f"Transform manifest reports invalid spatial counters: {failed}")
     if not spatial.get("source_objectid_unique"):
-        raise ValueError("Transform manifest reports duplicated source_objectid")
+        raise ValueError("Transform manifest reports duplicated identificador_objeto_fuente")
     if manifest_path.exists() and sha256_file(manifest_path) == manifest.get("transform_manifest_sha256"):
         return
 
@@ -90,5 +90,5 @@ def validate_transformed_frame(gdf: gpd.GeoDataFrame, manifest: dict[str, Any]) 
         raise ValueError("Transformed layer contains empty geometries")
     if (~gdf.geometry.is_valid & gdf.geometry.notna()).any():
         raise ValueError("Transformed layer contains invalid geometries")
-    if not gdf["source_objectid"].is_unique:
-        raise ValueError("Transformed layer contains duplicated source_objectid")
+    if not gdf["identificador_objeto_fuente"].is_unique:
+        raise ValueError("Transformed layer contains duplicated identificador_objeto_fuente")

@@ -98,12 +98,12 @@ def _minimal_extract_manifest(tmp_path: Path, zip_hash: str) -> dict[str, object
     selected_path.write_bytes(b"selected")
     boundaries_path.write_bytes(b"boundaries")
     return {
-        "source_url": "https://example.test/source.zip",
-        "source_name": "source",
-        "source_version": "Serie III",
+        "url_fuente": "https://example.test/source.zip",
+        "nombre_fuente": "source",
+        "version_fuente": "Serie III",
         "downloaded_at": "2026-07-15T00:00:00+00:00",
         "zip_path": str(zip_path),
-        "source_file_sha256": zip_hash,
+        "sha256_archivo_fuente": zip_hash,
         "selected_path": str(selected_path),
         "selected_layer": "layer",
         "selected_geometry_type": "Polygon",
@@ -147,9 +147,9 @@ def test_read_source_layer_rejects_missing_crs(monkeypatch):
 
 def test_repair_geometries_repairs_invalid_polygon():
     invalid = Polygon([(0, 0), (1, 1), (1, 0), (0, 1), (0, 0)])
-    gdf = _source_frame([invalid]).rename(columns={"OBJECTID": "source_objectid"})
+    gdf = _source_frame([invalid]).rename(columns={"OBJECTID": "identificador_objeto_fuente"})
 
-    repaired, stats = repair_and_polygonize(gdf, "source_objectid", "test")
+    repaired, stats = repair_and_polygonize(gdf, "identificador_objeto_fuente", "test")
 
     assert stats["invalid_before"] == 1
     assert stats["repaired_count"] == 1
@@ -176,7 +176,7 @@ def test_clip_uses_union_of_iieg_and_inegi():
     iieg = _boundary(_square(0, 0, 1, 1))
     inegi = _boundary(_square(2, 0, 3, 1))
     mask, _ = build_canonical_mask(iieg, inegi)
-    source = _source_frame([_square(0, 0, 3, 1)]).rename(columns={"OBJECTID": "source_objectid"})
+    source = _source_frame([_square(0, 0, 3, 1)]).rename(columns={"OBJECTID": "identificador_objeto_fuente"})
 
     clipped, selected_count = clip_to_mask(source, mask)
 
@@ -209,20 +209,22 @@ def test_transform_boundary_validation_rejects_incoherent_municipal_key():
 
 
 def test_dissolve_keeps_one_row_per_source_objectid():
-    gdf = _source_frame([_square(0, 0, 1, 1), _square(2, 0, 3, 1)]).rename(columns={"OBJECTID": "source_objectid"})
-    gdf.loc[1, "source_objectid"] = 1
+    gdf = _source_frame([_square(0, 0, 1, 1), _square(2, 0, 3, 1)]).rename(
+        columns={"OBJECTID": "identificador_objeto_fuente"}
+    )
+    gdf.loc[1, "identificador_objeto_fuente"] = 1
 
     dissolved = dissolve_by_source_objectid(gdf)
 
     assert len(dissolved) == 1
-    assert dissolved["source_objectid"].tolist() == [1]
+    assert dissolved["identificador_objeto_fuente"].tolist() == [1]
     assert dissolved.geometry.iloc[0].geom_type == "MultiPolygon"
 
 
 def test_catalog_mapping_applies_after_clip():
     gdf = _source_frame([_square(0, 0, 1, 1)], ("AC", "ab", "N")).rename(
         columns={
-            "OBJECTID": "source_objectid",
+            "OBJECTID": "identificador_objeto_fuente",
             "Grupo1": "grupo1_origen",
             "Califp_g1": "califp_g1_origen",
             "Califs_g1": "califs_g1_origen",
@@ -237,7 +239,7 @@ def test_catalog_mapping_applies_after_clip():
 def test_catalog_ids_preserve_primary_and_secondary_roles_with_same_mapping():
     gdf = _source_frame([_square(0, 0, 1, 1)], ("AC", "ab", "ab")).rename(
         columns={
-            "OBJECTID": "source_objectid",
+            "OBJECTID": "identificador_objeto_fuente",
             "Grupo1": "grupo1_origen",
             "Califp_g1": "califp_g1_origen",
             "Califs_g1": "califs_g1_origen",
@@ -254,7 +256,7 @@ def test_catalog_ids_preserve_primary_and_secondary_roles_with_same_mapping():
 def test_catalog_ids_resolve_fl_as_secondary_qualifier():
     gdf = _source_frame([_square(0, 0, 1, 1)], ("CM", "lep", "fl")).rename(
         columns={
-            "OBJECTID": "source_objectid",
+            "OBJECTID": "identificador_objeto_fuente",
             "Grupo1": "grupo1_origen",
             "Califp_g1": "califp_g1_origen",
             "Califs_g1": "califs_g1_origen",
@@ -270,7 +272,7 @@ def test_catalog_ids_resolve_fl_as_secondary_qualifier():
 def test_unmapped_code_inside_jalisco_raises():
     gdf = _source_frame([_square(0, 0, 1, 1)], ("ZZ", "ab", "N")).rename(
         columns={
-            "OBJECTID": "source_objectid",
+            "OBJECTID": "identificador_objeto_fuente",
             "Grupo1": "grupo1_origen",
             "Califp_g1": "califp_g1_origen",
             "Califs_g1": "califs_g1_origen",
@@ -287,7 +289,7 @@ def test_unmapped_code_outside_mask_does_not_block():
     mask, _ = build_canonical_mask(iieg, inegi)
     source = _source_frame([_square(0, 0, 1, 1), _square(10, 10, 11, 11)], ("AC", "ab", "N")).rename(
         columns={
-            "OBJECTID": "source_objectid",
+            "OBJECTID": "identificador_objeto_fuente",
             "Grupo1": "grupo1_origen",
             "Califp_g1": "califp_g1_origen",
             "Califs_g1": "califs_g1_origen",
@@ -322,7 +324,7 @@ def test_final_spatial_validation_accepts_valid_product():
     inegi = _boundary(_square(0, 0, 1, 1))
     mask, _ = build_canonical_mask(iieg, inegi)
     gdf = gpd.GeoDataFrame(
-        pd.DataFrame({"source_objectid": [1]}),
+        pd.DataFrame({"identificador_objeto_fuente": [1]}),
         geometry=[MultiPolygon([_square(0, 0, 1, 1)])],
         crs=f"EPSG:{CANONICAL_SRID}",
     )
@@ -339,11 +341,6 @@ def test_transform_import_does_not_require_network_or_database(monkeypatch):
 
     monkeypatch.setattr("requests.get", fail)
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
-    monkeypatch.setenv("CVEGEO_DB_PORT", "5433")
-    monkeypatch.setenv("CVEGEO_DB_NAME", "cvegeo")
     sys.modules.pop("core.pipelines.edafologia.stages.transform", None)
 
     from core.pipelines.edafologia.stages.transform import EdafologiaTransform

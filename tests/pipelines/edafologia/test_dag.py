@@ -8,9 +8,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.
 
 for key, value in {
     "SOURCE_URL": "https://example.test/source.zip",
-    "CVEGEO_DB_USER": "user",
-    "CVEGEO_DB_PASSWORD": "secret",
-    "CVEGEO_DB_HOST": "localhost",
 }.items():
     os.environ.setdefault(key, value)
 
@@ -65,6 +62,7 @@ def test_edafologia_declares_only_bootstrap_dag():
     assert set(dags) == {"etl_edafologia_bootstrap"}
     assert dags["etl_edafologia_bootstrap"].schedule is None
     assert dags["etl_edafologia_bootstrap"].catchup is False
+    assert dags["etl_edafologia_bootstrap"].max_active_runs == 1
     assert "etl_edafologia_update" not in dags
 
 

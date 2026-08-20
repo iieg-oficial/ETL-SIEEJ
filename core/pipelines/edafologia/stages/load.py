@@ -134,8 +134,8 @@ class EdafologiaLoad(Stage):
         try:
             self.db.connect()
             with self.db.get_session() as session:
-                source_version, source_file_sha256 = source_identity(frame)
-                validate_version_collision(session, source_version, source_file_sha256)
+                version_fuente, sha256_archivo_fuente = source_identity(frame)
+                validate_version_collision(session, version_fuente, sha256_archivo_fuente)
                 catalog_counts = self._load_catalogs(session)
                 records_before = count_records(session, Edafologias)
                 records = self._canonical_records(session, frame)
@@ -143,11 +143,11 @@ class EdafologiaLoad(Stage):
                     session,
                     records,
                     Edafologias,
-                    conflict_keys=[Edafologias.source_version.key, Edafologias.source_objectid.key],
+                    conflict_keys=[Edafologias.version_fuente.key, Edafologias.identificador_objeto_fuente.key],
                     update_keys=[
                         key
                         for key in records[0]
-                        if key not in {Edafologias.source_version.key, Edafologias.source_objectid.key}
+                        if key not in {Edafologias.version_fuente.key, Edafologias.identificador_objeto_fuente.key}
                     ],
                     chunk_size=settings.CHUNK_SIZE,
                 )

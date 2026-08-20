@@ -1,39 +1,40 @@
 CREATE TABLE IF NOT EXISTS edafologia_fragmentos_municipales (
     id SERIAL PRIMARY KEY,
     edafologia_id INTEGER NOT NULL REFERENCES edafologias(id),
-    municipality_cvegeo INTEGER NOT NULL,
-    source_version VARCHAR(80) NOT NULL,
+    municipality_id INTEGER NOT NULL,
     fuente_limite_municipal_id INTEGER NOT NULL REFERENCES fuentes_limites_municipales(id),
-    area_m2 DOUBLE PRECISION NOT NULL,
-    area_ha DOUBLE PRECISION NOT NULL,
-    pct_poligono_fuente DOUBLE PRECISION NOT NULL,
-    pct_municipio_total DOUBLE PRECISION NOT NULL,
-    pct_cobertura_edafologica DOUBLE PRECISION NOT NULL,
+    superficie_m2 DOUBLE PRECISION NOT NULL,
+    superficie_ha DOUBLE PRECISION NOT NULL,
+    porcentaje_poligono_fuente DOUBLE PRECISION NOT NULL,
+    porcentaje_municipio_total DOUBLE PRECISION NOT NULL,
+    porcentaje_cobertura_edafologica DOUBLE PRECISION NOT NULL,
     es_fragmento_pequenio BOOLEAN NOT NULL DEFAULT FALSE,
-    geom geometry(MultiPolygon, 6368) NOT NULL,
+    version_fuente VARCHAR(80) NOT NULL,
+    geometria geometry(MultiPolygon, 6368) NOT NULL,
     CONSTRAINT uq_edafologia_fragmentos_fuente_municipio UNIQUE (
         edafologia_id,
-        municipality_cvegeo,
+        municipality_id,
         fuente_limite_municipal_id
     ),
-    CONSTRAINT ck_edafologia_fragmentos_area_m2_positive CHECK (area_m2 > 0),
-    CONSTRAINT ck_edafologia_fragmentos_area_ha_positive CHECK (area_ha > 0),
-    CONSTRAINT ck_edafologia_fragmentos_pct_poligono_non_negative CHECK (pct_poligono_fuente >= 0),
-    CONSTRAINT ck_edafologia_fragmentos_pct_municipio_non_negative CHECK (pct_municipio_total >= 0),
-    CONSTRAINT ck_edafologia_fragmentos_pct_cobertura_non_negative CHECK (pct_cobertura_edafologica >= 0)
+    CONSTRAINT ck_edafologia_fragmentos_superficie_m2_positiva CHECK (superficie_m2 > 0),
+    CONSTRAINT ck_edafologia_fragmentos_superficie_ha_positiva CHECK (superficie_ha > 0),
+    CONSTRAINT ck_edafologia_fragmentos_porcentaje_poligono_no_negativo CHECK (porcentaje_poligono_fuente >= 0),
+    CONSTRAINT ck_edafologia_fragmentos_porcentaje_municipio_no_negativo CHECK (porcentaje_municipio_total >= 0),
+    CONSTRAINT ck_edafologia_fragmentos_porcentaje_cobertura_no_negativo
+        CHECK (porcentaje_cobertura_edafologica >= 0)
 );
 
-CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_municipality_cvegeo
-    ON edafologia_fragmentos_municipales (municipality_cvegeo);
+CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_municipio_id
+    ON edafologia_fragmentos_municipales (municipality_id);
 
-CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_source_version
-    ON edafologia_fragmentos_municipales (source_version);
+CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_version_fuente
+    ON edafologia_fragmentos_municipales (version_fuente);
 
 CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_fuente_municipio_version
     ON edafologia_fragmentos_municipales (
         fuente_limite_municipal_id,
-        municipality_cvegeo,
-        source_version
+        municipality_id,
+        version_fuente
     );
 
 CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_edafologia_id
@@ -42,28 +43,28 @@ CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_edafologia_id
 CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_fuente_limite
     ON edafologia_fragmentos_municipales (fuente_limite_municipal_id);
 
-CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_geom
-    ON edafologia_fragmentos_municipales USING GIST (geom);
+CREATE INDEX IF NOT EXISTS idx_edafologia_fragmentos_geometria
+    ON edafologia_fragmentos_municipales USING GIST (geometria);
 
 CREATE OR REPLACE VIEW edafologia_resumenes_municipales AS
 SELECT
     f.fuente_limite_municipal_id,
-    f.municipality_cvegeo,
-    e.source_version,
+    f.municipality_id,
+    e.version_fuente,
     e.grupo_edafologico_id,
     e.calificador_primario_id,
     e.calificador_secundario_id,
-    SUM(f.area_m2)::DOUBLE PRECISION AS area_m2,
-    SUM(f.area_ha)::DOUBLE PRECISION AS area_ha,
-    SUM(f.pct_municipio_total)::DOUBLE PRECISION AS pct_municipio,
-    COUNT(*)::INTEGER AS fragment_count
+    SUM(f.superficie_m2)::DOUBLE PRECISION AS superficie_m2,
+    SUM(f.superficie_ha)::DOUBLE PRECISION AS superficie_ha,
+    SUM(f.porcentaje_municipio_total)::DOUBLE PRECISION AS porcentaje_municipio,
+    COUNT(*)::INTEGER AS cantidad_fragmentos
 FROM edafologia_fragmentos_municipales AS f
 JOIN edafologias AS e
     ON e.id = f.edafologia_id
 GROUP BY
     f.fuente_limite_municipal_id,
-    f.municipality_cvegeo,
-    e.source_version,
+    f.municipality_id,
+    e.version_fuente,
     e.grupo_edafologico_id,
     e.calificador_primario_id,
     e.calificador_secundario_id;

@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS calificadores_edafologicos (
 CREATE TABLE IF NOT EXISTS fuentes_limites_municipales (
     id INTEGER PRIMARY KEY,
     clave VARCHAR(20) NOT NULL,
-    nombre VARCHAR(120) NOT NULL,
+    nombre_fuente VARCHAR(120) NOT NULL,
     descripcion TEXT NOT NULL,
-    version VARCHAR(120),
+    version VARCHAR(120) NOT NULL,
     procedencia TEXT,
     CONSTRAINT uq_fuentes_limites_municipales_clave UNIQUE (clave)
 );

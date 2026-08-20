@@ -18,12 +18,12 @@ from core.utils.files import sha256_file
 
 def require_manifest(manifest: dict[str, Any]) -> None:
     required = (
-        "source_url",
-        "source_name",
-        "source_version",
+        "url_fuente",
+        "nombre_fuente",
+        "version_fuente",
         "downloaded_at",
         "zip_path",
-        "source_file_sha256",
+        "sha256_archivo_fuente",
         "selected_path",
         "selected_layer",
         "selected_geometry_type",
@@ -72,7 +72,7 @@ def validate_extract_manifest(manifest_path: Path) -> dict[str, Any]:
     for path in (zip_path, selected_path, boundaries_path):
         if not path.exists():
             raise FileNotFoundError(f"Manifest references a missing file: {path}")
-    if sha256_file(zip_path) != manifest["source_file_sha256"]:
+    if sha256_file(zip_path) != manifest["sha256_archivo_fuente"]:
         raise ValueError("Extract manifest ZIP hash does not match the referenced file")
     expected_gpkg_hash = manifest["auxiliary_inputs"]["municipal_boundaries"].get("gpkg_sha256")
     if expected_gpkg_hash and sha256_file(boundaries_path) != expected_gpkg_hash:

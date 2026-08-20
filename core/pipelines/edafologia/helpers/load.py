@@ -35,23 +35,25 @@ def dataframe_to_nullable_records(gdf: gpd.GeoDataFrame, columns: list[str]) -> 
 
 
 def source_identity(gdf: gpd.GeoDataFrame) -> tuple[str, str]:
-    source_versions = gdf["source_version"].dropna().astype(str).unique().tolist()
-    source_hashes = gdf["source_file_sha256"].dropna().astype(str).unique().tolist()
+    source_versions = gdf["version_fuente"].dropna().astype(str).unique().tolist()
+    source_hashes = gdf["sha256_archivo_fuente"].dropna().astype(str).unique().tolist()
     if len(source_versions) != 1 or len(source_hashes) != 1:
-        raise ValueError("Transformed data must contain exactly one source_version and source_file_sha256")
+        raise ValueError("Transformed data must contain exactly one version_fuente and sha256_archivo_fuente")
     return source_versions[0], source_hashes[0]
 
 
-def validate_version_collision(session: Any, source_version: str, source_file_sha256: str) -> None:
+def validate_version_collision(session: Any, version_fuente: str, sha256_archivo_fuente: str) -> None:
     existing_hashes = {
         row[0]
-        for row in session.query(Edafologias.source_file_sha256)
-        .filter(Edafologias.source_version == source_version)
+        for row in session.query(Edafologias.sha256_archivo_fuente)
+        .filter(Edafologias.version_fuente == version_fuente)
         .distinct()
         .all()
     }
-    if existing_hashes and existing_hashes != {source_file_sha256}:
-        raise ValueError(f"source_version collision: {source_version} already exists with different source_file_sha256")
+    if existing_hashes and existing_hashes != {sha256_archivo_fuente}:
+        raise ValueError(
+            f"version_fuente collision: {version_fuente} already exists with different sha256_archivo_fuente"
+        )
 
 
 def resolve_catalog_ids(
@@ -81,12 +83,12 @@ def resolve_catalog_ids(
 
 def canonical_records(gdf: gpd.GeoDataFrame) -> list[dict[str, Any]]:
     insert_columns = [column for column in Edafologias.columns() if column != Edafologias.id.key]
-    if "geom" not in insert_columns:
-        raise ValueError("Edafologias schema must include geom column")
-    missing_columns = [column for column in insert_columns if column != "geom" and column not in gdf.columns]
+    if "geometria" not in insert_columns:
+        raise ValueError("Edafologias schema must include geometria column")
+    missing_columns = [column for column in insert_columns if column != "geometria" and column not in gdf.columns]
     if missing_columns:
         raise ValueError(f"Transformed data is missing columns required by Edafologias: {missing_columns}")
-    records = dataframe_to_nullable_records(gdf, [column for column in insert_columns if column != "geom"])
+    records = dataframe_to_nullable_records(gdf, [column for column in insert_columns if column != "geometria"])
     for record, geometry in zip(records, gdf.geometry, strict=True):
-        record["geom"] = shapely_to_wkb_element(geometry)
+        record["geometria"] = shapely_to_wkb_element(geometry)
     return records

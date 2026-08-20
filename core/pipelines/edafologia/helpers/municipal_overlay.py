@@ -53,10 +53,10 @@ def valid_multipolygon(geometry: Any) -> tuple[MultiPolygon | None, bool]:
 
 
 def source_identity(gdf: gpd.GeoDataFrame) -> tuple[str, str]:
-    versions = gdf["source_version"].dropna().astype(str).unique().tolist()
-    hashes = gdf["source_file_sha256"].dropna().astype(str).unique().tolist()
+    versions = gdf["version_fuente"].dropna().astype(str).unique().tolist()
+    hashes = gdf["sha256_archivo_fuente"].dropna().astype(str).unique().tolist()
     if len(versions) != 1 or len(hashes) != 1:
-        raise ValueError("Overlay input must contain exactly one source_version and source_file_sha256")
+        raise ValueError("Overlay input must contain exactly one version_fuente and sha256_archivo_fuente")
     return versions[0], hashes[0]
 
 
@@ -107,18 +107,24 @@ def _dissolve_records(records: list[dict[str, Any]]) -> gpd.GeoDataFrame:
             columns=[*OVERLAY_COLUMNS, "geometry"], geometry="geometry", crs=f"EPSG:{CANONICAL_SRID}"
         )
     frame = gpd.GeoDataFrame(records, geometry="geometry", crs=f"EPSG:{CANONICAL_SRID}")
-    keys = ["source_version", "source_objectid", "source_file_sha256", "fuente_limite_clave", "municipality_id"]
+    keys = [
+        "version_fuente",
+        "identificador_objeto_fuente",
+        "sha256_archivo_fuente",
+        "fuente_limite_clave",
+        "municipality_id",
+    ]
     dissolved = frame.dissolve(
         by=keys, as_index=False, aggfunc={"source_area_m2": "first", "municipality_area_m2": "first"}
     )
     dissolved["geometry"] = dissolved.geometry.map(lambda geometry: polygonal_part(unary_union([geometry])))
     dissolved = dissolved.loc[~(dissolved.geometry.isna() | dissolved.geometry.is_empty)].copy()
-    dissolved["area_m2"] = dissolved.geometry.area.astype(float)
-    dissolved = dissolved.loc[dissolved["area_m2"] > 0].copy()
-    dissolved["area_ha"] = dissolved["area_m2"] / 10_000
-    dissolved["pct_poligono_fuente"] = 100 * dissolved["area_m2"] / dissolved["source_area_m2"]
-    dissolved["pct_municipio_total"] = 100 * dissolved["area_m2"] / dissolved["municipality_area_m2"]
-    dissolved["pct_cobertura_edafologica"] = dissolved["pct_municipio_total"]
+    dissolved["superficie_m2"] = dissolved.geometry.area.astype(float)
+    dissolved = dissolved.loc[dissolved["superficie_m2"] > 0].copy()
+    dissolved["superficie_ha"] = dissolved["superficie_m2"] / 10_000
+    dissolved["porcentaje_poligono_fuente"] = 100 * dissolved["superficie_m2"] / dissolved["source_area_m2"]
+    dissolved["porcentaje_municipio_total"] = 100 * dissolved["superficie_m2"] / dissolved["municipality_area_m2"]
+    dissolved["porcentaje_cobertura_edafologica"] = dissolved["porcentaje_municipio_total"]
     return dissolved[[*OVERLAY_COLUMNS, "geometry"]]
 
 
@@ -170,9 +176,9 @@ def calculate_overlay_for_source(
             continue
         records.append(
             {
-                "source_version": str(source_row["source_version"]),
-                "source_objectid": int(source_row["source_objectid"]),
-                "source_file_sha256": str(source_row["source_file_sha256"]),
+                "version_fuente": str(source_row["version_fuente"]),
+                "identificador_objeto_fuente": int(source_row["identificador_objeto_fuente"]),
+                "sha256_archivo_fuente": str(source_row["sha256_archivo_fuente"]),
                 "fuente_limite_clave": fuente_limite_clave,
                 "municipality_id": int(muni_row["cve_mun"]),
                 "source_area_m2": float(source_row["source_area_m2"]),
@@ -207,20 +213,24 @@ def validate_overlay_frame(gdf: gpd.GeoDataFrame) -> None:
         raise ValueError("Overlay output contains null or empty geometries")
     if (~gdf.geometry.is_valid).any():
         raise ValueError("Overlay output contains invalid geometries")
-    if (gdf.geometry.area <= 0).any() or (gdf["area_m2"] <= 0).any():
+    if (gdf.geometry.area <= 0).any() or (gdf["superficie_m2"] <= 0).any():
         raise ValueError("Overlay output contains non-positive areas")
     geometry_types = sorted(gdf.geometry.geom_type.unique().tolist())
     if geometry_types != ["MultiPolygon"]:
         raise ValueError(f"Overlay output must contain only MultiPolygon geometries: {geometry_types}")
-    key_columns = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"]
+    key_columns = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipality_id"]
     if gdf.duplicated(key_columns).any():
         raise ValueError("Overlay output contains duplicated logical keys")
-    if (gdf[["pct_poligono_fuente", "pct_municipio_total", "pct_cobertura_edafologica"]] < 0).any().any():
+    if (
+        (gdf[["porcentaje_poligono_fuente", "porcentaje_municipio_total", "porcentaje_cobertura_edafologica"]] < 0)
+        .any()
+        .any()
+    ):
         raise ValueError("Overlay output contains negative percentages")
 
 
 def small_fragment_profile(gdf: gpd.GeoDataFrame, territorial_area_m2: float) -> dict[str, Any]:
-    areas = gdf["area_m2"].astype(float)
+    areas = gdf["superficie_m2"].astype(float)
     total_area = float(areas.sum())
     profile: dict[str, Any] = {
         "total_fragments": int(len(gdf)),
@@ -234,7 +244,7 @@ def small_fragment_profile(gdf: gpd.GeoDataFrame, territorial_area_m2: float) ->
         profile["thresholds"][str(threshold)] = {
             "count": int(mask.sum()),
             "pct_fragments": float(100 * mask.sum() / len(gdf)) if len(gdf) else 0.0,
-            "area_m2": area_sum,
+            "superficie_m2": area_sum,
             "pct_territorial_area": float(100 * area_sum / territorial_area_m2) if territorial_area_m2 else 0.0,
         }
     percentiles = [0, 1, 5, 25, 50, 75, 95, 99, 100]
@@ -250,7 +260,7 @@ def territorial_closure(gdf: gpd.GeoDataFrame, municipalities: gpd.GeoDataFrame)
         "municipality_id"
     )
     municipal_area_by_id = municipal_areas.geometry.area.astype(float)
-    area_by_municipality = gdf.groupby("municipality_id")["area_m2"].sum()
+    area_by_municipality = gdf.groupby("municipality_id")["superficie_m2"].sum()
     coverage = (100 * area_by_municipality / municipal_area_by_id).fillna(0.0)
     total_area = float(municipal_area_by_id.sum())
     intersected_area = float(area_by_municipality.sum())
@@ -268,13 +278,14 @@ def territorial_closure(gdf: gpd.GeoDataFrame, municipalities: gpd.GeoDataFrame)
             for percentile in (0, 1, 5, 25, 50, 75, 95, 99, 100)
         },
         "sum_pct_municipio_total_by_municipality": {
-            str(key): float(value) for key, value in gdf.groupby("municipality_id")["pct_municipio_total"].sum().items()
+            str(key): float(value)
+            for key, value in gdf.groupby("municipality_id")["porcentaje_municipio_total"].sum().items()
         },
     }
 
 
 def calculate_municipal_overlay(inputs: dict[str, Any]) -> tuple[gpd.GeoDataFrame, dict[str, Any]]:
-    source_version, source_hash = source_identity(inputs["edafologias"])
+    version_fuente, source_hash = source_identity(inputs["edafologias"])
     frames: list[gpd.GeoDataFrame] = []
     metrics_by_source: dict[str, Any] = {}
     for key in LIMIT_SOURCE_KEYS:
@@ -284,7 +295,7 @@ def calculate_municipal_overlay(inputs: dict[str, Any]) -> tuple[gpd.GeoDataFram
     output = pd.concat(frames, ignore_index=True)
     output = gpd.GeoDataFrame(output, geometry="geometry", crs=f"EPSG:{CANONICAL_SRID}")
     validate_overlay_frame(output)
-    manifest = build_overlay_manifest(inputs, output, metrics_by_source, source_version, source_hash)
+    manifest = build_overlay_manifest(inputs, output, metrics_by_source, version_fuente, source_hash)
     return output, manifest
 
 
@@ -292,7 +303,7 @@ def build_overlay_manifest(
     inputs: dict[str, Any],
     output: gpd.GeoDataFrame,
     metrics_by_source: dict[str, Any],
-    source_version: str,
+    version_fuente: str,
     source_hash: str,
 ) -> dict[str, Any]:
     transform_manifest_path = inputs["transform_manifest_path"]
@@ -309,8 +320,8 @@ def build_overlay_manifest(
         "edafologia_gpkg_sha256": sha256_file(Path(str(transform_manifest["output_path"]))),
         "municipal_boundaries_gpkg": boundaries["output_gpkg"],
         "municipal_boundaries_gpkg_sha256": sha256_file(Path(str(boundaries["output_gpkg"]))),
-        "source_version": source_version,
-        "source_file_sha256": source_hash,
+        "version_fuente": version_fuente,
+        "sha256_archivo_fuente": source_hash,
         "pipeline_version": PIPELINE_VERSION,
         "crs": CANONICAL_SRID,
         "municipal_layers": {
@@ -328,7 +339,7 @@ def build_overlay_manifest(
         "sources": metrics_by_source,
         "final_fragments": int(len(output)),
         "fragments_by_source": {key: int((output["fuente_limite_clave"] == key).sum()) for key in LIMIT_SOURCE_KEYS},
-        "processed_at": datetime.now().astimezone().isoformat(),
+        "fecha_procesamiento": datetime.now().astimezone().isoformat(),
     }
 
 
@@ -369,8 +380,8 @@ def validate_overlay_manifest(manifest: dict[str, Any]) -> None:
         "edafologia_gpkg_sha256",
         "municipal_boundaries_gpkg",
         "municipal_boundaries_gpkg_sha256",
-        "source_version",
-        "source_file_sha256",
+        "version_fuente",
+        "sha256_archivo_fuente",
         "output_path",
         "output_sha256",
         "output_layer",

@@ -17,7 +17,9 @@ from shapely.geometry import MultiPolygon, Polygon
 
 from core.pipelines.edafologia.constants import (
     CONTROLLED_CATALOG_VERSION,
+    CVEGEO_DATABASE_NAME,
     EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS,
+    MUNICIPAL_BOUNDARY_SOURCES,
 )
 from core.pipelines.edafologia.helpers.boundaries import (
     prepare_municipal_boundaries,
@@ -180,9 +182,8 @@ def test_prepare_source_zip_reuses_valid_existing_zip(tmp_path):
     zip_path = _write_zip(raw_dir / "source.zip", {"readme.txt": b"ok"})
 
     result = prepare_source_zip(
-        source_url="https://example.test/source.zip",
+        url_fuente="https://example.test/source.zip",
         raw_dir=raw_dir,
-        source_zip_path=None,
         force_download=False,
         retries=1,
         connect_timeout=1,
@@ -191,7 +192,7 @@ def test_prepare_source_zip_reuses_valid_existing_zip(tmp_path):
 
     assert result["downloaded_this_run"] is False
     assert result["zip_path"] == str(zip_path)
-    assert result["source_file_sha256"] == sha256_file(zip_path)
+    assert result["sha256_archivo_fuente"] == sha256_file(zip_path)
 
 
 def test_sha256_file_is_stable(tmp_path):
@@ -215,9 +216,8 @@ def test_download_restarts_when_server_ignores_range(tmp_path, monkeypatch):
     monkeypatch.setattr("core.pipelines.edafologia.helpers.download.requests.get", fake_get)
 
     result = prepare_source_zip(
-        source_url="https://example.test/source.zip",
+        url_fuente="https://example.test/source.zip",
         raw_dir=tmp_path,
-        source_zip_path=None,
         force_download=False,
         retries=1,
         connect_timeout=1,
@@ -246,9 +246,8 @@ def test_download_raises_after_http_failure(tmp_path, monkeypatch):
 
     with pytest.raises(RuntimeError, match="Download failed"):
         prepare_source_zip(
-            source_url="https://example.test/source.zip",
+            url_fuente="https://example.test/source.zip",
             raw_dir=tmp_path,
-            source_zip_path=None,
             force_download=False,
             retries=1,
             connect_timeout=1,
@@ -440,17 +439,28 @@ def test_extract_imports_without_dictionary_path_env(monkeypatch):
     for variable in ("GRUPO1_DICTIONARY_PATH", "CALIFP_G1_DICTIONARY_PATH", "CALIFS_G1_DICTIONARY_PATH"):
         monkeypatch.delenv(variable, raising=False)
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
-    monkeypatch.setenv("CVEGEO_DB_PORT", "5433")
-    monkeypatch.setenv("CVEGEO_DB_NAME", "cvegeo")
     sys.modules.pop("core.pipelines.edafologia.config", None)
     sys.modules.pop("core.pipelines.edafologia.stages.extract", None)
 
     module = importlib.import_module("core.pipelines.edafologia.stages.extract")
 
     assert module.EdafologiaExtract.__name__ == "EdafologiaExtract"
+
+
+def test_cvegeo_url_reuses_common_postgresql_connection(monkeypatch):
+    monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
+    monkeypatch.setenv("DB_USER", "shared_user")
+    monkeypatch.setenv("DB_PASSWORD", "shared_password")
+    monkeypatch.setenv("DB_HOST", "postgres.example.test")
+    monkeypatch.setenv("DB_PORT", "5544")
+    monkeypatch.setenv("DB_NAME", "edafologia")
+    sys.modules.pop("core.pipelines.edafologia.config", None)
+
+    settings = importlib.import_module("core.pipelines.edafologia.config").settings
+
+    assert settings.cvegeo_database_url == (
+        "postgresql://shared_user:shared_password@postgres.example.test:5544/cvegeo"
+    )
 
 
 def test_versioned_catalogs_cover_observed_jalisco_values():
@@ -492,43 +502,25 @@ def test_auxiliary_manifest_has_no_credentials():
     serialized = json.dumps(manifest)
 
     assert "not_a_password" not in serialized
-    assert "CVEGEO_DB_PASSWORD" not in serialized
+    assert "password" not in serialized.lower()
 
 
 @pytest.mark.integration
 def test_prepare_municipal_boundaries_against_local_cvegeo(tmp_path):
-    required = ["CVEGEO_DB_USER", "CVEGEO_DB_PASSWORD", "CVEGEO_DB_HOST", "CVEGEO_DB_PORT", "CVEGEO_DB_NAME"]
-    if any(not os.getenv(name) for name in required):
-        pytest.skip("CVEGEO_DB_* variables are required for cvegeo integration test")
-
-    database_url = (
-        f"postgresql://{os.environ['CVEGEO_DB_USER']}:{os.environ['CVEGEO_DB_PASSWORD']}"
-        f"@{os.environ['CVEGEO_DB_HOST']}:{os.environ['CVEGEO_DB_PORT']}/{os.environ['CVEGEO_DB_NAME']}"
-    )
+    settings = importlib.import_module("core.pipelines.edafologia.config").settings
     try:
         manifest = prepare_municipal_boundaries(
-            database_url=database_url,
-            database_name=os.environ["CVEGEO_DB_NAME"],
+            database_url=settings.cvegeo_database_url,
+            database_name=CVEGEO_DATABASE_NAME,
             output_path=tmp_path / "municipal_boundaries.gpkg",
-            boundary_sources={
-                "iieg": {
-                    "layer": "municipios_iieg",
-                    "geometry_column": "geom_iieg",
-                    "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
-                },
-                "inegi": {
-                    "layer": "municipios_inegi",
-                    "geometry_column": "geom_inegi",
-                    "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
-                },
-            },
+            boundary_sources=MUNICIPAL_BOUNDARY_SOURCES,
             previous_manifest=None,
             force=True,
         )
     except ConnectionError as exc:
         pytest.skip(str(exc))
 
-    assert manifest["database"] == os.environ["CVEGEO_DB_NAME"]
+    assert manifest["database"] == CVEGEO_DATABASE_NAME
     assert set(manifest["layers"]) == {"municipios_iieg", "municipios_inegi"}
     for layer_name in ("municipios_iieg", "municipios_inegi"):
         layer = manifest["layers"][layer_name]

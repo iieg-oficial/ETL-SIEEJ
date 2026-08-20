@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 import time
 from datetime import datetime
 from pathlib import Path
@@ -27,7 +26,7 @@ def _expected_total_size(response: requests.Response, offset: int) -> int | None
 
 
 def _download_attempt(
-    source_url: str,
+    url_fuente: str,
     temporary: Path,
     connect_timeout: int,
     read_timeout: int,
@@ -35,7 +34,7 @@ def _download_attempt(
     offset = temporary.stat().st_size if temporary.exists() else 0
     headers = {"Range": f"bytes={offset}-"} if offset else {}
 
-    with requests.get(source_url, headers=headers, stream=True, timeout=(connect_timeout, read_timeout)) as response:
+    with requests.get(url_fuente, headers=headers, stream=True, timeout=(connect_timeout, read_timeout)) as response:
         response.raise_for_status()
         if offset and response.status_code != 206:
             logger.warning("[source] Server ignored Range; restarting temporary download")
@@ -54,7 +53,7 @@ def _download_attempt(
 
 
 def _download_zip(
-    source_url: str,
+    url_fuente: str,
     destination: Path,
     force: bool,
     retries: int,
@@ -74,7 +73,7 @@ def _download_zip(
     for attempt in range(1, retries + 1):
         try:
             logger.info("[source] Download attempt %s/%s", attempt, retries)
-            _download_attempt(source_url, temporary, connect_timeout, read_timeout)
+            _download_attempt(url_fuente, temporary, connect_timeout, read_timeout)
             validate_zip(temporary)
             temporary.replace(destination)
             return True
@@ -87,14 +86,13 @@ def _download_zip(
     raise RuntimeError(f"Download failed after {retries} attempts") from last_error
 
 
-def _source_filename(source_url: str) -> str:
-    return Path(urlparse(source_url).path).name or "source.zip"
+def _source_filename(url_fuente: str) -> str:
+    return Path(urlparse(url_fuente).path).name or "source.zip"
 
 
 def prepare_source_zip(
-    source_url: str,
+    url_fuente: str,
     raw_dir: Path,
-    source_zip_path: str | None,
     force_download: bool,
     retries: int,
     connect_timeout: int,
@@ -102,32 +100,15 @@ def prepare_source_zip(
 ) -> dict[str, object]:
     raw_dir.mkdir(parents=True, exist_ok=True)
 
-    if source_zip_path:
-        source_path = Path(source_zip_path).expanduser().resolve()
-        if not source_path.exists():
-            raise FileNotFoundError(f"Configured local ZIP does not exist: {source_path}")
-        validate_zip(source_path)
-        destination = raw_dir / source_path.name
-        if destination.resolve() != source_path:
-            if destination.exists():
-                validate_zip(destination)
-                if sha256_file(destination) != sha256_file(source_path):
-                    if not force_download:
-                        raise ValueError(f"Existing raw ZIP differs from configured local ZIP: {destination}")
-                    shutil.copy2(source_path, destination)
-            else:
-                shutil.copy2(source_path, destination)
-        downloaded = False
-    else:
-        destination = raw_dir / _source_filename(source_url)
-        downloaded = _download_zip(
-            source_url,
-            destination,
-            force_download,
-            retries,
-            connect_timeout,
-            read_timeout,
-        )
+    destination = raw_dir / _source_filename(url_fuente)
+    downloaded = _download_zip(
+        url_fuente,
+        destination,
+        force_download,
+        retries,
+        connect_timeout,
+        read_timeout,
+    )
 
     validate_zip(destination)
     stat = destination.stat()
@@ -137,10 +118,10 @@ def prepare_source_zip(
         else datetime.fromtimestamp(stat.st_mtime).astimezone().isoformat()
     )
     return {
-        "source_url": source_url,
+        "url_fuente": url_fuente,
         "zip_path": str(destination),
         "zip_size_bytes": stat.st_size,
-        "source_file_sha256": sha256_file(destination),
+        "sha256_archivo_fuente": sha256_file(destination),
         "downloaded_at": timestamp,
         "downloaded_this_run": downloaded,
     }

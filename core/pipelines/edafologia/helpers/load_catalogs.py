@@ -24,19 +24,19 @@ def boundary_source_records() -> list[dict[str, Any]]:
             "clave": "iieg",
             "nombre_fuente": "Límites municipales IIEG",
             "descripcion": "Geometría municipal geom_iieg disponible en public.cvegeo_municipalities.",
-            "version": None,
-            "procedencia": MUNICIPAL_BOUNDARY_SOURCES["iieg"]["geometry_column"],
+            "version": MUNICIPAL_BOUNDARY_SOURCES["iieg"]["version"],
+            "procedencia": f"public.cvegeo_municipalities.{MUNICIPAL_BOUNDARY_SOURCES['iieg']['geometry_column']}",
         },
         {
             "id": 2,
             "clave": "inegi",
             "nombre_fuente": "Límites municipales INEGI",
             "descripcion": "Geometría municipal geom_inegi disponible en public.cvegeo_municipalities.",
-            "version": None,
-            "procedencia": MUNICIPAL_BOUNDARY_SOURCES["inegi"]["geometry_column"],
+            "version": MUNICIPAL_BOUNDARY_SOURCES["inegi"]["version"],
+            "procedencia": f"public.cvegeo_municipalities.{MUNICIPAL_BOUNDARY_SOURCES['inegi']['geometry_column']}",
         },
     ]
-    validate_catalog_records(records, required=("clave", "nombre_fuente", "descripcion"))
+    validate_catalog_records(records, required=("clave", "nombre_fuente", "descripcion", "version", "procedencia"))
     return records
 
 

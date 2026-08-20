@@ -43,8 +43,8 @@ def _frame() -> gpd.GeoDataFrame:
         pd.DataFrame(
             [
                 {
-                    "source_version": "Serie III",
-                    "source_objectid": 1,
+                    "version_fuente": "Serie III",
+                    "identificador_objeto_fuente": 1,
                     "clave_wrb": "ACab-N",
                     "grupo1_origen": "AC",
                     "califp_g1_origen": "ab",
@@ -58,14 +58,14 @@ def _frame() -> gpd.GeoDataFrame:
                     "limite_superior_origen": None,
                     "fase_fisica_origen": None,
                     "fase_quimica_origen": None,
-                    "shape_leng_origen": pd.NA,
-                    "shape_area_origen": float("nan"),
-                    "source_name": "INEGI",
-                    "source_url": "https://example.test/source.zip",
-                    "source_file_name": "source.zip",
-                    "source_file_sha256": "abc123",
-                    "source_downloaded_at": pd.Timestamp("2026-07-15T00:00:00Z"),
-                    "processed_at": pd.Timestamp("2026-07-15T01:00:00Z"),
+                    "longitud_origen": pd.NA,
+                    "superficie_origen": float("nan"),
+                    "nombre_fuente": "INEGI",
+                    "url_fuente": "https://example.test/source.zip",
+                    "nombre_archivo_fuente": "source.zip",
+                    "sha256_archivo_fuente": "abc123",
+                    "fecha_descarga_fuente": pd.Timestamp("2026-07-15T00:00:00Z"),
+                    "fecha_procesamiento": pd.Timestamp("2026-07-15T01:00:00Z"),
                     "fecha_actualizacion": pd.Timestamp("2026-07-15"),
                     "pipeline_version": "0.2.0",
                 }
@@ -172,7 +172,7 @@ def test_canonical_records_excludes_serial_id_and_uses_wkb():
     records = canonical_records(frame)
 
     assert Edafologias.id.key not in records[0]
-    assert isinstance(records[0]["geom"], WKBElement)
+    assert isinstance(records[0]["geometria"], WKBElement)
 
 
 class _Query:
@@ -204,7 +204,7 @@ def test_validate_version_collision_allows_identical_rerun():
 
 
 def test_validate_version_collision_rejects_same_version_different_hash():
-    with pytest.raises(ValueError, match="source_version collision"):
+    with pytest.raises(ValueError, match="version_fuente collision"):
         validate_version_collision(_Session([("different",)]), "Serie III", "abc123")
 
 
@@ -213,8 +213,8 @@ def test_source_identity_requires_single_version_and_hash():
 
     assert source_identity(frame) == ("Serie III", "abc123")
 
-    frame.loc[1, "source_version"] = "Otra version"
-    with pytest.raises(ValueError, match="exactly one source_version"):
+    frame.loc[1, "version_fuente"] = "Otra version"
+    with pytest.raises(ValueError, match="exactly one version_fuente"):
         source_identity(frame)
 
 
@@ -227,6 +227,8 @@ def test_catalogs_have_expected_counts_and_non_empty_values():
     assert len(group_records) == 24
     assert len(qualifier_records) == 87
     assert len(limit_records) == 2
+    assert {record["version"] for record in limit_records} == {"cvegeo V1"}
+    assert all(record["procedencia"] for record in limit_records)
 
 
 def test_validate_transformed_frame_rejects_geometry_null():
@@ -239,9 +241,6 @@ def test_validate_transformed_frame_rejects_geometry_null():
 
 def test_load_uses_upsert_conflict_keys_for_idempotence(monkeypatch):
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
     sys.modules.pop("core.pipelines.edafologia.config", None)
     sys.modules.pop("core.pipelines.edafologia.stages.load", None)
     load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
@@ -265,19 +264,18 @@ def test_load_uses_upsert_conflict_keys_for_idempotence(monkeypatch):
         None,
         records,
         Edafologias,
-        conflict_keys=[Edafologias.source_version.key, Edafologias.source_objectid.key],
+        conflict_keys=[Edafologias.version_fuente.key, Edafologias.identificador_objeto_fuente.key],
         update_keys=[
-            key for key in records[0] if key not in {Edafologias.source_version.key, Edafologias.source_objectid.key}
+            key
+            for key in records[0]
+            if key not in {Edafologias.version_fuente.key, Edafologias.identificador_objeto_fuente.key}
         ],
     )
-    assert calls[-1][1] == ["source_version", "source_objectid"]
+    assert calls[-1][1] == ["version_fuente", "identificador_objeto_fuente"]
 
 
 def test_load_rolls_back_transaction_on_error(monkeypatch):
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
     sys.modules.pop("core.pipelines.edafologia.config", None)
     sys.modules.pop("core.pipelines.edafologia.stages.load", None)
     load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
@@ -321,9 +319,6 @@ def test_load_rolls_back_transaction_on_error(monkeypatch):
 
 def test_load_checks_version_collision_before_catalog_writes(monkeypatch):
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
     sys.modules.pop("core.pipelines.edafologia.config", None)
     sys.modules.pop("core.pipelines.edafologia.stages.load", None)
     load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")
@@ -352,11 +347,11 @@ def test_load_checks_version_collision_before_catalog_writes(monkeypatch):
     def fail_if_called(_session):
         nonlocal catalog_writes_called
         catalog_writes_called = True
-        raise AssertionError("catalog writes should not run when source_version collides")
+        raise AssertionError("catalog writes should not run when version_fuente collides")
 
     monkeypatch.setattr(stage, "_load_catalogs", fail_if_called)
 
-    with pytest.raises(ValueError, match="source_version collision"):
+    with pytest.raises(ValueError, match="version_fuente collision"):
         stage.action({"manifest": {}, "frame": _frame()})
 
     assert catalog_writes_called is False
@@ -367,22 +362,22 @@ def test_load_does_not_transform_geometry_before_wkb():
     original_wkb = frame.geometry.iloc[0].wkb
     records = canonical_records(frame)
 
-    assert bytes(records[0]["geom"].data) == original_wkb
+    assert bytes(records[0]["geometria"].data) == original_wkb
 
 
 def test_overlay_load_persists_cve_mun_as_municipality_id():
     frame = gpd.GeoDataFrame(
         [
             {
-                "source_version": "Serie III",
-                "source_objectid": 1,
+                "version_fuente": "Serie III",
+                "identificador_objeto_fuente": 1,
                 "fuente_limite_clave": "iieg",
                 "municipality_id": 39,
-                "area_m2": 0.5,
-                "area_ha": 0.00005,
-                "pct_poligono_fuente": 50.0,
-                "pct_municipio_total": 25.0,
-                "pct_cobertura_edafologica": 25.0,
+                "superficie_m2": 0.5,
+                "superficie_ha": 0.00005,
+                "porcentaje_poligono_fuente": 50.0,
+                "porcentaje_municipio_total": 25.0,
+                "porcentaje_cobertura_edafologica": 25.0,
             }
         ],
         geometry=[_square()],
@@ -392,7 +387,7 @@ def test_overlay_load_persists_cve_mun_as_municipality_id():
     records = overlay_records(frame, {("Serie III", 1): 10}, {"iieg": 20})
 
     assert records[0]["municipality_id"] == 39
-    assert "municipality_cvegeo" not in records[0]
+    assert set(records[0]) >= {"municipality_id", "fuente_limite_municipal_id", "geometria"}
 
 
 def test_overlay_load_validates_municipality_id_against_fdw_catalog():
@@ -428,11 +423,6 @@ def test_edafologia_load_real_integration(monkeypatch):
 
     _load_env_file(env_path, monkeypatch)
     monkeypatch.setenv("SOURCE_URL", os.getenv("SOURCE_URL", "https://example.test/source.zip"))
-    monkeypatch.setenv("CVEGEO_DB_USER", os.getenv("CVEGEO_DB_USER", "user"))
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", os.getenv("CVEGEO_DB_PASSWORD", "secret"))
-    monkeypatch.setenv("CVEGEO_DB_HOST", os.getenv("CVEGEO_DB_HOST", "localhost"))
-    monkeypatch.setenv("CVEGEO_DB_PORT", os.getenv("CVEGEO_DB_PORT", "5433"))
-    monkeypatch.setenv("CVEGEO_DB_NAME", os.getenv("CVEGEO_DB_NAME", "cvegeo"))
     sys.modules.pop("core.pipelines.edafologia.config", None)
     sys.modules.pop("core.pipelines.edafologia.stages.load", None)
     load_stage = importlib.import_module("core.pipelines.edafologia.stages.load")

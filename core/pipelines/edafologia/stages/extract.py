@@ -19,6 +19,7 @@ from core.pipelines.edafologia.constants import (
     CONTROLLED_CATALOG_STATUS,
     CONTROLLED_CATALOG_VERSION,
     CONTROLLED_CATALOG_VERSION_DATE,
+    CVEGEO_DATABASE_NAME,
     EXPECTED_SOURCE_COLUMNS,
     MANIFEST_FILENAME,
     MUNICIPAL_BOUNDARY_SOURCES,
@@ -55,9 +56,8 @@ class EdafologiaExtract(Stage):
     def source(self, input_data: Any | None = None) -> dict[str, object]:
         self.logger.info("[source] Preparing Edafologia source ZIP")
         return prepare_source_zip(
-            source_url=settings.SOURCE_URL,
+            url_fuente=settings.SOURCE_URL,
             raw_dir=self.raw_dir,
-            source_zip_path=settings.SOURCE_ZIP_PATH,
             force_download=settings.FORCE_DOWNLOAD,
             retries=settings.DOWNLOAD_RETRIES,
             connect_timeout=settings.DOWNLOAD_CONNECT_TIMEOUT,
@@ -75,7 +75,7 @@ class EdafologiaExtract(Stage):
         auxiliary_inputs = {
             "municipal_boundaries": prepare_municipal_boundaries(
                 database_url=settings.cvegeo_database_url,
-                database_name=settings.CVEGEO_DB_NAME,
+                database_name=CVEGEO_DATABASE_NAME,
                 output_path=self.boundaries_path,
                 boundary_sources=MUNICIPAL_BOUNDARY_SOURCES,
                 previous_manifest=previous_auxiliary.get("municipal_boundaries"),
@@ -102,13 +102,13 @@ class EdafologiaExtract(Stage):
         }
 
         manifest = {
-            "source_url": input_data["source_url"],
-            "source_name": SOURCE_NAME,
-            "source_version": settings.SOURCE_VERSION or SOURCE_VERSION,
+            "url_fuente": input_data["url_fuente"],
+            "nombre_fuente": SOURCE_NAME,
+            "version_fuente": settings.SOURCE_VERSION or SOURCE_VERSION,
             "downloaded_at": input_data["downloaded_at"],
             "zip_path": input_data["zip_path"],
             "zip_size_bytes": input_data["zip_size_bytes"],
-            "source_file_sha256": input_data["source_file_sha256"],
+            "sha256_archivo_fuente": input_data["sha256_archivo_fuente"],
             "extraction_directory": str(self.extraction_dir),
             "inventory": candidates,
             "selected_path": str(self.extraction_dir / str(selected["relative_path"])),

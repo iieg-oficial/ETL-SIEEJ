@@ -125,8 +125,13 @@ def canonical_hash_formula() -> dict[str, Any]:
         "field_order": "logical key fields followed by payload fields exactly as listed per hash",
         "geometry_serialization": CANONICAL_HASH_GEOMETRY_SERIALIZATION,
         "serial_ids": "excluded from keys and payloads; catalog and boundary source claves are used instead",
-        "canonical_key_fields": ["source_version", "source_objectid"],
-        "overlay_key_fields": ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"],
+        "canonical_key_fields": ["version_fuente", "identificador_objeto_fuente"],
+        "overlay_key_fields": [
+            "version_fuente",
+            "identificador_objeto_fuente",
+            "fuente_limite_clave",
+            "municipality_id",
+        ],
     }
 
 
@@ -164,17 +169,17 @@ def compute_database_hashes() -> dict[str, str]:
     canonical_geom = fetch_records(
         """
         SELECT
-            source_version,
-            source_objectid::text AS source_objectid,
-            lower(encode(ST_AsEWKB(geom, 'NDR'), 'hex')) AS geom_ewkb_hex
+            version_fuente,
+            identificador_objeto_fuente::text AS identificador_objeto_fuente,
+            lower(encode(ST_AsEWKB(geometria, 'NDR'), 'hex')) AS geom_ewkb_hex
         FROM edafologias
         """
     )
     canonical_rel = fetch_records(
         """
         SELECT
-            e.source_version,
-            e.source_objectid::text AS source_objectid,
+            e.version_fuente,
+            e.identificador_objeto_fuente::text AS identificador_objeto_fuente,
             e.clave_wrb,
             g.clave AS grupo_clave,
             cp.clave AS calificador_primario_clave,
@@ -182,7 +187,7 @@ def compute_database_hashes() -> dict[str, str]:
             e.grupo1_origen,
             e.califp_g1_origen,
             e.califs_g1_origen,
-            e.source_file_sha256
+            e.sha256_archivo_fuente
         FROM edafologias AS e
         JOIN grupos_edafologicos AS g ON g.id = e.grupo_edafologico_id
         JOIN calificadores_edafologicos AS cp ON cp.id = e.calificador_primario_id
@@ -192,11 +197,11 @@ def compute_database_hashes() -> dict[str, str]:
     overlay_geom = fetch_records(
         """
         SELECT
-            f.source_version,
-            e.source_objectid::text AS source_objectid,
+            f.version_fuente,
+            e.identificador_objeto_fuente::text AS identificador_objeto_fuente,
             l.clave AS fuente_limite_clave,
             f.municipality_id::text AS municipality_id,
-            lower(encode(ST_AsEWKB(f.geom, 'NDR'), 'hex')) AS geom_ewkb_hex
+            lower(encode(ST_AsEWKB(f.geometria, 'NDR'), 'hex')) AS geom_ewkb_hex
         FROM edafologia_fragmentos_municipales AS f
         JOIN edafologias AS e ON e.id = f.edafologia_id
         JOIN fuentes_limites_municipales AS l ON l.id = f.fuente_limite_municipal_id
@@ -205,23 +210,23 @@ def compute_database_hashes() -> dict[str, str]:
     overlay_rel = fetch_records(
         """
         SELECT
-            f.source_version,
-            e.source_objectid::text AS source_objectid,
+            f.version_fuente,
+            e.identificador_objeto_fuente::text AS identificador_objeto_fuente,
             l.clave AS fuente_limite_clave,
             f.municipality_id::text AS municipality_id,
-            to_char(f.area_m2, 'FM999999999999999990.999999999999999') AS area_m2,
-            to_char(f.area_ha, 'FM999999999999999990.999999999999999') AS area_ha,
-            to_char(f.pct_poligono_fuente, 'FM999999999999999990.999999999999999') AS pct_poligono_fuente,
-            to_char(f.pct_municipio_total, 'FM999999999999999990.999999999999999') AS pct_municipio_total,
-            to_char(f.pct_cobertura_edafologica, 'FM999999999999999990.999999999999999') AS pct_cobertura_edafologica,
+            to_char(f.superficie_m2, 'FM999999999999999990.999999999999999') AS superficie_m2,
+            to_char(f.superficie_ha, 'FM999999999999999990.999999999999999') AS superficie_ha,
+            to_char(f.porcentaje_poligono_fuente, 'FM999999999999999990.999999999999999') AS porcentaje_poligono_fuente,
+            to_char(f.porcentaje_municipio_total, 'FM999999999999999990.999999999999999') AS porcentaje_municipio_total,
+            to_char(f.porcentaje_cobertura_edafologica, 'FM999999999999999990.999999999999999') AS porcentaje_cobertura_edafologica,
             f.es_fragmento_pequenio
         FROM edafologia_fragmentos_municipales AS f
         JOIN edafologias AS e ON e.id = f.edafologia_id
         JOIN fuentes_limites_municipales AS l ON l.id = f.fuente_limite_municipal_id
         """
     )
-    key_canonical = ["source_version", "source_objectid"]
-    key_overlay = ["source_version", "source_objectid", "fuente_limite_clave", "municipality_id"]
+    key_canonical = ["version_fuente", "identificador_objeto_fuente"]
+    key_overlay = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipality_id"]
     return {
         "canonical_geometry": canonical_hash(canonical_geom, key_canonical, ["geom_ewkb_hex"]),
         "canonical_relations": canonical_hash(
@@ -235,7 +240,7 @@ def compute_database_hashes() -> dict[str, str]:
                 "grupo1_origen",
                 "califp_g1_origen",
                 "califs_g1_origen",
-                "source_file_sha256",
+                "sha256_archivo_fuente",
             ],
         ),
         "overlay_geometry_iieg": canonical_hash(
@@ -248,11 +253,11 @@ def compute_database_hashes() -> dict[str, str]:
             [row for row in overlay_rel if row["fuente_limite_clave"] == "iieg"],
             key_overlay,
             [
-                "area_m2",
-                "area_ha",
-                "pct_poligono_fuente",
-                "pct_municipio_total",
-                "pct_cobertura_edafologica",
+                "superficie_m2",
+                "superficie_ha",
+                "porcentaje_poligono_fuente",
+                "porcentaje_municipio_total",
+                "porcentaje_cobertura_edafologica",
                 "es_fragmento_pequenio",
             ],
         ),
@@ -260,11 +265,11 @@ def compute_database_hashes() -> dict[str, str]:
             [row for row in overlay_rel if row["fuente_limite_clave"] == "inegi"],
             key_overlay,
             [
-                "area_m2",
-                "area_ha",
-                "pct_poligono_fuente",
-                "pct_municipio_total",
-                "pct_cobertura_edafologica",
+                "superficie_m2",
+                "superficie_ha",
+                "porcentaje_poligono_fuente",
+                "porcentaje_municipio_total",
+                "porcentaje_cobertura_edafologica",
                 "es_fragmento_pequenio",
             ],
         ),
@@ -315,7 +320,7 @@ def build_report() -> dict[str, Any]:
     zip_path = Path(extract_manifest["zip_path"])
     if not zip_path.is_absolute():
         zip_path = root / zip_path
-    zip_sha = validate_sha256(zip_path, extract_manifest["source_file_sha256"], "source ZIP")
+    zip_sha = validate_sha256(zip_path, extract_manifest["sha256_archivo_fuente"], "source ZIP")
     boundaries_path = root / extract_manifest["auxiliary_inputs"]["municipal_boundaries"]["output_gpkg"]
     boundaries_sha = validate_sha256(
         boundaries_path,
@@ -341,9 +346,9 @@ def build_report() -> dict[str, Any]:
             "institution": "INEGI",
             "product": SOURCE_NAME,
             "scale": "1:250,000",
-            "source_version": SOURCE_VERSION,
+            "version_fuente": SOURCE_VERSION,
             "zip_file": SOURCE_FILENAME,
-            "source_url": extract_manifest["source_url"],
+            "url_fuente": extract_manifest["url_fuente"],
             "zip_sha256": zip_sha,
             "documentary_pdf": relative_path(pdf_path),
             "documentary_pdf_sha256": pdf_sha,
@@ -434,17 +439,17 @@ def build_report() -> dict[str, Any]:
             ],
             "view": "edafologia_resumenes_municipales",
             "counts": db,
-            "strategy": "Bootstrap-only load with upsert for catalogs/canonical records and idempotent replacement of municipal fragments by source_version and boundary source.",
+            "strategy": "Bootstrap-only load with upsert for catalogs/canonical records and idempotent replacement of municipal fragments by version_fuente and boundary source.",
         },
         "canonical_hashes": {
             "formula": canonical_hash_formula(),
-            "source_version": SOURCE_VERSION,
+            "version_fuente": SOURCE_VERSION,
             "values": hashes,
         },
         "limitations": [
             "Historical non-iterable publication; only bootstrap is implemented.",
             "No automatic update schedule exists for new INEGI publications.",
-            "source_objectid is not guaranteed to remain stable across future publications.",
+            "identificador_objeto_fuente is not guaranteed to remain stable across future publications.",
             "IIEG and INEGI municipal boundaries differ and are both retained.",
             "Mappings are transcribed and versioned; they are not regenerated from the PDF at runtime.",
             "Positive-area sliver fragments are preserved and monitored instead of removed by tolerance.",

@@ -64,7 +64,7 @@ class EdafologiaTransform(Stage):
         return validate_extract_manifest(self.extract_manifest_path)
 
     def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        processed_at = datetime.now().astimezone()
+        fecha_procesamiento = datetime.now().astimezone()
         source = read_source_layer(input_data)
         initial_crs = str(source.crs)
         initial_geometry_types = sorted(source.geometry.geom_type.dropna().unique().tolist())
@@ -75,15 +75,15 @@ class EdafologiaTransform(Stage):
         coverage_inegi = boundaries_inegi.geometry.union_all()
 
         source = prepare_attributes(source)
-        source_repaired, initial_repair = repair_and_polygonize(source, "source_objectid", "initial")
+        source_repaired, initial_repair = repair_and_polygonize(source, "identificador_objeto_fuente", "initial")
         projected = source_repaired.to_crs(epsg=CANONICAL_SRID)
         clipped, selected_count = clip_to_mask(projected, coverage_canonical)
-        clipped_repaired, clipped_repair = repair_and_polygonize(clipped, "source_objectid", "clipped")
+        clipped_repaired, clipped_repair = repair_and_polygonize(clipped, "identificador_objeto_fuente", "clipped")
         canonical = dissolve_by_source_objectid(clipped_repaired)
-        canonical_repaired, final_repair = repair_and_polygonize(canonical, "source_objectid", "final")
+        canonical_repaired, final_repair = repair_and_polygonize(canonical, "identificador_objeto_fuente", "final")
         catalog_validation = validate_catalog_coverage(canonical_repaired)
         with_catalog_ids = apply_catalog_ids(canonical_repaired)
-        transformed = add_traceability(with_catalog_ids, input_data, processed_at)
+        transformed = add_traceability(with_catalog_ids, input_data, fecha_procesamiento)
         spatial_validation = final_spatial_validation(transformed, coverage_canonical, coverage_iieg, coverage_inegi)
 
         output_columns = [column for column in transformed.columns if column != transformed.geometry.name]
@@ -113,7 +113,7 @@ class EdafologiaTransform(Stage):
             "unmapped_codes": catalog_validation["unmapped_codes"],
             "spatial_validation": spatial_validation,
             "output_fields": output_columns,
-            "processed_at": processed_at.isoformat(),
+            "fecha_procesamiento": fecha_procesamiento.isoformat(),
             "pipeline_version": PIPELINE_VERSION,
         }
         write_json_atomic(manifest, self.transform_manifest_path)

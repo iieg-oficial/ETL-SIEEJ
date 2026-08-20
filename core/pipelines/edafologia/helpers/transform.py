@@ -52,19 +52,21 @@ def apply_catalog_ids(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return result
 
 
-def add_traceability(gdf: gpd.GeoDataFrame, manifest: dict[str, Any], processed_at: datetime) -> gpd.GeoDataFrame:
+def add_traceability(
+    gdf: gpd.GeoDataFrame, manifest: dict[str, Any], fecha_procesamiento: datetime
+) -> gpd.GeoDataFrame:
     result = gdf.copy()
     downloaded_at = manifest.get("downloaded_at")
     if not downloaded_at:
         raise ValueError("Extract manifest has no downloaded_at value for traceability")
     downloaded_ts = pd.to_datetime(downloaded_at)
-    result["source_name"] = manifest["source_name"]
-    result["source_url"] = manifest["source_url"]
-    result["source_version"] = manifest["source_version"]
-    result["source_file_name"] = Path(str(manifest["zip_path"])).name
-    result["source_file_sha256"] = manifest["source_file_sha256"]
-    result["source_downloaded_at"] = downloaded_ts.isoformat()
-    result["processed_at"] = processed_at.isoformat()
+    result["nombre_fuente"] = manifest["nombre_fuente"]
+    result["url_fuente"] = manifest["url_fuente"]
+    result["version_fuente"] = manifest["version_fuente"]
+    result["nombre_archivo_fuente"] = Path(str(manifest["zip_path"])).name
+    result["sha256_archivo_fuente"] = manifest["sha256_archivo_fuente"]
+    result["fecha_descarga_fuente"] = downloaded_ts.isoformat()
+    result["fecha_procesamiento"] = fecha_procesamiento.isoformat()
     result["fecha_actualizacion"] = downloaded_ts.date().isoformat()
     result["pipeline_version"] = manifest["pipeline_version"]
     return result
@@ -72,7 +74,9 @@ def add_traceability(gdf: gpd.GeoDataFrame, manifest: dict[str, Any], processed_
 
 def prepare_attributes(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     result = gdf.rename(columns=RENAME_HEADER).copy()
-    result["source_objectid"] = pd.to_numeric(result["source_objectid"], errors="raise").astype(int)
-    for column in ("shape_leng_origen", "shape_area_origen"):
+    result["identificador_objeto_fuente"] = pd.to_numeric(result["identificador_objeto_fuente"], errors="raise").astype(
+        int
+    )
+    for column in ("longitud_origen", "superficie_origen"):
         result[column] = pd.to_numeric(result[column], errors="coerce")
     return result

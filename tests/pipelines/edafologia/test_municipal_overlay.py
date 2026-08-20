@@ -25,9 +25,9 @@ def _edafologias() -> gpd.GeoDataFrame:
     return gpd.GeoDataFrame(
         [
             {
-                "source_version": "Serie III",
-                "source_objectid": 1,
-                "source_file_sha256": "a" * 64,
+                "version_fuente": "Serie III",
+                "identificador_objeto_fuente": 1,
+                "sha256_archivo_fuente": "a" * 64,
             }
         ],
         geometry=[_mpoly([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])],
@@ -91,13 +91,13 @@ def test_overlay_denominators_and_multipart_grouping():
     fragments, metrics = calculate_overlay_for_source(edafologias, municipalities, "iieg")
 
     assert len(fragments) == 2
-    assert pytest.approx(fragments["area_m2"].sum()) == 4.0
+    assert pytest.approx(fragments["superficie_m2"].sum()) == 4.0
     first = fragments.loc[fragments["municipality_id"] == 1].iloc[0]
     second = fragments.loc[fragments["municipality_id"] == 2].iloc[0]
-    assert pytest.approx(first["pct_poligono_fuente"]) == 50.0
-    assert pytest.approx(first["pct_municipio_total"]) == 100.0
-    assert pytest.approx(second["pct_poligono_fuente"]) == 50.0
-    assert pytest.approx(second["pct_municipio_total"]) == 50.0
+    assert pytest.approx(first["porcentaje_poligono_fuente"]) == 50.0
+    assert pytest.approx(first["porcentaje_municipio_total"]) == 100.0
+    assert pytest.approx(second["porcentaje_poligono_fuente"]) == 50.0
+    assert pytest.approx(second["porcentaje_municipio_total"]) == 50.0
     assert metrics["final_fragments"] == 2
 
 
@@ -158,11 +158,6 @@ def test_edafologia_municipal_overlay_real_integration(monkeypatch):
 
     _load_env_file(env_path, monkeypatch)
     monkeypatch.setenv("SOURCE_URL", "https://example.test/source.zip")
-    monkeypatch.setenv("CVEGEO_DB_USER", "user")
-    monkeypatch.setenv("CVEGEO_DB_PASSWORD", "secret")
-    monkeypatch.setenv("CVEGEO_DB_HOST", "localhost")
-    monkeypatch.setenv("CVEGEO_DB_PORT", "5433")
-    monkeypatch.setenv("CVEGEO_DB_NAME", "cvegeo")
     for module in (
         "core.pipelines.edafologia.config",
         "core.pipelines.edafologia.stages.transform",
