@@ -130,7 +130,7 @@ def canonical_hash_formula() -> dict[str, Any]:
             "version_fuente",
             "identificador_objeto_fuente",
             "fuente_limite_clave",
-            "municipality_id",
+            "municipio_id",
         ],
     }
 
@@ -200,7 +200,7 @@ def compute_database_hashes() -> dict[str, str]:
             f.version_fuente,
             e.identificador_objeto_fuente::text AS identificador_objeto_fuente,
             l.clave AS fuente_limite_clave,
-            f.municipality_id::text AS municipality_id,
+            f.municipio_id::text AS municipio_id,
             lower(encode(ST_AsEWKB(f.geometria, 'NDR'), 'hex')) AS geom_ewkb_hex
         FROM edafologia_fragmentos_municipales AS f
         JOIN edafologias AS e ON e.id = f.edafologia_id
@@ -213,7 +213,7 @@ def compute_database_hashes() -> dict[str, str]:
             f.version_fuente,
             e.identificador_objeto_fuente::text AS identificador_objeto_fuente,
             l.clave AS fuente_limite_clave,
-            f.municipality_id::text AS municipality_id,
+            f.municipio_id::text AS municipio_id,
             to_char(f.superficie_m2, 'FM999999999999999990.999999999999999') AS superficie_m2,
             to_char(f.superficie_ha, 'FM999999999999999990.999999999999999') AS superficie_ha,
             to_char(f.porcentaje_poligono_fuente, 'FM999999999999999990.999999999999999') AS porcentaje_poligono_fuente,
@@ -226,7 +226,7 @@ def compute_database_hashes() -> dict[str, str]:
         """
     )
     key_canonical = ["version_fuente", "identificador_objeto_fuente"]
-    key_overlay = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipality_id"]
+    key_overlay = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipio_id"]
     return {
         "canonical_geometry": canonical_hash(canonical_geom, key_canonical, ["geom_ewkb_hex"]),
         "canonical_relations": canonical_hash(
@@ -285,12 +285,12 @@ def database_summary() -> dict[str, Any]:
       UNION ALL SELECT 'fuentes_limites_municipales', count(*)::text FROM fuentes_limites_municipales
       UNION ALL SELECT 'edafologias', count(*)::text FROM edafologias
       UNION ALL SELECT 'fragmentos_total', count(*)::text FROM edafologia_fragmentos_municipales
-      UNION ALL SELECT 'resumen_total', count(*)::text FROM edafologia_resumenes_municipales
+      UNION ALL SELECT 'resumen_total', count(*)::text FROM vw_edafologia_resumenes_municipales
     ), rels AS (
       SELECT c.oid, c.relname
       FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
       WHERE n.nspname='public'
-        AND c.relname IN ('grupos_edafologicos','calificadores_edafologicos','fuentes_limites_municipales','edafologias','edafologia_fragmentos_municipales','edafologia_resumenes_municipales')
+        AND c.relname IN ('grupos_edafologicos','calificadores_edafologicos','fuentes_limites_municipales','edafologias','edafologia_fragmentos_municipales','vw_edafologia_resumenes_municipales')
     ), comments AS (
       SELECT 'objects_expected' metric, count(*)::text value FROM rels
       UNION ALL SELECT 'objects_commented', count(*) FILTER (WHERE obj_description(oid, 'pg_class') IS NOT NULL)::text FROM rels
@@ -437,7 +437,7 @@ def build_report() -> dict[str, Any]:
                 "edafologias",
                 "edafologia_fragmentos_municipales",
             ],
-            "view": "edafologia_resumenes_municipales",
+            "view": "vw_edafologia_resumenes_municipales",
             "counts": db,
             "strategy": "Bootstrap-only load with upsert for catalogs/canonical records and idempotent replacement of municipal fragments by version_fuente and boundary source.",
         },

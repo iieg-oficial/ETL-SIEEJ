@@ -16,7 +16,7 @@ def test_edafologia_indicators_follow_approved_metadata():
     for indicator in indicators:
         assert indicator.tema == "medio_ambiente"
         assert indicator.pipeline == "edafologia"
-        assert indicator.origen == "edafologia_resumenes_municipales"
+        assert indicator.origen == "vw_edafologia_resumenes_municipales"
         assert indicator.nivel == "municipal"
         assert indicator.periodicidad == "no periódica"
         assert indicator.cobertura.geografica == "Jalisco"
@@ -53,7 +53,7 @@ def test_edafologia_indicators_aggregate_qualifiers_by_group():
         assert "r.calificador_secundario_id" not in sql
         assert "r.grupo_edafologico_id" in sql
         assert "flm.clave = CAST(:fuente_limite AS text)" in sql
-        assert "r.municipality_id = m.cve_mun" in sql
+        assert "r.municipio_id = m.cve_mun" in sql
         assert "m.cve_ent = 14" in sql
         assert "'2021'::text" in sql
 

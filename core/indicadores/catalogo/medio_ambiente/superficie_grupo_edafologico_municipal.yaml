@@ -8,7 +8,7 @@ definicion: >
 unidad: hectáreas
 fuente: INEGI — Conjunto nacional de información edafológica, escala 1:250 000, Serie III
 pipeline: edafologia
-origen: edafologia_resumenes_municipales
+origen: vw_edafologia_resumenes_municipales
 nivel: municipal
 periodicidad: no periódica
 cobertura:
@@ -36,9 +36,9 @@ sql: |
       '2021'::text                       AS periodo,
       SUM(r.superficie_ha)::numeric      AS valor,
       (g.clave || ' — ' || g.descripcion)::text AS categoria
-  FROM edafologia_resumenes_municipales AS r
+  FROM vw_edafologia_resumenes_municipales AS r
   JOIN cvegeo_municipalities AS m
-    ON r.municipality_id = m.cve_mun
+    ON r.municipio_id = m.cve_mun
    AND m.cve_ent = 14
   JOIN fuentes_limites_municipales AS flm
     ON flm.id = r.fuente_limite_municipal_id

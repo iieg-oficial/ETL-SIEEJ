@@ -52,7 +52,7 @@ COMMENT ON COLUMN edafologias.geometria IS 'Geometria canonica MultiPolygon en E
 COMMENT ON TABLE edafologia_fragmentos_municipales IS 'Tabla persistente de fragmentos municipales producidos por la interseccion real entre edafologias y cada fuente de limite municipal. Conserva todos los fragmentos poligonales con area positiva.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.id IS 'Identificador autogenerado del fragmento municipal persistente.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.edafologia_id IS 'FK al poligono canonico edafologico que origina el fragmento.';
-COMMENT ON COLUMN edafologia_fragmentos_municipales.municipality_id IS 'Clave cve_mun de Jalisco usada como referencia logica a cvegeo_municipalities; no existe FK fisica porque cvegeo vive en otra base.';
+COMMENT ON COLUMN edafologia_fragmentos_municipales.municipio_id IS 'Clave cve_mun de Jalisco usada como referencia logica a cvegeo_municipalities; no existe FK fisica porque cvegeo vive en otra base.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.version_fuente IS 'Version de la fuente edafologica usada para reconstruir idempotentemente el overlay.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.fuente_limite_municipal_id IS 'FK local a la fuente de limite municipal usada para el overlay: IIEG o INEGI.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.superficie_m2 IS 'Superficie del fragmento de interseccion en metros cuadrados, calculada en EPSG:6368 con DOUBLE PRECISION.';
@@ -63,14 +63,14 @@ COMMENT ON COLUMN edafologia_fragmentos_municipales.porcentaje_cobertura_edafolo
 COMMENT ON COLUMN edafologia_fragmentos_municipales.es_fragmento_pequenio IS 'Indicador de control para fragmentos pequenos; no implica eliminacion. Se conservan todos los componentes poligonales con area positiva.';
 COMMENT ON COLUMN edafologia_fragmentos_municipales.geometria IS 'Geometria MultiPolygon de la interseccion real entre poligono edafologico y municipio, en EPSG:6368.';
 
-COMMENT ON VIEW edafologia_resumenes_municipales IS 'Vista SQL normal no materializada que agrega fragmentos municipales por municipio, version, categoria edafologica y fuente de limite. No tiene PK fisica, no almacena geometria y no recibe cargas directas.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.fuente_limite_municipal_id IS 'Fuente territorial del resumen, heredada de los fragmentos municipales.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.municipality_id IS 'Clave cve_mun del municipio dentro de Jalisco.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.version_fuente IS 'Version de la fuente edafologica resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.grupo_edafologico_id IS 'Grupo edafologico principal de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_primario_id IS 'Calificador en rol primario de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_secundario_id IS 'Calificador en rol secundario de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_m2 IS 'Suma de superficie_m2 de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_ha IS 'Suma de superficie_ha de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.porcentaje_municipio IS 'Suma de porcentaje_municipio_total de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.cantidad_fragmentos IS 'Numero de fragmentos persistentes incluidos en el agregado.';
+COMMENT ON VIEW vw_edafologia_resumenes_municipales IS 'Vista SQL normal no materializada que agrega fragmentos municipales por municipio, version, categoria edafologica y fuente de limite. No tiene PK fisica, no almacena geometria y no recibe cargas directas.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.fuente_limite_municipal_id IS 'Fuente territorial del resumen, heredada de los fragmentos municipales.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.municipio_id IS 'Clave cve_mun del municipio dentro de Jalisco.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.version_fuente IS 'Version de la fuente edafologica resumida.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.grupo_edafologico_id IS 'Grupo edafologico principal de la categoria resumida.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.calificador_primario_id IS 'Calificador en rol primario de la categoria resumida.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.calificador_secundario_id IS 'Calificador en rol secundario de la categoria resumida.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.superficie_m2 IS 'Suma de superficie_m2 de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.superficie_ha IS 'Suma de superficie_ha de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.porcentaje_municipio IS 'Suma de porcentaje_municipio_total de los fragmentos del grupo de agregacion.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.cantidad_fragmentos IS 'Numero de fragmentos persistentes incluidos en el agregado.';

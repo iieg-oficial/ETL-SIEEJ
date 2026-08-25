@@ -80,7 +80,7 @@ def test_overlay_discards_line_contacts_and_keeps_polygonal_intersections():
     fragments, metrics = calculate_overlay_for_source(edafologias, municipios, "iieg")
 
     assert len(fragments) == 1
-    assert fragments["municipality_id"].tolist() == [1]
+    assert fragments["municipio_id"].tolist() == [1]
     assert metrics["non_polygonal_discarded"] == 1
 
 
@@ -92,8 +92,8 @@ def test_overlay_denominators_and_multipart_grouping():
 
     assert len(fragments) == 2
     assert pytest.approx(fragments["superficie_m2"].sum()) == 4.0
-    first = fragments.loc[fragments["municipality_id"] == 1].iloc[0]
-    second = fragments.loc[fragments["municipality_id"] == 2].iloc[0]
+    first = fragments.loc[fragments["municipio_id"] == 1].iloc[0]
+    second = fragments.loc[fragments["municipio_id"] == 2].iloc[0]
     assert pytest.approx(first["porcentaje_poligono_fuente"]) == 50.0
     assert pytest.approx(first["porcentaje_municipio_total"]) == 100.0
     assert pytest.approx(second["porcentaje_poligono_fuente"]) == 50.0
@@ -188,7 +188,7 @@ def test_edafologia_municipal_overlay_real_integration(monkeypatch):
             ).all()
         )
         view_count = connection.execute(
-            text("SELECT count(*)::integer FROM edafologia_resumenes_municipales")
+            text("SELECT count(*)::integer FROM vw_edafologia_resumenes_municipales")
         ).scalar_one()
     engine.dispose()
 
