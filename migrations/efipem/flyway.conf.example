@@ -11,3 +11,17 @@ flyway.placeholders.fdw_host=<FDW_DB_HOST>
 flyway.placeholders.fdw_port=<FDW_DB_PORT>
 flyway.placeholders.fdw_user=<FDW_DB_USER>
 flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
+
+# Foreign Data Wrapper — conexión a la DB de conapo
+flyway.placeholders.fdw_dbname_2=<FDW_DB_NAME_2>
+flyway.placeholders.fdw_host_2=<FDW_DB_HOST_2>
+flyway.placeholders.fdw_port_2=<FDW_DB_PORT_2>
+flyway.placeholders.fdw_user_2=<FDW_DB_USER_2>
+flyway.placeholders.fdw_password_2=<FDW_DB_PASSWORD_2>
+
+# Foreign Data Wrapper — conexión a la DB de inpc
+flyway.placeholders.fdw_dbname_3=<FDW_DB_NAME_3>
+flyway.placeholders.fdw_host_3=<FDW_DB_HOST_3>
+flyway.placeholders.fdw_port_3=<FDW_DB_PORT_3>
+flyway.placeholders.fdw_user_3=<FDW_DB_USER_3>
+flyway.placeholders.fdw_password_3=<FDW_DB_PASSWORD_3>
