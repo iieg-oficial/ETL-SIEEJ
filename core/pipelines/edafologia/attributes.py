@@ -7,4 +7,3 @@ class EdafologiaTables(StrEnum):
     FUENTES_LIMITES_MUNICIPALES = auto()
     EDAFOLOGIAS = auto()
     EDAFOLOGIA_FRAGMENTOS_MUNICIPALES = auto()
-    EDAFOLOGIA_RESUMENES_MUNICIPALES = auto()
