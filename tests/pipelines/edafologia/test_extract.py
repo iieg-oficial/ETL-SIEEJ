@@ -386,7 +386,7 @@ def test_versioned_catalog_hash_is_deterministic():
     reversed_qualifiers = dict(reversed(list(CALIFICADORES_EDAFOLOGICOS.items())))
 
     assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == catalog_sha256(reversed_mapping)
-    assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == "7a4d3930bc05f59d74a2cdb20c85c41b31a166db044cb3e7668512dc24be7192"
+    assert catalog_sha256(GRUPOS_EDAFOLOGICOS) == "10815975bbdf095e7ef5d14e2588c86a66e2c46c52a8e2dafcff9ce5c2cc7f62"
     assert catalog_sha256(CALIFICADORES_EDAFOLOGICOS) == catalog_sha256(reversed_qualifiers)
     assert (
         catalog_sha256(CALIFICADORES_EDAFOLOGICOS) == "df479e0c8d93437717dee301e7158cf16863209f257063b862f851391019917c"

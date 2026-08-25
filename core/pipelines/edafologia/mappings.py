@@ -5,7 +5,7 @@ import json
 from typing import Final
 
 GRUPOS_EDAFOLOGICOS: Final[dict[str, str]] = {
-    "AC": "Acrisol ",
+    "AC": "Acrisol",
     "AL": "Alisol",
     "AN": "Andosol",
     "AR": "Arenosol",
