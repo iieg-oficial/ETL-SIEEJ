@@ -105,6 +105,7 @@ Vista de solo lectura agrupada por fuente territorial, municipio, versión, grup
 | `V5__comments_edafologia.sql` | Documenta el esquema |
 | `V6__rename_boundary_source_name.sql` | Verifica el nombre específico de la fuente territorial |
 | `V7__municipality_reference_edafologia.sql` | Vincula lógicamente los fragmentos con `cvegeo` mediante FDW |
+| `V8__cuadernillos_views_edafologia.sql` | Crea las vistas `vw_cuadernillos_*` que alimentan los cuadernillos municipales |
 
 ## Variables de entorno
 
