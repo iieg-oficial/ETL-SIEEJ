@@ -1,0 +1,59 @@
+id: superficie_grupo_edafologico_municipal
+nombre: Superficie municipal por grupo edafológico
+tema: medio_ambiente
+definicion: >
+  Superficie municipal cubierta por cada grupo edafológico principal de la
+  Serie III, calculada al agregar las categorías de calificadores primario y
+  secundario pertenecientes al mismo grupo.
+unidad: hectáreas
+fuente: INEGI — Conjunto nacional de información edafológica, escala 1:250 000, Serie III
+pipeline: edafologia
+origen: vw_edafologia_resumenes_municipales
+nivel: municipal
+periodicidad: no periódica
+cobertura:
+  geografica: Jalisco
+  temporal: "2021"
+notas: |
+  Corresponde a la Serie III, edición 2024, con cobertura temporal oficial
+  2021 e información obtenida durante 2013–2020.
+  El resultado depende de la fuente territorial seleccionada: iieg o inegi.
+  Ambas delimitaciones producen estimaciones independientes; no deben sumarse
+  ni interpretarse como duplicados exactos.
+parametros:
+  - nombre: cve_geo
+    tipo: str
+    requerido: false
+    descripcion: Clave geoestadística EEMMM de cinco dígitos del municipio de Jalisco. Omitir para consultar todos los municipios.
+  - nombre: fuente_limite
+    tipo: str
+    requerido: true
+    descripcion: Fuente del límite municipal; valores permitidos iieg o inegi. Es obligatoria para evitar combinar delimitaciones.
+sql: |
+  SELECT
+      LPAD(r.cvegeo::text, 5, '0')::text AS cve_geo,
+      m.nomgeo::text                     AS nombre_geo,
+      '2021'::text                       AS periodo,
+      SUM(r.superficie_ha)::numeric      AS valor,
+      (g.clave || ' — ' || g.descripcion)::text AS categoria
+  FROM vw_edafologia_resumenes_municipales AS r
+  JOIN cvegeo_municipalities AS m
+    ON r.municipio_id = m.cve_mun
+   AND m.cve_ent = 14
+  JOIN fuentes_limites_municipales AS flm
+    ON flm.id = r.fuente_limite_municipal_id
+  JOIN grupos_edafologicos AS g
+    ON g.id = r.grupo_edafologico_id
+  WHERE r.version_fuente = 'Serie III'
+    AND flm.clave = CAST(:fuente_limite AS text)
+    AND (CAST(:cve_geo AS text) IS NULL
+         OR LPAD(r.cvegeo::text, 5, '0') = CAST(:cve_geo AS text))
+  GROUP BY
+      r.cvegeo,
+      m.nomgeo,
+      r.version_fuente,
+      r.grupo_edafologico_id,
+      g.clave,
+      g.descripcion,
+      flm.clave
+  ORDER BY cve_geo, categoria
