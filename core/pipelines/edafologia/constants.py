@@ -116,7 +116,7 @@ OVERLAY_COLUMNS: Final[tuple[str, ...]] = (
     "identificador_objeto_fuente",
     "sha256_archivo_fuente",
     "fuente_limite_clave",
-    "municipality_id",
+    "municipio_id",
     "superficie_m2",
     "superficie_ha",
     "porcentaje_poligono_fuente",
@@ -137,7 +137,8 @@ ERD_FILENAME: Final[str] = "erd.svg"
 
 EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS: Final[tuple[str, ...]] = (
     "fuente_limite_municipal_id",
-    "municipality_id",
+    "municipio_id",
+    "municipio",
     "cvegeo",
     "version_fuente",
     "grupo_edafologico_id",

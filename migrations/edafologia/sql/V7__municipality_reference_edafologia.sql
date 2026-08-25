@@ -66,12 +66,13 @@ BEGIN
 END
 $$;
 
-DROP VIEW edafologia_resumenes_municipales;
+DROP VIEW vw_edafologia_resumenes_municipales;
 
-CREATE VIEW edafologia_resumenes_municipales AS
+CREATE VIEW vw_edafologia_resumenes_municipales AS
 SELECT
     f.fuente_limite_municipal_id,
-    f.municipality_id,
+    f.municipio_id,
+    m.nomgeo AS municipio,
     m.cvegeo,
     e.version_fuente,
     e.grupo_edafologico_id,
@@ -85,11 +86,12 @@ FROM edafologia_fragmentos_municipales AS f
 JOIN edafologias AS e
     ON e.id = f.edafologia_id
 JOIN cvegeo_municipalities AS m
-    ON f.municipality_id = m.cve_mun
+    ON f.municipio_id = m.cve_mun
     AND m.cve_ent = 14
 GROUP BY
     f.fuente_limite_municipal_id,
-    f.municipality_id,
+    f.municipio_id,
+    m.nomgeo,
     m.cvegeo,
     e.version_fuente,
     e.grupo_edafologico_id,
@@ -98,29 +100,31 @@ GROUP BY
 
 COMMENT ON FOREIGN TABLE cvegeo_municipalities IS
     'Catalogo territorial remoto de cvegeo consultado mediante postgres_fdw; no se duplica localmente.';
-COMMENT ON COLUMN edafologia_fragmentos_municipales.municipality_id IS
-    'Clave cve_mun de Jalisco. Relacion logica con cvegeo_municipalities mediante municipality_id = cve_mun y cve_ent = 14; no es una FK fisica ni el id remoto.';
-COMMENT ON VIEW edafologia_resumenes_municipales IS
-    'Vista SQL no materializada que agrega fragmentos y resuelve cvegeo mediante municipality_id = cve_mun y cve_ent = 14.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.fuente_limite_municipal_id IS
+COMMENT ON COLUMN edafologia_fragmentos_municipales.municipio_id IS
+    'Clave cve_mun de Jalisco. Relacion logica con cvegeo_municipalities mediante municipio_id = cve_mun y cve_ent = 14; no es una FK fisica ni el id remoto.';
+COMMENT ON VIEW vw_edafologia_resumenes_municipales IS
+    'Vista SQL no materializada que agrega fragmentos y resuelve cvegeo mediante municipio_id = cve_mun y cve_ent = 14.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.fuente_limite_municipal_id IS
     'Fuente territorial del resumen, heredada de los fragmentos municipales.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.municipality_id IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.municipio_id IS
     'Clave cve_mun del municipio dentro de Jalisco.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.cvegeo IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.municipio IS
+    'Nombre del municipio (nomgeo) resuelto desde cvegeo_municipalities; no se almacena localmente.';
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.cvegeo IS
     'Clave geoestadistica EEMMM expuesta desde cvegeo_municipalities para consulta y trazabilidad.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.version_fuente IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.version_fuente IS
     'Version de la fuente edafologica resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.grupo_edafologico_id IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.grupo_edafologico_id IS
     'Grupo edafologico principal de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_primario_id IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.calificador_primario_id IS
     'Calificador en rol primario de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.calificador_secundario_id IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.calificador_secundario_id IS
     'Calificador en rol secundario de la categoria resumida.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_m2 IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.superficie_m2 IS
     'Suma de superficie_m2 de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.superficie_ha IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.superficie_ha IS
     'Suma de superficie_ha de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.porcentaje_municipio IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.porcentaje_municipio IS
     'Suma de porcentaje_municipio_total de los fragmentos del grupo de agregacion.';
-COMMENT ON COLUMN edafologia_resumenes_municipales.cantidad_fragmentos IS
+COMMENT ON COLUMN vw_edafologia_resumenes_municipales.cantidad_fragmentos IS
     'Numero de fragmentos persistentes incluidos en el agregado.';

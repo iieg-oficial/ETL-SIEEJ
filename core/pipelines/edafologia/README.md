@@ -80,7 +80,7 @@ La capa canónica es `conj_nac_inf_edaf_esc_250k_ser_III_area`; la capa puntual 
 | variable | descripción |
 |---|---|
 | `edafologia_id` | FK local al polígono edafológico canónico |
-| `municipality_id` | `cve_mun` de Jalisco (1-125); relación lógica territorial, no ID sustituto ni FK física |
+| `municipio_id` | `cve_mun` de Jalisco (1-125); relación lógica territorial, no ID sustituto ni FK física |
 | `fuente_limite_municipal_id` | FK local a la delimitación IIEG o INEGI |
 | `superficie_m2` | Superficie del fragmento en metros cuadrados |
 | `superficie_ha` | `superficie_m2 / 10 000` |
@@ -90,9 +90,9 @@ La capa canónica es `conj_nac_inf_edaf_esc_250k_ser_III_area`; la capa puntual 
 | `es_fragmento_pequenio` | Métrica de control; no elimina áreas positivas |
 | `geometria` | Intersección `MultiPolygon,6368` |
 
-### edafologia_resumenes_municipales
+### vw_edafologia_resumenes_municipales
 
-Vista de solo lectura agrupada por fuente territorial, municipio, versión, grupo y calificadores. Expone `municipality_id`, la clave EEMMM `cvegeo`, `superficie_m2`, `superficie_ha`, `porcentaje_municipio` y `cantidad_fragmentos`; no almacena geometría ni admite un Load independiente. Resuelve el territorio por FDW con `f.municipality_id = m.cve_mun AND m.cve_ent = 14`.
+Vista de solo lectura agrupada por fuente territorial, municipio, versión, grupo y calificadores. Expone `municipio_id`, el nombre `municipio` (`nomgeo`), la clave EEMMM `cvegeo`, `superficie_m2`, `superficie_ha`, `porcentaje_municipio` y `cantidad_fragmentos`; no almacena geometría ni admite un Load independiente. Resuelve el territorio por FDW con `f.municipio_id = m.cve_mun AND m.cve_ent = 14`.
 
 ## Migraciones
 

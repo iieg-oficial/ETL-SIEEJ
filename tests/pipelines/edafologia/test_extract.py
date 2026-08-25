@@ -412,7 +412,8 @@ def test_qualifier_roles_reference_same_sqlalchemy_model():
     )
     assert "calificador_primario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
     assert "calificador_secundario_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
-    assert "municipality_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert "municipio_id" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
+    assert "municipio" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
     assert "cvegeo" in EDAFOLOGIA_RESUMENES_MUNICIPALES_VIEW_COLUMNS
     assert not hasattr(schemas, "EdafologiaResumenesMunicipales")
 
