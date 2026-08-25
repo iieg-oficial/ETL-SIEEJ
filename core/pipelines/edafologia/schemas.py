@@ -100,7 +100,7 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
     __table_args__ = (
         UniqueConstraint(
             "edafologia_id",
-            "municipality_id",
+            "municipio_id",
             "fuente_limite_municipal_id",
             name="uq_edafologia_fragmentos_fuente_municipio",
         ),
@@ -118,12 +118,12 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
             "porcentaje_cobertura_edafologica >= 0",
             name="ck_edafologia_fragmentos_porcentaje_cobertura_no_negativo",
         ),
-        Index("idx_edafologia_fragmentos_municipio_id", "municipality_id"),
+        Index("idx_edafologia_fragmentos_municipio_id", "municipio_id"),
         Index("idx_edafologia_fragmentos_version_fuente", "version_fuente"),
         Index(
             "idx_edafologia_fragmentos_fuente_municipio_version",
             "fuente_limite_municipal_id",
-            "municipality_id",
+            "municipio_id",
             "version_fuente",
         ),
         Index("idx_edafologia_fragmentos_edafologia_id", "edafologia_id"),
@@ -133,7 +133,7 @@ class EdafologiaFragmentosMunicipales(EdafologiaBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     edafologia_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.EDAFOLOGIAS}.id"), nullable=False)
-    municipality_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
     fuente_limite_municipal_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.FUENTES_LIMITES_MUNICIPALES}.id"), nullable=False
     )

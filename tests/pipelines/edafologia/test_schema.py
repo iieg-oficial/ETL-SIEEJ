@@ -53,7 +53,7 @@ def test_sqlalchemy_columns_follow_physical_alignment_order():
     assert EdafologiaFragmentosMunicipales.columns() == [
         "id",
         "edafologia_id",
-        "municipality_id",
+        "municipio_id",
         "fuente_limite_municipal_id",
         "superficie_m2",
         "superficie_ha",
@@ -70,10 +70,10 @@ def test_flyway_contract_keeps_logical_municipality_reference():
     fragments = (MIGRATIONS / "V4__municipal_products_edafologia.sql").read_text(encoding="utf-8")
     fdw = (MIGRATIONS / "V7__municipality_reference_edafologia.sql").read_text(encoding="utf-8")
 
-    assert "municipality_id INTEGER NOT NULL" in fragments
-    assert "edafologia_id,\n        municipality_id,\n        fuente_limite_municipal_id" in fragments
+    assert "municipio_id INTEGER NOT NULL" in fragments
+    assert "edafologia_id,\n        municipio_id,\n        fuente_limite_municipal_id" in fragments
     assert "REFERENCES cvegeo" not in fragments
-    assert "f.municipality_id = m.cve_mun" in fdw
+    assert "f.municipio_id = m.cve_mun" in fdw
     assert "m.cve_ent = 14" in fdw
 
 

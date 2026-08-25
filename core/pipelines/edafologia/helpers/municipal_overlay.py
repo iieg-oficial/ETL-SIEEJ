@@ -112,7 +112,7 @@ def _dissolve_records(records: list[dict[str, Any]]) -> gpd.GeoDataFrame:
         "identificador_objeto_fuente",
         "sha256_archivo_fuente",
         "fuente_limite_clave",
-        "municipality_id",
+        "municipio_id",
     ]
     dissolved = frame.dissolve(
         by=keys, as_index=False, aggfunc={"source_area_m2": "first", "municipality_area_m2": "first"}
@@ -180,7 +180,7 @@ def calculate_overlay_for_source(
                 "identificador_objeto_fuente": int(source_row["identificador_objeto_fuente"]),
                 "sha256_archivo_fuente": str(source_row["sha256_archivo_fuente"]),
                 "fuente_limite_clave": fuente_limite_clave,
-                "municipality_id": int(muni_row["cve_mun"]),
+                "municipio_id": int(muni_row["cve_mun"]),
                 "source_area_m2": float(source_row["source_area_m2"]),
                 "municipality_area_m2": float(muni_row["municipality_area_m2"]),
                 "geometry": polygonal,
@@ -218,7 +218,7 @@ def validate_overlay_frame(gdf: gpd.GeoDataFrame) -> None:
     geometry_types = sorted(gdf.geometry.geom_type.unique().tolist())
     if geometry_types != ["MultiPolygon"]:
         raise ValueError(f"Overlay output must contain only MultiPolygon geometries: {geometry_types}")
-    key_columns = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipality_id"]
+    key_columns = ["version_fuente", "identificador_objeto_fuente", "fuente_limite_clave", "municipio_id"]
     if gdf.duplicated(key_columns).any():
         raise ValueError("Overlay output contains duplicated logical keys")
     if (
@@ -256,11 +256,11 @@ def small_fragment_profile(gdf: gpd.GeoDataFrame, territorial_area_m2: float) ->
 
 
 def territorial_closure(gdf: gpd.GeoDataFrame, municipalities: gpd.GeoDataFrame) -> dict[str, Any]:
-    municipal_areas = municipalities.assign(municipality_id=municipalities["cve_mun"].astype(int)).set_index(
-        "municipality_id"
+    municipal_areas = municipalities.assign(municipio_id=municipalities["cve_mun"].astype(int)).set_index(
+        "municipio_id"
     )
     municipal_area_by_id = municipal_areas.geometry.area.astype(float)
-    area_by_municipality = gdf.groupby("municipality_id")["superficie_m2"].sum()
+    area_by_municipality = gdf.groupby("municipio_id")["superficie_m2"].sum()
     coverage = (100 * area_by_municipality / municipal_area_by_id).fillna(0.0)
     total_area = float(municipal_area_by_id.sum())
     intersected_area = float(area_by_municipality.sum())
@@ -279,7 +279,7 @@ def territorial_closure(gdf: gpd.GeoDataFrame, municipalities: gpd.GeoDataFrame)
         },
         "sum_pct_municipio_total_by_municipality": {
             str(key): float(value)
-            for key, value in gdf.groupby("municipality_id")["porcentaje_municipio_total"].sum().items()
+            for key, value in gdf.groupby("municipio_id")["porcentaje_municipio_total"].sum().items()
         },
     }
 
