@@ -6,22 +6,22 @@ flyway.schemas=public
 flyway.cleanDisabled=false
 
 # Foreign Data Wrapper - conexion a la BD de cvegeo
-flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
-flyway.placeholders.fdw_host=<FDW_DB_HOST>
-flyway.placeholders.fdw_port=<FDW_DB_PORT>
-flyway.placeholders.fdw_user=<FDW_DB_USER>
-flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
+flyway.placeholders.fdw_cvegeo_dbname=<FDW_CVEGEO_DBNAME>
+flyway.placeholders.fdw_cvegeo_host=<FDW_CVEGEO_HOST>
+flyway.placeholders.fdw_cvegeo_port=<FDW_CVEGEO_PORT>  # default: 5432
+flyway.placeholders.fdw_cvegeo_user=<FDW_CVEGEO_USER>
+flyway.placeholders.fdw_cvegeo_password=<FDW_CVEGEO_PASSWORD>
 
 # Foreign Data Wrapper — conexión a la DB de conapo
-flyway.placeholders.fdw_dbname_2=<FDW_DB_NAME_2>
-flyway.placeholders.fdw_host_2=<FDW_DB_HOST_2>
-flyway.placeholders.fdw_port_2=<FDW_DB_PORT_2>
-flyway.placeholders.fdw_user_2=<FDW_DB_USER_2>
-flyway.placeholders.fdw_password_2=<FDW_DB_PASSWORD_2>
+flyway.placeholders.fdw_conapo_dbname=<FDW_CONAPO_DBNAME>
+flyway.placeholders.fdw_conapo_host=<FDW_CONAPO_HOST>
+flyway.placeholders.fdw_conapo_port=<FDW_CONAPO_PORT>  # default: 5432
+flyway.placeholders.fdw_conapo_user=<FDW_CONAPO_USER>
+flyway.placeholders.fdw_conapo_password=<FDW_CONAPO_PASSWORD>
 
 # Foreign Data Wrapper — conexión a la DB de inpc
-flyway.placeholders.fdw_dbname_3=<FDW_DB_NAME_3>
-flyway.placeholders.fdw_host_3=<FDW_DB_HOST_3>
-flyway.placeholders.fdw_port_3=<FDW_DB_PORT_3>
-flyway.placeholders.fdw_user_3=<FDW_DB_USER_3>
-flyway.placeholders.fdw_password_3=<FDW_DB_PASSWORD_3>
+flyway.placeholders.fdw_inpc_dbname=<FDW_INPC_DBNAME>
+flyway.placeholders.fdw_inpc_host=<FDW_INPC_HOST>
+flyway.placeholders.fdw_inpc_port=<FDW_INPC_PORT>  # default: 5432
+flyway.placeholders.fdw_inpc_user=<FDW_INPC_USER>
+flyway.placeholders.fdw_inpc_password=<FDW_INPC_PASSWORD>
