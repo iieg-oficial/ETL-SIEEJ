@@ -5,8 +5,16 @@ flyway.locations=migrations/nacimientos_dgis/sql
 flyway.schemas=public
 flyway.cleanDisabled=false
 
-flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
-flyway.placeholders.fdw_host=<FDW_DB_HOST>
-flyway.placeholders.fdw_port=<FDW_DB_PORT>
-flyway.placeholders.fdw_user=<FDW_DB_USER>
-flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
+# Foreign Data Wrapper — conexión a la DB de cvegeo
+flyway.placeholders.fdw_cvegeo_dbname=<FDW_CVEGEO_DBNAME>
+flyway.placeholders.fdw_cvegeo_host=<FDW_CVEGEO_HOST>
+flyway.placeholders.fdw_cvegeo_port=<FDW_CVEGEO_PORT>  # default: 5432
+flyway.placeholders.fdw_cvegeo_user=<FDW_CVEGEO_USER>
+flyway.placeholders.fdw_cvegeo_password=<FDW_CVEGEO_PASSWORD>
+
+# Foreign Data Wrapper — conexión a la DB de conapo
+flyway.placeholders.fdw_conapo_dbname=<FDW_CONAPO_DBNAME>
+flyway.placeholders.fdw_conapo_host=<FDW_CONAPO_HOST>
+flyway.placeholders.fdw_conapo_port=<FDW_CONAPO_PORT>  # default: 5432
+flyway.placeholders.fdw_conapo_user=<FDW_CONAPO_USER>
+flyway.placeholders.fdw_conapo_password=<FDW_CONAPO_PASSWORD>
