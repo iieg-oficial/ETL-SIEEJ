@@ -5,9 +5,8 @@ flyway.locations=migrations/denue/sql
 flyway.schemas=public
 flyway.cleanDisabled=false
 
-# Foreign Data Wrapper — conexión a la DB de cvegeo
-flyway.placeholders.fdw_cvegeo_dbname=<FDW_CVEGEO_DBNAME>
-flyway.placeholders.fdw_cvegeo_host=<FDW_CVEGEO_HOST>
-flyway.placeholders.fdw_cvegeo_port=<FDW_CVEGEO_PORT>  # default: 5432
-flyway.placeholders.fdw_cvegeo_user=<FDW_CVEGEO_USER>
-flyway.placeholders.fdw_cvegeo_password=<FDW_CVEGEO_PASSWORD>
+flyway.placeholders.fdw_dbname=<FDW_DB_NAME>
+flyway.placeholders.fdw_host=<FDW_DB_HOST>
+flyway.placeholders.fdw_port=<FDW_DB_PORT>  # default: 5432
+flyway.placeholders.fdw_user=<FDW_DB_USER>
+flyway.placeholders.fdw_password=<FDW_DB_PASSWORD>
