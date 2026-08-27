@@ -230,6 +230,21 @@ flyway-config pipeline: (_load-env pipeline)
       -e "s|<DB_USER>|$DB_USER|g"
       -e "s|<DB_PASSWORD>|$DB_PASSWORD|g"
     )
+    # La conexion FDW primaria (cvegeo) usa placeholders genericos <FDW_DB_*>
+    # y se resuelve desde migrations/cvegeo/.env. El puerto no se auto-rellena
+    # (ver nota mas abajo sobre <FDW_<DB>_PORT>).
+    if [ -f migrations/cvegeo/.env ]; then
+        FDW_DB_NAME=$(grep '^DB_NAME=' migrations/cvegeo/.env | cut -d= -f2-)
+        FDW_DB_HOST=$(grep '^DB_HOST=' migrations/cvegeo/.env | cut -d= -f2-)
+        FDW_DB_USER=$(grep '^DB_USER=' migrations/cvegeo/.env | cut -d= -f2-)
+        FDW_DB_PASSWORD=$(grep '^DB_PASSWORD=' migrations/cvegeo/.env | cut -d= -f2-)
+        sed_args+=(
+          -e "s|<FDW_DB_NAME>|$FDW_DB_NAME|g"
+          -e "s|<FDW_DB_HOST>|$FDW_DB_HOST|g"
+          -e "s|<FDW_DB_USER>|$FDW_DB_USER|g"
+          -e "s|<FDW_DB_PASSWORD>|$FDW_DB_PASSWORD|g"
+        )
+    fi
     # Cada conexion FDW extra referencia <FDW_<DB>_DBNAME> etc. en el .example,
     # con <DB> el nombre de la base real (CVEGEO, CONAPO, INPC...). Se resuelve
     # cada una leyendo el .env del pipeline homonimo, igual que el pipeline actual.
