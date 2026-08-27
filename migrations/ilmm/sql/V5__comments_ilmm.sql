@@ -72,7 +72,7 @@ COMMENT ON COLUMN vw_ilmm.id IS 'Identificador único que corresponde al registr
 COMMENT ON COLUMN vw_ilmm.fecha IS 'Fecha de referencia del trimestre (primer día del trimestre).';
 COMMENT ON COLUMN vw_ilmm.clave_municipio IS 'Clave INEGI de 5 dígitos del municipio.';
 COMMENT ON COLUMN vw_ilmm.municipio IS 'Nombre oficial del municipio.';
-COMMENT ON COLUMN vw_ilmm.nom_ent IS 'Nombre de la entidad federativa.';
+COMMENT ON COLUMN vw_ilmm.entidad IS 'Nombre de la entidad federativa.';
 COMMENT ON COLUMN vw_ilmm.estimador_id IS 'Tipo de estimador (1 = puntual, 2 = error estándar).';
 COMMENT ON COLUMN vw_ilmm.estimador IS 'Descripción textual del tipo de estimador.';
 COMMENT ON COLUMN vw_ilmm.pob_econo_activa IS 'Población económicamente activa (PEA).';
