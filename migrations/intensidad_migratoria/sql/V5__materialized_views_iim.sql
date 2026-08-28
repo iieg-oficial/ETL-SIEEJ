@@ -1,11 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS postgis;
-
-ALTER FOREIGN TABLE cvegeo_municipalities
-    ADD COLUMN IF NOT EXISTS geom_iieg  geometry(MultiPolygon, 6368),
-    ADD COLUMN IF NOT EXISTS geom_inegi geometry(MultiPolygon, 6368);
-
-DROP MATERIALIZED VIEW IF EXISTS vm_iim_geo;
-
 CREATE MATERIALIZED VIEW vm_iim_geo AS
 SELECT
     m.id AS fid,
