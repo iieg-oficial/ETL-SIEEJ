@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_settings import SettingsConfigDict
 from sqlalchemy.engine import make_url
 
@@ -36,12 +36,25 @@ class Settings(BaseConfig):
     BOUNDARY_GEOMETRY_COLUMN: str = Field(default=DEFAULT_BOUNDARY_GEOMETRY_COLUMN)
     STATS_MAX_CELLS: int = Field(default=5_000_000, ge=1)
     DIAGNOSTIC_SAMPLE_MAX_CELLS: int = Field(default=2_000_000, ge=1)
+    EXPERIMENT_MANUAL_X: float | None = Field(default=None)
+    EXPERIMENT_MANUAL_Y: float | None = Field(default=None)
+    WHITEBOX_TOOLS_EXECUTABLE: Path | None = Field(default=None)
+    WHITEBOX_TOOLS_EXPECTED_VERSION: str | None = Field(default=None)
+    WHITEBOX_TOOLS_EXPECTED_SHA256: str | None = Field(default=None)
 
     @field_validator("BOUNDARY_GEOMETRY_COLUMN")
     @classmethod
     def validate_boundary_geometry_column(cls, value: str) -> str:
         if value not in ALLOWED_BOUNDARY_GEOMETRY_COLUMNS:
             raise ValueError(f"BOUNDARY_GEOMETRY_COLUMN must be one of {ALLOWED_BOUNDARY_GEOMETRY_COLUMNS}")
+        return value
+
+    @field_validator("EXPERIMENT_MANUAL_Y")
+    @classmethod
+    def validate_manual_coordinate_pair(cls, value: float | None, info: ValidationInfo) -> float | None:
+        manual_x = info.data.get("EXPERIMENT_MANUAL_X")
+        if (manual_x is None) != (value is None):
+            raise ValueError("EXPERIMENT_MANUAL_X and EXPERIMENT_MANUAL_Y must be configured together")
         return value
 
     @property

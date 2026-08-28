@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.4.0"
+PIPELINE_VERSION: Final[str] = "0.5.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -48,6 +48,35 @@ FINAL_NODATA: Final[float] = -9999.0
 RASTER_BLOCK_SIZE: Final[int] = 256
 DIAGNOSTIC_CHIP_SIZE: Final[int] = 1024
 NEAR_FLAT_DIFFERENCE_TOLERANCE_M: Final[float] = 1e-6
+EXPERIMENT_DIRECTORY_NAME: Final[str] = "fase_04_acondicionamiento"
+EXPERIMENT_MANIFEST_FILENAME: Final[str] = "experiment_manifest.json"
+EXPERIMENT_CHIP_INVENTORY_FILENAME: Final[str] = "chip_inventory.json"
+EXPERIMENT_BASELINE_SHA256: Final[str] = "1461f63298509f045476b9e6e0597ee8eba3138af82e033eb232ddef3bf50fcd"
+EXPERIMENT_CHIP_STRIDE: Final[int] = 1024
+EXPERIMENT_SELECTION_DECIMATION: Final[int] = 8
+EXPERIMENT_MIN_VALID_PERCENTAGE: Final[float] = 99.5
+EXPERIMENT_FILTER_HALO_PIXELS: Final[int] = 6
+EXPERIMENT_MODIFIED_TOLERANCE_M: Final[float] = 1e-6
+EXPERIMENT_STRONG_GRADIENT_PERCENTILE: Final[float] = 90.0
+EXPERIMENT_SELECTION_PERCENTILES: Final[tuple[int, ...]] = (10, 25, 40, 50, 60, 75, 90)
+EXPERIMENT_ELEVATION_CHANGE_THRESHOLDS_M: Final[tuple[float, ...]] = (0.25, 0.5, 1.0, 2.0)
+EXPERIMENT_HILLSHADE_AZIMUTH_DEGREES: Final[float] = 315.0
+EXPERIMENT_HILLSHADE_ALTITUDE_DEGREES: Final[float] = 45.0
+EXPERIMENT_GAUSSIAN_CONFIGS: Final[tuple[dict[str, float | str], ...]] = (
+    {"id": "A1", "sigma_pixels": 0.5},
+    {"id": "A2", "sigma_pixels": 0.75},
+    {"id": "A3", "sigma_pixels": 1.0},
+)
+EXPERIMENT_BILATERAL_CONFIGS: Final[tuple[dict[str, float | str], ...]] = (
+    {"id": "B1", "sigma_dist_pixels": 0.75, "sigma_int_m": 0.5},
+    {"id": "B2", "sigma_dist_pixels": 1.0, "sigma_int_m": 1.0},
+    {"id": "B3", "sigma_dist_pixels": 1.5, "sigma_int_m": 2.0},
+)
+EXPERIMENT_FEATURE_PRESERVING_CONFIGS: Final[tuple[dict[str, float | int | str], ...]] = (
+    {"id": "C1", "filter": 11, "norm_diff_degrees": 5.0, "num_iter": 1, "max_diff_m": 0.5},
+    {"id": "C2", "filter": 11, "norm_diff_degrees": 10.0, "num_iter": 3, "max_diff_m": 1.0},
+    {"id": "C3", "filter": 11, "norm_diff_degrees": 15.0, "num_iter": 3, "max_diff_m": 1.0},
+)
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
 SUPPORTED_SOURCE_DTYPES: Final[tuple[str, ...]] = (

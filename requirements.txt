@@ -3,6 +3,7 @@ rich
 pandas
 geopandas
 rasterio>=1.4,<1.5
+whitebox==2.3.6
 pyproj==3.7.2
 psycopg2-binary
 python-dotenv

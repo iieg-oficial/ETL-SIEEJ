@@ -89,8 +89,9 @@ Los nombres de archivo previstos, sujetos al futuro patrón raster institucional
 
 ## Acondicionamiento y pendiente
 
-`helpers/conditioning.py` registra solamente la línea base `raw` y permite incorporar candidatos explícitos más
-adelante. No selecciona mediana, Gaussian, cubic, spline ni otro filtro. `helpers/qa.py` implementa las métricas
+`helpers/conditioning.py` mantiene la línea base productiva `raw`; los candidatos de la fase 4 viven en módulos
+experimentales separados y no están conectados al Transform estatal. No se ha seleccionado ni promovido mediana,
+Gaussian, bilateral, spline ni otro filtro. `helpers/qa.py` implementa las métricas
 cuantitativas ya definibles: diferencias, MAE, RMSE, bias, percentiles absolutos, máximo, porcentaje modificado y
 distribuciones reproducibles de pendiente. Deja pendientes las definiciones operativas de conservación de crestas,
 barrancas, reducción de banding y comportamiento en terreno plano/montañoso.
@@ -119,7 +120,42 @@ fracción casi plana usa una tolerancia documentada de `1e-6 m`; es descriptiva 
 `helpers/diagnostics.py` también permite extraer chips QA reproducibles de 1024 × 1024 celdas mediante coordenadas
 de fila/columna y una etiqueta de terreno (`flat`, `rolling_hills`, `mountain` o `manual_problem_area`). Los chips
 conservan EPSG:6368, resolución y alineación del baseline, y deben escribirse bajo `data/`, fuera de Git. La selección
-final de ventanas permanece pendiente; la fase 3 no genera hillshade ni pendientes exploratorias por defecto.
+final de ventanas permanece pendiente en la fase 3, que no genera hillshade ni pendientes exploratorias por defecto.
+
+## Fase 4 experimental
+
+La selección automática recorre ventanas alineadas de 1024 × 1024 completamente cubiertas por la geometría
+canónica de Jalisco y con al menos 99.5 % de datos válidos. Una muestra sistemática a 1/8 de resolución caracteriza
+cada ventana mediante la mediana de pendiente Horn y la mediana del Laplaciano absoluto de cuatro vecinos. Los
+chips `plano`, `lomerio` y `montana` son los más próximos conjuntamente a los percentiles p10, p50 y p90 dentro de
+restricciones p25/p40–p60/p75. El manifiesto conserva todos los percentiles y declara cualquier relajación. Una
+coordenada opcional EPSG:6368 permite añadir `problema_manual` y se ajusta a la rejilla, sin coordenadas embebidas.
+
+El experimento compara `RAW`, Gaussian A1–A3 y bilateral B1–B3 mediante implementaciones NumPy con NoData explícito
+y halo de seis píxeles. C1–C3 ejecutan `FeaturePreservingSmoothing` de WhiteboxTools cuando ruta, versión exacta y
+SHA-256 del motor coinciden con la configuración. Se evalúa porque fue diseñado para reducir variación de corta
+escala en DEM usando normales de superficie y preservando rupturas; no se presupone que sea superior para el CEM
+4.0 de 15 m y sus parámetros requieren calibración específica.
+
+El frontend queda fijado como `whitebox==2.3.6` (MIT). Como descarga un motor desde una URL no versionada, no basta
+con fijar el paquete Python: cada corrida valida y registra la versión, licencia y checksum del ejecutable. El
+contrato probado para este piloto fue WhiteboxTools v2.4.0, pero el valor operativo siempre debe suministrarse en
+`WHITEBOX_TOOLS_EXPECTED_VERSION` junto con `WHITEBOX_TOOLS_EXPECTED_SHA256`.
+
+Para cada candidato se calculan cambios de elevación, pendiente Horn común, diferencias vecinas, Laplaciano,
+conservación del gradiente fuerte p90 y diferencia angular de normales. No se definen pesos, score, umbrales de
+promoción ni clasificaciones definitivas de crestas/barrancas. Los GeoTIFF QA conservan el grid; las composiciones
+PNG usan un rango común por variable y documentan el orden de paneles. Hillshade usa azimuth 315°, altitude 45° y
+z-factor 1. Todos los resultados viven bajo `data/transform/pendientes/fase_04_acondicionamiento/`.
+
+```bash
+export WHITEBOX_TOOLS_EXECUTABLE=/ruta/versionada/whitebox_tools
+export WHITEBOX_TOOLS_EXPECTED_VERSION='WhiteboxTools vX.Y.Z (...)'
+export WHITEBOX_TOOLS_EXPECTED_SHA256=<sha256-del-ejecutable>
+python -c "from core.pipelines.pendientes.stages.experiment import PendientesExperiment; PendientesExperiment().execute()"
+```
+
+Esta ejecución no modifica el baseline, no procesa todo Jalisco, no genera productos finales y no ejecuta Load.
 
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
