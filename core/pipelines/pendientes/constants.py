@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.9.0"
+PIPELINE_VERSION: Final[str] = "0.10.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -154,6 +154,18 @@ SOURCE_DIAGNOSTIC_EVIDENCE_LABELS: Final[tuple[str, ...]] = (
     "amplificado_por_reproyeccion",
     "principalmente_inducido_por_reproyeccion",
     "indeterminado",
+)
+GLOBAL_VALIDATION_DIRECTORY_NAME: Final[str] = "fase_05d_validacion_global_leve"
+GLOBAL_VALIDATION_MANIFEST_FILENAME: Final[str] = "global_conditioning_validation_manifest.json"
+GLOBAL_VALIDATION_PROFILE_CHIP_COUNT: Final[int] = 10
+GLOBAL_VALIDATION_FLOAT_TOLERANCE_M: Final[float] = 1e-5
+GLOBAL_VALIDATION_CANDIDATE_IDS: Final[tuple[str, ...]] = ("FP1", "FP2", "FP3")
+GLOBAL_VALIDATION_DECISIONS: Final[tuple[str, ...]] = (
+    "mantener_RAW",
+    "FP1_recomendado_para_procesamiento_estatal",
+    "FP2_recomendado_para_procesamiento_estatal",
+    "FP3_recomendado_para_procesamiento_estatal",
+    "requiere_otra_calibracion",
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"

@@ -266,6 +266,30 @@ sola que el producto sea inválido. Eliminar toda textura exigiría potencialmen
 es el acondicionamiento y la reducción de señal sistemática sin borrar señal geomorfológica real, no atribuir errores
 al productor sin evidencia. RAW permanece como referencia y no se promueve aún FP1, FP2 ni FP3.
 
+## Fase 5D: validación estatal comparativa del acondicionamiento global leve
+
+La Fase 5D reutiliza y verifica los 30 RAW de Fase 5A, incluida `problema_manual`, y ejecuta directamente cada chip
+completo con FP1, FP2 y FP3. No usa las antiguas clases de banding, no prueba otros filtros y no generaliza el halo
+24 de FP3 a las demás configuraciones. La comparación estratifica plano, valle, lomerío, transición valle–sierra y
+montaña mediante alteración Z, pendiente Horn exploratoria, gradiente fuerte, normales, distribución de segunda
+diferencia y perfiles idénticos.
+
+FP1 es el extremo conservador: su MAE Z mediana es 0.079 m, pero su ratio p95 de segunda diferencia permanece cerca
+de uno. FP2 reduce la mediana de segunda diferencia a 0.753 del RAW y, en terreno plano, reduce p50/p95 a 0.597/0.868,
+con MAE Z mediana 0.162 m, MAE de pendiente 0.273° y normal p95 mediana 0.825°. FP3 alcanza una reducción p50 apenas
+mayor, pero modifica más Z, pendiente y normales y no mejora consistentemente el p95 territorial. Los perfiles
+conservan los pasos fuertes y la inspección de diez hillshades no muestra pérdida clara de crestas, barrancas o forma
+montañosa a escala de chip.
+
+Sin score ponderado, FP1, FP2 y FP3 son estrictamente no dominados porque cada uno conserva alguna ventaja aislada.
+No obstante, FP3 no aporta una ventaja territorial material y consistente frente a FP2. La decisión permitida es
+`FP2_recomendado_para_procesamiento_estatal`: significa únicamente que FP2 merece la siguiente QA sobre el baseline
+completo. Antes de ello debe demostrarse su equivalencia tileada y determinarse empíricamente el halo; no se asumen
+los 24 px de FP3.
+
+La reproyección permanece congelada como CEM EPSG:6365/0.5 arcsec/Int16 → bilinear → EPSG:6368/15 m/Float32. El
+bilinear reduce parcialmente la expresión de la discretización, pero no recupera información vertical inexistente.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.
