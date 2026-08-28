@@ -236,6 +236,36 @@ conteo de pasos en perfiles cerca del extremo alto, y prominencia relativa por e
 que la detección no debe depender de un único tercil de autocorrelación. No se entrenó clasificador ni se fijaron
 negativos; la evaluación de precision/recall/F1 permanece bloqueada hasta disponer de ambas clases humanas.
 
+La revisión visual posterior cambia su estado metodológico a `superseded_for_binary_localization`: el patrón aparece
+de manera extendida y ya no se considera adecuada la hipótesis de una máscara local binaria presencia/ausencia. No
+se borran código, atlas ni métricas; siguen siendo evidencia útil para caracterizar intensidad, orientación y
+periodicidad, y forman parte del linaje experimental.
+
+## Fase 5C: diagnóstico del origen fuente–reproyección–derivados
+
+La Fase 5C compara `problema_manual` y los controles reproducibles `plano` y `montana` entre el CEM publicado nativo
+EPSG:6365 y el baseline EPSG:6368/15 m. La elevación Int16, cuantización y diferencias vecinas se miden directamente
+en la rejilla nativa, sin interpolación. Para una comparación espacial válida, el CEM nativo se muestrea por vecino
+más cercano en los centros de la rejilla baseline y se compara allí con el baseline bilinear; nunca se emparejan
+índices de rejillas distintas.
+
+Los derivados nativos se calculan sobre una copia temporal métrica EPSG:6368/15 m obtenida por `nearest`, conservando
+los niveles verticales enteros. Pendiente Horn, hillshade 315°/45° y segunda diferencia utilizan así XY y Z en metros.
+La ventana Int16 original no se sobrescribe. Un warp bilinear local auxiliar se registra sólo como QA y no como una
+reproducción necesariamente exacta del warp de raster completo, cuyo contexto de transformación GDAL puede variar.
+
+La evidencia real clasifica el patrón como `principalmente_presente_en_fuente`: en `problema_manual`, 100% de las
+elevaciones nativas son enteras, aproximadamente 41–44% de los vecinos forman mesetas y 42–43% cambian exactamente
+1 m; tres perfiles geográficos contienen secuencias repetidas meseta–salto. El baseline bilinear reduce el p95 de
+segunda diferencia frente a la referencia nearest, por lo que esta prueba no sustenta que nuestra reproyección sea
+la causa principal. La cuantización y el remuestreo institucional previo no pueden separarse entre sí usando sólo el
+CEM publicado.
+
+Un hillshade o una pendiente pueden hacer visible una estructura débil del DEM; esa visibilidad no demuestra por sí
+sola que el producto sea inválido. Eliminar toda textura exigiría potencialmente sobre-suavizado. El objetivo futuro
+es el acondicionamiento y la reducción de señal sistemática sin borrar señal geomorfológica real, no atribuir errores
+al productor sin evidencia. RAW permanece como referencia y no se promueve aún FP1, FP2 ni FP3.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.

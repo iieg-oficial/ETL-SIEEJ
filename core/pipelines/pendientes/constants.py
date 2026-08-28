@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.8.0"
+PIPELINE_VERSION: Final[str] = "0.9.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -144,6 +144,16 @@ BANDING_REVIEW_LABELS: Final[tuple[str, ...]] = (
     "banding_presente",
     "banding_ausente",
     "dudoso",
+)
+SOURCE_DIAGNOSTIC_DIRECTORY_NAME: Final[str] = "fase_05c_diagnostico_origen"
+SOURCE_DIAGNOSTIC_MANIFEST_FILENAME: Final[str] = "source_diagnostic_manifest.json"
+SOURCE_DIAGNOSTIC_PROFILE_ANGLE_DEGREES: Final[float] = 43.54017199107539
+SOURCE_DIAGNOSTIC_PROFILE_OFFSETS_PIXELS: Final[tuple[int, ...]] = (-128, 0, 128)
+SOURCE_DIAGNOSTIC_EVIDENCE_LABELS: Final[tuple[str, ...]] = (
+    "principalmente_presente_en_fuente",
+    "amplificado_por_reproyeccion",
+    "principalmente_inducido_por_reproyeccion",
+    "indeterminado",
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
