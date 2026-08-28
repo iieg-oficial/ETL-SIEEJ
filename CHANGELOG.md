@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.4.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.3.0...v1.4.0) (2026-08-28)
+
+
+### Features
+
+* **defunciones_inegi:** add catalog, fact and view migrations ([704a2c7](https://github.com/iieg-oficial/ETL-SIEEJ/commit/704a2c7358b28aef2f94a3257a4c8c879a2544ba))
+* **defunciones_inegi:** add extract stage ([d4b71e7](https://github.com/iieg-oficial/ETL-SIEEJ/commit/d4b71e7373e28f4efc040c0abf7c869269810706))
+* **defunciones_inegi:** add load stage ([bfb475a](https://github.com/iieg-oficial/ETL-SIEEJ/commit/bfb475a5ca7c610f38154a890a3a8428b3bbd00e))
+* **defunciones_inegi:** add pipeline constants ([a6c0c55](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a6c0c55f95e27e07fa8f1f0aeb95e20f33577a43))
+* **defunciones_inegi:** add settings and env example ([76e42a6](https://github.com/iieg-oficial/ETL-SIEEJ/commit/76e42a6abfbb0a5ac4be1813f62d0b2316d5b7c6))
+* **defunciones_inegi:** add source discovery and catalog parsing helpers ([b475d8c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b475d8c38c515b99cbaab02a075a64ff56095006))
+* **defunciones_inegi:** add SQLAlchemy models for catalogs and facts ([e781893](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e781893b52ac3a72a7d36bd1295bb9bb7126888e))
+* **defunciones_inegi:** add table name enum ([a04e02f](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a04e02f6dda2d3886a85415d4a890747bd963fc3))
+* **defunciones_inegi:** add transform stage ([652e13e](https://github.com/iieg-oficial/ETL-SIEEJ/commit/652e13e84f2f6397d58e86ecc567c6e8569e115d))
+* **defunciones_inegi:** cover catalog constants and the tolerant CSV parser ([cd37c94](https://github.com/iieg-oficial/ETL-SIEEJ/commit/cd37c947100f165c96e67e43a7b7e062a041d5ba))
+* **defunciones_inegi:** register the DAG, its schedule and the heavy pool ([1e81c86](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1e81c86dccb98d05bce669b03320fac27ea24a37))
+* **edafologia:** agregar las vistas para los cuadernillos municipales ([7500015](https://github.com/iieg-oficial/ETL-SIEEJ/commit/7500015fd66a0d9da650e08a6da78828b16e1f70))
+* **edafologia:** exponer el nombre del municipio en la vista de resumenes ([042aa1b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/042aa1b060ebc505849a4a930a179aa6e5a2b8a9))
+* **indicadores:** registrar indicadores de edafologia ([82f732a](https://github.com/iieg-oficial/ETL-SIEEJ/commit/82f732a9746899f16a921fe78ab59fc7d87be377))
+* **intensidad_migratoria:** add GeoServer materialized view ([064a2d3](https://github.com/iieg-oficial/ETL-SIEEJ/commit/064a2d3453154f01f690bd6446ca35c4b2f1bb32))
+* **pipeline:** add intensidad migratoria GeoServer view ([db15cb8](https://github.com/iieg-oficial/ETL-SIEEJ/commit/db15cb80acfa3f367734e52da9bd4eb6e87683ed))
+* **pipeline:** defunciones_inegi ([79ad829](https://github.com/iieg-oficial/ETL-SIEEJ/commit/79ad829c406bd9c0fd587772b38eeb1e0ef454c6))
+* **scripts:** add ERD generator with comb layout ([9a9a246](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9a9a2461304790eefd3f00ff5ad97632a9bb3389))
+
+
+### Bug Fixes
+
+* **config:** eliminar el COPY del .env excluido por dockerignore ([b844d96](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b844d96cb2713ddd83e58da5c7bbd78748c27674))
+* **config:** eliminar el COPY del .env excluido por dockerignore ([38203ca](https://github.com/iieg-oficial/ETL-SIEEJ/commit/38203caf1b221751e43cf2309bd5afa605cd2281))
+* **edafologia:** atender observaciones de revisión ([bf1122c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/bf1122cf25cb1fae1f4c50a8425beee7e1ce3d7f))
+* **edafologia:** eliminar el espacio final en el grupo Acrisol ([a01a137](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a01a1370df7d63194c80a237fb8f780e6723067f))
+* **ilmm:** correct vw_ilmm.entidad comment column name ([957d9e4](https://github.com/iieg-oficial/ETL-SIEEJ/commit/957d9e46a68b8ffcbd856ba56fdf094f8183792f))
+
 ## [1.3.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.2.2...v1.3.0) (2026-08-19)
 
 
