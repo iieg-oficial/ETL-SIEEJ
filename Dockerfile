@@ -1,7 +1,6 @@
 FROM apache/airflow:3.1.1-python3.12
 
 COPY requirements.txt .
-COPY .env .
 
 USER root
 
