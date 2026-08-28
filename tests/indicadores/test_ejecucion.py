@@ -13,6 +13,12 @@ INDICADORES = list(registro._catalogo().values())
 
 # Sin filtros, la serie completa de estos indicadores rebasa LIMITE y ejecutar() falla.
 ACOTAR = {"incidencia_delictiva_municipal": {"cve_geo": "14039"}}
+ACOTAR.update(
+    {
+        "superficie_grupo_edafologico_municipal": {"fuente_limite": "iieg"},
+        "porcentaje_grupo_edafologico_municipal": {"fuente_limite": "iieg"},
+    }
+)
 
 
 @pytest.fixture(params=INDICADORES, ids=lambda i: i.id)
@@ -48,3 +54,25 @@ def test_filtro_por_municipio():
     filas = registro.ejecutar("pobreza_municipal", cve_geo="14039")
     assert filas
     assert {f["cve_geo"] for f in filas} == {"14039"}
+
+
+@pytest.mark.parametrize(
+    "indicator_id",
+    ("superficie_grupo_edafologico_municipal", "porcentaje_grupo_edafologico_municipal"),
+)
+@pytest.mark.parametrize("fuente_limite", ("iieg", "inegi"))
+def test_edafologia_keeps_boundary_sources_separate(indicator_id, fuente_limite):
+    if not Path(env_path("edafologia")).exists():
+        pytest.skip("sin .env para el pipeline 'edafologia'")
+
+    filas = registro.ejecutar(
+        indicator_id,
+        cve_geo="14001",
+        fuente_limite=fuente_limite,
+    )
+
+    assert filas
+    assert {fila["cve_geo"] for fila in filas} == {"14001"}
+    assert {fila["periodo"] for fila in filas} == {"2021"}
+    keys = [(fila["cve_geo"], fila["periodo"], fila["categoria"]) for fila in filas]
+    assert len(keys) == len(set(keys))

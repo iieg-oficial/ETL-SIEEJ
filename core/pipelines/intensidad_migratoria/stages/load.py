@@ -6,11 +6,13 @@ from typing import Any, Optional
 from core.db import Database
 from core.pipelines.stage import Stage
 from core.pipelines.intensidad_migratoria.config import settings
+from core.pipelines.intensidad_migratoria.queries import MATERIALIZED_VIEWS
 from core.pipelines.intensidad_migratoria.schemas import IimEstatal, IimMunicipal
 from core.utils import df_to_records
 from core.utils.bulk_ops import bulk_insert, count_records, sync_id_sequence
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 logger = get_logger("intensidad_migratoria.load")
 
@@ -54,6 +56,8 @@ class IntensidadMigratoriaLoad(Stage):
                 sync_id_sequence(session, IimEstatal)
                 estatal_cols = [c for c in IimEstatal.columns() if c != IimEstatal.id.key]
                 bulk_insert(session, df_to_records(df_estatal.replace({np.nan: None}), estatal_cols), IimEstatal)
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception as e:
             logger.error(f"Load error: {e}")

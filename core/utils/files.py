@@ -1,10 +1,13 @@
 import io
 import os
 import glob
+import hashlib
+import json
 import shutil
 import zipfile
 from pathlib import Path
 from datetime import datetime
+from typing import Any
 
 import chardet
 import pandas as pd
@@ -15,6 +18,63 @@ from core.utils.logger import get_console_logger
 logger = get_console_logger(__name__)
 
 _FALLBACK_ENCODINGS = ("utf-8", "latin-1", "cp1252", "iso-8859-1", "utf-16")
+
+
+def sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as file:
+        for chunk in iter(lambda: file.read(chunk_size), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_zip(path: Path) -> None:
+    try:
+        with zipfile.ZipFile(path) as archive:
+            invalid_member = archive.testzip()
+    except zipfile.BadZipFile as exc:
+        raise ValueError(f"File is not a valid ZIP: {path}") from exc
+    if invalid_member is not None:
+        raise ValueError(f"ZIP contains a corrupt member: {invalid_member}")
+
+
+def safe_extract_zip(zip_path: Path, extract_dir: Path, force: bool = False) -> Path:
+    if force and extract_dir.exists():
+        shutil.rmtree(extract_dir)
+    extract_dir.mkdir(parents=True, exist_ok=True)
+    root = extract_dir.resolve()
+
+    with zipfile.ZipFile(zip_path) as archive:
+        for member in archive.infolist():
+            target = (root / member.filename).resolve()
+            if not target.is_relative_to(root):
+                raise ValueError(f"Unsafe ZIP member path: {member.filename}")
+            if member.is_dir():
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            if target.exists():
+                logger.info("[action] Reusing extracted member: %s", target)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with archive.open(member) as source, target.open("wb") as output:
+                shutil.copyfileobj(source, output)
+
+    logger.info("[action] ZIP extracted to %s", extract_dir)
+    return extract_dir
+
+
+def read_json(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json_atomic(data: dict[str, Any], path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_suffix(f".tmp{path.suffix}")
+    temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2, sort_keys=True), encoding="utf-8")
+    temporary.replace(path)
+    return path
 
 
 def detect_encoding(file_path: str, sample_size: int = 10000) -> str:
@@ -59,6 +119,33 @@ def fetch_zip(url: str, timeout: int = 120) -> zipfile.ZipFile:
     response = requests.get(url, timeout=timeout)
     response.raise_for_status()
     return zipfile.ZipFile(io.BytesIO(response.content))
+
+
+def read_csv_from_zip(
+    archive: zipfile.ZipFile,
+    member: str,
+    encodings: tuple[str, ...] = _FALLBACK_ENCODINGS,
+    **read_csv_kwargs,
+) -> pd.DataFrame:
+    """Lee un CSV dentro de un ZIP ya abierto, probando encodings en orden.
+
+    Args:
+        archive: ZIP abierto.
+        member: ruta del miembro dentro del ZIP.
+        encodings: encodings a probar; sólo el último puede fallar.
+
+    Raises:
+        UnicodeDecodeError: si ninguno sirve.
+    """
+    with archive.open(member) as handle:
+        raw = handle.read()
+
+    for encoding in encodings:
+        try:
+            return pd.read_csv(io.BytesIO(raw), encoding=encoding, **read_csv_kwargs)
+        except UnicodeDecodeError:
+            logger.warning(f"'{member}' no es {encoding}; probando el siguiente encoding")
+    raise UnicodeDecodeError(f"Ningún encoding de {encodings} sirvió para '{member}'")
 
 
 def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
