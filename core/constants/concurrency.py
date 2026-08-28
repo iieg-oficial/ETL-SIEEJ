@@ -25,4 +25,4 @@ PRIORITY_HEAVY: Final[int] = -10
 
 # Classification per the criterion in docs/airflow.md. Adding a pipeline here
 # is a reviewable decision, not a config tweak.
-HEAVY_PIPELINES: Final[frozenset[str]] = frozenset({"denue", "nacimientos_dgis"})
+HEAVY_PIPELINES: Final[frozenset[str]] = frozenset({"defunciones_inegi", "denue", "nacimientos_dgis"})
