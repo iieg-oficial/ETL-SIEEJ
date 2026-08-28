@@ -218,6 +218,24 @@ caso manual y no crea costuras con halo 24, pero no reduce consistentemente dens
 alto ni preserva prácticamente intactos todos los casos sin banding. Esto no es rechazo definitivo ni promoción;
 no se generó el DEM acondicionado estatal, pendientes finales o Load.
 
+## Fase 5B: calibración del detector de banding
+
+La Fase 5B reutiliza los 30 RAW de 5A, valida su rejilla y registra sus checksums sin volver a ejecutar FP3. Produce
+`banding_review.csv` y un atlas RAW de 30 composiciones con escalas estatales comunes. Sólo `problema_manual` nace
+etiquetado como `banding_presente`, con fuente `manual_known_problem`; las otras 29 etiquetas quedan vacías y se
+preservan en ejecuciones posteriores para que una revisión humana no sea sobrescrita.
+
+El detector v2 mantiene densidad, coherencia, continuidad, autocorrelación, eje y lag, y añade sin combinarlos en un
+score: prominencia relativa del pico, estabilidad del lag en 16 subventanas, anisotropía Hessiana, persistencia de
+corridas tangenciales y repetición de pasos en siete perfiles. Las pruebas sintéticas cubren plano, bandas periódicas,
+cresta única, ruido isotrópico, periodicidad orientada y cambio de orientación.
+
+La autocorrelación absoluta de `problema_manual` es la menor de los 30 chips porque el relieve natural produce picos
+más altos en otros lugares. En cambio, el caso manual presenta lag 4 estable en todas las subventanas, coherencia y
+conteo de pasos en perfiles cerca del extremo alto, y prominencia relativa por encima de la mediana. Esto demuestra
+que la detección no debe depender de un único tercil de autocorrelación. No se entrenó clasificador ni se fijaron
+negativos; la evaluación de precision/recall/F1 permanece bloqueada hasta disponer de ambas clases humanas.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.

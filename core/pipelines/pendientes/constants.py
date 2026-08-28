@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.7.0"
+PIPELINE_VERSION: Final[str] = "0.8.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -136,6 +136,15 @@ STATE_VALIDATION_FP3_CONFIG: Final[dict[str, float | int | str]] = {
     "num_iter": 1,
     "max_diff_m": 0.5,
 }
+BANDING_REVIEW_DIRECTORY_NAME: Final[str] = "fase_05b_detector_banding"
+BANDING_REVIEW_CSV_FILENAME: Final[str] = "banding_review.csv"
+BANDING_REVIEW_MANIFEST_FILENAME: Final[str] = "banding_detector_manifest.json"
+BANDING_REVIEW_PRIORITY_COUNT: Final[int] = 15
+BANDING_REVIEW_LABELS: Final[tuple[str, ...]] = (
+    "banding_presente",
+    "banding_ausente",
+    "dudoso",
+)
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
 SUPPORTED_SOURCE_DTYPES: Final[tuple[str, ...]] = (
