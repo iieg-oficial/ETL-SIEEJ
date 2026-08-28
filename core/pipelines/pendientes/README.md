@@ -196,6 +196,28 @@ cuatro chips y conserva explícitamente `winner_selected=false` y `recommendatio
 `recomendado_para_validacion_estatal` autoriza sólo una validación posterior sobre Jalisco; no selecciona, promueve
 ni conecta un método al Transform productivo.
 
+## Fase 5A: validación espacial estatal FP3
+
+La Fase 5A valida FP3 sin construir el DEM estatal. Selecciona reproduciblemente 30 chips de 1024×1024: un chip por
+cada sector ocupado de una malla 6×6 y la coordenada problemática conocida. El inventario registra sector,
+morfología descriptiva, elevación, pendiente Horn exploratoria, rugosidad, relieve local, cobertura y la firma RAW
+de banding. La muestra incluye plano, lomerío, montaña, valle y transición valle–sierra.
+
+Antes del lote de validación se compara Whitebox completo contra una reconstrucción de tiles internos de 512 px.
+Los halos 5, 6, 8, 12 y 16 no fueron exactos; 24 px fue el mínimo que reprodujo bit a bit los cuatro chips de prueba,
+sin diferencias en interior, bordes verticales/horizontales ni esquinas. El halo es un resultado empírico específico
+de FP3 y WhiteboxTools 2.4.0, no una inferencia a partir del radio nominal del filtro.
+
+La clasificación `banding_bajo/medio/alto` usa terciles de autocorrelación dominante RAW y es sólo descriptiva. La
+densidad RAW cercana a 10% se debe a que el umbral de cada chip es su propio p90; no representa una tasa independiente
+de artefactos. La coordenada problemática conocida quedó en `banding_bajo` bajo los terciles de autocorrelación, una
+señal de que esa clasificación univariada necesita ajuste antes de una decisión productiva.
+
+El resultado vigente es `requiere_ajuste`: FP3 respeta 0.5 m, conserva gradientes fuertes, reproduce la mejora del
+caso manual y no crea costuras con halo 24, pero no reduce consistentemente densidad y autocorrelación en el estrato
+alto ni preserva prácticamente intactos todos los casos sin banding. Esto no es rechazo definitivo ni promoción;
+no se generó el DEM acondicionado estatal, pendientes finales o Load.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.

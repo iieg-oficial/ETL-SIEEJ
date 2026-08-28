@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.6.0"
+PIPELINE_VERSION: Final[str] = "0.7.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -101,6 +101,41 @@ CALIBRATION_DECISION_LABELS: Final[tuple[str, ...]] = (
     "mantener",
     "recomendado_para_validacion_estatal",
 )
+STATE_VALIDATION_DIRECTORY_NAME: Final[str] = "fase_05a_validacion_estatal"
+STATE_VALIDATION_MANIFEST_FILENAME: Final[str] = "state_validation_manifest.json"
+STATE_VALIDATION_INVENTORY_FILENAME: Final[str] = "state_validation_inventory.json"
+STATE_VALIDATION_CHIP_COUNT_TARGET: Final[int] = 30
+STATE_VALIDATION_SECTOR_COLUMNS: Final[int] = 6
+STATE_VALIDATION_SECTOR_ROWS: Final[int] = 6
+STATE_VALIDATION_TILE_SIZE_PIXELS: Final[int] = 512
+STATE_VALIDATION_HALO_CANDIDATES_PIXELS: Final[tuple[int, ...]] = (5, 6, 8, 12, 16, 24, 32)
+STATE_VALIDATION_TILE_TEST_CHIP_COUNT: Final[int] = 4
+STATE_VALIDATION_VISUAL_CHIP_COUNT: Final[int] = 10
+STATE_VALIDATION_ELEVATION_THRESHOLDS_M: Final[tuple[float, ...]] = (0.1, 0.25, 0.5)
+STATE_VALIDATION_BANDING_CLASSES: Final[tuple[str, ...]] = (
+    "banding_bajo",
+    "banding_medio",
+    "banding_alto",
+)
+STATE_VALIDATION_MORPHOLOGY_CLASSES: Final[tuple[str, ...]] = (
+    "plano",
+    "lomerio",
+    "montana",
+    "valle",
+    "transicion_valle_sierra",
+)
+STATE_VALIDATION_DECISION_LABELS: Final[tuple[str, ...]] = (
+    "rechazar_para_produccion",
+    "requiere_ajuste",
+    "recomendado_para_promocion",
+)
+STATE_VALIDATION_FP3_CONFIG: Final[dict[str, float | int | str]] = {
+    "id": "FP3",
+    "filter": 11,
+    "norm_diff_degrees": 7.5,
+    "num_iter": 1,
+    "max_diff_m": 0.5,
+}
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
 SUPPORTED_SOURCE_DTYPES: Final[tuple[str, ...]] = (
