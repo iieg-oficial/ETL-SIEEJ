@@ -157,6 +157,45 @@ python -c "from core.pipelines.pendientes.stages.experiment import PendientesExp
 
 Esta ejecución no modifica el baseline, no procesa todo Jalisco, no genera productos finales y no ejecuta Load.
 
+## Fase 4B: calibración dirigida
+
+La calibración 4B reduce el diseño a `RAW`, B2 y cuatro variantes conservadoras Feature-Preserving FP1–FP4. A1
+queda sólo como referencia visual opcional y no se ejecuta por defecto; A2, A3, B1, B3, C2 y C3 están descartados
+de nuevas pruebas. Ningún `max_diff` supera 0.5 m y cada salida FP se rechaza si excede su límite más una tolerancia
+numérica de `1e-5 m`. FP2 replica los parámetros de C1 y, para los controles, se compara píxel a píxel con aquella
+salida para verificar reproducibilidad.
+
+La precondición obligatoria es una coordenada `problema_manual` observada visualmente y configurada mediante
+`EXPERIMENT_MANUAL_X/Y`. Si falta, `PendientesCalibration` escribe un manifiesto con estado
+`pending_manual_problem_coordinate` y termina antes de ejecutar filtros, perfiles o clasificaciones. Nunca selecciona
+automáticamente una coordenada problemática.
+
+La firma dirigida de banding no usa `dz=0` ni un score compuesto. Sobre la magnitud
+`hypot(d²z/dx², d²z/dy²)` identifica celdas por encima del p90 RAW del chip y conserva ese umbral para todos los
+candidatos. Reporta separadamente: densidad de celdas, coherencia axial de sus normales, continuidad mediante
+vecinos inmediatos en la tangente y máxima autocorrelación positiva/lag entre 4 y 64 píxeles de las proyecciones X/Y
+de magnitud. No hay umbral de aprobación.
+
+En `problema_manual`, tres transectos paralelos se orientan según la normal axial dominante RAW y se desplazan
+−256, 0 y +256 píxeles en la tangente. Los CSV registran distancia, coordenadas, elevación RAW/candidato y delta Z;
+los PNG usan las mismas líneas y rango vertical común. Las composiciones comparan exclusivamente
+`RAW, B2, FP1, FP2, FP3, FP4` para hillshade, pendiente Horn, diferencia de elevación y magnitud dirigida de banding.
+
+```bash
+export EXPERIMENT_MANUAL_X=<x-epsg-6368-observada>
+export EXPERIMENT_MANUAL_Y=<y-epsg-6368-observada>
+python -c "from core.pipelines.pendientes.stages.calibration import PendientesCalibration; PendientesCalibration().execute()"
+```
+
+Las únicas clasificaciones permitidas son `descartar`, `mantener` y `recomendado_para_validacion_estatal`. Se dejan
+vacías hasta disponer de evidencia cuantitativa y visual tanto en `problema_manual` como en los tres controles; esto
+no equivale a promoción productiva.
+
+Una vez revisada toda esa evidencia, `record_review()` exige una clasificación para B2 y FP1–FP4, la propaga a los
+cuatro chips y conserva explícitamente `winner_selected=false` y `recommendation_is_not_promotion=true`. Por tanto,
+`recomendado_para_validacion_estatal` autoriza sólo una validación posterior sobre Jalisco; no selecciona, promueve
+ni conecta un método al Transform productivo.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.

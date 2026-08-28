@@ -6,7 +6,7 @@ import rasterio
 from affine import Affine
 
 from core.pipelines.pendientes.helpers.experimental_artifacts import write_float_raster
-from core.pipelines.pendientes.helpers.experimental_chips import select_representative_chips
+from core.pipelines.pendientes.helpers.experimental_chips import manual_chip, select_representative_chips
 from core.pipelines.pendientes.helpers.experimental_filters import bilateral_smoothing, gaussian_smoothing
 from core.pipelines.pendientes.helpers.experimental_metrics import experimental_metrics
 
@@ -103,3 +103,24 @@ def test_experimental_raster_preserves_grid_and_nodata(tmp_path):
         assert dataset.dtypes == ("float32",)
         assert dataset.nodata == -9999
         assert dataset.read(1)[3, 4] == -9999
+
+
+def test_manual_chip_validates_bounds_with_explicit_window_offsets(tmp_path):
+    rows, columns = np.indices((20, 20))
+    values = (rows + columns).astype(np.float32)
+    transform = Affine(15, 0, 500_000, 0, -15, 2_300_000)
+    path = tmp_path / "baseline.tif"
+    write_float_raster(
+        path,
+        values,
+        np.ones(values.shape, dtype=bool),
+        transform,
+        rasterio.crs.CRS.from_epsg(6368),
+    )
+
+    chip = manual_chip(path, center_x=500_157.5, center_y=2_299_842.5, chip_size=10)
+
+    assert (chip.row_offset, chip.column_offset, chip.width, chip.height) == (5, 5, 10, 10)
+    assert chip.bbox == (500_075.0, 2_299_775.0, 500_225.0, 2_299_925.0)
+    with pytest.raises(ValueError, match="outside"):
+        manual_chip(path, center_x=500_007.5, center_y=2_299_992.5, chip_size=10)

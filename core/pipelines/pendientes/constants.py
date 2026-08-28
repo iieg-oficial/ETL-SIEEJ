@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.5.0"
+PIPELINE_VERSION: Final[str] = "0.6.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -76,6 +76,30 @@ EXPERIMENT_FEATURE_PRESERVING_CONFIGS: Final[tuple[dict[str, float | int | str],
     {"id": "C1", "filter": 11, "norm_diff_degrees": 5.0, "num_iter": 1, "max_diff_m": 0.5},
     {"id": "C2", "filter": 11, "norm_diff_degrees": 10.0, "num_iter": 3, "max_diff_m": 1.0},
     {"id": "C3", "filter": 11, "norm_diff_degrees": 15.0, "num_iter": 3, "max_diff_m": 1.0},
+)
+CALIBRATION_DIRECTORY_NAME: Final[str] = "fase_04b_calibracion"
+CALIBRATION_MANIFEST_FILENAME: Final[str] = "calibration_manifest.json"
+CALIBRATION_BANDING_REFERENCE_PERCENTILE: Final[float] = 90.0
+CALIBRATION_REPETITION_MIN_LAG_PIXELS: Final[int] = 4
+CALIBRATION_REPETITION_MAX_LAG_PIXELS: Final[int] = 64
+CALIBRATION_PROFILE_OFFSETS_PIXELS: Final[tuple[int, ...]] = (-256, 0, 256)
+CALIBRATION_FP_LIMIT_TOLERANCE_M: Final[float] = 1e-5
+CALIBRATION_CANDIDATE_ORDER: Final[tuple[str, ...]] = ("RAW", "B2", "FP1", "FP2", "FP3", "FP4")
+CALIBRATION_BILATERAL_CONFIG: Final[dict[str, float | str]] = {
+    "id": "B2",
+    "sigma_dist_pixels": 1.0,
+    "sigma_int_m": 1.0,
+}
+CALIBRATION_FEATURE_PRESERVING_CONFIGS: Final[tuple[dict[str, float | int | str], ...]] = (
+    {"id": "FP1", "filter": 11, "norm_diff_degrees": 5.0, "num_iter": 1, "max_diff_m": 0.25},
+    {"id": "FP2", "filter": 11, "norm_diff_degrees": 5.0, "num_iter": 1, "max_diff_m": 0.5},
+    {"id": "FP3", "filter": 11, "norm_diff_degrees": 7.5, "num_iter": 1, "max_diff_m": 0.5},
+    {"id": "FP4", "filter": 11, "norm_diff_degrees": 5.0, "num_iter": 2, "max_diff_m": 0.5},
+)
+CALIBRATION_DECISION_LABELS: Final[tuple[str, ...]] = (
+    "descartar",
+    "mantener",
+    "recomendado_para_validacion_estatal",
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"

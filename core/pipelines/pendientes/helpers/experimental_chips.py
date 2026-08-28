@@ -250,7 +250,12 @@ def manual_chip(
         row_offset = center_row - chip_size // 2
         column_offset = center_column - chip_size // 2
         window = Window(column_offset, row_offset, chip_size, chip_size)
-        if row_offset < 0 or column_offset < 0 or window.bottom > dataset.height or window.right > dataset.width:
+        if (
+            row_offset < 0
+            or column_offset < 0
+            or row_offset + chip_size > dataset.height
+            or column_offset + chip_size > dataset.width
+        ):
             raise ValueError("Manual problem chip falls outside the baseline")
         values = dataset.read(1, window=window)
         slope, roughness, valid_percentage = _terrain_statistics(values, TARGET_RESOLUTION_M, dataset.nodata)
