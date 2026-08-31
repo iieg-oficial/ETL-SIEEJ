@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.11.0"
+PIPELINE_VERSION: Final[str] = "0.12.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -194,6 +194,18 @@ STATEWIDE_CANDIDATE_DECISIONS: Final[tuple[str, ...]] = (
     "tile_validation_failed",
     "statewide_processing_failed",
     "statewide_candidate_generated_not_promoted",
+)
+DEM_PROMOTION_DIRECTORY_NAME: Final[str] = "fase_06b_promocion_dem"
+DEM_PROMOTION_MANIFEST_FILENAME: Final[str] = "dem_validation_manifest.json"
+DEM_PROMOTION_TERRITORIAL_FILENAME: Final[str] = "modelo_elevacion_acondicionado_jalisco_15m.tif"
+DEM_PROMOTION_AOI_SHA256: Final[str] = "b54e2a5d1efeea4d5abd697bed76e964bb648baeb07fffb168722de2fd06e63c"
+DEM_PROMOTION_PARENT_MANIFEST_SHA256: Final[str] = (
+    "af90c02741d3cffe98b30ee6f37afbae8c07ac590421cf09008fd45f6772bdfb"
+)
+DEM_PROMOTION_SOURCE_SHA256: Final[str] = "2f291fc05805dc9a9c1bf63b8d26def1b44ebe144f3beb3ef19d0ff72a572a79"
+DEM_PROMOTION_DECISIONS: Final[tuple[str, ...]] = (
+    "dem_validation_failed",
+    "conditioned_dem_validated_for_derivatives",
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"

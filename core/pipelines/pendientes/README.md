@@ -306,6 +306,22 @@ El artefacto `modelo_elevacion_acondicionado_contexto_jalisco_15m.tif` conserva 
 incluido el buffer analítico. Su estado es `statewide_candidate_generated_not_promoted`: no es producto final, no se
 ha recortado a Jalisco y no autoriza pendientes productivas ni Load.
 
+## Fase 6B: validación del DEM y grid territorial maestro
+
+La Fase 6B congela FP2 y valida el DEM con contexto como padre técnico de los derivados. El DEM territorial
+`modelo_elevacion_acondicionado_jalisco_15m.tif` se obtiene sólo mediante una ventana entera de la rejilla padre y
+la máscara `jalisco` del GeoPackage congelado, usando centro de píxel, `all_touched=false` y sin antialiasing. No hay
+reproyección, resampling, interpolación, suavizado ni modificación de Z; todos sus valores válidos son bitwise iguales
+al DEM con contexto.
+
+El estado `conditioned_dem_validated_for_derivatives` promueve la metodología y el DEM como base validada, pero no
+significa publicación, Load o servicio. La rejilla y máscara del DEM territorial son el contrato maestro que deberán
+reproducir `pendiente_grados` y `pendiente_porcentaje`.
+
+La pendiente debe calcularse desde el DEM validado con buffer, nunca desde el DEM territorial recortado. El flujo
+obligatorio es DEM con contexto → pendiente con contexto → misma ventana territorial y misma máscara de Jalisco.
+Así, el límite estatal no se introduce como borde artificial en el cálculo de la derivada.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.
