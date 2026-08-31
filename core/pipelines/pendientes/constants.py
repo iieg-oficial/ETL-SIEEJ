@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.13.0"
+PIPELINE_VERSION: Final[str] = "0.14.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -218,6 +218,18 @@ SLOPE_SELECTION_DECISIONS: Final[tuple[str, ...]] = (
     "Horn_recomendado_para_produccion",
     "ZevenbergenThorne_recomendado_para_produccion",
     "requiere_revision_metodologica",
+)
+SLOPE_PRODUCTION_DIRECTORY_NAME: Final[str] = "fase_07b_produccion_pendientes"
+SLOPE_PRODUCTION_MANIFEST_FILENAME: Final[str] = "slope_products_manifest.json"
+SLOPE_PRODUCTION_CONTEXT_FILENAME: Final[str] = "pendiente_grados_contexto_jalisco_15m.tif"
+SLOPE_PRODUCTION_DEGREES_FILENAME: Final[str] = "pendiente_grados_jalisco_15m.tif"
+SLOPE_PRODUCTION_PERCENT_FILENAME: Final[str] = "pendiente_porcentaje_jalisco_15m.tif"
+SLOPE_PRODUCTION_PHASE7A_SHA256: Final[str] = (
+    "0cadc4d50a23c59e6e1e00f10e76ff9135de06e04340eeeb9ce2a21ee26cba6d"
+)
+SLOPE_PRODUCTION_STATUSES: Final[tuple[str, ...]] = (
+    "slope_production_failed",
+    "slope_family_validated_not_published",
 )
 SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
     (0.0, 2.0),

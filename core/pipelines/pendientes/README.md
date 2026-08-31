@@ -363,6 +363,28 @@ El manifiesto de evidencia queda en
 `data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/slope_algorithm_selection_manifest.json`. Esta fase
 no genera pendientes estatales ni ejecuta Load.
 
+## Fase 7B: producción de pendientes territoriales
+
+La producción valida primero los SHA-256 completos de los manifiestos 6B/7A, el DEM acondicionado con contexto, el
+DEM territorial maestro y el ejecutable congelado. Recupera el backend desde 7A y ejecuta una sola vez `gdaldem`
+3.8.4 con Horn, grados, escala 1, bloques 256 × 256 y sin `-p` ni `-compute_edges`. El raster contextual conserva el
+buffer analítico y no es publicable; sus centros 1024 × 1024 reprodujeron bit a bit las 30 referencias Horn de 7A.
+
+`pendiente_grados_jalisco_15m.tif` se obtiene mediante la ventana territorial congelada de 6B y la máscara válida del
+DEM territorial, sin reproyección, remuestreo o nuevo cálculo de derivadas. `pendiente_porcentaje_jalisco_15m.tif` se
+calcula exclusivamente desde los grados, por bloques, con
+`float32(tan(radians(float64(grados))) * 100)`. No se limitan valores a 100%.
+
+Los tres productos territoriales comparten EPSG:6368, 15 m, dimensiones 29199 × 27923, transform, bounds, Float32,
+NoData -9999 y exactamente 356,528,880 píxeles válidos. La validación exige cero diferencias de máscara, grados
+finitos en `[0, 90)`, relación grados–porcentaje bitwise exacta y semántica exacta para `<45°`, `45°` y `>45°`.
+El estado exitoso `slope_family_validated_not_published` termina la familia analítica, pero no significa Load,
+publicación o servicio.
+
+El manifiesto y los tres derivados viven bajo
+`data/transform/pendientes/fase_07b_produccion_pendientes/`. Los rasters no se recalculan al reanudar: se vuelven a
+validar por streaming y se conservan los parámetros de la ejecución original en el manifiesto.
+
 El manifiesto de productos debe contener, como mínimo:
 
 ```text
