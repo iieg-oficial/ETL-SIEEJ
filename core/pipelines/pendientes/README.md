@@ -290,6 +290,22 @@ los 24 px de FP3.
 La reproyección permanece congelada como CEM EPSG:6365/0.5 arcsec/Int16 → bilinear → EPSG:6368/15 m/Float32. El
 bilinear reduce parcialmente la expresión de la discretización, pero no recupera información vertical inexistente.
 
+## Fase 6A: candidato estatal FP2 con contexto
+
+La Fase 6A conserva separados `execute()`, que produce el raster por tiles, y `finalize_existing()`, que sólo
+valida un artefacto existente y escribe su manifiesto. El candidato de staging con buffer usa FP2, tiles de 2048 px,
+orden row-major y halo 24. Este halo fue el mínimo bitwise exacto en seis controles y quedó confirmado con 32 px.
+
+La prueba causal del ensamblado usa 30 referencias con 24 px de contexto real del baseline: las 30 son exactas y
+el caso que cruza una frontera de producción también es exacto. Las referencias FP2 aisladas de Fase 5D difieren en
+sus bordes porque no disponían de contexto exterior; su interior excluyendo 24 px permanece exacto, pero la igualdad
+del chip aislado completo no es un hard gate. Las métricas de las 28 fronteras reales son descriptivas respecto al
+baseline y no introducen umbrales arbitrarios.
+
+El artefacto `modelo_elevacion_acondicionado_contexto_jalisco_15m.tif` conserva la rejilla y máscara del baseline,
+incluido el buffer analítico. Su estado es `statewide_candidate_generated_not_promoted`: no es producto final, no se
+ha recortado a Jalisco y no autoriza pendientes productivas ni Load.
+
 `helpers/slope.py` contiene una evaluación en memoria del candidato inicial Horn para pruebas sintéticas. No está
 conectada al Transform productivo. Ambos productos se derivan del mismo módulo de gradiente: grados mediante
 `atan(rise/run)` y porcentaje mediante `rise/run × 100`, en `Float32`.

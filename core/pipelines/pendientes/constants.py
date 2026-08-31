@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.10.0"
+PIPELINE_VERSION: Final[str] = "0.11.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -166,6 +166,34 @@ GLOBAL_VALIDATION_DECISIONS: Final[tuple[str, ...]] = (
     "FP2_recomendado_para_procesamiento_estatal",
     "FP3_recomendado_para_procesamiento_estatal",
     "requiere_otra_calibracion",
+)
+STATEWIDE_CANDIDATE_DIRECTORY_NAME: Final[str] = "fase_06a_produccion_estatal_candidata"
+STATEWIDE_CANDIDATE_MANIFEST_FILENAME: Final[str] = "statewide_candidate_manifest.json"
+STATEWIDE_CANDIDATE_FILENAME: Final[str] = "modelo_elevacion_acondicionado_contexto_jalisco_15m.tif"
+STATEWIDE_CANDIDATE_SHA256: Final[str] = "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
+STATEWIDE_CANDIDATE_TILE_SIZE_PIXELS: Final[int] = 2048
+STATEWIDE_CANDIDATE_HALO_CANDIDATES_PIXELS: Final[tuple[int, ...]] = (5, 6, 8, 12, 16, 24, 32)
+STATEWIDE_CANDIDATE_HALO_TEST_CHIP_IDS: Final[tuple[str, ...]] = (
+    "problema_manual",
+    "sv_06_N02_E05",
+    "sv_03_N01_E04",
+    "sv_27_N06_E03",
+    "sv_14_N04_E01",
+    "sv_15_N04_E02",
+)
+STATEWIDE_CANDIDATE_FP2_CONFIG: Final[dict[str, float | int | str]] = {
+    "id": "FP2",
+    "filter": 11,
+    "norm_diff_degrees": 5.0,
+    "num_iter": 1,
+    "max_diff_m": 0.5,
+    "zfactor": 1.0,
+}
+STATEWIDE_CANDIDATE_FLOAT_TOLERANCE_M: Final[float] = 1e-5
+STATEWIDE_CANDIDATE_DECISIONS: Final[tuple[str, ...]] = (
+    "tile_validation_failed",
+    "statewide_processing_failed",
+    "statewide_candidate_generated_not_promoted",
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
