@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.12.0"
+PIPELINE_VERSION: Final[str] = "0.13.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -206,6 +206,27 @@ DEM_PROMOTION_SOURCE_SHA256: Final[str] = "2f291fc05805dc9a9c1bf63b8d26def1b44eb
 DEM_PROMOTION_DECISIONS: Final[tuple[str, ...]] = (
     "dem_validation_failed",
     "conditioned_dem_validated_for_derivatives",
+)
+SLOPE_SELECTION_DIRECTORY_NAME: Final[str] = "fase_07a_seleccion_algoritmo_pendiente"
+SLOPE_SELECTION_MANIFEST_FILENAME: Final[str] = "slope_algorithm_selection_manifest.json"
+SLOPE_SELECTION_PARENT_MANIFEST_SHA256: Final[str] = (
+    "9aed5594e044ce78ab7512812c186d088b92d955c375d3e98c60315e797c6e55"
+)
+SLOPE_SELECTION_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
+SLOPE_SELECTION_CONTEXT_PIXELS: Final[int] = 32
+SLOPE_SELECTION_DECISIONS: Final[tuple[str, ...]] = (
+    "Horn_recomendado_para_produccion",
+    "ZevenbergenThorne_recomendado_para_produccion",
+    "requiere_revision_metodologica",
+)
+SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
+    (0.0, 2.0),
+    (2.0, 5.0),
+    (5.0, 10.0),
+    (10.0, 15.0),
+    (15.0, 30.0),
+    (30.0, 45.0),
+    (45.0, None),
 )
 ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"

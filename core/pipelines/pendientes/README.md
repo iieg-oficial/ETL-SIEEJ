@@ -335,6 +335,34 @@ Las pendientes deben compartir extensión, transform, resolución, CRS, NoData y
 Cada entrada hija del manifiesto declara `parent_product=modelo_elevacion_acondicionado` y el SHA-256 calculado del
 padre. Load rechaza cualquier pendiente generada desde otro DEM, incluso si su rejilla coincide.
 
+## Fase 7A: selección del algoritmo de pendiente
+
+La comparación reproducible usa exclusivamente `gdaldem` de GDAL 3.8.4 y pasa `-alg Horn` o
+`-alg ZevenbergenThorne` de forma explícita, con salida en grados, escala XY:Z 1:1 y sin `-compute_edges`. Por ello,
+la celda exterior y cualquier vecindad 3 × 3 incompleta quedan como NoData. Las ventanas reales se extraen del DEM
+acondicionado con contexto validado en Fase 6B, añaden un margen de 32 píxeles y evalúan sólo el centro 1024 × 1024;
+ningún borde artificial del chip participa en las métricas.
+
+Ambos métodos superaron 27 planos analíticos con error máximo menor que 0.001°. En la superficie con ruido sembrado,
+Horn fue menos sensible: MAE/RMSE de 0.1323°/0.1664°, frente a 0.2162°/0.2712° de Zevenbergen–Thorne. En las 30
+ventanas congeladas Horn también presentó menor variación local en todas las morfologías; la mediana por chip del p95
+de diferencia entre vecinos fue 4.0608°, frente a 4.3166°. La revisión de diez composiciones con rangos comunes no
+mostró pérdida visible de continuidad en crestas, valles, drenajes o transiciones valle–sierra. Los extremos algo
+mayores de Zevenbergen–Thorne se registran como comportamiento comparativo, no como mayor exactitud, porque no existe
+una verdad terreno independiente para las ventanas reales.
+
+La decisión es `Horn_recomendado_para_produccion`, sin score ponderado arbitrario y sólo para el contrato congelado:
+DEM padre con contexto SHA-256 `fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef`, GDAL
+3.8.4, grados, factor Z efectivo 1 y la política de bordes/NoData descrita arriba. Esto autoriza únicamente la siguiente
+producción estatal de pendientes; no equivale a publicación, Load ni promoción de un raster de pendiente existente.
+La pendiente porcentual deberá derivarse de los mismos grados mediante
+`tan(radians(pendiente_grados)) * 100`, sin truncar valores superiores a 100, y ambos hijos deberán recortarse después
+con la ventana y máscara territorial maestras de Fase 6B.
+
+El manifiesto de evidencia queda en
+`data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/slope_algorithm_selection_manifest.json`. Esta fase
+no genera pendientes estatales ni ejecuta Load.
+
 El manifiesto de productos debe contener, como mínimo:
 
 ```text
