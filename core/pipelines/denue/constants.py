@@ -19,6 +19,14 @@ RENAME_HEADER: Final[dict] = {
     "localidad": "localidad",
 }
 
+# Keys are source CSV column names. An unknown key is a silent no-op and pandas
+# infers the type, dropping leading zeros.
+DTYPE_OVERRIDES: Final[dict] = {
+    "numero_int": str,
+    "cod_postal": str,
+    "telefono": str,
+}
+
 NULL_VALUES: Final[List[str]] = ["", "N/A", "NA", "n/a", "na", "null", "NULL", " "]
 
 TITLE_COLS: Final[List[str]] = [
