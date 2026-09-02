@@ -10,7 +10,7 @@ from core.pipelines.pendientes.helpers.global_validation_qa import (
     pareto_comparison,
     profile_attenuation_metrics,
 )
-from core.pipelines.pendientes.stages.global_validation import PendientesGlobalConditioningValidation
+from core.pipelines.pendientes.helpers.methodology.global_validation import PendientesGlobalConditioningValidation
 
 
 def _surface() -> np.ndarray:

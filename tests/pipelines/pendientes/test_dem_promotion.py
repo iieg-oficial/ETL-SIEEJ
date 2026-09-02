@@ -19,7 +19,7 @@ from core.pipelines.pendientes.helpers.territorial_dem import (
     create_territorial_dem,
     validate_territorial_dem,
 )
-from core.pipelines.pendientes.stages.dem_promotion import PendientesDemPromotion
+from core.pipelines.pendientes.helpers.methodology.dem_promotion import PendientesDemPromotion
 
 
 def _context_raster(path: Path) -> np.ndarray:
@@ -102,7 +102,7 @@ def test_phase6b_rejects_a_changed_frozen_aoi(tmp_path, monkeypatch):
     stage.aoi_path = tmp_path / "aoi.gpkg"
     stage.aoi_path.write_bytes(b"changed")
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.dem_promotion.sha256_file",
+        "core.pipelines.pendientes.helpers.methodology.dem_promotion.sha256_file",
         lambda path: "0" * 64,
     )
     with np.testing.assert_raises_regex(ValueError, "Frozen AOI checksum changed"):
@@ -144,11 +144,11 @@ def test_phase6b_manifest_promotes_context_parent_for_derivatives(tmp_path, monk
         "statistics_m": {},
     }
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.dem_promotion.validate_territorial_dem",
+        "core.pipelines.pendientes.helpers.methodology.dem_promotion.validate_territorial_dem",
         lambda *args: qa,
     )
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.dem_promotion.sha256_file",
+        "core.pipelines.pendientes.helpers.methodology.dem_promotion.sha256_file",
         lambda path: {
             stage.baseline_path: "1461f63298509f045476b9e6e0597ee8eba3138af82e033eb232ddef3bf50fcd",
             stage.parent_manifest_path: DEM_PROMOTION_PARENT_MANIFEST_SHA256,

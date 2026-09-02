@@ -25,7 +25,7 @@ from core.pipelines.pendientes.helpers.statewide_conditioning import (
     seam_qa,
     streaming_global_qa,
 )
-from core.pipelines.pendientes.stages.statewide_candidate import PendientesStatewideCandidate
+from core.pipelines.pendientes.helpers.methodology.statewide_candidate import PendientesStatewideCandidate
 
 
 def _write_raster(path: Path, values: np.ndarray) -> Path:
@@ -166,7 +166,7 @@ def test_finalize_existing_never_invokes_statewide_conditioning(tmp_path, monkey
     stage.output_path = tmp_path / "candidate.tif"
     stage.output_path.write_bytes(b"existing")
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.sha256_file",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.sha256_file",
         lambda path: STATEWIDE_CANDIDATE_SHA256,
     )
     monkeypatch.setattr(stage, "_validate_inputs", lambda: ({}, {}, {"selected_halo_pixels": 24}))
@@ -180,7 +180,7 @@ def test_finalize_existing_never_invokes_statewide_conditioning(tmp_path, monkey
         raise AssertionError("statewide conditioning must not run")
 
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.condition_raster_tiled",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.condition_raster_tiled",
         forbidden,
     )
     assert stage.finalize_existing()["status"] == "finalized"
@@ -192,7 +192,7 @@ def test_finalize_existing_rejects_wrong_candidate_checksum(tmp_path, monkeypatc
     stage.output_path = tmp_path / "candidate.tif"
     stage.output_path.write_bytes(b"wrong")
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.sha256_file",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.sha256_file",
         lambda path: "0" * 64,
     )
     with np.testing.assert_raises_regex(ValueError, "checksum mismatch"):
@@ -220,7 +220,7 @@ def test_final_manifest_records_external_qa_and_not_promoted_status(tmp_path, mo
     stage.contextual_manifest_path = tmp_path / "contextual.json"
     stage.seam_manifest_path = tmp_path / "seam.json"
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.sha256_file",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.sha256_file",
         lambda path: STATEWIDE_CANDIDATE_SHA256,
     )
     monkeypatch.setattr(
@@ -246,7 +246,7 @@ def test_final_manifest_records_external_qa_and_not_promoted_status(tmp_path, mo
         "valid_pixels": {"baseline": 10, "candidate": 10, "mask_mismatch": 0},
     }
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.streaming_global_qa",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.streaming_global_qa",
         lambda *args: global_qa,
     )
     contextual = {
@@ -259,11 +259,11 @@ def test_final_manifest_records_external_qa_and_not_promoted_status(tmp_path, mo
         "results": {"a": {"max_abs_difference": 0.0}},
     }
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.validate_contextual_reference_manifest",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.validate_contextual_reference_manifest",
         lambda *args: {"path": "contextual.json", "sha256": "c" * 64, "manifest": contextual},
     )
     monkeypatch.setattr(
-        "core.pipelines.pendientes.stages.statewide_candidate.validate_seam_manifest",
+        "core.pipelines.pendientes.helpers.methodology.statewide_candidate.validate_seam_manifest",
         lambda *args: {
             "path": "seam.json",
             "sha256": "s" * 64,

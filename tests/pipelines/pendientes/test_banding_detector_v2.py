@@ -12,7 +12,7 @@ from core.pipelines.pendientes.helpers.banding_review import (
     write_chip_atlas,
     write_review_csv,
 )
-from core.pipelines.pendientes.stages.banding_calibration import PendientesBandingCalibration
+from core.pipelines.pendientes.helpers.methodology.banding_calibration import PendientesBandingCalibration
 from core.utils.files import sha256_file
 
 

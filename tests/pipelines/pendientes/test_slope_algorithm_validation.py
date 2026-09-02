@@ -25,7 +25,7 @@ from core.pipelines.pendientes.helpers.slope_selection import (
     run_gdaldem_slope,
     write_single_band_raster,
 )
-from core.pipelines.pendientes.stages.slope_algorithm_validation import (
+from core.pipelines.pendientes.helpers.methodology.slope_algorithm_validation import (
     PendientesSlopeAlgorithmValidation,
 )
 

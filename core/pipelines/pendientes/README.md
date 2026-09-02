@@ -152,7 +152,7 @@ z-factor 1. Todos los resultados viven bajo `data/transform/pendientes/fase_04_a
 export WHITEBOX_TOOLS_EXECUTABLE=/ruta/versionada/whitebox_tools
 export WHITEBOX_TOOLS_EXPECTED_VERSION='WhiteboxTools vX.Y.Z (...)'
 export WHITEBOX_TOOLS_EXPECTED_SHA256=<sha256-del-ejecutable>
-python -c "from core.pipelines.pendientes.stages.experiment import PendientesExperiment; PendientesExperiment().execute()"
+python -c "from core.pipelines.pendientes.helpers.methodology.experiment import PendientesExperiment; PendientesExperiment().execute()"
 ```
 
 Esta ejecución no modifica el baseline, no procesa todo Jalisco, no genera productos finales y no ejecuta Load.
@@ -184,7 +184,7 @@ los PNG usan las mismas líneas y rango vertical común. Las composiciones compa
 ```bash
 export EXPERIMENT_MANUAL_X=<x-epsg-6368-observada>
 export EXPERIMENT_MANUAL_Y=<y-epsg-6368-observada>
-python -c "from core.pipelines.pendientes.stages.calibration import PendientesCalibration; PendientesCalibration().execute()"
+python -c "from core.pipelines.pendientes.helpers.methodology.calibration import PendientesCalibration; PendientesCalibration().execute()"
 ```
 
 Las únicas clasificaciones permitidas son `descartar`, `mantener` y `recomendado_para_validacion_estatal`. Se dejan
@@ -397,14 +397,61 @@ products:
   pendiente_porcentaje: path, sha256, parent_product, parent_sha256
 ```
 
-## Publicación
+## Fase 8A: ETL productivo y release raster local
 
-`PendientesLoad` es por ahora una puerta de prepublicación, no una implementación de publicación institucional.
-Exige exactamente los tres productos en EPSG:6368, 15 m, `Float32` y NoData -9999, con la misma rejilla y máscara.
-Recorre bloques para rechazar valores fuera de Jalisco y reporta cobertura interior. También valida unidades de
-banda (`metre`, `degree`, `percent`), checksums, promoción reproducible, linaje padre-hijo y consistencia matemática
-entre pendientes. Si todo pasa, escribe un manifiesto con estado
-`validated_pending_institutional_raster_publication_pattern`; no copia ni publica los TIFF.
+La ruta ordinaria consta exclusivamente de `PendientesExtract → PendientesTransform → PendientesLoad`. Los módulos
+de las fases 4–7 conservan evidencia metodológica reproducible, pero el DAG no los importa ni los ejecuta. Transform
+reutiliza los tres raster científicos cuyos SHA-256 quedaron congelados en 6B/7B; no vuelve a acondicionar el DEM ni
+a calcular pendientes.
+
+Transform genera cinco productos finales. Los continuos son el DEM acondicionado, pendiente en grados y pendiente
+en porcentaje. Los cartográficos reclasifican grados con el precedente INEGI-DGG y porcentaje con FAO/GAEZ; son
+`UInt8`, reservan 0, usan códigos 1..N y NoData 255. Las estadísticas municipales se calculan sólo desde los tres
+continuos mediante centro de píxel, separadas para `geom_iieg` y `geom_inegi`, con `municipality_id = cve_mun`,
+`cve_ent = 14` y exactamente 125 filas por fuente territorial.
+
+Los cinco TIFF finales son COG creados directamente por el driver COG de GDAL 3.8.4. La compresión es DEFLATE nivel
+9, sin pérdida, bloques 512 y overviews automáticos: AVERAGE para `Float32` continuo y MODE para clases. QA exige
+layout COG, overviews, CRS, resolución, transform, bounds, datatype y NoData, además de igualdad de máscara y valores
+base bit a bit con el raster analítico padre:
+
+```text
+analytical raster
+      ↓
+lossless COG packaging (Transform)
+      ↓
+release raster (Load)
+```
+
+El manifiesto conserva por separado el SHA del raster científico y el SHA del COG; una diferencia debida sólo a la
+organización/compresión no representa un cambio científico. Transform escribe en
+`data/transform/pendientes/final/{analiticos,cartograficos,tablas}`. Load no llama a `gdal_translate`, no carga raster
+a PostgreSQL y no altera Transform: crea hardlinks atómicos, o copias atómicas si el filesystem no admite hardlink,
+bajo `data/load/pendientes/{analiticos,geoportal}` y verifica de nuevo SHA-256. PostgreSQL recibe únicamente las 250
+estadísticas municipales mediante upsert transaccional e idempotente.
+
+No se implementan en esta fase servicio web, catálogo STAC, tiles, publicación externa, hillshade, Tanaka, curvas de
+nivel, orientación, teselas ni simbología definitiva de geoportal.
+
+### Spatial scale of slope
+
+Horn 3 × 3 fue la referencia local validada durante la evaluación metodológica sobre el DEM FP2 de 15 m. La
+evaluación 8A.1 comparó esa referencia con `r.param.scale` de GRASS GIS: una superficie cuadrática local ajustada por
+mínimos cuadrados, sin ponderación por distancia (`exponent=0`) y con ventanas 3 × 3, 5 × 5 y 7 × 7. Sus huellas
+nominales son 45, 75 y 105 m, pero no se denominan “pendiente a 45/75/105 m”: tamaño de vecindad y escala espacial
+efectiva están relacionados, pero no son equivalentes, como demuestran Gao, Burt y Zhu (2012).
+
+Una ventana mayor reduce sensibilidad a microvariación vertical, pero no implica exactitud universalmente mayor. En
+chips sintéticos y ocho ventanas reales, WE5 ofreció el compromiso territorial más conservador. Fase 8A.2 amplía la
+decisión a `WoodEvans5x5_recomendado_para_produccion` para este CEM, resolución, acondicionamiento y objetivo; no se
+afirma superioridad universal. Horn se conserva como referencia histórica, no como producto de release. Los grados,
+porcentaje, clasificados y futuras estadísticas municipales comparten desde entonces la misma derivación WE5. MODE
+se aplica sólo a overviews clasificados y no sustituye la estimación cuadrática del raster base.
+
+Referencias metodológicas verificadas: Horn (1981), DOI `10.1109/PROC.1981.11918`; Zevenbergen y Thorne (1987),
+DOI `10.1002/esp.3290120107`; Jones (1998), DOI `10.1016/S0098-3004(98)00032-6`; Florinsky (1998), DOI
+`10.1080/136588198242003`; Wood (1996), tesis doctoral, handle `2381/34503`; Gao, Burt y Zhu (2012), DOI
+`10.1080/13658816.2012.657201`; y el manual de GRASS GIS `r.param.scale`.
 
 ## Ejecución de Extract y Transform
 

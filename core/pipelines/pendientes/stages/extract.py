@@ -4,6 +4,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import geopandas as gpd
+
 from core.pipelines.pendientes.config import settings
 from core.pipelines.pendientes.constants import (
     EXTRACT_MANIFEST_FILENAME,
@@ -29,11 +31,17 @@ from core.pipelines.pendientes.constants import (
     SOURCE_UPC,
     SOURCE_VERTICAL_QUANTITY,
     SOURCE_VERTICAL_UNIT,
+    MUNICIPAL_BOUNDARY_FILENAME,
+    MUNICIPAL_BOUNDARY_SOURCES,
 )
 from core.pipelines.pendientes.helpers.download import extract_tiff_member, identify_tiff_member, prepare_source_zip
+from core.pipelines.pendientes.helpers.municipal import (
+    prepare_municipal_boundaries,
+    validate_municipal_boundary_frame,
+)
 from core.pipelines.pendientes.helpers.raster import inspect_raster, validate_source_contract
 from core.pipelines.stage import Stage
-from core.utils.files import sha256_file, write_json_atomic
+from core.utils.files import read_json, sha256_file, write_json_atomic
 
 
 class PendientesExtract(Stage):
@@ -45,6 +53,7 @@ class PendientesExtract(Stage):
         self.raw_dir = self.work_dir / "raw"
         self.source_dir = self.work_dir / "source"
         self.manifest_path = self.work_dir / EXTRACT_MANIFEST_FILENAME
+        self.municipal_boundaries_path = self.work_dir / MUNICIPAL_BOUNDARY_FILENAME
 
     def source(self, input_data: Any | None = None) -> dict[str, object]:
         if settings.SOURCE_TIFF_PATH is not None:
@@ -95,6 +104,31 @@ class PendientesExtract(Stage):
             expected_pixel_size=SOURCE_EXPECTED_RESOLUTION_DEGREES,
             pixel_size_tolerance=SOURCE_RESOLUTION_ABS_TOLERANCE,
         )
+        previous_manifest = read_json(self.manifest_path) or {}
+        if settings.CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH is not None:
+            boundary_path = settings.CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH.expanduser().resolve()
+            if not boundary_path.is_file():
+                raise FileNotFoundError(f"Municipal boundary snapshot does not exist: {boundary_path}")
+            boundary_sources = {
+                source_key: validate_municipal_boundary_frame(
+                    gpd.read_file(boundary_path, layer=source["layer"])
+                )
+                for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
+            }
+            municipal_boundaries = {
+                "path": str(boundary_path),
+                "sha256": sha256_file(boundary_path),
+                "sources": boundary_sources,
+                "acquisition_mode": "configured_frozen_snapshot",
+                "reused": True,
+            }
+        else:
+            municipal_boundaries = prepare_municipal_boundaries(
+                settings.cvegeo_database_url,
+                self.municipal_boundaries_path,
+                previous_manifest.get("municipal_boundaries"),
+                settings.FORCE_DOWNLOAD,
+            )
         return {
             "source": {
                 "producer": SOURCE_PRODUCER,
@@ -141,6 +175,7 @@ class PendientesExtract(Stage):
                 "source_vertical_unit": SOURCE_VERTICAL_UNIT,
                 "geotiff_vertical_unit": metadata.z_units[0],
             },
+            "municipal_boundaries": municipal_boundaries,
             "source_contract": {
                 "allowed_srids": list(SOURCE_ALLOWED_SRIDS),
                 "expected_bands": SOURCE_EXPECTED_BANDS,

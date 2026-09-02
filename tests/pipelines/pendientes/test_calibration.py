@@ -19,7 +19,7 @@ from core.pipelines.pendientes.helpers.calibration_profiles import (
 )
 from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
 from core.pipelines.pendientes.helpers.experimental_filters import gaussian_smoothing
-from core.pipelines.pendientes.stages.calibration import PendientesCalibration
+from core.pipelines.pendientes.helpers.methodology.calibration import PendientesCalibration
 
 
 def _periodic_steps(size: int = 128, spacing: int = 8) -> np.ndarray:

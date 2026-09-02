@@ -19,7 +19,7 @@ from core.pipelines.pendientes.helpers.tiled_conditioning import (
     expanded_window,
     seam_metrics,
 )
-from core.pipelines.pendientes.stages.state_validation import PendientesStateValidation
+from core.pipelines.pendientes.helpers.methodology.state_validation import PendientesStateValidation
 
 
 def _sampling_candidate(index: int, x: float, y: float) -> dict:

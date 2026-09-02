@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.14.0"
+PIPELINE_VERSION: Final[str] = "0.15.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -32,6 +32,7 @@ AOI_BUFFER_M: Final[float] = 10_000.0
 JALISCO_STATE_ID: Final[int] = 14
 CVEGEO_DATABASE_NAME: Final[str] = "cvegeo"
 CVEGEO_STATE_BOUNDARY_TABLE: Final[str] = "public.cvegeo_state_boundary"
+CVEGEO_MUNICIPALITY_TABLE: Final[str] = "public.cvegeo_municipalities"
 ALLOWED_BOUNDARY_GEOMETRY_COLUMNS: Final[tuple[str, ...]] = ("geom_iieg", "geom_inegi")
 DEFAULT_BOUNDARY_GEOMETRY_COLUMN: Final[str] = "geom_iieg"
 
@@ -231,6 +232,9 @@ SLOPE_PRODUCTION_STATUSES: Final[tuple[str, ...]] = (
     "slope_production_failed",
     "slope_family_validated_not_published",
 )
+VALIDATED_DEM_SHA256: Final[str] = "bd0bcf1236bd90297cb66f453e3655979294a0e49f5ba802f38aa987dfdbcc03"
+VALIDATED_DEGREES_SHA256: Final[str] = "acd6f01e836d94295fc87da3d88747b85a8899821a53fc56abfb0f2bc38b0a3a"
+VALIDATED_PERCENT_SHA256: Final[str] = "32ba27eef38ca0332076f256f825618ba9f8b49f513081fed525c3b4f24d7c15"
 SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
     (0.0, 2.0),
     (2.0, 5.0),
@@ -274,6 +278,117 @@ PRODUCT_CONTRACT: Final[dict[str, dict[str, str]]] = {
         "filename": "pendiente_porcentaje_jalisco_15m.tif",
     },
 }
+
+FINAL_DIRECTORY_NAME: Final[str] = "final"
+FINAL_ANALYTICAL_DIRECTORY_NAME: Final[str] = "analiticos"
+FINAL_CARTOGRAPHIC_DIRECTORY_NAME: Final[str] = "cartograficos"
+FINAL_TABLE_DIRECTORY_NAME: Final[str] = "tablas"
+FINAL_INTERMEDIATE_DIRECTORY_NAME: Final[str] = "intermedios"
+FINAL_TRANSFORM_MANIFEST_FILENAME: Final[str] = "transform_manifest.json"
+FINAL_MUNICIPAL_STATISTICS_FILENAME: Final[str] = "estadisticas_pendiente_municipal.parquet"
+FINAL_DEGREES_CLASSIFIED_FILENAME: Final[str] = "pendiente_grados_clasificada_jalisco_15m.tif"
+FINAL_PERCENT_CLASSIFIED_FILENAME: Final[str] = "pendiente_porcentaje_clasificada_jalisco_15m.tif"
+CLASSIFIED_NODATA: Final[int] = 255
+CLASSIFIED_RESERVED_CODE: Final[int] = 0
+COG_BLOCK_SIZE: Final[int] = 512
+COG_COMPRESSION: Final[str] = "DEFLATE"
+COG_LEVEL: Final[int] = 9
+COG_CONTINUOUS_OVERVIEW_RESAMPLING: Final[str] = "AVERAGE"
+COG_CLASSIFIED_OVERVIEW_RESAMPLING: Final[str] = "MODE"
+COG_CONTINUOUS_OPTIONS: Final[dict[str, str]] = {
+    "COMPRESS": COG_COMPRESSION,
+    "PREDICTOR": "FLOATING_POINT",
+    "OVERVIEW_PREDICTOR": "FLOATING_POINT",
+    "LEVEL": str(COG_LEVEL),
+    "BLOCKSIZE": str(COG_BLOCK_SIZE),
+    "BIGTIFF": "IF_SAFER",
+    "OVERVIEWS": "AUTO",
+    "OVERVIEW_RESAMPLING": COG_CONTINUOUS_OVERVIEW_RESAMPLING,
+}
+COG_CLASSIFIED_OPTIONS: Final[dict[str, str]] = {
+    "COMPRESS": COG_COMPRESSION,
+    "LEVEL": str(COG_LEVEL),
+    "BLOCKSIZE": str(COG_BLOCK_SIZE),
+    "BIGTIFF": "IF_SAFER",
+    "OVERVIEWS": "AUTO",
+    "OVERVIEW_RESAMPLING": COG_CLASSIFIED_OVERVIEW_RESAMPLING,
+}
+DEGREES_CLASSIFICATION: Final[tuple[dict[str, object], ...]] = (
+    {"code": 1, "lower": 0.0, "upper": 2.0, "label": "llano", "label_es": "Llano"},
+    {"code": 2, "lower": 2.0, "upper": 5.0, "label": "suave", "label_es": "Suave"},
+    {
+        "code": 3,
+        "lower": 5.0,
+        "upper": 10.0,
+        "label": "accidentado_medio",
+        "label_es": "Accidentado medio",
+    },
+    {"code": 4, "lower": 10.0, "upper": 15.0, "label": "accidentado", "label_es": "Accidentado"},
+    {
+        "code": 5,
+        "lower": 15.0,
+        "upper": 25.0,
+        "label": "fuertemente_accidentado",
+        "label_es": "Fuertemente accidentado",
+    },
+    {"code": 6, "lower": 25.0, "upper": 50.0, "label": "escarpado", "label_es": "Escarpado"},
+    {"code": 7, "lower": 50.0, "upper": None, "label": "muy_escarpado", "label_es": "Muy escarpado"},
+)
+PERCENT_CLASSIFICATION: Final[tuple[dict[str, object], ...]] = (
+    {"code": 1, "lower": 0.0, "upper": 0.5, "label": "very_flat", "label_es": "Muy plano"},
+    {"code": 2, "lower": 0.5, "upper": 2.0, "label": "flat", "label_es": "Plano"},
+    {
+        "code": 3,
+        "lower": 2.0,
+        "upper": 5.0,
+        "label": "gently_sloping",
+        "label_es": "Suavemente inclinado",
+    },
+    {"code": 4, "lower": 5.0, "upper": 8.0, "label": "undulating", "label_es": "Ondulado"},
+    {
+        "code": 5,
+        "lower": 8.0,
+        "upper": 16.0,
+        "label": "rolling",
+        "label_es": "Moderadamente accidentado",
+    },
+    {"code": 6, "lower": 16.0, "upper": 30.0, "label": "hilly", "label_es": "Accidentado"},
+    {"code": 7, "lower": 30.0, "upper": 45.0, "label": "steep", "label_es": "Escarpado"},
+    {"code": 8, "lower": 45.0, "upper": None, "label": "very_steep", "label_es": "Muy escarpado"},
+)
+CLASSIFICATION_SOURCES: Final[dict[str, str]] = {
+    "degrees": "Precedente cartográfico INEGI-DGG en estudios integrados de cuencas; no es norma universal.",
+    "percent": "FAO/IIASA Global Agro-Ecological Zones (GAEZ).",
+}
+MUNICIPAL_BOUNDARY_FILENAME: Final[str] = "municipal_boundaries.gpkg"
+MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
+    "iieg": {"id": "1", "layer": "municipios_iieg", "geometry_column": "geom_iieg"},
+    "inegi": {"id": "2", "layer": "municipios_inegi", "geometry_column": "geom_inegi"},
+}
+EXPECTED_MUNICIPALITY_COUNT: Final[int] = 125
+JALISCO_CVE_ENT: Final[int] = 14
+LOAD_ANALYTICAL_DIRECTORY_NAME: Final[str] = "analiticos"
+LOAD_GEOPORTAL_DIRECTORY_NAME: Final[str] = "geoportal"
+RELEASE_MANIFEST_FILENAME: Final[str] = "release_manifest.json"
+MULTISCALE_SLOPE_DIRECTORY_NAME: Final[str] = "fase_08a1_evaluacion_pendiente_multiescala"
+MULTISCALE_SLOPE_MANIFEST_FILENAME: Final[str] = "multiscale_slope_evaluation_manifest.json"
+MULTISCALE_SLOPE_PARENT_SHA256: Final[str] = STATEWIDE_CANDIDATE_SHA256
+MULTISCALE_SLOPE_WINDOWS: Final[tuple[int, ...]] = (3, 5, 7)
+MULTISCALE_SLOPE_CONTEXT_PIXELS: Final[int] = 32
+MULTISCALE_SMALL_COMPONENT_PIXELS: Final[int] = 9
+MULTISCALE_DECISIONS: Final[tuple[str, ...]] = (
+    "Horn3x3_mantener_como_cartografico",
+    "WoodEvans5x5_recomendado_para_cartografia",
+    "WoodEvans7x7_recomendado_para_cartografia",
+    "requiere_revision",
+)
+CARTOGRAPHIC_PRODUCTION_DIRECTORY_NAME: Final[str] = "fase_08a2_produccion_cartografica_we5"
+CARTOGRAPHIC_PRODUCTION_MANIFEST_FILENAME: Final[str] = "cartographic_slope_production_manifest.json"
+CARTOGRAPHIC_PRODUCTION_CONTEXT_FILENAME: Final[str] = "pendiente_grados_contexto_jalisco_15m.tif"
+CARTOGRAPHIC_PRODUCTION_DEGREES_FILENAME: Final[str] = "pendiente_grados_jalisco_15m.tif"
+CARTOGRAPHIC_PRODUCTION_PERCENT_FILENAME: Final[str] = "pendiente_porcentaje_jalisco_15m.tif"
+CARTOGRAPHIC_PRODUCTION_DECISION: Final[str] = "WoodEvans5x5_recomendado_para_produccion"
+CARTOGRAPHIC_PRODUCTION_STATUS: Final[str] = "analytical_and_cartographic_slope_family_validated"
 
 CONDITIONING_PROMOTION_QA_FIELDS: Final[tuple[str, ...]] = (
     "mae",

@@ -17,7 +17,7 @@ from core.pipelines.pendientes.helpers.source_diagnostics import (
     spatial_difference_metrics,
     write_profile_csv,
 )
-from core.pipelines.pendientes.stages.source_diagnostic import PendientesSourceDiagnostic
+from core.pipelines.pendientes.helpers.methodology.source_diagnostic import PendientesSourceDiagnostic
 
 
 def test_equivalent_window_uses_geographic_footprint_across_crs():
