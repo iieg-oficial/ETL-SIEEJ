@@ -61,9 +61,7 @@ class PendientesGlobalConditioningValidation:
         self.state_dir = transform_dir / STATE_VALIDATION_DIRECTORY_NAME
         self.inventory_path = self.state_dir / STATE_VALIDATION_INVENTORY_FILENAME
         self.state_manifest_path = self.state_dir / STATE_VALIDATION_MANIFEST_FILENAME
-        self.banding_manifest_path = (
-            transform_dir / BANDING_REVIEW_DIRECTORY_NAME / BANDING_REVIEW_MANIFEST_FILENAME
-        )
+        self.banding_manifest_path = transform_dir / BANDING_REVIEW_DIRECTORY_NAME / BANDING_REVIEW_MANIFEST_FILENAME
         self.source_diagnostic_manifest_path = (
             transform_dir / SOURCE_DIAGNOSTIC_DIRECTORY_NAME / SOURCE_DIAGNOSTIC_MANIFEST_FILENAME
         )
@@ -102,8 +100,7 @@ class PendientesGlobalConditioningValidation:
         profile_aggregate = self._aggregate_profiles(profiles)
         pareto = pareto_comparison(aggregate, profile_aggregate)
         outliers = {
-            candidate_id: candidate_outliers(results, candidate_id)
-            for candidate_id in GLOBAL_VALIDATION_CANDIDATE_IDS
+            candidate_id: candidate_outliers(results, candidate_id) for candidate_id in GLOBAL_VALIDATION_CANDIDATE_IDS
         }
         manifest = {
             "phase": "5D_state_comparative_light_global_conditioning",
@@ -243,8 +240,7 @@ class PendientesGlobalConditioningValidation:
         }
         manifest["pareto"] = pareto_comparison(aggregate, manifest["profiles"]["aggregate"])
         manifest["outliers"] = {
-            candidate_id: candidate_outliers(results, candidate_id)
-            for candidate_id in GLOBAL_VALIDATION_CANDIDATE_IDS
+            candidate_id: candidate_outliers(results, candidate_id) for candidate_id in GLOBAL_VALIDATION_CANDIDATE_IDS
         }
         manifest["analysis_refreshed_at"] = datetime.now().astimezone().isoformat()
         write_json_atomic(manifest, self.manifest_path)
@@ -388,9 +384,7 @@ class PendientesGlobalConditioningValidation:
 
     def _representative_chips(self, inventory: dict[str, Any]) -> list[str]:
         groups = {
-            morphology: sorted(
-                chip["chip_id"] for chip in inventory["chips"] if chip["morphology_class"] == morphology
-            )
+            morphology: sorted(chip["chip_id"] for chip in inventory["chips"] if chip["morphology_class"] == morphology)
             for morphology in STATE_VALIDATION_MORPHOLOGY_CLASSES
         }
         selected = [

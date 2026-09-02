@@ -119,9 +119,7 @@ class PendientesExtract(Stage):
                 raise FileNotFoundError(f"Municipal boundary snapshot does not exist: {boundary_path}")
             boundary_sources = {
                 source_key: {
-                    **validate_municipal_boundary_frame(
-                        gpd.read_file(boundary_path, layer=str(source["layer"]))
-                    ),
+                    **validate_municipal_boundary_frame(gpd.read_file(boundary_path, layer=str(source["layer"]))),
                     "boundary_source": source_key,
                     "geometry_column": source["geometry_column"],
                     "layer": source["layer"],

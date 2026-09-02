@@ -45,17 +45,13 @@ class PendientesSlopeProduction:
 
     def __init__(self) -> None:
         transform_dir = Path("data") / "transform" / PIPELINE_NAME
-        self.context_dem_path = (
-            transform_dir / STATEWIDE_CANDIDATE_DIRECTORY_NAME / STATEWIDE_CANDIDATE_FILENAME
-        )
+        self.context_dem_path = transform_dir / STATEWIDE_CANDIDATE_DIRECTORY_NAME / STATEWIDE_CANDIDATE_FILENAME
         self.phase6b_dir = transform_dir / DEM_PROMOTION_DIRECTORY_NAME
         self.phase6b_manifest_path = self.phase6b_dir / DEM_PROMOTION_MANIFEST_FILENAME
         self.master_dem_path = self.phase6b_dir / DEM_PROMOTION_TERRITORIAL_FILENAME
         self.phase7a_dir = transform_dir / SLOPE_SELECTION_DIRECTORY_NAME
         self.phase7a_manifest_path = self.phase7a_dir / SLOPE_SELECTION_MANIFEST_FILENAME
-        self.inventory_path = (
-            transform_dir / STATE_VALIDATION_DIRECTORY_NAME / STATE_VALIDATION_INVENTORY_FILENAME
-        )
+        self.inventory_path = transform_dir / STATE_VALIDATION_DIRECTORY_NAME / STATE_VALIDATION_INVENTORY_FILENAME
         self.output_dir = transform_dir / SLOPE_PRODUCTION_DIRECTORY_NAME
         self.context_slope_path = self.output_dir / SLOPE_PRODUCTION_CONTEXT_FILENAME
         self.degrees_path = self.output_dir / SLOPE_PRODUCTION_DEGREES_FILENAME

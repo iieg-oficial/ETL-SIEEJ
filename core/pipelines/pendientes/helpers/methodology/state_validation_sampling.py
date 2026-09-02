@@ -223,8 +223,6 @@ def chip_window_from_inventory(item: dict[str, Any], chip_id: str) -> ChipWindow
         bbox=tuple(item["bbox"]),
         selection_criterion=item["selection_criterion"],
         preliminary_slope_median_degrees=float(item["slope_median_degrees"]),
-        preliminary_roughness_median_abs_laplacian_m=float(
-            item["roughness_median_abs_laplacian_m"]
-        ),
+        preliminary_roughness_median_abs_laplacian_m=float(item["roughness_median_abs_laplacian_m"]),
         preliminary_valid_percentage=float(item["valid_percentage"]),
     )

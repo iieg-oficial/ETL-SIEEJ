@@ -225,7 +225,11 @@ def labeled_metric_distributions(
         by_label = {}
         for label in ("banding_presente", "banding_ausente", "dudoso"):
             values = np.array(
-                [float(row[metric]) for row in rows if row.get("human_label") == label and row[metric] not in (None, "")]
+                [
+                    float(row[metric])
+                    for row in rows
+                    if row.get("human_label") == label and row[metric] not in (None, "")
+                ]
             )
             if values.size:
                 by_label[label] = {

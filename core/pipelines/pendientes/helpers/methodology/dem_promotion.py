@@ -75,8 +75,7 @@ class PendientesDemPromotion:
         gates = {
             "source_checksum": source_manifest["tiff_sha256"] == DEM_PROMOTION_SOURCE_SHA256,
             "baseline_checksum": sha256_file(self.baseline_path) == EXPERIMENT_BASELINE_SHA256,
-            "phase6a_manifest_checksum": sha256_file(self.parent_manifest_path)
-            == DEM_PROMOTION_PARENT_MANIFEST_SHA256,
+            "phase6a_manifest_checksum": sha256_file(self.parent_manifest_path) == DEM_PROMOTION_PARENT_MANIFEST_SHA256,
             "validated_context_dem_checksum": sha256_file(self.context_path) == STATEWIDE_CANDIDATE_SHA256,
             "frozen_aoi_checksum": aoi["sha256"] == DEM_PROMOTION_AOI_SHA256,
             "territorial_grid": qa["grid"]["passed"],
@@ -87,11 +86,7 @@ class PendientesDemPromotion:
             == qa["mask"]["inherited_parent_nodata_inside_jalisco_pixels"],
         }
         gates["all_passed"] = all(gates.values())
-        decision = (
-            "conditioned_dem_validated_for_derivatives"
-            if gates["all_passed"]
-            else "dem_validation_failed"
-        )
+        decision = "conditioned_dem_validated_for_derivatives" if gates["all_passed"] else "dem_validation_failed"
         manifest = {
             "phase": "6B_conditioned_DEM_validation_and_promotion",
             "pipeline_version": PIPELINE_VERSION,

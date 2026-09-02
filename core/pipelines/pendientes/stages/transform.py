@@ -65,9 +65,8 @@ class PendientesTransform(Stage):
         ):
             raise ValueError("Extract municipal snapshot checksum no longer matches")
         snapshot_manifest_path = Path(str(boundaries.get("manifest_path", "")))
-        if (
-            not snapshot_manifest_path.is_file()
-            or sha256_file(snapshot_manifest_path) != boundaries.get("manifest_sha256")
+        if not snapshot_manifest_path.is_file() or sha256_file(snapshot_manifest_path) != boundaries.get(
+            "manifest_sha256"
         ):
             raise ValueError("Extract municipal snapshot manifest is missing or changed")
         context_inputs = {

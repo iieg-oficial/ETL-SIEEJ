@@ -61,9 +61,7 @@ def test_noise_is_reproducible_and_larger_windows_reduce_error() -> None:
 def test_grass_backend_matches_explicit_unweighted_fit_on_plane(tmp_path: Path) -> None:
     backend = inspect_grass_param_scale()
     values = planar_surface(65, 15.0, 15.0, 67.5)
-    dem = write_single_band_raster(
-        tmp_path / "dem.tif", values, Affine(15, 0, 0, 0, -15, 975), "EPSG:6368", "metre"
-    )
+    dem = write_single_band_raster(tmp_path / "dem.tif", values, Affine(15, 0, 0, 0, -15, 975), "EPSG:6368", "metre")
     outputs = {window: tmp_path / f"we{window}.tif" for window in (3, 5, 7)}
     run_grass_wood_evans(dem, outputs, backend)
     for window, path in outputs.items():
@@ -94,9 +92,7 @@ def test_context_extraction_uses_common_32_pixel_margin() -> None:
         height=2000,
         index=lambda _x, _y: (900, 1000),
     )
-    center, expanded = evaluation._chip_window(
-        {"chip_id": "test", "center_x": 1.0, "center_y": 2.0}, dataset
-    )
+    center, expanded = evaluation._chip_window({"chip_id": "test", "center_x": 1.0, "center_y": 2.0}, dataset)
     assert center.flatten() == (488, 388, 1024, 1024)
     assert expanded.flatten() == (456, 356, 1088, 1088)
 

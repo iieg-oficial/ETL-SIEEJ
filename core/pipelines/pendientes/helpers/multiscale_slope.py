@@ -176,7 +176,10 @@ def neighbor_variation(values: np.ndarray) -> dict[str, float]:
     for row_shift, column_shift in ((0, 1), (1, 0)):
         left = values[: values.shape[0] - row_shift or None, : values.shape[1] - column_shift or None]
         right = values[row_shift:, column_shift:]
-        common = valid[: valid.shape[0] - row_shift or None, : valid.shape[1] - column_shift or None] & valid[row_shift:, column_shift:]
+        common = (
+            valid[: valid.shape[0] - row_shift or None, : valid.shape[1] - column_shift or None]
+            & valid[row_shift:, column_shift:]
+        )
         differences.append(np.abs(right[common].astype(np.float64) - left[common].astype(np.float64)))
     combined = np.concatenate(differences)
     return {f"p{p:02d}": float(np.percentile(combined, p)) for p in (50, 95, 99)}

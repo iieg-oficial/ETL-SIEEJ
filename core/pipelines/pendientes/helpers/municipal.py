@@ -277,7 +277,9 @@ def calculate_municipal_statistics(
         for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items():
             boundaries = gpd.read_file(boundaries_path, layer=str(source["layer"]))
             validation = validate_municipal_boundary_frame(boundaries)
-            outside = [int(row.cve_mun) for row in boundaries.itertuples() if not context_extent.intersects(row.geometry)]
+            outside = [
+                int(row.cve_mun) for row in boundaries.itertuples() if not context_extent.intersects(row.geometry)
+            ]
             partial = [int(row.cve_mun) for row in boundaries.itertuples() if not context_extent.covers(row.geometry)]
             if outside or partial:
                 raise ValueError(
@@ -367,8 +369,7 @@ def calculate_municipal_statistics(
         "statistics_finite": bool(np.isfinite(numeric.to_numpy(dtype=np.float64)).all()),
         "slope_nonnegative": bool((slope_values >= 0).to_numpy().all()),
         "context_coverage_hard_gate": all(
-            item["municipalities_outside_context"] == 0
-            and item["municipalities_partially_outside_context"] == 0
+            item["municipalities_outside_context"] == 0 and item["municipalities_partially_outside_context"] == 0
             for item in source_summaries.values()
         ),
     }

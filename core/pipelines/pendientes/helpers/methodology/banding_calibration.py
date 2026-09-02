@@ -146,9 +146,7 @@ class PendientesBandingCalibration:
             "atlas": {
                 "directory": str(self.output_dir / "review_atlas"),
                 "chip_image_count": len(atlas_paths),
-                "chip_images": {
-                    path.stem: {"path": str(path), "sha256": sha256_file(path)} for path in atlas_paths
-                },
+                "chip_images": {path.stem: {"path": str(path), "sha256": sha256_file(path)} for path in atlas_paths},
                 "contact_sheet": str(contact_sheet),
                 "contact_sheet_sha256": sha256_file(contact_sheet),
                 "scale_contract": scales,

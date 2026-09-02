@@ -38,9 +38,7 @@ def _municipal_frame() -> gpd.GeoDataFrame:
                 "cve_mun": municipality_id,
                 "nomgeo": f"Municipio {municipality_id}",
                 "nom_ent": "Jalisco",
-                "geometry": MultiPolygon(
-                    [box(column * 15, (4 - row) * 15, (column + 1) * 15, (5 - row) * 15)]
-                ),
+                "geometry": MultiPolygon([box(column * 15, (4 - row) * 15, (column + 1) * 15, (5 - row) * 15)]),
             }
         )
     return gpd.GeoDataFrame(records, geometry="geometry", crs="EPSG:6368")
@@ -117,8 +115,7 @@ def test_existing_snapshot_is_reused_and_checksum_change_is_rejected(tmp_path: P
     previous = {
         "sha256": sha256_file(boundaries),
         "sources": {
-            key: {"geometry_column": source["geometry_column"]}
-            for key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
+            key: {"geometry_column": source["geometry_column"]} for key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
         },
     }
 
@@ -158,7 +155,9 @@ def test_only_five_selective_continuous_indicators_are_declared() -> None:
         if definition.get("pipeline") == "pendientes":
             observed[definition["id"]] = definition
     assert set(observed) == expected
-    assert all(any(parameter["nombre"] == "fuente_limite" for parameter in item["parametros"]) for item in observed.values())
+    assert all(
+        any(parameter["nombre"] == "fuente_limite" for parameter in item["parametros"]) for item in observed.values()
+    )
     assert all("clas" not in item["origen"] for item in observed.values())
 
 

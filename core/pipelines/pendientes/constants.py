@@ -196,9 +196,7 @@ DEM_PROMOTION_DIRECTORY_NAME: Final[str] = "fase_06b_promocion_dem"
 DEM_PROMOTION_MANIFEST_FILENAME: Final[str] = "dem_validation_manifest.json"
 DEM_PROMOTION_TERRITORIAL_FILENAME: Final[str] = "modelo_elevacion_acondicionado_jalisco_15m.tif"
 DEM_PROMOTION_AOI_SHA256: Final[str] = "b54e2a5d1efeea4d5abd697bed76e964bb648baeb07fffb168722de2fd06e63c"
-DEM_PROMOTION_PARENT_MANIFEST_SHA256: Final[str] = (
-    "af90c02741d3cffe98b30ee6f37afbae8c07ac590421cf09008fd45f6772bdfb"
-)
+DEM_PROMOTION_PARENT_MANIFEST_SHA256: Final[str] = "af90c02741d3cffe98b30ee6f37afbae8c07ac590421cf09008fd45f6772bdfb"
 DEM_PROMOTION_SOURCE_SHA256: Final[str] = "2f291fc05805dc9a9c1bf63b8d26def1b44ebe144f3beb3ef19d0ff72a572a79"
 DEM_PROMOTION_DECISIONS: Final[tuple[str, ...]] = (
     "dem_validation_failed",
@@ -206,9 +204,7 @@ DEM_PROMOTION_DECISIONS: Final[tuple[str, ...]] = (
 )
 SLOPE_SELECTION_DIRECTORY_NAME: Final[str] = "fase_07a_seleccion_algoritmo_pendiente"
 SLOPE_SELECTION_MANIFEST_FILENAME: Final[str] = "slope_algorithm_selection_manifest.json"
-SLOPE_SELECTION_PARENT_MANIFEST_SHA256: Final[str] = (
-    "9aed5594e044ce78ab7512812c186d088b92d955c375d3e98c60315e797c6e55"
-)
+SLOPE_SELECTION_PARENT_MANIFEST_SHA256: Final[str] = "9aed5594e044ce78ab7512812c186d088b92d955c375d3e98c60315e797c6e55"
 SLOPE_SELECTION_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
 SLOPE_SELECTION_CONTEXT_PIXELS: Final[int] = 32
 SLOPE_SELECTION_DECISIONS: Final[tuple[str, ...]] = (
@@ -221,9 +217,7 @@ SLOPE_PRODUCTION_MANIFEST_FILENAME: Final[str] = "slope_products_manifest.json"
 SLOPE_PRODUCTION_CONTEXT_FILENAME: Final[str] = "pendiente_grados_contexto_jalisco_15m.tif"
 SLOPE_PRODUCTION_DEGREES_FILENAME: Final[str] = "pendiente_grados_jalisco_15m.tif"
 SLOPE_PRODUCTION_PERCENT_FILENAME: Final[str] = "pendiente_porcentaje_jalisco_15m.tif"
-SLOPE_PRODUCTION_PHASE7A_SHA256: Final[str] = (
-    "0cadc4d50a23c59e6e1e00f10e76ff9135de06e04340eeeb9ce2a21ee26cba6d"
-)
+SLOPE_PRODUCTION_PHASE7A_SHA256: Final[str] = "0cadc4d50a23c59e6e1e00f10e76ff9135de06e04340eeeb9ce2a21ee26cba6d"
 VALIDATED_DEM_SHA256: Final[str] = "bd0bcf1236bd90297cb66f453e3655979294a0e49f5ba802f38aa987dfdbcc03"
 VALIDATED_DEGREES_SHA256: Final[str] = "acd6f01e836d94295fc87da3d88747b85a8899821a53fc56abfb0f2bc38b0a3a"
 SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
@@ -357,8 +351,7 @@ CONTEXT_DEM_PATH: Final[str] = (
 )
 CONTEXT_DEM_SHA256: Final[str] = "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
 CONTEXT_WE5_DEGREES_PATH: Final[str] = (
-    "data/transform/pendientes/fase_08a2_produccion_cartografica_we5/"
-    "pendiente_grados_contexto_jalisco_15m.tif"
+    "data/transform/pendientes/fase_08a2_produccion_cartografica_we5/pendiente_grados_contexto_jalisco_15m.tif"
 )
 CONTEXT_WE5_DEGREES_SHA256: Final[str] = "c41d4141db9123246789040bfd57f1110f252f529af9b46a54663f68e4df93ed"
 FROZEN_RELEASE_COG_SHA256: Final[dict[str, str]] = {

@@ -51,15 +51,9 @@ class PendientesSlopeAlgorithmValidation:
 
     def __init__(self) -> None:
         transform_dir = Path("data") / "transform" / PIPELINE_NAME
-        self.context_path = (
-            transform_dir / STATEWIDE_CANDIDATE_DIRECTORY_NAME / STATEWIDE_CANDIDATE_FILENAME
-        )
-        self.inventory_path = (
-            transform_dir / STATE_VALIDATION_DIRECTORY_NAME / STATE_VALIDATION_INVENTORY_FILENAME
-        )
-        self.parent_manifest_path = (
-            transform_dir / DEM_PROMOTION_DIRECTORY_NAME / DEM_PROMOTION_MANIFEST_FILENAME
-        )
+        self.context_path = transform_dir / STATEWIDE_CANDIDATE_DIRECTORY_NAME / STATEWIDE_CANDIDATE_FILENAME
+        self.inventory_path = transform_dir / STATE_VALIDATION_DIRECTORY_NAME / STATE_VALIDATION_INVENTORY_FILENAME
+        self.parent_manifest_path = transform_dir / DEM_PROMOTION_DIRECTORY_NAME / DEM_PROMOTION_MANIFEST_FILENAME
         self.output_dir = transform_dir / SLOPE_SELECTION_DIRECTORY_NAME
         self.manifest_path = self.output_dir / SLOPE_SELECTION_MANIFEST_FILENAME
 
@@ -155,7 +149,11 @@ class PendientesSlopeAlgorithmValidation:
         manifest = read_json(self.manifest_path)
         if manifest is None or manifest["status"] != "completed_pending_methodological_decision":
             raise ValueError("Completed Phase-7A evidence is required")
-        recommended = decision.removesuffix("_recomendado_para_produccion") if decision != "requiere_revision_metodologica" else None
+        recommended = (
+            decision.removesuffix("_recomendado_para_produccion")
+            if decision != "requiere_revision_metodologica"
+            else None
+        )
         contract = None
         if recommended is not None:
             contract = {
@@ -187,7 +185,9 @@ class PendientesSlopeAlgorithmValidation:
         }
         manifest["next_phase_contract"] = contract
         manifest["visual_review"]["human_review_completed"] = True
-        manifest["status"] = "completed_algorithm_recommended_for_production" if contract else "completed_requires_review"
+        manifest["status"] = (
+            "completed_algorithm_recommended_for_production" if contract else "completed_requires_review"
+        )
         write_json_atomic(manifest, self.manifest_path)
         return manifest
 
@@ -273,9 +273,7 @@ class PendientesSlopeAlgorithmValidation:
         output_arrays = {}
         for case_id, elevation in arrays.items():
             directory = self.output_dir / "synthetic" / "geomorphic" / case_id
-            dem_path = write_single_band_raster(
-                directory / "dem.tif", elevation, transform, "EPSG:6368", "metre"
-            )
+            dem_path = write_single_band_raster(directory / "dem.tif", elevation, transform, "EPSG:6368", "metre")
             algorithms = {}
             output_arrays[case_id] = {}
             for algorithm in SLOPE_SELECTION_ALGORITHMS:
@@ -392,7 +390,20 @@ class PendientesSlopeAlgorithmValidation:
             output["algorithms"][algorithm] = {
                 "distribution_median_of_chips": {
                     key: float(np.median([item["algorithms"][algorithm]["distribution"][key] for item in items]))
-                    for key in ("minimum", "mean", "stddev", "p01", "p05", "p25", "p50", "p75", "p90", "p95", "p99", "maximum")
+                    for key in (
+                        "minimum",
+                        "mean",
+                        "stddev",
+                        "p01",
+                        "p05",
+                        "p25",
+                        "p50",
+                        "p75",
+                        "p90",
+                        "p95",
+                        "p99",
+                        "maximum",
+                    )
                 },
                 "stability_median_of_chips": {
                     key: float(np.median([item["algorithms"][algorithm]["stability"][key] for item in items]))
@@ -408,29 +419,17 @@ class PendientesSlopeAlgorithmValidation:
             "mae_degrees": float(np.median([item["difference_ZT_minus_Horn"]["mae_degrees"] for item in items])),
             "rmse_degrees": float(np.median([item["difference_ZT_minus_Horn"]["rmse_degrees"] for item in items])),
             "p95_absolute_degrees": float(
-                np.median([
-                    item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p95"]
-                    for item in items
-                ])
+                np.median([item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p95"] for item in items])
             ),
             "p99_absolute_degrees": float(
-                np.median([
-                    item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p99"]
-                    for item in items
-                ])
+                np.median([item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p99"] for item in items])
             ),
             "maximum_absolute_degrees": float(
-                max(
-                    item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["maximum"]
-                    for item in items
-                )
+                max(item["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["maximum"] for item in items)
             ),
             "threshold_percentages": {
                 key: float(
-                    np.median([
-                        item["difference_ZT_minus_Horn"]["threshold_percentages"][key]
-                        for item in items
-                    ])
+                    np.median([item["difference_ZT_minus_Horn"]["threshold_percentages"][key] for item in items])
                 )
                 for key in next(iter(items))["difference_ZT_minus_Horn"]["threshold_percentages"]
             },
@@ -443,9 +442,7 @@ class PendientesSlopeAlgorithmValidation:
 
     def _visual_chip_ids(self, inventory: dict[str, Any]) -> list[str]:
         groups = {
-            morphology: sorted(
-                chip["chip_id"] for chip in inventory["chips"] if chip["morphology_class"] == morphology
-            )
+            morphology: sorted(chip["chip_id"] for chip in inventory["chips"] if chip["morphology_class"] == morphology)
             for morphology in ("plano", "valle", "lomerio", "montana", "transicion_valle_sierra")
         }
         selected = [
@@ -482,8 +479,7 @@ class PendientesSlopeAlgorithmValidation:
             for algorithm in SLOPE_SELECTION_ALGORITHMS
         )
         difference_limit = max(
-            result["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p99"]
-            for result in results.values()
+            result["difference_ZT_minus_Horn"]["absolute_difference_degrees"]["p99"] for result in results.values()
         )
         output = {}
         for chip_id in chip_ids:

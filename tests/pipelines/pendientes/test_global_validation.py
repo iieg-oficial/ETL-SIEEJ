@@ -99,13 +99,7 @@ def test_frozen_candidate_contract_and_representative_selection():
     assert configurations["FP2"]["norm_diff_degrees"] == 5.0
     assert configurations["FP3"]["norm_diff_degrees"] == 7.5
 
-    morphologies = (
-        ["plano"] * 8
-        + ["valle"] * 4
-        + ["lomerio"] * 7
-        + ["montana"] * 8
-        + ["transicion_valle_sierra"] * 3
-    )
+    morphologies = ["plano"] * 8 + ["valle"] * 4 + ["lomerio"] * 7 + ["montana"] * 8 + ["transicion_valle_sierra"] * 3
     chips = [
         {"chip_id": f"chip_{index:02d}", "morphology_class": morphology}
         for index, morphology in enumerate(morphologies)

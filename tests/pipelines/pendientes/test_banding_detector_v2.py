@@ -22,7 +22,7 @@ def _surfaces(size: int = 128) -> dict[str, np.ndarray]:
     return {
         "flat": np.zeros((size, size), dtype=np.float32),
         "periodic": np.floor(columns / 8).astype(np.float32),
-        "single_crest": (20 * np.exp(-((columns - size / 2) / 4) ** 2)).astype(np.float32),
+        "single_crest": (20 * np.exp(-(((columns - size / 2) / 4) ** 2))).astype(np.float32),
         "isotropic_noise": random.normal(size=(size, size)).astype(np.float32),
         "oriented_periodic": np.floor((rows + columns) / 12).astype(np.float32),
         "orientation_change": np.where(
@@ -60,7 +60,10 @@ def test_single_crest_has_far_fewer_repetitions_than_periodic_bands():
     crest = detector_v2_metrics(surfaces["single_crest"], nodata=None)
 
     assert crest["spatial_persistence"]["long_run_count_ge_4"] < periodic["spatial_persistence"]["long_run_count_ge_4"]
-    assert crest["profile_step_repetition"]["strong_step_count"] < periodic["profile_step_repetition"]["strong_step_count"] / 2
+    assert (
+        crest["profile_step_repetition"]["strong_step_count"]
+        < periodic["profile_step_repetition"]["strong_step_count"] / 2
+    )
     assert crest["peak_prominence"]["peak_prominence"] < periodic["peak_prominence"]["peak_prominence"]
 
 
@@ -131,9 +134,7 @@ def test_supervised_evaluation_waits_for_both_human_classes_then_reports_errors(
         {"chip_id": "false_positive", "human_label": "banding_ausente", "metric": 0.9},
     ]
 
-    assert labeled_metric_distributions(incomplete, ("metric",))["status"] == (
-        "not_executed_insufficient_human_labels"
-    )
+    assert labeled_metric_distributions(incomplete, ("metric",))["status"] == ("not_executed_insufficient_human_labels")
     evaluated = evaluate_candidate_rule(complete, "metric", 0.5, lambda value, threshold: value >= threshold)
 
     assert evaluated["status"] == "evaluated"

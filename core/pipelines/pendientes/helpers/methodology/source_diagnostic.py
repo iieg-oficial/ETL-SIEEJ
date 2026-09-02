@@ -58,9 +58,7 @@ class PendientesSourceDiagnostic:
         self.extract_manifest_path = Path("data/extract/pendientes/manifest.json")
         self.transform_dir = Path("data") / "transform" / PIPELINE_NAME
         self.baseline_path = self.transform_dir / ANALYTIC_DEM_FILENAME
-        self.calibration_manifest_path = (
-            self.transform_dir / CALIBRATION_DIRECTORY_NAME / CALIBRATION_MANIFEST_FILENAME
-        )
+        self.calibration_manifest_path = self.transform_dir / CALIBRATION_DIRECTORY_NAME / CALIBRATION_MANIFEST_FILENAME
         self.banding_manifest_path = (
             self.transform_dir / BANDING_REVIEW_DIRECTORY_NAME / BANDING_REVIEW_MANIFEST_FILENAME
         )
@@ -78,7 +76,9 @@ class PendientesSourceDiagnostic:
                 results[site["site_id"]] = self._diagnose_site(source, baseline, site)
 
         evidence = self._classify_evidence(results)
-        focal_comparison = self._focal_fp_comparison(calibration_manifest) if evidence["source_signal_present"] else None
+        focal_comparison = (
+            self._focal_fp_comparison(calibration_manifest) if evidence["source_signal_present"] else None
+        )
         manifest = {
             "phase": "5C_source_reprojection_derivative_diagnostic",
             "pipeline_version": PIPELINE_VERSION,

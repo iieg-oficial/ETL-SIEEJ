@@ -127,20 +127,13 @@ class PendientesStatewideCandidate:
             "grid": grid["passed"],
             "nodata_mask": mask["mask_mismatch"] == 0,
             "max_abs_dz": max_difference
-            <= float(STATEWIDE_CANDIDATE_FP2_CONFIG["max_diff_m"])
-            + STATEWIDE_CANDIDATE_FLOAT_TOLERANCE_M,
+            <= float(STATEWIDE_CANDIDATE_FP2_CONFIG["max_diff_m"]) + STATEWIDE_CANDIDATE_FLOAT_TOLERANCE_M,
             "fp2_halo_validation": True,
             "contextual_equivalence_30_of_30": contextual["manifest"]["all_chips_exact"],
-            "contextual_seam_crossing_equivalence": contextual["manifest"][
-                "all_seam_crossing_chips_exact"
-            ],
+            "contextual_seam_crossing_equivalence": contextual["manifest"]["all_seam_crossing_chips_exact"],
         }
         gates["all_passed"] = all(gates.values())
-        status = (
-            "statewide_candidate_generated_not_promoted"
-            if gates["all_passed"]
-            else "statewide_processing_failed"
-        )
+        status = "statewide_candidate_generated_not_promoted" if gates["all_passed"] else "statewide_processing_failed"
         global_summary = {
             "bias_m": global_qa["bias_m"],
             "MAE_m": global_qa["mae_m"],
@@ -161,9 +154,7 @@ class PendientesStatewideCandidate:
             "tile_count": 225,
             "processing_order": "row-major",
             "production_elapsed_seconds": production.get("elapsed_seconds") if production else None,
-            "production_elapsed_note": (
-                None if production else "not recovered after interactive session interruption"
-            ),
+            "production_elapsed_note": (None if production else "not recovered after interactive session interruption"),
         }
         if production is not None:
             processing["production_metrics"] = production
@@ -333,9 +324,7 @@ class PendientesStatewideCandidate:
                 }
         return {
             "chip_count": len(results),
-            "complete_exact_chip_count": sum(
-                result["complete_chip"]["array_identical"] for result in results.values()
-            ),
+            "complete_exact_chip_count": sum(result["complete_chip"]["array_identical"] for result in results.values()),
             "interior_24px_exact_chip_count": sum(
                 result["interior_excluding_24px"]["array_identical"] for result in results.values()
             ),

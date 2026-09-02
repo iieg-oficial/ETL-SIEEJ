@@ -136,12 +136,8 @@ class PendientesCartographicSlopeProduction:
             comparison = compare_statewide_slopes(self.horn_degrees_path, self.degrees_path)
             classification = self._ensure_classifications(checkpoint)
             class_comparison = {
-                "degrees": self._class_comparison(
-                    self.horn_degrees_path, self.degrees_path, DEGREES_CLASSIFICATION
-                ),
-                "percent": self._class_comparison(
-                    self.horn_percent_path, self.percent_path, PERCENT_CLASSIFICATION
-                ),
+                "degrees": self._class_comparison(self.horn_degrees_path, self.degrees_path, DEGREES_CLASSIFICATION),
+                "percent": self._class_comparison(self.horn_percent_path, self.percent_path, PERCENT_CLASSIFICATION),
             }
             controls = self._write_controls(phase8a1)
             packaging = self._package_release(checkpoint, classification)
@@ -368,8 +364,12 @@ class PendientesCartographicSlopeProduction:
             we5_classes[we5_valid] = classify_values(we5[we5_valid], DEGREES_CLASSIFICATION)
             output = directory / f"{chip_id}_H3_vs_WE5_clasificada.png"
             figure, axes = plt.subplots(1, 2, figsize=(9, 4), constrained_layout=True)
-            for axis, values, title in zip(axes, (horn_classes, we5_classes), ("Horn 3x3", "Wood-Evans 5x5"), strict=True):
-                image = axis.imshow(np.ma.masked_equal(values, 255), cmap="turbo", vmin=1, vmax=7, interpolation="nearest")
+            for axis, values, title in zip(
+                axes, (horn_classes, we5_classes), ("Horn 3x3", "Wood-Evans 5x5"), strict=True
+            ):
+                image = axis.imshow(
+                    np.ma.masked_equal(values, 255), cmap="turbo", vmin=1, vmax=7, interpolation="nearest"
+                )
                 axis.set_title(title)
                 axis.axis("off")
             figure.colorbar(image, ax=axes, ticks=range(1, 8), shrink=0.8)
@@ -457,12 +457,17 @@ class PendientesCartographicSlopeProduction:
             staging = staging_dir / final.name
             record = checkpoint.get("checkpoint_artifacts", {}).get(f"cog_{key}")
             if final.exists() and sha256_file(final) not in HISTORICAL_COG_SHA256.values():
-                self._require(record is not None and sha256_file(final) == record["sha256"], f"Incompatible final COG: {final}")
+                self._require(
+                    record is not None and sha256_file(final) == record["sha256"], f"Incompatible final COG: {final}"
+                )
                 cog_path = final
                 creation = record["processing"]["creation"]
             else:
                 if staging.exists():
-                    self._require(record is not None and sha256_file(staging) == record["sha256"], f"Incompatible staged COG: {staging}")
+                    self._require(
+                        record is not None and sha256_file(staging) == record["sha256"],
+                        f"Incompatible staged COG: {staging}",
+                    )
                     creation = record["processing"]["creation"]
                 else:
                     creation = create_cog(parent, staging, classified=classified)
@@ -540,21 +545,40 @@ class PendientesCartographicSlopeProduction:
 
     def _products(self, classification: dict[str, Any], packaging: dict[str, Any]) -> dict[str, Any]:
         return {
-            "context_degrees": {"path": str(self.context_path), "sha256": sha256_file(self.context_path), "publishable": False},
-            "pendiente_grados": {"path": str(self.degrees_path), "sha256": sha256_file(self.degrees_path), "production_product": True},
-            "pendiente_porcentaje": {"path": str(self.percent_path), "sha256": sha256_file(self.percent_path), "production_product": True},
+            "context_degrees": {
+                "path": str(self.context_path),
+                "sha256": sha256_file(self.context_path),
+                "publishable": False,
+            },
+            "pendiente_grados": {
+                "path": str(self.degrees_path),
+                "sha256": sha256_file(self.degrees_path),
+                "production_product": True,
+            },
+            "pendiente_porcentaje": {
+                "path": str(self.percent_path),
+                "sha256": sha256_file(self.percent_path),
+                "production_product": True,
+            },
             "classified": classification,
-            "release_cogs": {key: {"path": value["path"], "sha256": value["sha256"]} for key, value in packaging["rasters"].items()},
+            "release_cogs": {
+                key: {"path": value["path"], "sha256": value["sha256"]} for key, value in packaging["rasters"].items()
+            },
         }
 
     def _validate_completed(self, manifest: dict[str, Any]) -> None:
         self._require(manifest["decision"]["value"] == CARTOGRAPHIC_PRODUCTION_DECISION, "Completed decision changed")
         for product in ("context_degrees", "pendiente_grados", "pendiente_porcentaje"):
             record = manifest["products"][product]
-            self._require(sha256_file(Path(record["path"])) == record["sha256"], f"Completed product changed: {product}")
+            self._require(
+                sha256_file(Path(record["path"])) == record["sha256"], f"Completed product changed: {product}"
+            )
         for record in manifest["products"]["release_cogs"].values():
             self._require(sha256_file(Path(record["path"])) == record["sha256"], "Completed release COG changed")
-        self._require(sha256_file(self.final_analytical_dir / "modelo_elevacion_acondicionado_jalisco_15m.tif") == DEM_COG_SHA256, "DEM COG changed")
+        self._require(
+            sha256_file(self.final_analytical_dir / "modelo_elevacion_acondicionado_jalisco_15m.tif") == DEM_COG_SHA256,
+            "DEM COG changed",
+        )
 
     @staticmethod
     def _require(condition: bool, message: str) -> None:

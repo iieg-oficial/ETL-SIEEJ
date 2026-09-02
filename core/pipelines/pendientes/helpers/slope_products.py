@@ -411,14 +411,15 @@ def validate_slope_family(
                 elif upper is not None:
                     mask &= degree_selected < upper
                 class_counts[index] += int(np.count_nonzero(mask))
-        histograms = {"degrees": np.zeros(histogram_bins, dtype=np.int64), "percent": np.zeros(histogram_bins, dtype=np.int64)}
+        histograms = {
+            "degrees": np.zeros(histogram_bins, dtype=np.int64),
+            "percent": np.zeros(histogram_bins, dtype=np.int64),
+        }
         for window in windows:
             for name, dataset in (("degrees", degrees), ("percent", percent)):
                 values = dataset.read(1, window=window)
                 selected = values[valid_mask(values, dataset.nodata)]
-                histograms[name] += np.histogram(
-                    selected, bins=histogram_bins, range=(minima[name], maxima[name])
-                )[0]
+                histograms[name] += np.histogram(selected, bins=histogram_bins, range=(minima[name], maxima[name]))[0]
         metadata = {
             "width": master.width,
             "height": master.height,
@@ -434,9 +435,7 @@ def validate_slope_family(
             "maximum": maxima[name],
             "mean": mean,
             "stddev": math.sqrt(max(0.0, sums[f"{name}_sq"] / counts["valid"] - mean * mean)),
-            **_percentiles_from_histogram(
-                histograms[name], minima[name], maxima[name], (1, 5, 25, 50, 75, 90, 95, 99)
-            ),
+            **_percentiles_from_histogram(histograms[name], minima[name], maxima[name], (1, 5, 25, 50, 75, 90, 95, 99)),
             "percentile_method": {
                 "name": "all-valid-pixel fixed-width histogram",
                 "bins": histogram_bins,
@@ -455,9 +454,7 @@ def validate_slope_family(
         "finite": nonfinite == 0,
         "degree_range": invalid_degrees == 0,
         "percent_relation_bitwise": relation_different == 0,
-        "degree_percent_threshold_semantics": (
-            below_45_mismatch == equal_45_mismatch == above_45_mismatch == 0
-        ),
+        "degree_percent_threshold_semantics": (below_45_mismatch == equal_45_mismatch == above_45_mismatch == 0),
     }
     return {
         "grid": {"checks": expected_common, "metadata": metadata},

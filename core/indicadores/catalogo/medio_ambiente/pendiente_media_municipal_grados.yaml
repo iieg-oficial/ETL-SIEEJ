@@ -9,10 +9,20 @@ pipeline: pendientes
 origen: vw_pendientes_estadisticas_municipales
 nivel: municipal
 periodicidad: no periódica
-cobertura: {geografica: Jalisco, temporal: "2024"}
+cobertura: { geografica: Jalisco, temporal: "2024" }
 parametros:
-  - {nombre: cve_geo, tipo: str, requerido: false, descripcion: Clave EEMMM; omitir para todos los municipios.}
-  - {nombre: fuente_limite, tipo: str, requerido: true, descripcion: Fuente territorial iieg o inegi.}
+  - {
+      nombre: cve_geo,
+      tipo: str,
+      requerido: false,
+      descripcion: Clave EEMMM; omitir para todos los municipios.,
+    }
+  - {
+      nombre: fuente_limite,
+      tipo: str,
+      requerido: true,
+      descripcion: Fuente territorial iieg o inegi.,
+    }
 sql: |
   SELECT cvegeo::text AS cve_geo, nombre_geo::text, '2024'::text AS periodo,
          slope_degrees_mean::numeric AS valor, 'total'::text AS categoria

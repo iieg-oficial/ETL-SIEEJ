@@ -121,9 +121,7 @@ def condition_raster_tiled(
     total_pixels = sum(int(window.width * window.height) for window in windows)
     counts["nodata_pixels_baseline"] = total_pixels - counts["valid_pixels_baseline"]
     counts["nodata_pixels_conditioned"] = total_pixels - counts["valid_pixels_conditioned"]
-    counts["mask_mismatch_pixels"] = (
-        counts["valid_pixels_baseline"] - counts["valid_pixels_conditioned"]
-    )
+    counts["mask_mismatch_pixels"] = counts["valid_pixels_baseline"] - counts["valid_pixels_conditioned"]
     return {
         "tile_width_pixels": tile_size,
         "tile_height_pixels": tile_size,
@@ -151,7 +149,13 @@ def validate_matching_grid(source: rasterio.io.DatasetReader, candidate: rasteri
 
 def _moments(values: np.ndarray) -> tuple[int, float, float, float, float]:
     selected = values.astype(np.float64, copy=False)
-    return selected.size, float(selected.sum()), float(np.square(selected).sum()), float(selected.min()), float(selected.max())
+    return (
+        selected.size,
+        float(selected.sum()),
+        float(np.square(selected).sum()),
+        float(selected.min()),
+        float(selected.max()),
+    )
 
 
 def _percentiles_from_histogram(
@@ -234,11 +238,17 @@ def streaming_global_qa(
             common = valid_mask(raw, source.nodata) & valid_mask(conditioned, candidate.nodata)
             raw_values = raw[common]
             candidate_values = conditioned[common]
-            abs_hist += np.histogram(np.abs(candidate_values.astype(np.float64) - raw_values), bins=histogram_bins, range=(0, abs_range_max))[0]
+            abs_hist += np.histogram(
+                np.abs(candidate_values.astype(np.float64) - raw_values), bins=histogram_bins, range=(0, abs_range_max)
+            )[0]
             source_hist += np.histogram(raw_values, bins=histogram_bins, range=(elevation_min, elevation_max))[0]
-            candidate_hist += np.histogram(candidate_values, bins=histogram_bins, range=(elevation_min, elevation_max))[0]
+            candidate_hist += np.histogram(candidate_values, bins=histogram_bins, range=(elevation_min, elevation_max))[
+                0
+            ]
 
-    def distribution(total: float, squares: float, minimum: float, maximum: float, histogram: np.ndarray) -> dict[str, float]:
+    def distribution(
+        total: float, squares: float, minimum: float, maximum: float, histogram: np.ndarray
+    ) -> dict[str, float]:
         mean = total / count
         return {
             "minimum": minimum,
@@ -267,7 +277,9 @@ def streaming_global_qa(
         },
         "elevation_distribution_m": {
             "baseline": distribution(source_sum, source_square_sum, source_min, source_max, source_hist),
-            "conditioned": distribution(candidate_sum, candidate_square_sum, candidate_min, candidate_max, candidate_hist),
+            "conditioned": distribution(
+                candidate_sum, candidate_square_sum, candidate_min, candidate_max, candidate_hist
+            ),
         },
         "percentile_method": {
             "name": "all-valid-pixel fixed-width histogram",
@@ -282,8 +294,8 @@ def seam_qa(source_path: Path, candidate_path: Path, tile_size: int) -> dict[str
     records = []
     with rasterio.open(source_path) as source, rasterio.open(candidate_path) as candidate:
         specifications = [
-            *(('vertical', position) for position in range(tile_size, source.width, tile_size)),
-            *(('horizontal', position) for position in range(tile_size, source.height, tile_size)),
+            *(("vertical", position) for position in range(tile_size, source.width, tile_size)),
+            *(("horizontal", position) for position in range(tile_size, source.height, tile_size)),
         ]
         for orientation, position in specifications:
             window = (

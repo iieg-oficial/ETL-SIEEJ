@@ -50,8 +50,7 @@ def _write_tiled(path: Path, values: np.ndarray, transform: Affine, unit: str) -
 
 def _phase7a_backend() -> dict:
     path = Path(
-        "data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/"
-        "slope_algorithm_selection_manifest.json"
+        "data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/slope_algorithm_selection_manifest.json"
     )
     return json.loads(path.read_text(encoding="utf-8"))["next_phase_contract"]["backend"]
 
@@ -59,12 +58,9 @@ def _phase7a_backend() -> dict:
 def test_frozen_backend_parent_and_phase7a_manifest_contract():
     observed = validate_frozen_backend(_phase7a_backend())
     assert observed["validated"] is True
-    assert STATEWIDE_CANDIDATE_SHA256 == (
-        "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
-    )
+    assert STATEWIDE_CANDIDATE_SHA256 == ("fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef")
     manifest_path = Path(
-        "data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/"
-        "slope_algorithm_selection_manifest.json"
+        "data/transform/pendientes/fase_07a_seleccion_algoritmo_pendiente/slope_algorithm_selection_manifest.json"
     )
     assert sha256_file(manifest_path) == SLOPE_PRODUCTION_PHASE7A_SHA256
 
@@ -131,13 +127,9 @@ def test_phase7a_chip_reproduction_is_bitwise_for_all_30(tmp_path):
     results = {}
     for index in range(30):
         chip_id = f"chip_{index:02d}"
-        inventory["chips"].append(
-            {"chip_id": chip_id, "column_offset": 2, "row_offset": 2, "width": 4, "height": 4}
-        )
+        inventory["chips"].append({"chip_id": chip_id, "column_offset": 2, "row_offset": 2, "width": 4, "height": 4})
         results[chip_id] = {
-            "algorithms": {
-                "Horn": {"artifact": {"path": str(reference), "sha256": sha256_file(reference)}}
-            }
+            "algorithms": {"Horn": {"artifact": {"path": str(reference), "sha256": sha256_file(reference)}}}
         }
     qa = verify_phase7a_chips(statewide, inventory, {"real_chip_results": results})
     assert qa["chip_count"] == qa["exact_chip_count"] == 30

@@ -89,9 +89,7 @@ def test_territorial_dem_preserves_values_mask_grid_nodata_and_area(tmp_path):
 
 def test_phase6b_frozen_lineage_constants():
     assert STATEWIDE_CANDIDATE_SHA256 == "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
-    assert DEM_PROMOTION_PARENT_MANIFEST_SHA256 == (
-        "af90c02741d3cffe98b30ee6f37afbae8c07ac590421cf09008fd45f6772bdfb"
-    )
+    assert DEM_PROMOTION_PARENT_MANIFEST_SHA256 == ("af90c02741d3cffe98b30ee6f37afbae8c07ac590421cf09008fd45f6772bdfb")
     assert DEM_PROMOTION_SOURCE_SHA256 == "2f291fc05805dc9a9c1bf63b8d26def1b44ebe144f3beb3ef19d0ff72a572a79"
     assert DEM_PROMOTION_AOI_SHA256 == "b54e2a5d1efeea4d5abd697bed76e964bb648baeb07fffb168722de2fd06e63c"
     assert STATEWIDE_CANDIDATE_FP2_CONFIG["zfactor"] == 1.0
@@ -132,7 +130,13 @@ def test_phase6b_manifest_promotes_context_parent_for_derivatives(tmp_path, monk
         ),
     )
     qa = {
-        "grid": {"passed": True, "width": 1, "height": 1, "transform": [15, 0, 0, 0, -15, 15], "bounds": [0, 0, 15, 15]},
+        "grid": {
+            "passed": True,
+            "width": 1,
+            "height": 1,
+            "transform": [15, 0, 0, 0, -15, 15],
+            "bounds": [0, 0, 15, 15],
+        },
         "value_equality": {"bitwise_equal": True, "different_pixels": 0, "max_abs_difference": 0},
         "mask": {
             "mask_mismatch_pixels": 0,

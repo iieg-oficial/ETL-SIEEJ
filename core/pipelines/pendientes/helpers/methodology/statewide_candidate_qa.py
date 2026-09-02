@@ -46,19 +46,14 @@ def validate_seam_manifest(path: Path, tile_size: int, width: int, height: int) 
     records = manifest.get("records", [])
     expected_vertical = list(range(tile_size, width, tile_size))
     expected_horizontal = list(range(tile_size, height, tile_size))
-    observed_vertical = [
-        record["pixel_position"] for record in records if record.get("orientation") == "vertical"
-    ]
-    observed_horizontal = [
-        record["pixel_position"] for record in records if record.get("orientation") == "horizontal"
-    ]
+    observed_vertical = [record["pixel_position"] for record in records if record.get("orientation") == "vertical"]
+    observed_horizontal = [record["pixel_position"] for record in records if record.get("orientation") == "horizontal"]
     checks = {
         "seam_count": manifest.get("seam_count") == len(expected_vertical) + len(expected_horizontal),
         "all_vertical_boundaries": observed_vertical == expected_vertical,
         "all_horizontal_boundaries": observed_horizontal == expected_horizontal,
         "descriptive_aggregate_present": all(
-            key in manifest.get("aggregate", {})
-            for key in ("gradient_discontinuity", "second_difference_anomaly")
+            key in manifest.get("aggregate", {}) for key in ("gradient_discontinuity", "second_difference_anomaly")
         ),
     }
     if not all(checks.values()):

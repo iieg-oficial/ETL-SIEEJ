@@ -109,9 +109,7 @@ class PendientesMultiscaleSlopeEvaluation:
             "real_chip_sample": chips,
             "real_chip_results": real,
             "aggregate_real_results": aggregate,
-            "class_fragmentation_qa": {
-                chip_id: details["class_fragmentation"] for chip_id, details in real.items()
-            },
+            "class_fragmentation_qa": {chip_id: details["class_fragmentation"] for chip_id, details in real.items()},
             "visual_qa_paths": visuals,
             "visual_review": self._visual_review(),
             "methodological_references": self._methodological_references(),
@@ -141,9 +139,7 @@ class PendientesMultiscaleSlopeEvaluation:
         manifest["aggregate_real_results"] = aggregate
         manifest["visual_review"] = self._visual_review()
         manifest["methodological_references"] = self._methodological_references()
-        manifest["wood_evans_backend_equivalence"] = self._backend_equivalence(
-            manifest["wood_evans_implementation"]
-        )
+        manifest["wood_evans_backend_equivalence"] = self._backend_equivalence(manifest["wood_evans_implementation"])
         manifest["pareto"] = pareto
         manifest["decision"]["value"] = decision
         write_json_atomic(manifest, self.manifest_path)
@@ -188,9 +184,7 @@ class PendientesMultiscaleSlopeEvaluation:
             "cases": comparisons,
             "tolerance_degrees": 2e-5,
             "within_tolerance": all(
-                result["max_abs_difference_degrees"] < 2e-5
-                for case in comparisons.values()
-                for result in case.values()
+                result["max_abs_difference_degrees"] < 2e-5 for case in comparisons.values() for result in case.values()
             ),
             "synthetic_execution_route": "broad synthetic matrix uses the verified explicit reference; real chips use GRASS GIS",
         }
@@ -259,7 +253,9 @@ class PendientesMultiscaleSlopeEvaluation:
                     methods[f"WE{window}"] = error_metrics(values[valid], slope)
                 plane_results[case] = methods
                 for sigma in (0.10, 0.25, 0.50, 1.00):
-                    rng = np.random.default_rng(801_000 + int(slope * 10) * 100 + int(direction * 10) + int(sigma * 100))
+                    rng = np.random.default_rng(
+                        801_000 + int(slope * 10) * 100 + int(direction * 10) + int(sigma * 100)
+                    )
                     noisy = plane.astype(np.float64) + rng.normal(0.0, sigma, plane.shape)
                     h3_noise, _, hvalid_noise = experimental_horn_slope(noisy, 15.0)
                     noise_methods = {"H3": error_metrics(h3_noise[hvalid_noise], slope, extended=True)}
@@ -290,20 +286,36 @@ class PendientesMultiscaleSlopeEvaluation:
             }
             for method in methods
         }
-        return {"planes": plane_results, "noise": noise_results, "geomorphic": geomorphic, "summary": summary, "seeded": True}
+        return {
+            "planes": plane_results,
+            "noise": noise_results,
+            "geomorphic": geomorphic,
+            "summary": summary,
+            "seeded": True,
+        }
 
     @staticmethod
     def _selected_chips(inventory: dict[str, Any]) -> list[dict[str, Any]]:
         by_id = {chip["chip_id"]: chip for chip in inventory["chips"]}
         selections = [
             {**by_id["problema_manual"], "evaluation_role": "problema_manual"},
-            {"chip_id": "amg_urbano", "center_x": 671927.849634767, "center_y": 2285360.26098728, "evaluation_role": "AMG_urbano_plano"},
+            {
+                "chip_id": "amg_urbano",
+                "center_x": 671927.849634767,
+                "center_y": 2285360.26098728,
+                "evaluation_role": "AMG_urbano_plano",
+            },
             {**by_id["sv_18_N04_E05"], "evaluation_role": "planicie_rural"},
             {**by_id["sv_03_N01_E04"], "evaluation_role": "lomerio"},
             {**by_id["sv_26_N06_E02"], "evaluation_role": "valle"},
             {**by_id["sv_05_N02_E03"], "evaluation_role": "transicion_valle_sierra"},
             {**by_id["sv_01_N01_E02"], "evaluation_role": "montana"},
-            {"chip_id": "barranca_huentitan", "center_x": 675949.731465246, "center_y": 2295399.39760782, "evaluation_role": "barranca"},
+            {
+                "chip_id": "barranca_huentitan",
+                "center_x": 675949.731465246,
+                "center_y": 2295399.39760782,
+                "evaluation_role": "barranca",
+            },
         ]
         return selections
 
@@ -317,7 +329,12 @@ class PendientesMultiscaleSlopeEvaluation:
         context = MULTISCALE_SLOPE_CONTEXT_PIXELS
         center = Window(column, row, 1024, 1024)
         expanded = Window(column - context, row - context, 1024 + 2 * context, 1024 + 2 * context)
-        if expanded.col_off < 0 or expanded.row_off < 0 or expanded.col_off + expanded.width > dataset.width or expanded.row_off + expanded.height > dataset.height:
+        if (
+            expanded.col_off < 0
+            or expanded.row_off < 0
+            or expanded.col_off + expanded.width > dataset.width
+            or expanded.row_off + expanded.height > dataset.height
+        ):
             raise ValueError(f"Chip context outside parent: {chip['chip_id']}")
         return center, expanded
 
@@ -330,7 +347,9 @@ class PendientesMultiscaleSlopeEvaluation:
             context_transform = window_transform(context_window, parent.transform)
             bbox = list(rasterio.windows.bounds(center_window, parent.transform))
             crs = parent.crs
-        context_path = write_single_band_raster(directory / "dem_context.tif", context_values, context_transform, crs, "metre")
+        context_path = write_single_band_raster(
+            directory / "dem_context.tif", context_values, context_transform, crs, "metre"
+        )
         h3_context = directory / "H3_context.tif"
         run_gdaldem_slope(gdal, context_path, h3_context, "Horn")
         we_paths = {window: directory / f"WE{window}_context.tif" for window in (3, 5, 7)}
@@ -356,7 +375,9 @@ class PendientesMultiscaleSlopeEvaluation:
             report = class_fragmentation(arrays[method])
             classes = report.pop("classes")
             common = (h3_classes != 255) & (classes != 255)
-            report["class_change_rate_vs_h3"] = float(np.count_nonzero(classes[common] != h3_classes[common]) / np.count_nonzero(common) * 100)
+            report["class_change_rate_vs_h3"] = float(
+                np.count_nonzero(classes[common] != h3_classes[common]) / np.count_nonzero(common) * 100
+            )
             fragmentation[method] = report
         thresholds = {
             method: {
@@ -392,7 +413,9 @@ class PendientesMultiscaleSlopeEvaluation:
         axes[0].imshow(np.ma.masked_equal(dem, -9999), cmap="terrain", vmin=dem_range[0], vmax=dem_range[1])
         axes[0].set_title("DEM")
         for axis, method in zip(axes[1:], ("H3", "WE3", "WE5", "WE7"), strict=True):
-            image = axis.imshow(np.ma.masked_equal(arrays[method], -9999), cmap="viridis", vmin=slope_range[0], vmax=slope_range[1])
+            image = axis.imshow(
+                np.ma.masked_equal(arrays[method], -9999), cmap="viridis", vmin=slope_range[0], vmax=slope_range[1]
+            )
             axis.set_title(method)
         figure.colorbar(image, ax=axes[1:], label="grados", shrink=0.75)
         for axis in axes:
@@ -416,12 +439,18 @@ class PendientesMultiscaleSlopeEvaluation:
         methods = ("H3", "WE3", "WE5", "WE7")
         return {
             method: {
-                "median_std": float(np.median([chip["methods"][method]["distribution"]["std"] for chip in real.values()])),
+                "median_std": float(
+                    np.median([chip["methods"][method]["distribution"]["std"] for chip in real.values()])
+                ),
                 "median_neighbor_p95": float(
                     np.median([chip["methods"][method]["neighbor_variation"]["p95"] for chip in real.values()])
                 ),
-                "median_p95": float(np.median([chip["methods"][method]["distribution"]["p95"] for chip in real.values()])),
-                "median_p99": float(np.median([chip["methods"][method]["distribution"]["p99"] for chip in real.values()])),
+                "median_p95": float(
+                    np.median([chip["methods"][method]["distribution"]["p95"] for chip in real.values()])
+                ),
+                "median_p99": float(
+                    np.median([chip["methods"][method]["distribution"]["p99"] for chip in real.values()])
+                ),
                 "median_mae_vs_h3": 0.0
                 if method == "H3"
                 else float(np.median([chip["differences_vs_h3"][method]["mae"] for chip in real.values()])),
@@ -438,7 +467,10 @@ class PendientesMultiscaleSlopeEvaluation:
                 if method == "WE3"
                 else float(
                     np.median(
-                        [chip["class_fragmentation"][method]["number_of_connected_components"] for chip in real.values()]
+                        [
+                            chip["class_fragmentation"][method]["number_of_connected_components"]
+                            for chip in real.values()
+                        ]
                     )
                 ),
             }

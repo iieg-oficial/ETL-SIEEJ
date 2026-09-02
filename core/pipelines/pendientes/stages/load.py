@@ -32,11 +32,7 @@ class PendientesLoad(Stage):
         self.mode = mode
         super().__init__(pipeline_name, "load")
         self.transform_manifest_path = (
-            Path("data")
-            / "transform"
-            / pipeline_name
-            / FINAL_DIRECTORY_NAME
-            / FINAL_TRANSFORM_MANIFEST_FILENAME
+            Path("data") / "transform" / pipeline_name / FINAL_DIRECTORY_NAME / FINAL_TRANSFORM_MANIFEST_FILENAME
         )
         self.release_manifest_path = self.work_dir / RELEASE_MANIFEST_FILENAME
         self.db = Database(settings.DB_NAME, settings.database_url)
@@ -153,9 +149,7 @@ class PendientesLoad(Stage):
                         EstadisticasPendienteMunicipales.fuente_limite_municipal_id.key,
                     ],
                     update_keys=[
-                        key
-                        for key in records[0]
-                        if key not in {"municipality_id", "fuente_limite_municipal_id"}
+                        key for key in records[0] if key not in {"municipality_id", "fuente_limite_municipal_id"}
                     ],
                 )
         finally:

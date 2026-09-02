@@ -21,18 +21,10 @@ from core.utils.files import sha256_file
 
 
 def inspect_cog_driver() -> dict[str, Any]:
-    version = subprocess.run(
-        ["gdalinfo", "--version"], check=True, capture_output=True, text=True
-    ).stdout.strip()
-    result = subprocess.run(
-        ["gdalinfo", "--format", "COG"], check=True, capture_output=True, text=True
-    )
+    version = subprocess.run(["gdalinfo", "--version"], check=True, capture_output=True, text=True).stdout.strip()
+    result = subprocess.run(["gdalinfo", "--format", "COG"], check=True, capture_output=True, text=True)
     text = result.stdout
-    supported = {
-        name
-        for name in (*COG_CONTINUOUS_OPTIONS, *COG_CLASSIFIED_OPTIONS)
-        if f'name="{name}"' in text
-    }
+    supported = {name for name in (*COG_CONTINUOUS_OPTIONS, *COG_CLASSIFIED_OPTIONS) if f'name="{name}"' in text}
     required = set(COG_CONTINUOUS_OPTIONS) | set(COG_CLASSIFIED_OPTIONS)
     if supported != required:
         raise ValueError(f"GDAL COG driver lacks required creation options: {sorted(required - supported)}")

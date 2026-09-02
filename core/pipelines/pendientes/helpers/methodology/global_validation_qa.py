@@ -175,9 +175,7 @@ def aggregate_candidate_metrics(
     morphology: str | None = None,
 ) -> dict[str, Any]:
     selected = [
-        item
-        for item in chip_results.values()
-        if morphology is None or item["chip"]["morphology_class"] == morphology
+        item for item in chip_results.values() if morphology is None or item["chip"]["morphology_class"] == morphology
     ]
     if not selected:
         raise ValueError(f"No results for morphology {morphology!r}")

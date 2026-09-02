@@ -194,7 +194,10 @@ def distribution(values: np.ndarray) -> dict[str, float]:
         "minimum": float(selected.min()),
         "mean": float(selected.mean()),
         "stddev": float(selected.std()),
-        **{f"p{percentile:02d}": float(np.percentile(selected, percentile)) for percentile in (1, 5, 25, 50, 75, 90, 95, 99)},
+        **{
+            f"p{percentile:02d}": float(np.percentile(selected, percentile))
+            for percentile in (1, 5, 25, 50, 75, 90, 95, 99)
+        },
         "maximum": float(selected.max()),
     }
 
@@ -225,7 +228,9 @@ def difference_metrics(horn: np.ndarray, zt: np.ndarray) -> dict[str, Any]:
             "maximum": float(absolute.max()),
         },
         "threshold_percentages": {
-            f"abs_difference_gt_{threshold:g}_degrees": float(np.count_nonzero(absolute > threshold) / absolute.size * 100)
+            f"abs_difference_gt_{threshold:g}_degrees": float(
+                np.count_nonzero(absolute > threshold) / absolute.size * 100
+            )
             for threshold in (0.1, 0.5, 1.0, 2.0)
         },
     }
@@ -299,7 +304,13 @@ def write_comparison_figure(
     difference = np.where(valid_slope, zt - horn, np.nan)
     figure, axes = plt.subplots(1, 4, figsize=(16, 4), constrained_layout=True)
     panels = (
-        (dem_display, "DEM acondicionado", "terrain", float(np.nanpercentile(dem_display, 1)), float(np.nanpercentile(dem_display, 99))),
+        (
+            dem_display,
+            "DEM acondicionado",
+            "terrain",
+            float(np.nanpercentile(dem_display, 1)),
+            float(np.nanpercentile(dem_display, 99)),
+        ),
         (horn_display, "Horn (°)", "viridis", 0.0, slope_max),
         (zt_display, "Zevenbergen–Thorne (°)", "viridis", 0.0, slope_max),
         (difference, "ZT - Horn (°)", "coolwarm", -difference_limit, difference_limit),

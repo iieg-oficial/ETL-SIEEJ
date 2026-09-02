@@ -98,9 +98,7 @@ def seam_metrics(
             "n_pixels_different": int(np.count_nonzero(values != 0)),
         }
     output["seam_free"] = all(
-        region["n_pixels_different"] == 0
-        for name, region in output["regions"].items()
-        if name != "interior"
+        region["n_pixels_different"] == 0 for name, region in output["regions"].items() if name != "interior"
     )
     return output
 

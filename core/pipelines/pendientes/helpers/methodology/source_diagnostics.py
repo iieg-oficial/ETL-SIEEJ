@@ -127,8 +127,7 @@ def native_neighbor_differences(values: np.ndarray, nodata: float | None) -> dic
             "percentage_abs_dz_le_1_m": float(np.count_nonzero(absolute <= 1) / absolute.size * 100),
             "percentage_abs_dz_le_2_m": float(np.count_nonzero(absolute <= 2) / absolute.size * 100),
             "percentiles_m": {
-                f"p{percentile:02d}": float(np.percentile(absolute, percentile))
-                for percentile in (50, 90, 95, 99)
+                f"p{percentile:02d}": float(np.percentile(absolute, percentile)) for percentile in (50, 90, 95, 99)
             },
         }
     return result
@@ -155,10 +154,7 @@ def spatial_difference_metrics(
         "mae": float(absolute.mean()),
         "rmse": float(np.sqrt(np.mean(np.square(differences)))),
         "absolute_difference": {
-            **{
-                f"p{percentile:02d}": float(np.percentile(absolute, percentile))
-                for percentile in (50, 90, 95, 99)
-            },
+            **{f"p{percentile:02d}": float(np.percentile(absolute, percentile)) for percentile in (50, 90, 95, 99)},
             "maximum": float(absolute.max()),
         },
         "difference_histogram": {"bin_edges": edges.tolist(), "counts": counts.tolist()},

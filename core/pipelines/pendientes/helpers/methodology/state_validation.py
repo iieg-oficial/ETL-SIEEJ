@@ -43,7 +43,11 @@ from core.pipelines.pendientes.helpers.experimental_artifacts import (
     write_comparison_png,
     write_float_raster,
 )
-from core.pipelines.pendientes.helpers.methodology.experimental_chips import ChipWindow, manual_chip, scan_chip_candidates
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import (
+    ChipWindow,
+    manual_chip,
+    scan_chip_candidates,
+)
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
 from core.pipelines.pendientes.helpers.experimental_whitebox import (
     inspect_whitebox_backend,
@@ -117,9 +121,7 @@ class PendientesStateValidation:
         banding_classification = assign_full_resolution_banding_classes(results)
         aggregate = aggregate_state_validation(results)
         visual_chip_ids = select_visual_cases(results, STATE_VALIDATION_VISUAL_CHIP_COUNT)
-        visualizations = {
-            chip_id: self._write_visualizations(results[chip_id]) for chip_id in visual_chip_ids
-        }
+        visualizations = {chip_id: self._write_visualizations(results[chip_id]) for chip_id in visual_chip_ids}
         profile_chip_ids = self._profile_chip_ids(results)
         profiles = {chip_id: self._write_profiles(results[chip_id]) for chip_id in profile_chip_ids}
         inventory["full_resolution_results"] = {
@@ -266,9 +268,7 @@ class PendientesStateValidation:
                     "morphology_class": item["morphology_class"],
                     "preliminary_elevation_m": item["preliminary_elevation_m"],
                     "preliminary_slope_median_degrees": item["slope_median_degrees"],
-                    "preliminary_roughness_median_abs_laplacian_m": item[
-                        "roughness_median_abs_laplacian_m"
-                    ],
+                    "preliminary_roughness_median_abs_laplacian_m": item["roughness_median_abs_laplacian_m"],
                     "preliminary_local_relief_m": item["preliminary_local_relief_m"],
                     "preliminary_raw_banding": item["preliminary_raw_banding"],
                     "preliminary_raw_banding_class": item["raw_banding_class"],

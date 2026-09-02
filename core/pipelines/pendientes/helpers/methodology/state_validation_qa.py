@@ -86,9 +86,7 @@ def state_chip_qa(
 
 
 def assign_full_resolution_banding_classes(results: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    correlations = np.array(
-        [result["qa"]["raw_dominant_repetition"]["autocorrelation"] for result in results.values()]
-    )
+    correlations = np.array([result["qa"]["raw_dominant_repetition"]["autocorrelation"] for result in results.values()])
     lower = float(np.percentile(correlations, 100 / 3))
     upper = float(np.percentile(correlations, 200 / 3))
     for result in results.values():
@@ -138,9 +136,7 @@ def aggregate_state_validation(results: dict[str, dict[str, Any]]) -> dict[str, 
         "chip_count": len(all_results),
         "mae_z_m": _numeric_summary(values((*elevation_path, "mae_m"), all_results)),
         "rmse_z_m": _numeric_summary(values((*elevation_path, "rmse_m"), all_results)),
-        "maximum_absolute_z_m": max(
-            values((*elevation_path, "absolute_difference_m", "maximum"), all_results)
-        ),
+        "maximum_absolute_z_m": max(values((*elevation_path, "absolute_difference_m", "maximum"), all_results)),
         "percentage_abs_change_gt_0.25_m": _numeric_summary(
             values((*elevation_path, "threshold_percentages", "abs_change_gt_0.25_m"), all_results)
         ),
@@ -242,7 +238,9 @@ def select_visual_cases(results: dict[str, dict[str, Any]], maximum: int) -> lis
     ):
         add(ranked[0][0])
     for morphology in ("plano", "lomerio", "montana", "valle", "transicion_valle_sierra"):
-        match = next((chip_id for chip_id, item in sorted(items) if item["chip"]["morphology_class"] == morphology), None)
+        match = next(
+            (chip_id for chip_id, item in sorted(items) if item["chip"]["morphology_class"] == morphology), None
+        )
         if match is not None:
             add(match)
     for banding_class in STATE_VALIDATION_BANDING_CLASSES:

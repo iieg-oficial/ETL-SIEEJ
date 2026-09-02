@@ -241,11 +241,7 @@ def spatial_persistence(selected: np.ndarray, dominant_normal_degrees: float | N
 def _local_peak_indices(values: np.ndarray, threshold: float) -> np.ndarray:
     if values.size < 3 or threshold <= np.finfo(float).eps:
         return np.array([], dtype=np.int64)
-    return np.flatnonzero(
-        (values[1:-1] >= threshold)
-        & (values[1:-1] >= values[:-2])
-        & (values[1:-1] > values[2:])
-    ) + 1
+    return np.flatnonzero((values[1:-1] >= threshold) & (values[1:-1] >= values[:-2]) & (values[1:-1] > values[2:])) + 1
 
 
 def profile_step_repetition(
@@ -316,9 +312,7 @@ def detector_v2_metrics(elevation: np.ndarray, nodata: float | None) -> dict[str
     current, magnitude, valid = directed_banding_metrics(elevation, nodata)
     _, _, _, selected, threshold = _selected_magnitude(elevation, nodata)
     selected_magnitude = np.where(selected, magnitude, 0.0)
-    curves = {
-        axis: autocorrelation_curve(_axis_projection(selected_magnitude, axis)) for axis in ("x", "y")
-    }
+    curves = {axis: autocorrelation_curve(_axis_projection(selected_magnitude, axis)) for axis in ("x", "y")}
     prominences = {axis: peak_prominence(curve) for axis, curve in curves.items()}
     dominant_axis = max(
         prominences,
