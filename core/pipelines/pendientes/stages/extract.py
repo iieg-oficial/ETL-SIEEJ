@@ -33,6 +33,7 @@ from core.pipelines.pendientes.constants import (
     SOURCE_VERTICAL_UNIT,
     MUNICIPAL_BOUNDARY_FILENAME,
     MUNICIPAL_BOUNDARY_SOURCES,
+    MUNICIPAL_SNAPSHOT_MANIFEST_FILENAME,
 )
 from core.pipelines.pendientes.helpers.download import extract_tiff_member, identify_tiff_member, prepare_source_zip
 from core.pipelines.pendientes.helpers.municipal import (
@@ -54,6 +55,7 @@ class PendientesExtract(Stage):
         self.source_dir = self.work_dir / "source"
         self.manifest_path = self.work_dir / EXTRACT_MANIFEST_FILENAME
         self.municipal_boundaries_path = self.work_dir / MUNICIPAL_BOUNDARY_FILENAME
+        self.municipal_snapshot_manifest_path = self.work_dir / MUNICIPAL_SNAPSHOT_MANIFEST_FILENAME
 
     def source(self, input_data: Any | None = None) -> dict[str, object]:
         if settings.SOURCE_TIFF_PATH is not None:
@@ -105,20 +107,39 @@ class PendientesExtract(Stage):
             pixel_size_tolerance=SOURCE_RESOLUTION_ABS_TOLERANCE,
         )
         previous_manifest = read_json(self.manifest_path) or {}
+        previous_snapshot = previous_manifest.get("municipal_boundaries", {})
+        previous_snapshot_manifest_path = previous_snapshot.get("manifest_path")
+        if previous_snapshot_manifest_path:
+            snapshot_path = Path(str(previous_snapshot_manifest_path))
+            if not snapshot_path.is_file() or sha256_file(snapshot_path) != previous_snapshot.get("manifest_sha256"):
+                raise ValueError("Existing municipal snapshot manifest is missing or its checksum changed")
         if settings.CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH is not None:
             boundary_path = settings.CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH.expanduser().resolve()
             if not boundary_path.is_file():
                 raise FileNotFoundError(f"Municipal boundary snapshot does not exist: {boundary_path}")
             boundary_sources = {
-                source_key: validate_municipal_boundary_frame(
-                    gpd.read_file(boundary_path, layer=source["layer"])
-                )
+                source_key: {
+                    **validate_municipal_boundary_frame(
+                        gpd.read_file(boundary_path, layer=str(source["layer"]))
+                    ),
+                    "boundary_source": source_key,
+                    "geometry_column": source["geometry_column"],
+                    "layer": source["layer"],
+                    "source_version": source["version"],
+                }
                 for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
             }
             municipal_boundaries = {
+                "status": "municipal_snapshot_validated",
                 "path": str(boundary_path),
                 "sha256": sha256_file(boundary_path),
                 "sources": boundary_sources,
+                "source_count": len(boundary_sources),
+                "municipality_source_combinations": sum(
+                    source["municipality_count"] for source in boundary_sources.values()
+                ),
+                "municipality_identity": "municipality_id = cve_mun within cve_ent = 14",
+                "remote_cvegeo_id_is_not_municipality_id": True,
                 "acquisition_mode": "configured_frozen_snapshot",
                 "reused": True,
             }
@@ -126,7 +147,7 @@ class PendientesExtract(Stage):
             municipal_boundaries = prepare_municipal_boundaries(
                 settings.cvegeo_database_url,
                 self.municipal_boundaries_path,
-                previous_manifest.get("municipal_boundaries"),
+                previous_snapshot,
                 settings.FORCE_DOWNLOAD,
             )
         return {
@@ -191,5 +212,16 @@ class PendientesExtract(Stage):
         }
 
     def finalization(self, input_data: dict[str, object]) -> dict[str, object]:
+        municipal_boundaries = input_data["municipal_boundaries"]
+        if not isinstance(municipal_boundaries, dict):
+            raise TypeError("Extract municipal snapshot manifest must be a mapping")
+        snapshot_manifest = {
+            **municipal_boundaries,
+            "pipeline": PIPELINE_NAME,
+            "pipeline_version": PIPELINE_VERSION,
+        }
+        write_json_atomic(snapshot_manifest, self.municipal_snapshot_manifest_path)
+        municipal_boundaries["manifest_path"] = str(self.municipal_snapshot_manifest_path)
+        municipal_boundaries["manifest_sha256"] = sha256_file(self.municipal_snapshot_manifest_path)
         write_json_atomic(input_data, self.manifest_path)
         return input_data

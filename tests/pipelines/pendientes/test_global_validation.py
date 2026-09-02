@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pytest
 
-from core.pipelines.pendientes.helpers.global_validation_qa import (
+from core.pipelines.pendientes.helpers.methodology.global_validation_qa import (
     aggregate_candidate_metrics,
     candidate_outliers,
     comparative_candidate_qa,

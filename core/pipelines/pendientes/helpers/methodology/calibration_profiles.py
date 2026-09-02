@@ -11,7 +11,7 @@ import rasterio
 from affine import Affine
 
 from core.pipelines.pendientes.constants import CALIBRATION_PROFILE_OFFSETS_PIXELS
-from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
+from core.pipelines.pendientes.helpers.methodology.directed_banding import directed_banding_metrics
 
 
 @dataclass(frozen=True)

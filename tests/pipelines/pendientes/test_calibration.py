@@ -11,14 +11,14 @@ from core.pipelines.pendientes.constants import (
     CALIBRATION_CANDIDATE_ORDER,
     CALIBRATION_FEATURE_PRESERVING_CONFIGS,
 )
-from core.pipelines.pendientes.helpers.calibration_profiles import (
+from core.pipelines.pendientes.helpers.methodology.calibration_profiles import (
     profile_lines_from_raw,
     profile_records,
     write_profile_csv,
     write_profile_png,
 )
-from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
-from core.pipelines.pendientes.helpers.experimental_filters import gaussian_smoothing
+from core.pipelines.pendientes.helpers.methodology.directed_banding import directed_banding_metrics
+from core.pipelines.pendientes.helpers.methodology.experimental_filters import gaussian_smoothing
 from core.pipelines.pendientes.helpers.methodology.calibration import PendientesCalibration
 
 

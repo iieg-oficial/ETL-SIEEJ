@@ -36,13 +36,13 @@ from core.pipelines.pendientes.helpers.experimental_artifacts import (
     write_comparison_png,
     write_float_raster,
 )
-from core.pipelines.pendientes.helpers.experimental_chips import (
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import (
     ChipWindow,
     manual_chip,
     scan_chip_candidates,
     select_representative_chips,
 )
-from core.pipelines.pendientes.helpers.experimental_filters import bilateral_smoothing, gaussian_smoothing
+from core.pipelines.pendientes.helpers.methodology.experimental_filters import bilateral_smoothing, gaussian_smoothing
 from core.pipelines.pendientes.helpers.experimental_metrics import (
     absolute_laplacian,
     distribution,

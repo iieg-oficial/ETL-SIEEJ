@@ -15,7 +15,7 @@ from core.pipelines.pendientes.constants import (
     STATEWIDE_CANDIDATE_FP2_CONFIG,
     STATEWIDE_CANDIDATE_SHA256,
 )
-from core.pipelines.pendientes.helpers.statewide_candidate_qa import (
+from core.pipelines.pendientes.helpers.methodology.statewide_candidate_qa import (
     validate_contextual_reference_manifest,
 )
 from core.pipelines.pendientes.helpers.statewide_conditioning import (

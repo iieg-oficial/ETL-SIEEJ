@@ -9,8 +9,8 @@ from core.pipelines.pendientes.constants import (
     CALIBRATION_REPETITION_MAX_LAG_PIXELS,
     CALIBRATION_REPETITION_MIN_LAG_PIXELS,
 )
-from core.pipelines.pendientes.helpers.calibration_profiles import profile_lines_from_raw
-from core.pipelines.pendientes.helpers.directed_banding import (
+from core.pipelines.pendientes.helpers.methodology.calibration_profiles import profile_lines_from_raw
+from core.pipelines.pendientes.helpers.methodology.directed_banding import (
     directed_banding_metrics,
     second_difference_fields,
 )

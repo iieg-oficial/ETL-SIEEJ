@@ -24,8 +24,8 @@ from core.pipelines.pendientes.constants import (
     TARGET_RESOLUTION_M,
     TARGET_SRID,
 )
-from core.pipelines.pendientes.helpers.banding_detector_v2 import detector_v2_metrics
-from core.pipelines.pendientes.helpers.banding_review import (
+from core.pipelines.pendientes.helpers.methodology.banding_detector_v2 import detector_v2_metrics
+from core.pipelines.pendientes.helpers.methodology.banding_review import (
     labeled_metric_distributions,
     percentile_rank,
     read_review_csv,
@@ -34,7 +34,7 @@ from core.pipelines.pendientes.helpers.banding_review import (
     write_contact_sheet,
     write_review_csv,
 )
-from core.pipelines.pendientes.helpers.directed_banding import second_difference_fields
+from core.pipelines.pendientes.helpers.methodology.directed_banding import second_difference_fields
 from core.pipelines.pendientes.helpers.experimental_artifacts import hillshade
 from core.pipelines.pendientes.helpers.slope import experimental_horn_slope
 from core.utils.files import read_json, sha256_file, write_json_atomic

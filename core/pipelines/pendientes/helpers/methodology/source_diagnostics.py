@@ -15,7 +15,7 @@ from rasterio.warp import reproject, transform_bounds
 from rasterio.windows import Window, bounds as window_bounds, from_bounds
 
 from core.pipelines.pendientes.constants import FINAL_NODATA, SOURCE_EXPECTED_NODATA
-from core.pipelines.pendientes.helpers.directed_banding import second_difference_fields
+from core.pipelines.pendientes.helpers.methodology.directed_banding import second_difference_fields
 from core.pipelines.pendientes.helpers.experimental_artifacts import hillshade
 from core.pipelines.pendientes.helpers.slope import experimental_horn_slope
 

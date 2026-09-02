@@ -43,7 +43,7 @@ class PendientesLoad(Stage):
 
     def source(self, input_data: Any | None = None) -> dict[str, Any]:
         manifest = read_json(self.transform_manifest_path)
-        if manifest is None or manifest.get("status") != "transform_products_validated":
+        if manifest is None or manifest.get("status") != "transform_complete":
             raise ValueError("Load requires a completed, validated final Transform manifest")
         if len(manifest.get("rasters", {})) != 5:
             raise ValueError("Load requires exactly three continuous and two classified COG products")
@@ -76,8 +76,12 @@ class PendientesLoad(Stage):
         if not table_path.is_file() or sha256_file(table_path) != table["sha256"]:
             raise ValueError("Municipal statistics changed before Load")
         frame = pd.read_parquet(table_path)
-        if len(frame) != 250:
-            raise ValueError("Load requires 250 municipal statistics rows (125 IIEG + 125 INEGI)")
+        sources = manifest["municipal_boundaries"]["sources"]
+        expected_rows = sum(int(source["municipality_count"]) for source in sources.values())
+        if len(frame) != expected_rows:
+            raise ValueError("Load municipal statistics row count differs from the validated snapshot")
+        if frame.duplicated(["municipality_id", "fuente_limite_municipal_id"]).any():
+            raise ValueError("Load municipal statistics contain duplicated source-municipality keys")
         return {"manifest": manifest, "statistics": frame}
 
     def _materialize_rasters(self, rasters: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
@@ -160,16 +164,38 @@ class PendientesLoad(Stage):
 
     def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
         rasters = self._materialize_rasters(input_data["manifest"]["rasters"])
-        database = self._load_statistics(input_data["statistics"])
-        return {
-            "status": "local_release_materialized",
+        base_manifest = {
             "created_at": datetime.now().astimezone().isoformat(),
             "transform_manifest_path": str(self.transform_manifest_path),
             "transform_manifest_sha256": sha256_file(self.transform_manifest_path),
-            "rasters": rasters,
-            "database": database,
+            "raster_release_status": "validated_and_materialized",
+            "municipal_statistics_status": "validated_for_load",
+            "raster_products": rasters,
+            "tabular_products": {
+                "municipal_statistics": input_data["manifest"]["municipal_statistics"],
+                "indicators": input_data["manifest"]["indicators"],
+            },
+            "municipal_snapshot": input_data["manifest"]["municipal_boundaries"],
+            "lineage": input_data["manifest"]["lineage"],
             "raster_database_load": False,
             "cog_conversion_performed_by_load": False,
+        }
+        try:
+            database = self._load_statistics(input_data["statistics"])
+        except Exception as error:
+            failed = {
+                **base_manifest,
+                "status": "load_incomplete",
+                "database_load_status": "failed",
+                "database_load": {"status": "failed", "error_type": type(error).__name__},
+            }
+            write_json_atomic(failed, self.release_manifest_path)
+            raise
+        return {
+            **base_manifest,
+            "status": "load_complete",
+            "database_load_status": "loaded",
+            "database_load": {**database, "status": "loaded", "idempotent_upsert": True},
         }
 
     def finalization(self, input_data: dict[str, Any]) -> dict[str, Any]:

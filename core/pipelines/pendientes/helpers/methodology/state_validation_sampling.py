@@ -16,8 +16,8 @@ from core.pipelines.pendientes.constants import (
     STATE_VALIDATION_SECTOR_COLUMNS,
     STATE_VALIDATION_SECTOR_ROWS,
 )
-from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
-from core.pipelines.pendientes.helpers.experimental_chips import ChipWindow
+from core.pipelines.pendientes.helpers.methodology.directed_banding import directed_banding_metrics
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import ChipWindow
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
 
 

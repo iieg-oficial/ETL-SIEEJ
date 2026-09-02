@@ -32,7 +32,7 @@ from core.pipelines.pendientes.constants import (
     TARGET_RESOLUTION_M,
     TARGET_SRID,
 )
-from core.pipelines.pendientes.helpers.calibration_profiles import (
+from core.pipelines.pendientes.helpers.methodology.calibration_profiles import (
     profile_lines_from_raw,
     profile_records,
     write_profile_csv,
@@ -43,7 +43,7 @@ from core.pipelines.pendientes.helpers.experimental_whitebox import (
     inspect_whitebox_backend,
     run_feature_preserving_smoothing,
 )
-from core.pipelines.pendientes.helpers.global_validation_qa import (
+from core.pipelines.pendientes.helpers.methodology.global_validation_qa import (
     aggregate_candidate_metrics,
     candidate_outliers,
     comparative_candidate_qa,

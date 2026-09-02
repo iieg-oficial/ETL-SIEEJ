@@ -29,20 +29,20 @@ from core.pipelines.pendientes.constants import (
     TARGET_RESOLUTION_M,
     TARGET_SRID,
 )
-from core.pipelines.pendientes.helpers.calibration_profiles import (
+from core.pipelines.pendientes.helpers.methodology.calibration_profiles import (
     profile_lines_from_raw,
     profile_records,
     write_profile_csv,
     write_profile_png,
 )
-from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
+from core.pipelines.pendientes.helpers.methodology.directed_banding import directed_banding_metrics
 from core.pipelines.pendientes.helpers.experimental_artifacts import (
     hillshade,
     write_comparison_png,
     write_float_raster,
 )
-from core.pipelines.pendientes.helpers.experimental_chips import ChipWindow, manual_chip
-from core.pipelines.pendientes.helpers.experimental_filters import bilateral_smoothing
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import ChipWindow, manual_chip
+from core.pipelines.pendientes.helpers.methodology.experimental_filters import bilateral_smoothing
 from core.pipelines.pendientes.helpers.experimental_metrics import (
     experimental_metrics,
     local_neighbor_magnitude,

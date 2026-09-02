@@ -32,7 +32,7 @@ from core.pipelines.pendientes.constants import (
     TARGET_SRID,
 )
 from core.pipelines.pendientes.helpers.experimental_artifacts import write_float_raster
-from core.pipelines.pendientes.helpers.source_diagnostics import (
+from core.pipelines.pendientes.helpers.methodology.source_diagnostics import (
     elevation_distribution,
     equivalent_native_window,
     metric_derivatives,

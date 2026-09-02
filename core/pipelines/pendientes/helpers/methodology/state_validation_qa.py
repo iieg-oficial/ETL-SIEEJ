@@ -10,7 +10,7 @@ from core.pipelines.pendientes.constants import (
     STATE_VALIDATION_ELEVATION_THRESHOLDS_M,
     TARGET_RESOLUTION_M,
 )
-from core.pipelines.pendientes.helpers.directed_banding import directed_banding_metrics
+from core.pipelines.pendientes.helpers.methodology.directed_banding import directed_banding_metrics
 from core.pipelines.pendientes.helpers.experimental_metrics import (
     absolute_laplacian,
     distribution,

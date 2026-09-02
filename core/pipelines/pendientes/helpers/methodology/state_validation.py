@@ -32,7 +32,7 @@ from core.pipelines.pendientes.constants import (
     TARGET_RESOLUTION_M,
     TARGET_SRID,
 )
-from core.pipelines.pendientes.helpers.calibration_profiles import (
+from core.pipelines.pendientes.helpers.methodology.calibration_profiles import (
     profile_lines_from_raw,
     profile_records,
     write_profile_csv,
@@ -43,20 +43,20 @@ from core.pipelines.pendientes.helpers.experimental_artifacts import (
     write_comparison_png,
     write_float_raster,
 )
-from core.pipelines.pendientes.helpers.experimental_chips import ChipWindow, manual_chip, scan_chip_candidates
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import ChipWindow, manual_chip, scan_chip_candidates
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
 from core.pipelines.pendientes.helpers.experimental_whitebox import (
     inspect_whitebox_backend,
     run_feature_preserving_smoothing,
 )
 from core.pipelines.pendientes.helpers.slope import experimental_horn_slope
-from core.pipelines.pendientes.helpers.state_validation_qa import (
+from core.pipelines.pendientes.helpers.methodology.state_validation_qa import (
     aggregate_state_validation,
     assign_full_resolution_banding_classes,
     select_visual_cases,
     state_chip_qa,
 )
-from core.pipelines.pendientes.helpers.state_validation_sampling import (
+from core.pipelines.pendientes.helpers.methodology.state_validation_sampling import (
     chip_window_from_inventory,
     classify_candidate_pool,
     enrich_candidate_pool,

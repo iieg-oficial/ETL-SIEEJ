@@ -14,7 +14,7 @@ from affine import Affine
 from rasterio.windows import Window
 
 from core.pipelines.pendientes.constants import FINAL_NODATA, SLOPE_QA_CLASSES_DEGREES
-from core.pipelines.pendientes.helpers.directed_banding import second_difference_fields
+from core.pipelines.pendientes.helpers.methodology.directed_banding import second_difference_fields
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
 from core.utils.files import sha256_file
 

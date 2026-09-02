@@ -21,7 +21,7 @@ from core.pipelines.pendientes.helpers.slope_products import (
     validate_slope_family,
     verify_phase7a_chips,
 )
-from core.pipelines.pendientes.helpers.slope_selection import planar_surface, write_single_band_raster
+from core.pipelines.pendientes.helpers.methodology.slope_selection import planar_surface, write_single_band_raster
 from core.pipelines.pendientes.helpers.methodology.slope_production import PendientesSlopeProduction
 from core.utils.files import sha256_file
 

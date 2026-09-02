@@ -123,5 +123,7 @@ class EstadisticasPendienteMunicipales(PendientesBase):
     slope_percent_max: Mapped[float] = mapped_column(Float, nullable=False)
     valid_pixel_count: Mapped[int] = mapped_column(Integer, nullable=False)
     valid_area_ha: Mapped[float] = mapped_column(Float, nullable=False)
+    municipality_vector_area_ha: Mapped[float] = mapped_column(Float, nullable=False)
+    rasterized_area_difference_ha: Mapped[float] = mapped_column(Float, nullable=False)
     coverage_percent: Mapped[float] = mapped_column(Float, nullable=False)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)

@@ -35,7 +35,7 @@ from core.pipelines.pendientes.helpers.multiscale_slope import (
     wood_evans_slope,
 )
 from core.pipelines.pendientes.helpers.slope import experimental_horn_slope
-from core.pipelines.pendientes.helpers.slope_selection import (
+from core.pipelines.pendientes.helpers.methodology.slope_selection import (
     inspect_gdaldem_backend,
     planar_surface,
     run_gdaldem_slope,

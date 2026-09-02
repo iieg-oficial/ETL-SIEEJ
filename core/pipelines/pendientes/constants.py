@@ -1,7 +1,7 @@
 from typing import Final
 
 PIPELINE_NAME: Final[str] = "pendientes"
-PIPELINE_VERSION: Final[str] = "0.15.0"
+PIPELINE_VERSION: Final[str] = "0.16.0"
 SOURCE_NAME: Final[str] = "Continuo de Elevaciones Mexicano 4.0"
 SOURCE_PRODUCER: Final[str] = "INEGI"
 SOURCE_EDITION: Final[int] = 2025
@@ -29,7 +29,6 @@ SOURCE_LINEAGE_REFERENCES: Final[tuple[str, ...]] = (
 TARGET_SRID: Final[int] = 6368
 TARGET_RESOLUTION_M: Final[float] = 15.0
 AOI_BUFFER_M: Final[float] = 10_000.0
-JALISCO_STATE_ID: Final[int] = 14
 CVEGEO_DATABASE_NAME: Final[str] = "cvegeo"
 CVEGEO_STATE_BOUNDARY_TABLE: Final[str] = "public.cvegeo_state_boundary"
 CVEGEO_MUNICIPALITY_TABLE: Final[str] = "public.cvegeo_municipalities"
@@ -38,8 +37,6 @@ DEFAULT_BOUNDARY_GEOMETRY_COLUMN: Final[str] = "geom_iieg"
 
 SOURCE_ZIP_FILENAME: Final[str] = "794551151600_t.zip"
 EXTRACT_MANIFEST_FILENAME: Final[str] = "manifest.json"
-TRANSFORM_MANIFEST_FILENAME: Final[str] = "transform_manifest.json"
-LOAD_MANIFEST_FILENAME: Final[str] = "load_manifest.json"
 ANALYTIC_DEM_FILENAME: Final[str] = "cem_reproyectado_baseline.tif"
 AOI_FILENAME: Final[str] = "aoi_procesamiento.gpkg"
 AOI_TERRITORIAL_LAYER: Final[str] = "jalisco"
@@ -173,7 +170,6 @@ STATEWIDE_CANDIDATE_MANIFEST_FILENAME: Final[str] = "statewide_candidate_manifes
 STATEWIDE_CANDIDATE_FILENAME: Final[str] = "modelo_elevacion_acondicionado_contexto_jalisco_15m.tif"
 STATEWIDE_CANDIDATE_SHA256: Final[str] = "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
 STATEWIDE_CANDIDATE_TILE_SIZE_PIXELS: Final[int] = 2048
-STATEWIDE_CANDIDATE_HALO_CANDIDATES_PIXELS: Final[tuple[int, ...]] = (5, 6, 8, 12, 16, 24, 32)
 STATEWIDE_CANDIDATE_HALO_TEST_CHIP_IDS: Final[tuple[str, ...]] = (
     "problema_manual",
     "sv_06_N02_E05",
@@ -228,13 +224,8 @@ SLOPE_PRODUCTION_PERCENT_FILENAME: Final[str] = "pendiente_porcentaje_jalisco_15
 SLOPE_PRODUCTION_PHASE7A_SHA256: Final[str] = (
     "0cadc4d50a23c59e6e1e00f10e76ff9135de06e04340eeeb9ce2a21ee26cba6d"
 )
-SLOPE_PRODUCTION_STATUSES: Final[tuple[str, ...]] = (
-    "slope_production_failed",
-    "slope_family_validated_not_published",
-)
 VALIDATED_DEM_SHA256: Final[str] = "bd0bcf1236bd90297cb66f453e3655979294a0e49f5ba802f38aa987dfdbcc03"
 VALIDATED_DEGREES_SHA256: Final[str] = "acd6f01e836d94295fc87da3d88747b85a8899821a53fc56abfb0f2bc38b0a3a"
-VALIDATED_PERCENT_SHA256: Final[str] = "32ba27eef38ca0332076f256f825618ba9f8b49f513081fed525c3b4f24d7c15"
 SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
     (0.0, 2.0),
     (2.0, 5.0),
@@ -244,8 +235,6 @@ SLOPE_QA_CLASSES_DEGREES: Final[tuple[tuple[float, float | None], ...]] = (
     (30.0, 45.0),
     (45.0, None),
 )
-ADMITTED_SLOPE_ALGORITHMS: Final[tuple[str, ...]] = ("Horn", "ZevenbergenThorne")
-INITIAL_SLOPE_CANDIDATE: Final[str] = "Horn"
 SUPPORTED_SOURCE_DTYPES: Final[tuple[str, ...]] = (
     "Byte",
     "Int16",
@@ -257,27 +246,6 @@ SUPPORTED_SOURCE_DTYPES: Final[tuple[str, ...]] = (
 )
 
 CONDITIONED_DEM_PRODUCT: Final[str] = "modelo_elevacion_acondicionado"
-CONDITIONED_DEM_DISPLAY_NAME: Final[str] = "Modelo de elevación acondicionado de Jalisco"
-PRODUCT_CONTRACT: Final[dict[str, dict[str, str]]] = {
-    CONDITIONED_DEM_PRODUCT: {
-        "display_name": CONDITIONED_DEM_DISPLAY_NAME,
-        "unit": "metre",
-        "dtype": FINAL_DTYPE,
-        "filename": "modelo_elevacion_acondicionado_jalisco_15m.tif",
-    },
-    "pendiente_grados": {
-        "display_name": "Pendiente de Jalisco en grados",
-        "unit": "degree",
-        "dtype": FINAL_DTYPE,
-        "filename": "pendiente_grados_jalisco_15m.tif",
-    },
-    "pendiente_porcentaje": {
-        "display_name": "Pendiente de Jalisco en porcentaje",
-        "unit": "percent",
-        "dtype": FINAL_DTYPE,
-        "filename": "pendiente_porcentaje_jalisco_15m.tif",
-    },
-}
 
 FINAL_DIRECTORY_NAME: Final[str] = "final"
 FINAL_ANALYTICAL_DIRECTORY_NAME: Final[str] = "analiticos"
@@ -361,12 +329,52 @@ CLASSIFICATION_SOURCES: Final[dict[str, str]] = {
     "percent": "FAO/IIASA Global Agro-Ecological Zones (GAEZ).",
 }
 MUNICIPAL_BOUNDARY_FILENAME: Final[str] = "municipal_boundaries.gpkg"
-MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str]]] = {
-    "iieg": {"id": "1", "layer": "municipios_iieg", "geometry_column": "geom_iieg"},
-    "inegi": {"id": "2", "layer": "municipios_inegi", "geometry_column": "geom_inegi"},
+MUNICIPAL_SNAPSHOT_MANIFEST_FILENAME: Final[str] = "municipal_snapshot_manifest.json"
+MUNICIPAL_BOUNDARY_ARTIFACT_VERSION: Final[str] = "cvegeo V1"
+MUNICIPAL_BOUNDARY_SOURCES: Final[dict[str, dict[str, str | int]]] = {
+    "iieg": {
+        "id": 1,
+        "layer": "municipios_iieg",
+        "geometry_column": "geom_iieg",
+        "state_geometry_column": "geom_iieg",
+        "expected_gist_index": "idx_cvegeo_mun_geom_iieg",
+        "version": MUNICIPAL_BOUNDARY_ARTIFACT_VERSION,
+    },
+    "inegi": {
+        "id": 2,
+        "layer": "municipios_inegi",
+        "geometry_column": "geom_inegi",
+        "state_geometry_column": "geom_inegi",
+        "expected_gist_index": "idx_cvegeo_mun_geom_inegi",
+        "version": MUNICIPAL_BOUNDARY_ARTIFACT_VERSION,
+    },
 }
 EXPECTED_MUNICIPALITY_COUNT: Final[int] = 125
 JALISCO_CVE_ENT: Final[int] = 14
+CONTEXT_DEM_PATH: Final[str] = (
+    "data/transform/pendientes/fase_06a_produccion_estatal_candidata/"
+    "modelo_elevacion_acondicionado_contexto_jalisco_15m.tif"
+)
+CONTEXT_DEM_SHA256: Final[str] = "fe3189c49bb2c5bbc8d02fdca40303907c5adeb47ad9af14921a33355324faef"
+CONTEXT_WE5_DEGREES_PATH: Final[str] = (
+    "data/transform/pendientes/fase_08a2_produccion_cartografica_we5/"
+    "pendiente_grados_contexto_jalisco_15m.tif"
+)
+CONTEXT_WE5_DEGREES_SHA256: Final[str] = "c41d4141db9123246789040bfd57f1110f252f529af9b46a54663f68e4df93ed"
+FROZEN_RELEASE_COG_SHA256: Final[dict[str, str]] = {
+    "modelo_elevacion_acondicionado": "7c533785f0d2740d6dcf9db56aebb05a38e80b07b0b555393a1318806a72fd24",
+    "pendiente_grados": "6f211bad0d5bb887770c172a465fe418ba4717e9a1ab007c2eb16518b83615fd",
+    "pendiente_porcentaje": "9b4b9dd18d17884eddfa5a01906b72ad8921c3b497329e7c44c73bd6f12ec81a",
+    "pendiente_grados_clasificada": "2a4867bf1895561087b30aded549782b9114c6165a326d6aa0f7cea3b5eb5921",
+    "pendiente_porcentaje_clasificada": "23f7c5245bb856786f9ea141bbc4563ad3c656e39171e0988f41749db7a533c3",
+}
+MUNICIPAL_INDICATOR_IDS: Final[tuple[str, ...]] = (
+    "elevacion_media_municipal_m",
+    "pendiente_media_municipal_grados",
+    "pendiente_mediana_municipal_grados",
+    "pendiente_p95_municipal_grados",
+    "pendiente_media_municipal_porcentaje",
+)
 LOAD_ANALYTICAL_DIRECTORY_NAME: Final[str] = "analiticos"
 LOAD_GEOPORTAL_DIRECTORY_NAME: Final[str] = "geoportal"
 RELEASE_MANIFEST_FILENAME: Final[str] = "release_manifest.json"
@@ -389,42 +397,3 @@ CARTOGRAPHIC_PRODUCTION_DEGREES_FILENAME: Final[str] = "pendiente_grados_jalisco
 CARTOGRAPHIC_PRODUCTION_PERCENT_FILENAME: Final[str] = "pendiente_porcentaje_jalisco_15m.tif"
 CARTOGRAPHIC_PRODUCTION_DECISION: Final[str] = "WoodEvans5x5_recomendado_para_produccion"
 CARTOGRAPHIC_PRODUCTION_STATUS: Final[str] = "analytical_and_cartographic_slope_family_validated"
-
-CONDITIONING_PROMOTION_QA_FIELDS: Final[tuple[str, ...]] = (
-    "mae",
-    "rmse",
-    "bias",
-    "absolute_difference_percentiles",
-    "maximum_absolute",
-    "modified_pixel_percentage",
-    "ridge_preservation",
-    "gully_preservation",
-    "banding_reduction",
-    "flat_terrain_behavior",
-    "mountain_terrain_behavior",
-)
-
-EXPERIMENT_BASELINE: Final[str] = "raw"
-EXPERIMENT_METRICS: Final[tuple[str, ...]] = (
-    "elevation_difference",
-    "mae",
-    "rmse_against_reprojected_dem",
-    "bias",
-    "p50_absolute",
-    "p90_absolute",
-    "p95_absolute",
-    "p99_absolute",
-    "maximum_absolute",
-    "slope_distribution",
-    "p50",
-    "p90",
-    "p95",
-    "p99",
-    "maximum",
-    "modified_pixel_percentage",
-    "ridge_preservation",
-    "gully_preservation",
-    "banding_reduction",
-    "flat_terrain_behavior",
-    "mountain_terrain_behavior",
-)

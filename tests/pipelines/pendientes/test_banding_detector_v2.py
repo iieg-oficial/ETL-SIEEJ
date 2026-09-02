@@ -5,8 +5,8 @@ import csv
 import numpy as np
 import pytest
 
-from core.pipelines.pendientes.helpers.banding_detector_v2 import detector_v2_metrics
-from core.pipelines.pendientes.helpers.banding_review import (
+from core.pipelines.pendientes.helpers.methodology.banding_detector_v2 import detector_v2_metrics
+from core.pipelines.pendientes.helpers.methodology.banding_review import (
     evaluate_candidate_rule,
     labeled_metric_distributions,
     write_chip_atlas,

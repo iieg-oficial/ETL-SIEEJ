@@ -16,7 +16,7 @@ from core.pipelines.pendientes.helpers.slope import (
     slope_products_from_gradient,
     zevenbergen_thorne_gradient,
 )
-from core.pipelines.pendientes.helpers.slope_selection import (
+from core.pipelines.pendientes.helpers.methodology.slope_selection import (
     contextual_chip_window,
     difference_metrics,
     inspect_gdaldem_backend,

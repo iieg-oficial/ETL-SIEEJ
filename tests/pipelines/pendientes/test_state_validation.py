@@ -4,11 +4,11 @@ import json
 
 import numpy as np
 
-from core.pipelines.pendientes.helpers.state_validation_qa import (
+from core.pipelines.pendientes.helpers.methodology.state_validation_qa import (
     aggregate_state_validation,
     assign_full_resolution_banding_classes,
 )
-from core.pipelines.pendientes.helpers.state_validation_sampling import (
+from core.pipelines.pendientes.helpers.methodology.state_validation_sampling import (
     classify_candidate_pool,
     select_spatially_stratified,
 )

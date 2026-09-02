@@ -5,7 +5,7 @@ import pytest
 from fiona import listlayers
 from shapely.geometry import MultiPolygon, Polygon
 
-from core.pipelines.pendientes.helpers.aoi import (
+from core.pipelines.pendientes.helpers.methodology.aoi import (
     align_bounds,
     build_analytic_aoi,
     processing_grid,

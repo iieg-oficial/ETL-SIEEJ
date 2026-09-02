@@ -4,7 +4,7 @@ from typing import Any
 
 import numpy as np
 
-from core.pipelines.pendientes.helpers.directed_banding import second_difference_fields
+from core.pipelines.pendientes.helpers.methodology.directed_banding import second_difference_fields
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
 from core.pipelines.pendientes.helpers.slope import experimental_horn_slope, horn_gradient
 

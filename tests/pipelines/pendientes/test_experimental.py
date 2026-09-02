@@ -6,8 +6,8 @@ import rasterio
 from affine import Affine
 
 from core.pipelines.pendientes.helpers.experimental_artifacts import write_float_raster
-from core.pipelines.pendientes.helpers.experimental_chips import manual_chip, select_representative_chips
-from core.pipelines.pendientes.helpers.experimental_filters import bilateral_smoothing, gaussian_smoothing
+from core.pipelines.pendientes.helpers.methodology.experimental_chips import manual_chip, select_representative_chips
+from core.pipelines.pendientes.helpers.methodology.experimental_filters import bilateral_smoothing, gaussian_smoothing
 from core.pipelines.pendientes.helpers.experimental_metrics import experimental_metrics
 
 

@@ -27,7 +27,7 @@ from core.pipelines.pendientes.constants import (
     STATEWIDE_CANDIDATE_FILENAME,
     STATEWIDE_CANDIDATE_SHA256,
 )
-from core.pipelines.pendientes.helpers.slope_selection import (
+from core.pipelines.pendientes.helpers.methodology.slope_selection import (
     contextual_chip_window,
     difference_metrics,
     distribution,

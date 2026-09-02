@@ -8,7 +8,7 @@ from rasterio.io import MemoryFile
 from rasterio.warp import transform_bounds
 
 from core.pipelines.pendientes.constants import EXPERIMENT_BASELINE_SHA256
-from core.pipelines.pendientes.helpers.source_diagnostics import (
+from core.pipelines.pendientes.helpers.methodology.source_diagnostics import (
     equivalent_native_window,
     metric_derivatives,
     native_neighbor_differences,

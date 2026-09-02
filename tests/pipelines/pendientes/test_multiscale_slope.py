@@ -18,7 +18,7 @@ from core.pipelines.pendientes.helpers.multiscale_slope import (
     run_grass_wood_evans,
     wood_evans_slope,
 )
-from core.pipelines.pendientes.helpers.slope_selection import planar_surface, write_single_band_raster
+from core.pipelines.pendientes.helpers.methodology.slope_selection import planar_surface, write_single_band_raster
 
 
 def test_quadratic_fit_reproduces_horizontal_and_inclined_planes() -> None:
