@@ -13,6 +13,12 @@ RENAME_HEADER: Final[dict] = {
     "fecha_alta": "fecha_alta",
     "nomb_asent": "nombre_asentamiento",
     "ageb": "ageb",
+    "tipo_vial": "tipo_vial",
+    "nom_vial": "nom_vial",
+    "numero_ext": "numero_ext",
+    "cod_postal": "cod_postal",
+    "telefono": "telefono",
+    "www": "contacto_web",
     "cve_mun": "cve_mun",
     "municipio": "municipio",
     "cve_loc": "localidad_id",
@@ -23,8 +29,10 @@ RENAME_HEADER: Final[dict] = {
 # infers the type, dropping leading zeros.
 DTYPE_OVERRIDES: Final[dict] = {
     "numero_int": str,
+    "numero_ext": str,
     "cod_postal": str,
     "telefono": str,
+    "www": str,
 }
 
 NULL_VALUES: Final[List[str]] = ["", "N/A", "NA", "n/a", "na", "null", "NULL", " "]
@@ -35,6 +43,8 @@ TITLE_COLS: Final[List[str]] = [
     "nombre_asentamiento",
     "municipio",
     "localidad",
+    "tipo_vial",
+    "nom_vial",
 ]
 
 DATE_COLS: Final[List[str]] = ["fecha_alta"]
@@ -53,6 +63,12 @@ RAW_COLS: Final[List[str]] = [
     "fecha_alta",
     "nombre_asentamiento",
     "ageb",
+    "tipo_vial",
+    "nom_vial",
+    "numero_ext",
+    "cod_postal",
+    "telefono",
+    "contacto_web",
     "codigo_actividad",
     "entidad_id",
     "cve_mun",
