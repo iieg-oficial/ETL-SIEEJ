@@ -117,6 +117,8 @@ class DenueLoad(Stage):
                 .astype(str)
                 .replace({"nan": "\\N", "NaT": "\\N", "None": "\\N"})
                 .str.replace("\\", "\\\\", regex=False)
+                # Free-text fields break a QUOTE_NONE tab-delimited COPY.
+                .str.replace(r"[\t\r\n]+", " ", regex=True)
             )
 
         buffer = io.StringIO()
