@@ -120,9 +120,30 @@ opciones:
 - `SOURCE_TIFF_PATH`: CEM nacional ya descargado y con el nombre contractual;
 - `SOURCE_URL`: descarga institucional con reintentos.
 
-`CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH` admite sólo un snapshot previamente congelado desde `cvegeo` con las dos
-capas municipales. Las variables `EXPERIMENT_MANUAL_*` y `WHITEBOX_TOOLS_*` pertenecen a reproducción metodológica,
-no a la ruta ETL ordinaria.
+`CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH` es un override opcional y admite sólo un snapshot previamente congelado
+desde `cvegeo` con las dos capas municipales. Si se omite, Extract consulta `cvegeo` y materializa el snapshot interno
+en `data/extract/pendientes/municipal_boundaries.gpkg`. Las variables `EXPERIMENT_MANUAL_*` y `WHITEBOX_TOOLS_*`
+pertenecen a reproducción metodológica, no a la ruta ETL ordinaria.
+
+### Desarrollo local con `cvegeo`
+
+`cvegeo` es una base institucional compartida por distintos pipelines. Pendientes reutiliza el driver, usuario,
+contraseña, host y puerto de la conexión PostgreSQL configurada y cambia únicamente el nombre de la base a `cvegeo`.
+Durante Extract consulta `public.cvegeo_municipalities` y `public.cvegeo_state_boundary` para congelar los límites;
+Transform trabaja después con ese snapshot local.
+
+El SQL de `migrations/cvegeo/sql/V1__create_cvegeo.sql` se administra con Git LFS. Para preparar la base local con el
+mecanismo del repositorio:
+
+```bash
+git lfs install
+git lfs pull
+cp migrations/cvegeo/.env.example migrations/cvegeo/.env
+# Configurar en migrations/cvegeo/.env las credenciales del PostgreSQL compartido.
+just flyway-config cvegeo
+just create-db cvegeo
+just flyway-migrate cvegeo
+```
 
 ## Ejecución
 

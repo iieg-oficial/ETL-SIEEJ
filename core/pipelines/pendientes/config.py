@@ -22,7 +22,6 @@ class Settings(BaseConfig):
     DB_NAME: str = Field(default="pendientes")
     SOURCE_URL: str | None = Field(default=None)
     SOURCE_TIFF_PATH: Path | None = Field(default=None)
-    CVEGEO_BOUNDARY_SNAPSHOT_PATH: Path | None = Field(default=None)
     CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH: Path | None = Field(default=None)
     SOURCE_ZIP_FILENAME: str = Field(default=SOURCE_ZIP_FILENAME)
     FORCE_DOWNLOAD: bool = Field(default=False)
@@ -60,6 +59,7 @@ class Settings(BaseConfig):
 
     @property
     def cvegeo_database_url(self) -> str:
+        """Select the shared cvegeo database while preserving the common PostgreSQL connection."""
         return make_url(self.database_url).set(database=CVEGEO_DATABASE_NAME).render_as_string(hide_password=False)
 
 

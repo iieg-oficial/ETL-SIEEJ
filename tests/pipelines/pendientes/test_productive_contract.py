@@ -101,11 +101,37 @@ def test_database_identity_and_unique_contract() -> None:
 
 
 def test_cvegeo_connection_reuses_common_config_and_changes_only_database_name() -> None:
-    config = Settings(DB_HOST="db.local", DB_PORT="5433", DB_USER="tester", DB_PASSWORD="not-logged")
+    config = Settings(
+        _env_file=None,
+        DB_HOST="db.local",
+        DB_PORT="5433",
+        DB_USER="tester",
+        DB_PASSWORD="not-logged",
+    )
     source = make_url(config.database_url)
     cvegeo = make_url(config.cvegeo_database_url)
-    assert (cvegeo.host, cvegeo.port, cvegeo.username) == (source.host, source.port, source.username)
+    assert cvegeo.drivername == source.drivername
+    assert cvegeo.username == source.username
+    assert cvegeo.password == source.password
+    assert cvegeo.host == source.host
+    assert cvegeo.port == source.port
     assert cvegeo.database == "cvegeo"
+
+
+def test_municipal_snapshot_path_is_an_optional_override(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.delenv("CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH", raising=False)
+    assert Settings(_env_file=None).CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH is None
+
+    snapshot = tmp_path / "municipal_boundaries.gpkg"
+    configured = Settings(_env_file=None, CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH=snapshot)
+    assert configured.CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH == snapshot
+
+
+def test_env_example_exposes_only_the_supported_optional_snapshot_override() -> None:
+    example = Path("core/pipelines/pendientes/.env.example").read_text(encoding="utf-8")
+    assert "CVEGEO_BOUNDARY_SNAPSHOT_PATH" not in example
+    assert "# CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH=data/extract/pendientes/municipal_boundaries.gpkg" in example
+    assert "\nCVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH=\n" not in example
 
 
 def test_existing_snapshot_is_reused_and_checksum_change_is_rejected(tmp_path: Path) -> None:
