@@ -8,6 +8,7 @@ from core.db import Database
 from core.pipelines.marginacion.attributes import MarginacionTables as T
 from core.pipelines.marginacion.config import settings
 from core.pipelines.marginacion.mappings import GradosMarginacion as GradosMarginacionMap
+from core.pipelines.marginacion.queries import MATERIALIZED_VIEWS
 from core.pipelines.marginacion.schemas import (
     GradosMarginacion,
     Localidades,
@@ -27,6 +28,7 @@ from core.utils.bulk_ops import (
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
 from core.utils.normalize import normalize_col
+from core.utils.views import refresh_materialized_views
 
 
 class MarginacionLoad(Stage):
@@ -155,6 +157,8 @@ class MarginacionLoad(Stage):
                     df_to_records(df_estatal.astype(object).where(df_estatal.notna(), None), estatal_cols),
                     MarginacionesEstatales,
                 )
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception:
             self.db.disconnect()

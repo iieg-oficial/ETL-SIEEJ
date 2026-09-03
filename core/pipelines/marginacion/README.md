@@ -61,6 +61,8 @@ URL_LOCALIDAD=https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Loca
 | `V2__catalogs_marginacion.sql` | Catálogo de grados de marginación y localidades |
 | `V3__tables_marginacion.sql` | Tablas `marginaciones_municipales`, `marginaciones_estatales` y `marginaciones_localidades` |
 | `V4__views_marginacion.sql` | Vistas analíticas |
+| `V5__initialize_materialized_view.sql` | Expone las geometrías municipales en el FDW de `cvegeo` |
+| `V6__materialized_views_marginacion.sql` | Vista materializada `vm_marginacion_geo` para la capa municipal de GeoServer |
 
 ## Variables de entorno
 
