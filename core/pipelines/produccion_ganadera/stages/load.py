@@ -5,6 +5,7 @@ from typing import Any, Optional
 from core.db import Database
 from core.pipelines.produccion_ganadera.attributes import GanaderaTables as T
 from core.pipelines.produccion_ganadera.config import settings
+from core.pipelines.produccion_ganadera.queries import MATERIALIZED_VIEWS
 from core.pipelines.produccion_ganadera.schemas import (
     CatDistritosDesRural,
     CatEspecies,
@@ -16,6 +17,7 @@ from core.utils import df_to_records
 from core.utils.bulk_ops import count_records, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 
 class GanaderaLoad(Stage):
@@ -87,6 +89,8 @@ class GanaderaLoad(Stage):
                     conflict_keys=conflict_keys,
                     chunk_size=settings.CHUNK_SIZE,
                 )
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception:
             self.db.disconnect()
