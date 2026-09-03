@@ -57,6 +57,8 @@ SIAP_URL=https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC
 | `V2__catalogs_agropecuario_siap.sql` | Catálogos de cultivos, ciclos, modalidades, unidades de medida y distritos |
 | `V3__tables_agropecuario_siap.sql` | Tabla principal `stg_agricola` |
 | `V4__views_agropecuario_siap.sql` | Vistas analíticas desnormalizadas |
+| `V5__initialize_materialized_view.sql` | Expone las geometrías municipales en el FDW de `cvegeo` |
+| `V6__materialized_views_agropecuario_siap.sql` | Vista materializada `vm_agricola_geo` para la capa municipal de GeoServer |
 
 ## Variables de entorno
 
