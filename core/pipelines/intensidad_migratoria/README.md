@@ -67,7 +67,9 @@ IIM_URL_ESTATAL_2020=https://repodatos.atdt.gob.mx/api_update/conapo/indice_inte
 | `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
 | `V2__tables_iim.sql` | Tablas `iim_municipal` e `iim_estatal` |
 | `V3__views_iim.sql` | Vistas analíticas |
-| `V4__materialized_views_iim.sql` | Vista materializada `vm_iim_geo` para la capa municipal de GeoServer |
+| `V4__initialize_materialized_view.sql` | Inicializa las columnas geométricas de la tabla foránea municipal |
+| `V5__materialized_views_iim.sql` | Vista materializada `vm_iim_geo` para la capa municipal de GeoServer |
+| `V6__update_vm_iim_geo_columns.sql` | Actualiza fecha y claves de `vm_iim_geo` |
 
 ## Variables de entorno
 
