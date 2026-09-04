@@ -6,6 +6,7 @@ from typing import Any, Optional
 from core.db import Database
 from core.pipelines.agropecuario_siap.attributes import AgropecuarioTables as T
 from core.pipelines.agropecuario_siap.config import settings
+from core.pipelines.agropecuario_siap.queries import MATERIALIZED_VIEWS
 from core.pipelines.agropecuario_siap.schemas import (
     CatCiclos,
     CatCtrsApoyoDesRural,
@@ -20,6 +21,7 @@ from core.utils import df_to_records
 from core.utils.bulk_ops import count_records, insert_records, upsert_records
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 
 class AgropecuarioLoad(Stage):
@@ -127,6 +129,8 @@ class AgropecuarioLoad(Stage):
                     conflict_keys=conflict_keys,
                     chunk_size=settings.CHUNK_SIZE,
                 )
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception:
             self.db.disconnect()

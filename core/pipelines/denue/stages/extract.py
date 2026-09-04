@@ -104,6 +104,9 @@ class DenueExtract(Stage):
                 f"[action] Downloading entidad {item['entidad_id']}, periodo: {item['fecha_actualizacion']}"
             )
             df = download_denue_csv(item["url"])
+            missing = [c for c in columns_to_keep if c not in df.columns]
+            if missing:
+                self.logger.warning(f"[action] Periodo {periodo_str} missing source columns: {missing}")
             df = df.reindex(columns=columns_to_keep)
             df = df.rename(columns=RENAME_HEADER)
             df["fecha_actualizacion"] = item["fecha_actualizacion"]

@@ -6,15 +6,10 @@ from zipfile import ZipFile
 from requests.exceptions import ChunkedEncodingError, ConnectionError, HTTPError, Timeout
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
+from core.pipelines.denue.constants import DTYPE_OVERRIDES
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger(__name__)
-
-DTYPE_OVERRIDES = {
-    "numero_int": str,
-    "codigo_postal": str,
-    "telefono": str,
-}
 
 
 def _download_zip(url: str) -> BytesIO:

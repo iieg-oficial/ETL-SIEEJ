@@ -190,6 +190,16 @@ def find_base(pipeline: str) -> type[DeclarativeBase]:
     raise LookupError(f"No se encontró el DeclarativeBase de {pipeline}")
 
 
+def fact_link(facts) -> str | None:
+    """Columna de la segunda tabla de hechos que referencia a la primera, si la hay."""
+    target, source = facts[0], facts[1]
+    for column in source.columns:
+        for fk in column.foreign_keys:
+            if fk.column.table.name == target.name:
+                return column.name
+    return None
+
+
 def render(pipeline: str) -> Path:
     base = find_base(pipeline)
     tables = {t.name: t for t in base.metadata.sorted_tables}
@@ -207,18 +217,21 @@ def render(pipeline: str) -> Path:
         y += h + 90
 
     # La relación 1:1 entre las dos tablas de hechos, que no es un catálogo.
-    top, bottom = (geometries[t.name] for t in facts[:2])
-    y_from = top["y"] + HEADER_H + ROW_H * top["rows"]["id"] + 10
-    y_to = bottom["y"] + HEADER_H + ROW_H * bottom["rows"]["defuncion_id"] + 10
-    lane = top["x"] - 46
-    body.append(
-        f'<path d="M{top["x"]} {y_from} H{lane} V{y_to} H{bottom["x"]}" fill="none" '
-        f'stroke="{LINE}" stroke-width="1.6" stroke-dasharray="5 3" stroke-linejoin="round"/>'
-        f'<polyline points="{bottom["x"] - 7},{y_to - 4} {bottom["x"]},{y_to} {bottom["x"] - 7},{y_to + 4}" '
-        f'fill="none" stroke="{LINE}" stroke-width="1.6"/>'
-        f'<text x="{lane + 6}" y="{(y_from + y_to) / 2}" font-family="{FONT}" font-size="10" '
-        f'fill="{MUTED}">1:1</text>'
-    )
+    # Solo existe si la segunda referencia por FK a la primera.
+    link = fact_link(facts) if len(facts) >= 2 else None
+    if link:
+        top, bottom = geometries[facts[0].name], geometries[facts[1].name]
+        y_from = top["y"] + HEADER_H + ROW_H * top["rows"]["id"] + 10
+        y_to = bottom["y"] + HEADER_H + ROW_H * bottom["rows"][link] + 10
+        lane = top["x"] - 46
+        body.append(
+            f'<path d="M{top["x"]} {y_from} H{lane} V{y_to} H{bottom["x"]}" fill="none" '
+            f'stroke="{LINE}" stroke-width="1.6" stroke-dasharray="5 3" stroke-linejoin="round"/>'
+            f'<polyline points="{bottom["x"] - 7},{y_to - 4} {bottom["x"]},{y_to} {bottom["x"] - 7},{y_to + 4}" '
+            f'fill="none" stroke="{LINE}" stroke-width="1.6"/>'
+            f'<text x="{lane + 6}" y="{(y_from + y_to) / 2}" font-family="{FONT}" font-size="10" '
+            f'fill="{MUTED}">1:1</text>'
+        )
 
     # Catálogos que ninguna tabla de hechos referencia directamente.
     leftovers = [n for n in tables if n not in used]
