@@ -2,12 +2,9 @@
 
 ## Descripción general
 
-Pipeline ETL para producir y distribuir localmente el modelo de elevación acondicionado y la pendiente de Jalisco a
-partir del Continuo de Elevaciones Mexicano 4.0 (CEM 4.0) de INEGI. Entrega cinco productos raster sobre una rejilla
-territorial común y calcula estadísticas municipales para las delimitaciones IIEG e INEGI.
-
-La ruta productiva tiene exactamente tres stages: Extract, Transform y Load. El CEM nacional se conserva como fuente
-inmutable y no se presenta como producto IIEG.
+Pipeline ETL para producir el modelo de elevación acondicionado y la familia de pendientes de Jalisco a partir del
+Continuo de Elevaciones Mexicano 4.0 (CEM 4.0) de INEGI. La ruta productiva tiene exactamente tres etapas:
+Extract, Transform y Load. El CEM nacional se conserva como fuente inmutable y no se presenta como producto IIEG.
 
 ## Fuente general
 
@@ -19,8 +16,7 @@ https://www.inegi.org.mx/temas/relieve/
 SOURCE_URL=https://www.inegi.org.mx/contenidos/productos/prod_serv/contenidos/espanol/bvinegi/productos/geografia/relieve/794551151600_t.zip
 ```
 
-También puede configurarse `SOURCE_TIFF_PATH` para reutilizar el archivo nacional
-`continuonacional_15m.tif` ya descargado.
+`SOURCE_TIFF_PATH` permite reutilizar un `continuonacional_15m.tif` oficial ya descargado.
 
 ## Características de los datos
 
@@ -39,9 +35,10 @@ También puede configurarse `SOURCE_TIFF_PATH` para reutilizar el archivo nacion
 
 ## Diagrama de entidad relación
 
-El pipeline no almacena píxeles raster en PostgreSQL. Su modelo relacional está compuesto por el catálogo
-`fuentes_limites_municipales`, la tabla `estadisticas_pendiente_municipales` y la vista
-`vw_pendientes_estadisticas_municipales`, descritos a continuación.
+![ERD](assets/erd.svg)
+
+Los píxeles raster no se almacenan en PostgreSQL. `cvegeo_municipalities` es una foreign table de consulta; la FK
+física local une `estadisticas_pendiente_municipales` con `fuentes_limites_municipales`.
 
 ## Diccionario de variables
 
@@ -50,7 +47,7 @@ El pipeline no almacena píxeles raster en PostgreSQL. Su modelo relacional est�
 | variable | descripción |
 |---|---|
 | `id` | Identificador estable de la fuente territorial |
-| `clave` | Clave de la fuente: `iieg` o `inegi` |
+| `clave` | Clave `iieg` o `inegi` |
 | `nombre_fuente` | Nombre legible de la delimitación |
 | `descripcion` | Descripción institucional de la fuente |
 | `version` | Versión del snapshot territorial de `cvegeo` |
@@ -62,21 +59,19 @@ El pipeline no almacena píxeles raster en PostgreSQL. Su modelo relacional est�
 |---|---|
 | `municipality_id` | `cve_mun` de Jalisco; no es el ID sustituto remoto de `cvegeo` |
 | `cve_mun`, `cve_ent`, `cvegeo`, `municipio` | Identidad y nombre municipal |
-| `fuente_limite_municipal_id` | FK local a la delimitación IIEG o INEGI |
+| `fuente_limite_municipal_id` | FK a la delimitación IIEG o INEGI |
 | `elevation_*_m` | Mínimo, máximo, media, mediana, desviación, p05 y p95 de elevación en metros |
 | `slope_degrees_*` | Mínimo, máximo, media, mediana, desviación, p05 y p95 de pendiente en grados |
 | `slope_percent_*` | Media, mediana, p95 y máximo de pendiente porcentual |
-| `valid_pixel_count` | Cantidad de píxeles válidos seleccionados por centro de píxel |
-| `valid_area_ha` | Superficie raster válida en hectáreas |
-| `municipality_vector_area_ha` | Superficie vectorial municipal en hectáreas |
-| `rasterized_area_difference_ha` | Diferencia entre superficie rasterizada y vectorial |
-| `coverage_percent` | Cobertura raster válida respecto de la superficie vectorial |
+| `valid_pixel_count`, `valid_area_ha` | Píxeles y superficie raster válida seleccionados por centro de píxel |
+| `municipality_vector_area_ha` | Superficie vectorial municipal |
+| `rasterized_area_difference_ha`, `coverage_percent` | Control de cobertura de la rasterización |
 | `fecha_actualizacion` | Fecha de actualización de la estadística |
 
 ### vw_pendientes_estadisticas_municipales
 
-Vista de consulta que incorpora el nombre municipal desde `cvegeo_municipalities` y la clave de la fuente territorial.
-La identidad municipal se resuelve mediante `cve_ent = 14` y `cve_mun = municipality_id`.
+Vista que incorpora el nombre desde `cvegeo_municipalities` y la clave de la fuente territorial. La identidad se
+resuelve mediante `cve_ent = 14` y `cve_mun = municipality_id`; no existe una FK física hacia la foreign table.
 
 ## Migraciones
 
@@ -85,7 +80,7 @@ La identidad municipal se resuelve mediante `cve_ent = 14` y `cve_mun = municipa
 | `V1__municipality_reference_pendientes.sql` | Habilita PostGIS/FDW, enlaza `cvegeo_municipalities` y valida los 125 municipios de Jalisco |
 | `V2__tables_pendientes.sql` | Crea el catálogo territorial, la tabla de estadísticas, restricciones e índices |
 | `V3__view_pendientes.sql` | Crea la vista municipal con identidad `cvegeo` y fuente territorial |
-| `V4__comments_municipal_rasterization.sql` | Documenta las métricas de cobertura y rasterización municipal |
+| `V4__comments_municipal_rasterization.sql` | Documenta métricas de cobertura y rasterización municipal |
 
 ## Variables de entorno
 
@@ -93,41 +88,45 @@ La identidad municipal se resuelve mediante `cve_ent = 14` y `cve_mun = municipa
 |---|---|
 | `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME` | Conexión PostgreSQL/PostGIS; `DB_NAME` es `pendientes` |
 | `SOURCE_URL` | URL oficial del ZIP del CEM 4.0 |
-| `SOURCE_TIFF_PATH` | Ruta opcional al TIFF nacional ya descargado; sustituye la descarga cuando se define |
-| `CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH` | Override opcional a un GeoPackage previamente congelado y validado |
+| `SOURCE_TIFF_PATH` | Ruta opcional al TIFF nacional ya descargado |
+| `CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH` | Override opcional a un GeoPackage congelado y validado |
 | `SOURCE_ZIP_FILENAME` | Nombre local contractual del ZIP fuente |
-| `FORCE_DOWNLOAD` | Fuerza la adquisición y reconstrucción controlada de artefactos de Extract |
-| `DOWNLOAD_RETRIES` | Número de intentos de descarga |
+| `FORCE_DOWNLOAD` | Fuerza la adquisición y reconstrucción controlada de Extract |
+| `DOWNLOAD_RETRIES` | Intentos de descarga |
 | `DOWNLOAD_CONNECT_TIMEOUT`, `DOWNLOAD_READ_TIMEOUT` | Timeouts HTTP en segundos |
 | `DOWNLOAD_CHUNK_SIZE` | Tamaño del bloque de descarga en bytes |
 | `TARGET_SRID` | SRID de trabajo y productos, `6368` |
 | `TARGET_RESOLUTION_M` | Resolución de la rejilla, 15 m |
 | `AOI_BUFFER_M` | Buffer analítico, 10 000 m |
-| `BOUNDARY_GEOMETRY_COLUMN` | Geometría estatal usada para el AOI: `geom_iieg` o `geom_inegi` |
-| `STATS_MAX_CELLS`, `DIAGNOSTIC_SAMPLE_MAX_CELLS` | Límites de muestreo para estadísticas y diagnóstico |
-| `EXPERIMENT_MANUAL_X`, `EXPERIMENT_MANUAL_Y` | Coordenada opcional EPSG:6368 para reproducción metodológica |
-| `WHITEBOX_TOOLS_*` | Ejecutable, versión y checksum requeridos sólo para reproducir experimentos |
+| `BOUNDARY_GEOMETRY_COLUMN` | Geometría estatal para el AOI: `geom_iieg` o `geom_inegi` |
+| `STATS_MAX_CELLS`, `DIAGNOSTIC_SAMPLE_MAX_CELLS` | Límites de muestreo para inspección |
 
 ## Notas metodológicas
 
 ### Extract
 
-Adquiere o reutiliza el CEM, valida su CRS, resolución, tipo, NoData y checksum, y conserva el raster nacional como
-fuente inmutable. Consulta la base institucional compartida `cvegeo` para congelar `geom_iieg` y `geom_inegi` de
-`public.cvegeo_municipalities`, además de contrastar `public.cvegeo_state_boundary`. Si se configura
-`CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH`, valida y reutiliza ese snapshot en lugar de consultar PostgreSQL.
+Adquiere o reutiliza el CEM, valida CRS, resolución, tipo, NoData y checksum, y conserva el raster nacional como
+fuente inmutable. Congela las delimitaciones estatales y los 125 municipios para `geom_iieg` y `geom_inegi` desde la
+base compartida `cvegeo`, o valida un snapshot configurado explícitamente.
 
 ### Transform
 
-Valida los productos científicos congelados y los empaqueta como COG lossless sin recalcular FP2 ni Wood–Evans.
-Calcula las estadísticas municipales desde el DEM acondicionado y la pendiente contextual, escribe el Parquet con
-procedencia y genera el manifest final de Transform.
+Reproyecta el CEM mediante bilinear a EPSG:6368 y 15 m con buffer analítico. Aplica convolución gaussiana normalizada
+por máscara (`sigma=1.5` píxeles, 22.5 m; `truncate=4.0`) y conserva NoData. Calcula la pendiente en grados con GRASS
+`r.param.scale method=slope size=5 exponent=0 zscale=1`; deriva el porcentaje exactamente como
+`tan(radians(grados)) * 100`.
+
+Los continuos no reciben suavizado posterior. Las clasificaciones se generalizan sólo para cartografía con sieve de
+8 vecinos y `threshold=8`, aceptando únicamente cambios a una clase adyacente. El producto de elevación para
+geoportal redondea el DEM G15 al múltiplo de 10 m más cercano, conserva elevaciones reales `Int16` y no aplica filtro
+espacial adicional. Transform crea los seis COG lossless y calcula estadísticas municipales desde los continuos G15
+y WE5 no generalizados.
 
 ### Load
 
-Valida los cinco COG terminados, los materializa por hardlink o copia atómica en `data/load/pendientes/`, comprueba sus
-SHA-256 y hace upsert transaccional del catálogo territorial y las estadísticas municipales. No convierte GeoTIFF a
-COG ni carga píxeles raster en PostgreSQL.
+Exige la familia coherente de seis COG, valida estructura, grid, checksum y QA lossless, y la materializa mediante
+hardlink o copia atómica. Después hace upsert transaccional del catálogo territorial y las 250 filas municipales
+esperadas. Load no convierte raster a COG ni carga píxeles en PostgreSQL.
 
 ## Ejecución
 
@@ -143,39 +142,42 @@ El DAG ejecuta Extract → Transform → Load, usa `max_active_runs=1`, `retries
 
 ## Notas adicionales
 
-### Productos raster
+### Productos
 
-Los tres productos continuos son `Float32`, NoData -9999, EPSG:6368, resolución 15 × 15 m y comparten rejilla y
-máscara territorial de Jalisco:
+Analíticos, `Float32`, NoData -9999 y overviews `AVERAGE`:
 
 - `modelo_elevacion_acondicionado_jalisco_15m.tif`;
 - `pendiente_grados_jalisco_15m.tif`;
 - `pendiente_porcentaje_jalisco_15m.tif`.
 
-Los productos clasificados son `UInt8`, reservan 0 y usan NoData 255:
+Geoportal/cartográficos:
 
-- `pendiente_grados_clasificada_jalisco_15m.tif`;
-- `pendiente_porcentaje_clasificada_jalisco_15m.tif`.
+- `elevacion_jalisco_intervalo_vertical_10m.tif`: elevaciones reales `Int16`, NoData -32768 y overviews `MODE`;
+- `pendiente_grados_clasificada_jalisco_15m.tif`: clases `UInt8`, NoData 255 y overviews `MODE`;
+- `pendiente_porcentaje_clasificada_jalisco_15m.tif`: clases `UInt8`, NoData 255 y overviews `MODE`.
 
-Transform crea los cinco COG con compresión DEFLATE lossless, bloques de 512 píxeles y overviews `AVERAGE` para
-productos continuos y `MODE` para clasificados.
+Todos son COG con DEFLATE lossless, bloques de 512 píxeles, EPSG:6368, resolución 15 m y la misma máscara territorial
+de Jalisco. La elevación Q10 tiene un **intervalo vertical de representación de 10 m**; esta expresión no declara
+exactitud vertical del CEM.
 
-### Metodología y validación
+### Clasificaciones
 
-El acondicionamiento productivo es FP2 y la pendiente productiva es Wood–Evans 5 × 5. Horn 3 × 3 se conserva como
-referencia metodológica histórica. La evaluación, parámetros, métricas, alternativas y limitaciones están documentados
-en [METODOLOGIA.md](METODOLOGIA.md).
+Grados: `[0,2)`, `[2,5)`, `[5,10)`, `[10,15)`, `[15,25)`, `[25,50)`, `>=50`.
+
+Porcentaje: `[0,0.5)`, `[0.5,2)`, `[2,5)`, `[5,8)`, `[8,16)`, `[16,30)`, `[30,45)`, `>=45`.
+
+Son esquemas independientes y no espacialmente equivalentes. La justificación experimental, el QA y las
+limitaciones se documentan en [METODOLOGIA.md](METODOLOGIA.md).
 
 ### Desarrollo local con `cvegeo`
 
-`cvegeo` es una base institucional compartida. Pendientes reutiliza el driver, usuario, contraseña, host y puerto de
-la conexión PostgreSQL configurada y cambia únicamente el nombre de la base. El SQL se administra mediante Git LFS.
+`cvegeo` comparte driver, usuario, contraseña, host y puerto con la conexión configurada; sólo cambia el nombre de la
+base. El SQL se administra mediante Git LFS.
 
 ```shell
 git lfs install
 git lfs pull
 cp migrations/cvegeo/.env.example migrations/cvegeo/.env
-# Configurar en migrations/cvegeo/.env las credenciales del PostgreSQL compartido.
 just flyway-config cvegeo
 just create-db cvegeo
 just flyway-migrate cvegeo
@@ -190,6 +192,6 @@ just flyway-migrate cvegeo
 
 ### Idempotencia y almacenamiento
 
-Extract reutiliza descargas y snapshots válidos; Transform sólo reutiliza artefactos cuyos manifests y checksums
-coinciden; Load vuelve a validar SHA-256 y usa upsert sin duplicar claves municipales. Los raster, GeoPackage, Parquet,
-PNG experimentales y manifests de ejecución viven bajo `data/` y no se versionan.
+Extract reutiliza descargas y snapshots válidos; Transform reutiliza sólo artefactos con manifest y checksum
+coincidentes; Load vuelve a verificar SHA-256 y usa upsert sin duplicar claves municipales. Los TIFF, GeoPackage,
+Parquet, PNG experimentales y manifests de ejecución viven bajo `data/` y no se versionan.
