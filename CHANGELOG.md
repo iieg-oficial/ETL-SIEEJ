@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.5.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.4.0...v1.5.0) (2026-09-04)
+
+
+### Features
+
+* **agropecuario_siap:** add geographic materialized view ([fea10d7](https://github.com/iieg-oficial/ETL-SIEEJ/commit/fea10d77ad8070238cc467623b671df8d16aa421))
+* **agropecuario_siap:** add geographic materialized view ([363d3ce](https://github.com/iieg-oficial/ETL-SIEEJ/commit/363d3ce26fb5f00bf404fcbe56e2487abe76356d))
+* **denue:** add vialidad, postal code and web contact to Jalisco establishments ([87b28e7](https://github.com/iieg-oficial/ETL-SIEEJ/commit/87b28e7be2e8d79dc14e9d70bb610cc9bbc5876f))
+* **denue:** agregar variables de vialidad, código postal y contacto ([ff8d71b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ff8d71be07b20aa96288c5e2e1f483704afba873))
+* **marginacion:** add geographic materialized view ([7239501](https://github.com/iieg-oficial/ETL-SIEEJ/commit/723950134adb213154c54070b4beb81c36966b53))
+* **marginacion:** add geographic materialized view ([0231c7f](https://github.com/iieg-oficial/ETL-SIEEJ/commit/0231c7fd9542790357cc791bb63218ff460f8cb7))
+* **produccion_ganadera:** add geographic materialized view ([4d566c9](https://github.com/iieg-oficial/ETL-SIEEJ/commit/4d566c9adc5f719dda55d3d2ac3ef8145b41d503))
+* **produccion_ganadera:** add geographic materialized view ([f92c5f6](https://github.com/iieg-oficial/ETL-SIEEJ/commit/f92c5f65627358a719489a65612f6d230b03ea5a))
+
+
+### Bug Fixes
+
+* **config:** sube el pool de conexiones de airflow a 5 con overflow 5, pre_ping y recycle de 900s en compose.yaml y airflow.cfg ([6c9bc8b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/6c9bc8b17990bd5dfd15b5cb07313544e858cf66))
+* **delitos-fuero-comun:** detectar encoding por archivo en vez de latin1 fijo ([d5c9a79](https://github.com/iieg-oficial/ETL-SIEEJ/commit/d5c9a790950c1abdec3a215f2d6fa0b6bcd6e182))
+* **delitos-fuero-comun:** detectar encoding por archivo en vez de latin1 fijo ([f914b8d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/f914b8d45af753c9f50570f9dc870ec7251fba4c))
+* **denue:** correct cod_postal dtype key so leading zeros survive ([411b668](https://github.com/iieg-oficial/ETL-SIEEJ/commit/411b6681d1e5abb42136e3d73a4664e03e30a98c))
+* **denue:** guard COPY against free-text separators and missing source columns ([c49b417](https://github.com/iieg-oficial/ETL-SIEEJ/commit/c49b4175564e295e6abf3db8abb83ea1803cab4d))
+* **intensidad_migratoria:** expose geographic keys as text ([608d2c9](https://github.com/iieg-oficial/ETL-SIEEJ/commit/608d2c9c1f7c045f04ea478bf1821935e763bb8b))
+* **intensidad_migratoria:** expose geographic keys as text ([9357cc0](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9357cc0e5e67a25cbbb2db9a94e99d88057051fd))
+* **intensidad_migratoria:** update vm iim geo columns ([e2cd84f](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e2cd84f302636894e7e6d0df1875482249a650a0))
+* **intensidad_migratoria:** update vm_iim_geo columns ([9788d9b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9788d9baa06e17031ea8bc8cd19f1bdb771c1542))
+* **scripts:** derive ERD fact link from foreign keys instead of hardcoded column ([9fab4ad](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9fab4ad010de4c7b21868014dbc1ce709061f75f))
+
 ## [1.4.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.3.0...v1.4.0) (2026-08-28)
 
 
