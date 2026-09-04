@@ -17,7 +17,6 @@ from core.pipelines.pendientes.helpers.methodology.source_diagnostics import (
     spatial_difference_metrics,
     write_profile_csv,
 )
-from core.pipelines.pendientes.helpers.methodology.source_diagnostic import PendientesSourceDiagnostic
 
 
 def test_equivalent_window_uses_geographic_footprint_across_crs():
@@ -98,28 +97,3 @@ def test_metric_derivative_uses_metric_xy_for_metre_z():
 
 def test_baseline_checksum_contract_remains_frozen():
     assert EXPERIMENT_BASELINE_SHA256 == "1461f63298509f045476b9e6e0597ee8eba3138af82e033eb232ddef3bf50fcd"
-
-
-def test_evidence_state_supersedes_binary_localization_without_raster_classification():
-    diagnostic = PendientesSourceDiagnostic()
-    profile = {
-        "summary": {
-            "alternating_plateau_step_sequences": 10,
-            "plateau_transition_percentage": 20.0,
-        }
-    }
-    results = {
-        "problema_manual": {
-            "native_window": {"quantization": {"integer_value_percentage": 100.0}},
-            "profiles": {"transects": [profile, profile, profile]},
-            "derivatives": {
-                "second_difference_magnitude_m": {
-                    "source": {"percentiles": {"p95": 2.0}},
-                    "baseline": {"percentiles": {"p95": 1.0}},
-                }
-            },
-        }
-    }
-    evidence = diagnostic._classify_evidence(results)
-    assert evidence["categories"] == ["principalmente_presente_en_fuente"]
-    assert evidence["source_signal_present"] is True

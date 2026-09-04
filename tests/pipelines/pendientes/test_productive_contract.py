@@ -14,7 +14,7 @@ from sqlalchemy.engine import make_url
 
 from core.pipelines.pendientes.attributes import PendientesTables
 from core.pipelines.pendientes.config import Settings
-from core.pipelines.pendientes.constants import FROZEN_RELEASE_COG_SHA256, MUNICIPAL_BOUNDARY_SOURCES
+from core.pipelines.pendientes.constants import MUNICIPAL_BOUNDARY_SOURCES
 from core.pipelines.pendientes.helpers.municipal import (
     calculate_municipal_statistics,
     prepare_municipal_boundaries,
@@ -132,16 +132,24 @@ def test_env_example_exposes_only_the_supported_optional_snapshot_override() -> 
     assert "CVEGEO_BOUNDARY_SNAPSHOT_PATH" not in example
     assert "# CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH=data/extract/pendientes/municipal_boundaries.gpkg" in example
     assert "\nCVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH=\n" not in example
+    assert "EXPERIMENT_MANUAL" not in example
+    assert "WHITEBOX" not in example
 
 
 def test_existing_snapshot_is_reused_and_checksum_change_is_rejected(tmp_path: Path) -> None:
     boundaries = tmp_path / "municipal_boundaries.gpkg"
     frame = _municipal_frame()
-    write_municipal_boundaries_atomic({"iieg": frame, "inegi": frame}, boundaries)
+    state = gpd.GeoDataFrame(geometry=[frame.geometry.union_all()], crs=frame.crs)
+    write_municipal_boundaries_atomic(
+        {"iieg": frame, "inegi": frame},
+        boundaries,
+        {"iieg": state, "inegi": state},
+    )
     previous = {
         "sha256": sha256_file(boundaries),
         "sources": {
-            key: {"geometry_column": source["geometry_column"]} for key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
+            key: {"geometry_column": source["geometry_column"], "state_layer": source["state_layer"]}
+            for key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
         },
     }
 
@@ -207,7 +215,9 @@ def test_dag_and_load_expose_only_productive_etl_and_no_cog_conversion() -> None
     assert "gdal_translate" not in Path("core/pipelines/pendientes/stages/load.py").read_text()
     transform_source = Path("core/pipelines/pendientes/stages/transform.py").read_text()
     assert "PendientesCartographicSlopeProduction" not in transform_source
-    assert all(len(checksum) == 64 for checksum in FROZEN_RELEASE_COG_SHA256.values())
+    assert "normalized_gaussian" in transform_source
+    assert "create_restricted_sieve_raster" in transform_source
+    assert "create_elevation_q10_raster" in transform_source
 
 
 def test_migrations_create_only_tabular_products_and_enable_postgis() -> None:

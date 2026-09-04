@@ -13,7 +13,7 @@ from core.pipelines.pendientes.constants import (
     RASTER_BLOCK_SIZE,
 )
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
-from core.pipelines.pendientes.helpers.tiled_conditioning import core_tile_windows
+from core.pipelines.pendientes.helpers.windows import core_tile_windows
 from core.utils.files import sha256_file
 
 

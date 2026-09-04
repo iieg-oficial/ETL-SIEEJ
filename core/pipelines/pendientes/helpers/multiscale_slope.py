@@ -5,10 +5,13 @@ import shutil
 import subprocess
 import tempfile
 import time
+import math
 from pathlib import Path
 from typing import Any
 
 import numpy as np
+import rasterio
+from affine import Affine
 from scipy import ndimage
 
 from core.pipelines.pendientes.constants import (
@@ -19,6 +22,33 @@ from core.pipelines.pendientes.constants import (
 )
 from core.pipelines.pendientes.helpers.classification import classify_values
 from core.utils.files import sha256_file
+
+
+def planar_surface(size: int, resolution_m: float, slope_degrees: float, direction_degrees: float) -> np.ndarray:
+    coordinates = (np.arange(size, dtype=np.float64) - (size - 1) / 2) * resolution_m
+    x, y = np.meshgrid(coordinates, coordinates)
+    magnitude = math.tan(math.radians(slope_degrees))
+    direction = math.radians(direction_degrees)
+    return (1000.0 + magnitude * (math.cos(direction) * x + math.sin(direction) * y)).astype(np.float32)
+
+
+def write_single_band_raster(path: Path, values: np.ndarray, transform: Affine, crs: Any, unit: str) -> Path:
+    with rasterio.open(
+        path,
+        "w",
+        driver="GTiff",
+        width=values.shape[1],
+        height=values.shape[0],
+        count=1,
+        dtype="float32",
+        nodata=FINAL_NODATA,
+        crs=crs,
+        transform=transform,
+        compress="deflate",
+    ) as destination:
+        destination.write(values.astype(np.float32), 1)
+        destination.set_band_unit(1, unit)
+    return path
 
 
 def inspect_grass_param_scale() -> dict[str, Any]:

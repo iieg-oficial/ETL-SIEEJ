@@ -84,13 +84,20 @@ def validate_municipal_boundary_frame(frame: gpd.GeoDataFrame) -> dict[str, Any]
     }
 
 
-def write_municipal_boundaries_atomic(layers: dict[str, gpd.GeoDataFrame], output_path: Path) -> None:
+def write_municipal_boundaries_atomic(
+    layers: dict[str, gpd.GeoDataFrame],
+    output_path: Path,
+    state_layers: dict[str, gpd.GeoDataFrame] | None = None,
+) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     partial = output_path.with_suffix(".partial.gpkg")
     partial.unlink(missing_ok=True)
     try:
         for source_key, frame in layers.items():
             layer = str(MUNICIPAL_BOUNDARY_SOURCES[source_key]["layer"])
+            frame.to_file(partial, layer=layer, driver="GPKG")
+        for source_key, frame in (state_layers or {}).items():
+            layer = str(MUNICIPAL_BOUNDARY_SOURCES[source_key]["state_layer"])
             frame.to_file(partial, layer=layer, driver="GPKG")
         partial.replace(output_path)
     except Exception:
@@ -129,6 +136,9 @@ def _validate_reusable_snapshot(output_path: Path, previous_manifest: dict[str, 
     validations = {}
     for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items():
         validation = validate_municipal_boundary_frame(gpd.read_file(output_path, layer=str(source["layer"])))
+        state = gpd.read_file(output_path, layer=str(source["state_layer"]))
+        if len(state) != 1 or state.crs is None or state.crs.to_epsg() != TARGET_SRID:
+            raise ValueError(f"Existing state boundary snapshot is invalid: {source_key}")
         expected = previous_manifest.get("sources", {}).get(source_key, {})
         if expected.get("geometry_column") not in {None, source["geometry_column"]}:
             raise ValueError(f"Existing municipal snapshot source identity changed: {source_key}")
@@ -147,6 +157,7 @@ def prepare_municipal_boundaries(
 
     engine = create_engine(database_url)
     layers: dict[str, gpd.GeoDataFrame] = {}
+    state_layers: dict[str, gpd.GeoDataFrame] = {}
     validations: dict[str, dict[str, Any]] = {}
     try:
         for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items():
@@ -160,14 +171,18 @@ def prepare_municipal_boundaries(
             frame = _read_municipal_layer(engine, geometry_column)
             validation = validate_municipal_boundary_frame(frame)
             state = _read_state_boundary(engine, str(source["state_geometry_column"]))
+            if len(state) != 1 or state.crs is None or state.crs.to_epsg() != TARGET_SRID:
+                raise ValueError(f"cvegeo state boundary contract failed: {source_key}")
             state_area_km2 = float(state.geometry.area.sum() / 1_000_000.0) if not state.empty else None
             municipal_area_km2 = float(validation["total_area_km2"])
             layers[source_key] = frame
+            state_layers[source_key] = state
             validations[source_key] = {
                 **validation,
                 "boundary_source": source_key,
                 "geometry_column": geometry_column,
                 "layer": source["layer"],
+                "state_layer": source["state_layer"],
                 "source_version": source["version"],
                 "expected_gist_index": source["expected_gist_index"],
                 "gist_index_present": index_present,
@@ -179,7 +194,7 @@ def prepare_municipal_boundaries(
             }
             if not index_present:
                 raise ValueError(f"Expected cvegeo GiST index is missing: {source['expected_gist_index']}")
-        write_municipal_boundaries_atomic(layers, output_path)
+        write_municipal_boundaries_atomic(layers, output_path, state_layers)
     except SQLAlchemyError as error:
         raise ConnectionError("Could not freeze cvegeo municipal boundaries") from error
     finally:

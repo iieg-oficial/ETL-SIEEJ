@@ -2,7 +2,6 @@ id: pendiente_mediana_municipal_grados
 nombre: Pendiente mediana municipal en grados
 tema: medio_ambiente
 definicion: Mediana de la pendiente Wood–Evans 5×5 en grados dentro del límite municipal seleccionado.
-metodologia: GRASS GIS r.param.scale, superficie cuadrática local, size=5, exponent=0 y zscale=1.
 unidad: grados
 fuente: IIEG, derivado del CEM 4.0 de INEGI, edición 2025 con cobertura temporal 2024
 pipeline: pendientes
@@ -24,7 +23,7 @@ parametros:
       descripcion: Fuente territorial iieg o inegi.,
     }
 sql: |
-  SELECT cvegeo::text AS cve_geo, nombre_geo::text, '2024'::text AS periodo,
+  SELECT cvegeo::text AS cve_geo, nombre_geo::text AS nombre_geo, '2024'::text AS periodo,
          slope_degrees_median::numeric AS valor, 'total'::text AS categoria
   FROM vw_pendientes_estadisticas_municipales
   WHERE fuente_limite = CAST(:fuente_limite AS text)

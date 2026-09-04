@@ -31,6 +31,7 @@ from core.pipelines.pendientes.constants import (
     SOURCE_UPC,
     SOURCE_VERTICAL_QUANTITY,
     SOURCE_VERTICAL_UNIT,
+    TARGET_SRID,
     MUNICIPAL_BOUNDARY_FILENAME,
     MUNICIPAL_BOUNDARY_SOURCES,
     MUNICIPAL_SNAPSHOT_MANIFEST_FILENAME,
@@ -124,9 +125,14 @@ class PendientesExtract(Stage):
                     "geometry_column": source["geometry_column"],
                     "layer": source["layer"],
                     "source_version": source["version"],
+                    "state_layer": source["state_layer"],
                 }
                 for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items()
             }
+            for source_key, source in MUNICIPAL_BOUNDARY_SOURCES.items():
+                state = gpd.read_file(boundary_path, layer=str(source["state_layer"]))
+                if len(state) != 1 or state.crs is None or state.crs.to_epsg() != TARGET_SRID:
+                    raise ValueError(f"Configured state boundary layer is invalid: {source_key}")
             municipal_boundaries = {
                 "status": "municipal_snapshot_validated",
                 "path": str(boundary_path),

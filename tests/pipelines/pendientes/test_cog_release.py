@@ -8,6 +8,7 @@ from rasterio.transform import from_origin
 
 from core.pipelines.pendientes.constants import DEGREES_CLASSIFICATION
 from core.pipelines.pendientes.helpers.classification import classify_values, create_classified_raster
+from core.pipelines.pendientes.helpers.cartography import create_elevation_q10_raster
 from core.pipelines.pendientes.helpers.cog import (
     create_cog,
     inspect_cog_driver,
@@ -118,3 +119,18 @@ def test_corrupt_cog_is_rejected(tmp_path: Path) -> None:
     corrupt.write_bytes(b"not-a-raster")
     with pytest.raises(ValueError, match="Invalid or corrupt COG"):
         validate_cog_structure(corrupt)
+
+
+def test_q10_elevation_cog_is_lossless_int16_with_mode_overviews(tmp_path: Path) -> None:
+    continuous = tmp_path / "dem.tif"
+    q10 = tmp_path / "q10.tif"
+    cog = tmp_path / "q10_cog.tif"
+    _continuous_raster(continuous)
+    create_elevation_q10_raster(continuous, q10, processing_window_size=256)
+    create_cog(q10, cog, classified=False, elevation_q10=True)
+    qa = validate_lossless_cog(q10, cog, classified=False, elevation_q10=True, processing_window_size=256)
+    assert qa["hard_gates"]["all_passed"]
+    assert qa["overview_resampling"] == "MODE"
+    with rasterio.open(cog) as dataset:
+        assert dataset.dtypes == ("int16",)
+        assert dataset.nodata == -32768

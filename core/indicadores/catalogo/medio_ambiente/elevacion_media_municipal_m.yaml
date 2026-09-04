@@ -23,7 +23,7 @@ parametros:
       descripcion: Fuente territorial iieg o inegi.,
     }
 sql: |
-  SELECT cvegeo::text AS cve_geo, nombre_geo::text, '2024'::text AS periodo,
+  SELECT cvegeo::text AS cve_geo, nombre_geo::text AS nombre_geo, '2024'::text AS periodo,
          elevation_mean_m::numeric AS valor, 'total'::text AS categoria
   FROM vw_pendientes_estadisticas_municipales
   WHERE fuente_limite = CAST(:fuente_limite AS text)

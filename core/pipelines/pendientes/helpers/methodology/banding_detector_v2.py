@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -9,11 +10,53 @@ from core.pipelines.pendientes.constants import (
     CALIBRATION_REPETITION_MAX_LAG_PIXELS,
     CALIBRATION_REPETITION_MIN_LAG_PIXELS,
 )
-from core.pipelines.pendientes.helpers.methodology.calibration_profiles import profile_lines_from_raw
 from core.pipelines.pendientes.helpers.methodology.directed_banding import (
     directed_banding_metrics,
     second_difference_fields,
 )
+
+
+@dataclass(frozen=True)
+class ProfileLine:
+    profile_id: str
+    normal_angle_degrees: float
+    tangent_offset_pixels: int
+    rows: tuple[int, ...]
+    columns: tuple[int, ...]
+
+
+def profile_lines_from_raw(
+    raw: np.ndarray,
+    nodata: float | None,
+    offsets: tuple[int, ...],
+) -> tuple[list[ProfileLine], dict[str, Any]]:
+    banding, _, _ = directed_banding_metrics(raw, nodata)
+    angle_degrees = banding["orientation"]["dominant_normal_degrees"]
+    if angle_degrees is None:
+        raise ValueError("RAW has no directed second-difference structure")
+    angle = math.radians(angle_degrees)
+    column_direction, row_direction = math.cos(angle), math.sin(angle)
+    tangent_column, tangent_row = -row_direction, column_direction
+    center_row, center_column = (raw.shape[0] - 1) / 2, (raw.shape[1] - 1) / 2
+    parameter = np.arange(-math.ceil(math.hypot(*raw.shape)), math.ceil(math.hypot(*raw.shape)) + 1)
+    lines = []
+    for index, offset in enumerate(offsets, start=1):
+        rows = np.rint(center_row + offset * tangent_row + parameter * row_direction).astype(np.int32)
+        columns = np.rint(center_column + offset * tangent_column + parameter * column_direction).astype(np.int32)
+        inside = (rows >= 0) & (rows < raw.shape[0]) & (columns >= 0) & (columns < raw.shape[1])
+        rows, columns = rows[inside], columns[inside]
+        keep = np.ones(rows.size, dtype=bool)
+        keep[1:] = (rows[1:] != rows[:-1]) | (columns[1:] != columns[:-1])
+        lines.append(
+            ProfileLine(
+                profile_id=f"transecto_{index}",
+                normal_angle_degrees=angle_degrees,
+                tangent_offset_pixels=offset,
+                rows=tuple(int(value) for value in rows[keep]),
+                columns=tuple(int(value) for value in columns[keep]),
+            )
+        )
+    return lines, {"normal_angle_degrees": angle_degrees, "tangent_offsets_pixels": list(offsets)}
 
 
 def autocorrelation_curve(

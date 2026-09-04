@@ -14,9 +14,11 @@ from core.pipelines.pendientes.constants import (
     COG_CLASSIFIED_OPTIONS,
     COG_COMPRESSION,
     COG_CONTINUOUS_OPTIONS,
+    COG_ELEVATION_Q10_OPTIONS,
+    ELEVATION_Q10_NODATA,
 )
 from core.pipelines.pendientes.helpers.experimental_metrics import valid_mask
-from core.pipelines.pendientes.helpers.tiled_conditioning import core_tile_windows
+from core.pipelines.pendientes.helpers.windows import core_tile_windows
 from core.utils.files import sha256_file
 
 
@@ -25,7 +27,7 @@ def inspect_cog_driver() -> dict[str, Any]:
     result = subprocess.run(["gdalinfo", "--format", "COG"], check=True, capture_output=True, text=True)
     text = result.stdout
     supported = {name for name in (*COG_CONTINUOUS_OPTIONS, *COG_CLASSIFIED_OPTIONS) if f'name="{name}"' in text}
-    required = set(COG_CONTINUOUS_OPTIONS) | set(COG_CLASSIFIED_OPTIONS)
+    required = set(COG_CONTINUOUS_OPTIONS) | set(COG_CLASSIFIED_OPTIONS) | set(COG_ELEVATION_Q10_OPTIONS)
     if supported != required:
         raise ValueError(f"GDAL COG driver lacks required creation options: {sorted(required - supported)}")
     return {
@@ -34,6 +36,7 @@ def inspect_cog_driver() -> dict[str, Any]:
         "creation_options_supported": sorted(supported),
         "continuous_options": COG_CONTINUOUS_OPTIONS,
         "classified_options": COG_CLASSIFIED_OPTIONS,
+        "elevation_q10_options": COG_ELEVATION_Q10_OPTIONS,
     }
 
 
@@ -42,6 +45,7 @@ def create_cog(
     output_path: Path,
     *,
     classified: bool,
+    elevation_q10: bool = False,
 ) -> dict[str, Any]:
     if output_path.exists():
         raise FileExistsError(f"COG output already exists: {output_path}")
@@ -49,8 +53,12 @@ def create_cog(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     partial = output_path.with_suffix(".partial.tif")
     partial.unlink(missing_ok=True)
-    options = COG_CLASSIFIED_OPTIONS if classified else COG_CONTINUOUS_OPTIONS
-    output_type = "Byte" if classified else "Float32"
+    if classified and elevation_q10:
+        raise ValueError("A COG cannot be both classified and Q10 elevation")
+    options = (
+        COG_ELEVATION_Q10_OPTIONS if elevation_q10 else COG_CLASSIFIED_OPTIONS if classified else COG_CONTINUOUS_OPTIONS
+    )
+    output_type = "Int16" if elevation_q10 else "Byte" if classified else "Float32"
     command = [
         "gdal_translate",
         "-of",
@@ -101,6 +109,7 @@ def validate_lossless_cog(
     cog_path: Path,
     *,
     classified: bool,
+    elevation_q10: bool = False,
     processing_window_size: int = 2048,
 ) -> dict[str, Any]:
     info = gdalinfo_json(cog_path)
@@ -110,8 +119,10 @@ def validate_lossless_cog(
     different = mask_mismatch = base_valid = cog_valid = 0
     maximum = 0.0
     with rasterio.open(source_path) as source, rasterio.open(cog_path) as cog:
-        expected_dtype = "uint8" if classified else "float32"
-        expected_nodata = 255.0 if classified else -9999.0
+        if classified and elevation_q10:
+            raise ValueError("A COG cannot be both classified and Q10 elevation")
+        expected_dtype = "int16" if elevation_q10 else "uint8" if classified else "float32"
+        expected_nodata = float(ELEVATION_Q10_NODATA) if elevation_q10 else 255.0 if classified else -9999.0
         overviews = cog.overviews(1)
         checks = {
             "layout_cog": layout == "COG",
@@ -137,7 +148,7 @@ def validate_lossless_cog(
             cog_valid += int(np.count_nonzero(cog_mask))
             mask_mismatch += int(np.count_nonzero(base_mask ^ cog_mask))
             comparison = base_mask & cog_mask
-            if classified:
+            if classified or elevation_q10:
                 unequal = base[comparison] != packaged[comparison]
             else:
                 unequal = ~_same_float32_bits(base[comparison], packaged[comparison])
@@ -158,7 +169,9 @@ def validate_lossless_cog(
         "block_size": COG_BLOCK_SIZE,
         "overview_levels": overviews,
         "overview_resampling": (
-            COG_CLASSIFIED_OPTIONS["OVERVIEW_RESAMPLING"]
+            COG_ELEVATION_Q10_OPTIONS["OVERVIEW_RESAMPLING"]
+            if elevation_q10
+            else COG_CLASSIFIED_OPTIONS["OVERVIEW_RESAMPLING"]
             if classified
             else COG_CONTINUOUS_OPTIONS["OVERVIEW_RESAMPLING"]
         ),

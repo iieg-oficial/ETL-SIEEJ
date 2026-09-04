@@ -41,20 +41,30 @@ class PendientesLoad(Stage):
         manifest = read_json(self.transform_manifest_path)
         if manifest is None or manifest.get("status") != "transform_complete":
             raise ValueError("Load requires a completed, validated final Transform manifest")
-        if len(manifest.get("rasters", {})) != 5:
-            raise ValueError("Load requires exactly three continuous and two classified COG products")
+        expected_products = {
+            "modelo_elevacion_acondicionado",
+            "pendiente_grados",
+            "pendiente_porcentaje",
+            "elevacion_q10",
+            "pendiente_grados_clasificada",
+            "pendiente_porcentaje_clasificada",
+        }
+        if set(manifest.get("rasters", {})) != expected_products:
+            raise ValueError("Load requires the coherent six-product analytical/cartographic COG family")
         reference_grid = None
         for product, details in manifest["rasters"].items():
             path = Path(details["path"])
             if not path.is_file() or sha256_file(path) != details["sha256"]:
                 raise ValueError(f"Transform COG changed before Load: {product}")
             structure = validate_cog_structure(path)
-            classified = details["product_role"] == "classified"
+            role = details["product_role"]
+            expected_dtype = {"continuous": "float32", "classified": "uint8", "elevation_q10": "int16"}[role]
+            expected_nodata = {"continuous": -9999.0, "classified": 255.0, "elevation_q10": -32768.0}[role]
             expected = {
                 "compression": "DEFLATE",
                 "block_shape": [512, 512],
-                "dtype": "uint8" if classified else "float32",
-                "nodata": 255.0 if classified else -9999.0,
+                "dtype": expected_dtype,
+                "nodata": expected_nodata,
                 "crs_epsg": 6368,
                 "resolution": [15.0, 15.0],
             }

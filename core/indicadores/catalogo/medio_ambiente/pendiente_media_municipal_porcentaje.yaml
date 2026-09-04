@@ -4,7 +4,6 @@ tema: medio_ambiente
 definicion: Media de la pendiente porcentual dentro del límite municipal seleccionado.
 unidad: porcentaje
 fuente: IIEG, derivado del CEM 4.0 de INEGI, edición 2025 con cobertura temporal 2024
-metodologia: Pendiente Wood–Evans 5×5 en grados transformada mediante tan(radians(grados))*100.
 pipeline: pendientes
 origen: vw_pendientes_estadisticas_municipales
 nivel: municipal
@@ -24,7 +23,7 @@ parametros:
       descripcion: Fuente territorial iieg o inegi.,
     }
 sql: |
-  SELECT cvegeo::text AS cve_geo, nombre_geo::text, '2024'::text AS periodo,
+  SELECT cvegeo::text AS cve_geo, nombre_geo::text AS nombre_geo, '2024'::text AS periodo,
          slope_percent_mean::numeric AS valor, 'total'::text AS categoria
   FROM vw_pendientes_estadisticas_municipales
   WHERE fuente_limite = CAST(:fuente_limite AS text)
