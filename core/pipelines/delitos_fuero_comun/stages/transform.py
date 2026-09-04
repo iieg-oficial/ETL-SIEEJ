@@ -6,7 +6,7 @@ import pandas as pd
 from core.pipelines.delitos_fuero_comun.config import PIPELINE_NAME
 from core.pipelines.delitos_fuero_comun.constants import MONTH_COLS, RENAME
 from core.pipelines.stage import Stage
-from core.utils.files import clean_directory
+from core.utils.files import clean_directory, detect_encoding
 
 
 class DelitosTransform(Stage):
@@ -42,7 +42,8 @@ class DelitosTransform(Stage):
         return input_data
 
     def _read_and_normalize(self, path: str) -> pd.DataFrame:
-        df = pd.read_csv(path, encoding="latin1", dtype=str)
+        encoding = detect_encoding(path)
+        df = pd.read_csv(path, encoding=encoding, dtype=str)
         df = df.rename(columns=RENAME)
         df["anio"] = pd.array(df["anio"], dtype="Int16")
         df["cvegeo"] = pd.to_numeric(df["cve_municipio"], errors="coerce").astype("Int32")
