@@ -4,12 +4,14 @@ from typing import Any, Optional
 
 from core.db import Database
 from core.pipelines.participacion_ciudadana.config import settings
+from core.pipelines.participacion_ciudadana.queries import MATERIALIZED_VIEWS
 from core.pipelines.participacion_ciudadana.schemas import StgParticipacion
 from core.pipelines.stage import Stage
 from core.utils import df_to_records
 from core.utils.bulk_ops import bulk_insert, count_records, sync_id_sequence
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 
 class ParticipacionCiudadanaLoad(Stage):
@@ -44,6 +46,8 @@ class ParticipacionCiudadanaLoad(Stage):
 
                 sync_id_sequence(session, StgParticipacion)
                 bulk_insert(session, df_to_records(df, cols), StgParticipacion)
+
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
         except Exception:
             self.db.disconnect()
