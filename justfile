@@ -218,6 +218,10 @@ flyway-config pipeline: (_load-env pipeline)
     set -euo pipefail
     env_file="core/pipelines/{{pipeline}}/.env"
     [ -f "$env_file" ] || env_file="migrations/{{pipeline}}/.env"
+    DEFAULT_FDW_PORT=5432
+    read_env_var() {
+        grep "^$2=" "$1" 2>/dev/null | head -1 | cut -d= -f2- || true
+    }
     DB_HOST=$(grep '^DB_HOST=' "$env_file" | cut -d= -f2-)
     DB_PORT=$(grep '^DB_PORT=' "$env_file" | cut -d= -f2-)
     DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
@@ -231,16 +235,17 @@ flyway-config pipeline: (_load-env pipeline)
       -e "s|<DB_PASSWORD>|$DB_PASSWORD|g"
     )
     # La conexion FDW primaria (cvegeo) usa placeholders genericos <FDW_DB_*>
-    # y se resuelve desde migrations/cvegeo/.env. El puerto no se auto-rellena
-    # (ver nota mas abajo sobre <FDW_<DB>_PORT>).
+    # y se resuelve desde migrations/cvegeo/.env, igual que el host.
     if [ -f migrations/cvegeo/.env ]; then
         FDW_DB_NAME=$(grep '^DB_NAME=' migrations/cvegeo/.env | cut -d= -f2-)
         FDW_DB_HOST=$(grep '^DB_HOST=' migrations/cvegeo/.env | cut -d= -f2-)
+        FDW_DB_PORT=$(read_env_var migrations/cvegeo/.env DB_PORT)
         FDW_DB_USER=$(grep '^DB_USER=' migrations/cvegeo/.env | cut -d= -f2-)
         FDW_DB_PASSWORD=$(grep '^DB_PASSWORD=' migrations/cvegeo/.env | cut -d= -f2-)
         sed_args+=(
           -e "s|<FDW_DB_NAME>|$FDW_DB_NAME|g"
           -e "s|<FDW_DB_HOST>|$FDW_DB_HOST|g"
+          -e "s|<FDW_DB_PORT>|${FDW_DB_PORT:-$DEFAULT_FDW_PORT}|g"
           -e "s|<FDW_DB_USER>|$FDW_DB_USER|g"
           -e "s|<FDW_DB_PASSWORD>|$FDW_DB_PASSWORD|g"
         )
@@ -248,19 +253,16 @@ flyway-config pipeline: (_load-env pipeline)
     # Cada conexion FDW extra referencia <FDW_<DB>_DBNAME> etc. en el .example,
     # con <DB> el nombre de la base real (CVEGEO, CONAPO, INPC...). Se resuelve
     # cada una leyendo el .env del pipeline homonimo, igual que el pipeline actual.
-    # El puerto NO se resuelve aqui: es una conexion FDW interna (loopback entre
-    # bases del mismo Postgres), no la del .env (que es el puerto externo/host).
-    # Se deja <FDW_<DB>_PORT> sin rellenar; el .example trae "# default: 5432"
-    # como guia para llenarlo a mano en flyway.conf.
     fdw_dbs=$(grep -oE '<FDW_[A-Z0-9_]+_DBNAME>' migrations/{{pipeline}}/flyway.conf.example | sed -E 's/<FDW_(.*)_DBNAME>/\1/' | sort -u || true)
     for db in $fdw_dbs; do
         db_lower=$(echo "$db" | tr '[:upper:]' '[:lower:]')
         fdw_env="core/pipelines/$db_lower/.env"
         [ -f "$fdw_env" ] || fdw_env="migrations/$db_lower/.env"
-        FDW_NAME="" FDW_HOST="" FDW_USER="" FDW_PASSWORD=""
+        FDW_NAME="" FDW_HOST="" FDW_PORT="" FDW_USER="" FDW_PASSWORD=""
         if [ -f "$fdw_env" ]; then
             FDW_NAME=$(grep '^DB_NAME=' "$fdw_env" | cut -d= -f2-)
             FDW_HOST=$(grep '^DB_HOST=' "$fdw_env" | cut -d= -f2-)
+            FDW_PORT=$(read_env_var "$fdw_env" DB_PORT)
             FDW_USER=$(grep '^DB_USER=' "$fdw_env" | cut -d= -f2-)
             FDW_PASSWORD=$(grep '^DB_PASSWORD=' "$fdw_env" | cut -d= -f2-)
         else
@@ -269,17 +271,13 @@ flyway-config pipeline: (_load-env pipeline)
         sed_args+=(
           -e "s|<FDW_${db}_DBNAME>|$FDW_NAME|g"
           -e "s|<FDW_${db}_HOST>|$FDW_HOST|g"
+          -e "s|<FDW_${db}_PORT>|${FDW_PORT:-$DEFAULT_FDW_PORT}|g"
           -e "s|<FDW_${db}_USER>|$FDW_USER|g"
           -e "s|<FDW_${db}_PASSWORD>|$FDW_PASSWORD|g"
         )
     done
     sed "${sed_args[@]}" migrations/{{pipeline}}/flyway.conf.example > migrations/{{pipeline}}/flyway.conf
     echo "Generated: migrations/{{pipeline}}/flyway.conf"
-    pending_ports=$(grep -oE '<FDW_[A-Z0-9_]+_PORT>' migrations/{{pipeline}}/flyway.conf || true)
-    if [ -n "$pending_ports" ]; then
-        echo "Pendiente: llenar a mano el puerto FDW en migrations/{{pipeline}}/flyway.conf (ver comentario '# default: 5432' junto a cada linea):"
-        echo "$pending_ports" | sed 's/^/  /'
-    fi
 
 [group('flyway')]
 [doc("Generar flyway.conf para todos los pipelines")]
