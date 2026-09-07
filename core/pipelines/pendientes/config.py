@@ -37,6 +37,14 @@ class Settings(BaseConfig):
     STATS_MAX_CELLS: int = Field(default=5_000_000, ge=1)
     DIAGNOSTIC_SAMPLE_MAX_CELLS: int = Field(default=2_000_000, ge=1)
 
+    @field_validator("SOURCE_URL", "SOURCE_TIFF_PATH", "CVEGEO_MUNICIPAL_BOUNDARY_SNAPSHOT_PATH", mode="before")
+    @classmethod
+    def blank_means_unset(cls, value: object) -> object:
+        """A bare `KEY=` in the .env is an unset optional, not the current directory."""
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
     @field_validator("BOUNDARY_GEOMETRY_COLUMN")
     @classmethod
     def validate_boundary_geometry_column(cls, value: str) -> str:
