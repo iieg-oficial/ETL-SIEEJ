@@ -9,6 +9,30 @@ from pathlib import Path
 import requests
 
 from core.utils.files import sha256_file, validate_zip
+from core.utils.logger import get_logger
+
+logger = get_logger("pendientes.download")
+
+_MEGABYTE = 1024 * 1024
+_PROGRESS_PERCENT_STEP = 5
+_PROGRESS_BYTES_STEP = 100 * _MEGABYTE
+
+
+def _progress_step_bytes(expected: int | None) -> int:
+    """Report at whichever is more frequent: every 5% or every 100 MB."""
+    if expected:
+        return max(1, min(_PROGRESS_BYTES_STEP, expected * _PROGRESS_PERCENT_STEP // 100))
+    return _PROGRESS_BYTES_STEP
+
+
+def _progress_milestone(downloaded: int, expected: int | None) -> int:
+    return downloaded // _progress_step_bytes(expected)
+
+
+def _progress_message(downloaded: int, expected: int | None) -> str:
+    if expected:
+        return f"Downloading: {downloaded * 100 // expected}% ({downloaded // _MEGABYTE}/{expected // _MEGABYTE} MB)"
+    return f"Downloading: {downloaded // _MEGABYTE} MB"
 
 
 def _remote_size(response: requests.Response, offset: int) -> int | None:
@@ -33,10 +57,20 @@ def _download_once(
         if offset and response.status_code != 206:
             offset = 0
         expected_size = _remote_size(response, offset)
+        if offset:
+            logger.info(f"Resuming download at {offset // _MEGABYTE} MB")
+        downloaded = offset
+        last_milestone = _progress_milestone(downloaded, expected_size)
         with temporary_path.open("ab" if offset else "wb") as destination:
             for chunk in response.iter_content(chunk_size=chunk_size):
-                if chunk:
-                    destination.write(chunk)
+                if not chunk:
+                    continue
+                destination.write(chunk)
+                downloaded += len(chunk)
+                milestone = _progress_milestone(downloaded, expected_size)
+                if milestone > last_milestone:
+                    last_milestone = milestone
+                    logger.info(_progress_message(downloaded, expected_size))
     if expected_size is not None and temporary_path.stat().st_size != expected_size:
         raise OSError(f"Incomplete download: {temporary_path.stat().st_size} bytes received; {expected_size} expected")
 
@@ -53,9 +87,11 @@ def prepare_source_zip(
     """Download atomically or reuse a valid ZIP without loading it in memory."""
     destination.parent.mkdir(parents=True, exist_ok=True)
     if destination.exists() and not force:
+        logger.info(f"Reusing source ZIP: {destination}")
         validate_zip(destination)
         downloaded = False
     else:
+        logger.info(f"Source: {url}")
         temporary_path = destination.with_suffix(destination.suffix + ".part")
         if force:
             temporary_path.unlink(missing_ok=True)
@@ -63,6 +99,7 @@ def prepare_source_zip(
         for attempt in range(1, retries + 1):
             try:
                 _download_once(url, temporary_path, connect_timeout, read_timeout, chunk_size)
+                logger.info("Validating downloaded ZIP")
                 validate_zip(temporary_path)
                 temporary_path.replace(destination)
                 downloaded = True
@@ -70,11 +107,14 @@ def prepare_source_zip(
             except (OSError, ValueError, requests.RequestException) as exc:
                 last_error = exc
                 if attempt < retries:
-                    time.sleep(min(attempt * 5, 30))
+                    delay = min(attempt * 5, 30)
+                    logger.warning(f"Attempt {attempt}/{retries} failed ({exc}); retrying in {delay}s")
+                    time.sleep(delay)
         else:
             raise RuntimeError(f"Download failed after {retries} attempts") from last_error
 
     stat = destination.stat()
+    logger.info(f"Hashing {stat.st_size // _MEGABYTE} MB ZIP")
     return {
         "url": url,
         "zip_path": str(destination),
@@ -111,6 +151,7 @@ def extract_tiff_member(zip_path: Path, member: zipfile.ZipInfo, output_dir: Pat
     """Extract only the selected TIFF by streaming to disk; never mutate a reused source."""
     output_dir.mkdir(parents=True, exist_ok=True)
     destination = output_dir / Path(member.filename).name
+    logger.info(f"Extracting {member.filename} ({member.file_size // _MEGABYTE} MB)")
     if destination.exists():
         if destination.stat().st_size != member.file_size:
             raise ValueError(f"Existing extracted TIFF has unexpected size: {destination}")
