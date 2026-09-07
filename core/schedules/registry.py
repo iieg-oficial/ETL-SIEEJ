@@ -25,6 +25,7 @@ SCHEDULES: Final[dict[str, Schedule]] = {
     "etl_produccion_ganadera_update": Schedule("produccion_ganadera", "0 15 1 1 *", "cada año, el 1 de enero"),
     "etl_ilmm_update": Schedule("ilmm", "0 16 1 6 *", "cada año, el 1 de junio"),
     "etl_defunciones_update": Schedule("defunciones", "0 17 1 7 *", "cada año, el 1 de julio"),
+    "etl_defunciones_inegi_update": Schedule("defunciones_inegi", "0 18 1 12 *", "cada año, el 1 de diciembre"),
     "etl_enoe_microdatos_incremental": Schedule("enoe_microdatos", "0 0 10 3,6,9,12 *", "cada 3 meses, el día 10"),
     "etl_enoe_update": Schedule("enoe", "0 3 10 3,6,9,12 *", "cada 3 meses, el día 10"),
     "etl_asg_imss_update": Schedule("asg_imss", "0 12 10 * *", "cada mes, el día 10"),

@@ -44,6 +44,12 @@ La descarga se realiza mediante scraping con Selenium; el sitio requiere navegac
 | `fecha_alta` | Fecha de registro en el DENUE |
 | `nombre_asentamiento` | Nombre del asentamiento humano |
 | `ageb` | Clave de AGEB |
+| `tipo_vial` | Tipo de vialidad (calle, avenida, boulevard, etc.) |
+| `nom_vial` | Nombre de la vialidad |
+| `numero_ext` | Número exterior del establecimiento |
+| `cod_postal` | Código postal; `TEXT` para conservar los ceros a la izquierda |
+| `telefono` | Teléfono de contacto, tal como viene del origen |
+| `contacto_web` | Sitio web, correo electrónico o red social, tal como viene del origen |
 | `localidad_id` | FK a catálogo de localidades |
 | `sector_id` | FK a sector SCIAN |
 | `subsector_id` | FK a subsector SCIAN |
@@ -62,6 +68,7 @@ La descarga se realiza mediante scraping con Selenium; el sitio requiere navegac
 | `V3__tables_denue.sql` | Tabla principal `stg_establecimientos` |
 | `V4__views_denue.sql` | Vista desnormalizada nacional |
 | `V5__views_jalisco.sql` | Vista filtrada a Jalisco |
+| `V6__domicilio_contacto_jalisco.sql` | Domicilio (vialidad, número exterior, código postal) y contacto en `stg_est_jal` |
 
 ## Variables de entorno
 

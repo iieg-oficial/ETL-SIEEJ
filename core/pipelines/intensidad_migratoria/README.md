@@ -67,6 +67,10 @@ IIM_URL_ESTATAL_2020=https://repodatos.atdt.gob.mx/api_update/conapo/indice_inte
 | `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
 | `V2__tables_iim.sql` | Tablas `iim_municipal` e `iim_estatal` |
 | `V3__views_iim.sql` | Vistas analíticas |
+| `V4__initialize_materialized_view.sql` | Inicializa las columnas geométricas de la tabla foránea municipal |
+| `V5__materialized_views_iim.sql` | Vista materializada `vm_iim_geo` para la capa municipal de GeoServer |
+| `V6__update_vm_iim_geo_columns.sql` | Actualiza fecha y claves de `vm_iim_geo` |
+| `V7__update_vm_iim_geo_key_types.sql` | Expone las claves geográficas como texto |
 
 ## Variables de entorno
 
@@ -88,7 +92,7 @@ Normaliza tipos de datos (numéricos, enteros), ajusta claves geográficas a ent
 
 ### Load
 
-Inserción directa en `iim_municipal` e `iim_estatal` con `insert_records`. No hay upsert ya que los datos son fijos por año de levantamiento.
+Inserción directa en `iim_municipal` e `iim_estatal` con `insert_records`. No hay upsert ya que los datos son fijos por año de levantamiento. Al finalizar, se refresca `vm_iim_geo`; el primer refresco es normal y los posteriores son concurrentes gracias al índice único de la vista.
 
 ## Ejecución
 

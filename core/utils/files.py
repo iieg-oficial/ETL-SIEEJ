@@ -121,6 +121,33 @@ def fetch_zip(url: str, timeout: int = 120) -> zipfile.ZipFile:
     return zipfile.ZipFile(io.BytesIO(response.content))
 
 
+def read_csv_from_zip(
+    archive: zipfile.ZipFile,
+    member: str,
+    encodings: tuple[str, ...] = _FALLBACK_ENCODINGS,
+    **read_csv_kwargs,
+) -> pd.DataFrame:
+    """Lee un CSV dentro de un ZIP ya abierto, probando encodings en orden.
+
+    Args:
+        archive: ZIP abierto.
+        member: ruta del miembro dentro del ZIP.
+        encodings: encodings a probar; sólo el último puede fallar.
+
+    Raises:
+        UnicodeDecodeError: si ninguno sirve.
+    """
+    with archive.open(member) as handle:
+        raw = handle.read()
+
+    for encoding in encodings:
+        try:
+            return pd.read_csv(io.BytesIO(raw), encoding=encoding, **read_csv_kwargs)
+        except UnicodeDecodeError:
+            logger.warning(f"'{member}' no es {encoding}; probando el siguiente encoding")
+    raise UnicodeDecodeError(f"Ningún encoding de {encodings} sirvió para '{member}'")
+
+
 def read_csv_from_zip_url(url: str, csv_path: str, **read_csv_kwargs) -> pd.DataFrame:
     response = requests.get(url, stream=True)
     response.raise_for_status()
