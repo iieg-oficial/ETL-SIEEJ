@@ -219,9 +219,27 @@ flyway-config pipeline: (_load-env pipeline)
     env_file="core/pipelines/{{pipeline}}/.env"
     [ -f "$env_file" ] || env_file="migrations/{{pipeline}}/.env"
     DEFAULT_FDW_PORT=5432
+    # Un .env recien copiado del .example conserva los marcadores <VAR>: hay que
+    # avisar aqui, no dejar que flyway falle luego con un error de conexion.
     read_env_var() {
         grep "^$2=" "$1" 2>/dev/null | head -1 | cut -d= -f2- || true
     }
+    require_env_vars() {
+        local file="$1" label="$2" missing=() var value
+        shift 2
+        for var in "$@"; do
+            value=$(read_env_var "$file" "$var")
+            case "$value" in
+                "" | "<"*">") missing+=("$var") ;;
+            esac
+        done
+        if [ ${#missing[@]} -gt 0 ]; then
+            echo "Error: $label ($file) tiene variables sin configurar: ${missing[*]}" >&2
+            echo "Copia los valores reales sobre el .env generado desde .env.example y repite el comando." >&2
+            exit 1
+        fi
+    }
+    require_env_vars "$env_file" "el pipeline {{pipeline}}" DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD
     DB_HOST=$(grep '^DB_HOST=' "$env_file" | cut -d= -f2-)
     DB_PORT=$(grep '^DB_PORT=' "$env_file" | cut -d= -f2-)
     DB_NAME=$(grep '^DB_NAME=' "$env_file" | cut -d= -f2-)
@@ -237,6 +255,7 @@ flyway-config pipeline: (_load-env pipeline)
     # La conexion FDW primaria (cvegeo) usa placeholders genericos <FDW_DB_*>
     # y se resuelve desde migrations/cvegeo/.env, igual que el host.
     if [ -f migrations/cvegeo/.env ]; then
+        require_env_vars migrations/cvegeo/.env "la base FDW cvegeo" DB_HOST DB_NAME DB_USER DB_PASSWORD
         FDW_DB_NAME=$(grep '^DB_NAME=' migrations/cvegeo/.env | cut -d= -f2-)
         FDW_DB_HOST=$(grep '^DB_HOST=' migrations/cvegeo/.env | cut -d= -f2-)
         FDW_DB_PORT=$(read_env_var migrations/cvegeo/.env DB_PORT)
@@ -260,6 +279,7 @@ flyway-config pipeline: (_load-env pipeline)
         [ -f "$fdw_env" ] || fdw_env="migrations/$db_lower/.env"
         FDW_NAME="" FDW_HOST="" FDW_PORT="" FDW_USER="" FDW_PASSWORD=""
         if [ -f "$fdw_env" ]; then
+            require_env_vars "$fdw_env" "la base FDW $db_lower" DB_HOST DB_NAME DB_USER DB_PASSWORD
             FDW_NAME=$(grep '^DB_NAME=' "$fdw_env" | cut -d= -f2-)
             FDW_HOST=$(grep '^DB_HOST=' "$fdw_env" | cut -d= -f2-)
             FDW_PORT=$(read_env_var "$fdw_env" DB_PORT)
