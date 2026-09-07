@@ -9,6 +9,7 @@ from core.pipelines.participacion_ciudadana.stages import load
 
 def test_action_refreshes_geographic_materialized_view(monkeypatch):
     loader = load.ParticipacionCiudadanaLoad()
+
     class DatabaseStub:
         pass
 
@@ -32,9 +33,7 @@ def test_action_refreshes_geographic_materialized_view(monkeypatch):
     monkeypatch.setattr(load, "refresh_materialized_views", lambda database, views: refreshed.append((database, views)))
 
     result = loader.action(
-        pd.DataFrame(
-            [{"entidad_id": 14, "municipio_id": 39, "porc_participacion": 61.2, "anio": 2021}]
-        )
+        pd.DataFrame([{"entidad_id": 14, "municipio_id": 39, "porc_participacion": 61.2, "anio": 2021}])
     )
 
     assert result == {"records_before": 0}
