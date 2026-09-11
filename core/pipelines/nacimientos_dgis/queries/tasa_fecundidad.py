@@ -1,4 +1,6 @@
-INSERT_TASA_FECUNDIDAD = """
+from core.pipelines.nacimientos_dgis.attributes import NacimientosDgisTables as T
+
+INSERT_TASA_FECUNDIDAD = f"""
 DELETE FROM stg_tasa_fecundidad;
 
 INSERT INTO stg_tasa_fecundidad (
@@ -19,7 +21,7 @@ SELECT
                  + c.pob_35_39 + c.pob_40_44 + c.pob_45_49, 0)
         * 1000, 2
     )                                AS tasa_fec_gen
-FROM stg_nacimientos n
+FROM {T.STG_NACIMIENTOS_EDAD_MADRE} n
 JOIN conapo_poblacion c
     ON c.municipio_id = n.cve_geo
     AND c.anio = n.anio
