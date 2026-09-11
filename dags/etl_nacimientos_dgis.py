@@ -38,14 +38,14 @@ def get_years(start_year: int):
 def get_update_years():
     from core.db import Database
     from core.pipelines.nacimientos_dgis.config import settings
-    from core.pipelines.nacimientos_dgis.schemas import StgNacimientos
+    from core.pipelines.nacimientos_dgis.schemas import StgNacimientosEdadMadre
     from core.utils.bulk_ops import get_last_update
 
     db = Database(settings.DB_NAME, settings.database_url)
     db.connect()
     try:
         with db.get_session() as session:
-            last_year = get_last_update(session, StgNacimientos, StgNacimientos.anio.key)
+            last_year = get_last_update(session, StgNacimientosEdadMadre, StgNacimientosEdadMadre.anio.key)
     finally:
         db.disconnect()
 
