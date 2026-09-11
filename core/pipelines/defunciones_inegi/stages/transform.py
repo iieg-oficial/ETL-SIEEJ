@@ -24,6 +24,7 @@ from core.pipelines.defunciones_inegi.constants import (
 from core.pipelines.defunciones_inegi.helpers.catalogs import (
     capitulo_grupo_records,
     catalog_records,
+    distrito_oaxaca_records,
     localidad_records,
     pais_records,
     razon_materna_records,
@@ -79,6 +80,7 @@ class DefuncionesInegiTransform(Stage):
             localidades = self._edition_catalog(year, str(T.CAT_LOCALIDAD))
             if localidades is not None:
                 catalogs[T.CAT_LOCALIDAD].extend(self._stamp(localidad_records(localidades), T.CAT_LOCALIDAD, year))
+                catalogs[T.CAT_DISTRITO_OAXACA].extend(distrito_oaxaca_records(localidades))
 
             paises = self._edition_catalog(year, str(T.CAT_PAIS))
             if paises is not None:
