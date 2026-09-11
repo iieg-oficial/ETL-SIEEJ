@@ -72,8 +72,10 @@ Variables presentes en **todas** las ediciones desde 2017.
 | `entidad_*_id` / `municipio_*_id` | Clave INEGI del ámbito (registro, residencia, ocurrencia, lesión). Se une contra `cvegeo_states.cve_ent` y `cvegeo_municipalities` (`cve_ent` + `cve_mun`) por FDW |
 | `localidad_*_id` | Localidad del ámbito, contra `cat_localidad` |
 | `tamanio_localidad_*_id` | Tamaño de localidad del ámbito |
-| `fecha_ocurrencia` | Fecha de ocurrencia, armada con `dia_ocurr + mes_ocurr + anio_ocur` |
+| `fecha_ocurrencia` | Fecha de ocurrencia, armada con `dia_ocurr + mes_ocurr + anio_ocur`. Nula si falta algún componente o la fecha no existe en el calendario |
+| `dia_ocurrencia` / `mes_ocurrencia` / `anio_ocurrencia` | Componentes de la fecha de ocurrencia, cada uno nulo sólo si su propio valor viene como no especificado (`99` día y mes, `9999` año). Un año conocido se conserva aunque falten el día o el mes |
 | `fecha_registro` / `fecha_nacimiento` / `fecha_certificacion` | Ídem, con sus propios componentes |
+| `dia_*` / `mes_*` / `anio_*` de registro, nacimiento y certificación | Misma semántica que los de ocurrencia |
 | `hora_defuncion` | Hora de la defunción, armada con `horas + minutos` |
 | `edad_cantidad` / `edad_unidad` | Edad descompuesta del código INEGI: unidad `1` horas, `2` días, `3` meses, `4` años |
 | `causa_defuncion_id` | Causa de la defunción (CIE-10, lista detallada) |
@@ -87,7 +89,7 @@ Variables presentes en **todas** las ediciones desde 2017.
 | `asistencia_medica_id`, `necropsia_id`, `sitio_ocurrencia_id`, `certificante_id` | Circunstancias de la atención |
 | `presunta_defuncion_violenta_id`, `lugar_ocurrencia_id`, `ocurrio_trabajo_id`, `violencia_familiar_id`, `parentesco_agresor_id` | Circunstancias de muertes violentas |
 | `condicion_embarazo_id`, `relacion_embarazo_id`, `complicaron_embarazo_id`, `razon_materna_id` | Mortalidad materna |
-| `distrito_registro_oaxaca` | Distrito de registro de Oaxaca |
+| `distrito_registro_oaxaca_id` | Distrito de registro de Oaxaca, contra `cat_distrito_oaxaca`. Nulo fuera de esa entidad, donde la fuente trae el centinela `999` |
 | `fecha_actualizacion` | Fecha en que el pipeline cargó la fila |
 
 ### stg_defunciones_ampliacion
@@ -118,6 +120,8 @@ Variables que INEGI incorporó en **2022**. Relación 1:1 con `stg_defunciones` 
 | `V4__comments_defunciones_inegi.sql` | `COMMENT ON` de tablas y columnas, tomados del diccionario de datos oficial |
 | `V5__views_defunciones_inegi.sql` | Vistas `vw_defunciones`, `vw_defunciones_ampliacion` y sus variantes `_jalisco`. Convención: `X_id` es la clave y `X` la descripción |
 | `V7__comments_views_defunciones_inegi.sql` | `COMMENT ON` de las cuatro vistas y sus columnas (van aparte porque `V4` corre antes de que las vistas existan) |
+| `V9__distrito_registro_oaxaca.sql` | Crea `cat_distrito_oaxaca`, cambia `distrito_registro_oaxaca` por su FK y recrea las vistas de defunciones para exponer el nombre del distrito |
+| `V8__date_components_defunciones_inegi.sql` | Agrega `dia_*`, `mes_*` y `anio_*` de las cuatro fechas a `stg_defunciones` con su índice en `anio_ocurrencia`, los expone en `vw_defunciones` y `vw_defunciones_jalisco`, y escribe sus `COMMENT ON` |
 | `V6__sentence_case_descripciones.sql` | Pasa a mayúscula inicial las descripciones de `cat_lista_cie` y `cat_grupo_lista_mexicana`, preservando siglas y nombres propios |
 
 ## Variables de entorno
@@ -141,9 +145,10 @@ Descubre las ediciones publicadas sondeando año por año desde 2017. **El códi
 
 Consolida los catálogos de todas las ediciones y normaliza los hechos por lotes:
 
-- **Fechas**: `dia + mes + anio` se colapsan en un `DATE`; un centinela (`99`, `9999`) en cualquier componente anula la fecha. `horas + minutos` se colapsan en un `TIME`.
+- **Fechas**: `dia + mes + anio` se guardan en tres columnas normalizadas **y** se colapsan en un `DATE`. Un centinela (`99` día y mes, `9999` año) anula sólo su propio componente; la fecha completa además queda nula si alguno falta o si el calendario no admite la combinación (31 de febrero). Así un año conocido sigue sirviendo para agregados anuales aunque INEGI no especifique el día. `horas + minutos` se colapsan en un `TIME`.
 - **Edad**: el código de cuatro dígitos se parte en `edad_unidad` y `edad_cantidad`.
 - **Lugar de nacimiento**: `ent_nac` mezcla entidades y países en un solo campo; se separa en dos columnas mutuamente excluyentes.
+- **Distritos de Oaxaca**: los 30 distritos (`901-930`) viajan dentro del catálogo de localidades, como filas con `cve_loc` en cero. No son localidades, así que `localidad_records` las descarta y `distrito_oaxaca_records` las rescata para `cat_distrito_oaxaca`. Es el único nivel geográfico intermedio del país y sólo aplica a esa entidad: `999` marca los registros del resto del país y se guarda como `NULL`.
 - **Claves alfanuméricas**: se canonizan quitando el cero a la izquierda. `grupo_lista_mexicana` publica el catálogo como `1` y los hechos como `01` en 2017-2021; sin esto el join se pierde en silencio.
 
 ### Load
@@ -163,6 +168,17 @@ python dags/etl_defunciones_inegi.py
 **Update** (anual, DAG `etl_defunciones_inegi_update`, schedule `0 18 1 12 *`):
 
 Arranca en la edición siguiente a la última cargada, así que no vuelve a descargar lo que ya está en la base.
+
+**Recarga histórica** (necesaria una sola vez, para poblar los componentes de fecha):
+
+Las ediciones cargadas antes de `V8` tienen `dia_*`, `mes_*` y `anio_*` en `NULL`, y las anteriores a `V9` no tienen resuelto el distrito de Oaxaca: la versión anterior del transform descartaba esos componentes después de armar la fecha, así que la migración sola no puede reconstruirlos. Hay que reprocesar desde los archivos EDR de origen:
+
+```shell
+just flyway-reset defunciones_inegi
+python dags/etl_defunciones_inegi.py
+```
+
+Los ZIP ya descargados se reusan, así que la recarga cuesta transform y load, no la descarga. Partir del schema vacío es obligatorio: el load asigna los `id` de `stg_defunciones` explícitamente y correr el bootstrap sobre datos existentes los duplicaría.
 
 ## Notas adicionales
 
