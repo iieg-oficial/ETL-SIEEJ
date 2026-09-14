@@ -48,6 +48,8 @@ El archivo CSV consolidado se obtiene desde Google Drive (acceso público con el
 | `V1__foreign_tables.sql` | FDW hacia la base `cvegeo` |
 | `V2__table_participacion.sql` | Tabla principal `stg_participacion` |
 | `V3__view_participacion.sql` | Vista analítica |
+| `V4__initialize_materialized_view.sql` | Expone geometrías municipales en el FDW de `cvegeo` |
+| `V5__materialized_views_participacion_ciudadana.sql` | Vista materializada `vm_porcentaje_participacion_geo` para consumo GIS |
 
 ## Variables de entorno
 
@@ -67,7 +69,8 @@ Renombra columnas, filtra a años de elección válidos, convierte porcentajes a
 
 ### Load
 
-Inserción directa de los registros en `stg_participacion` con `insert_records`.
+Inserción directa de los registros en `stg_participacion` con `bulk_insert` y
+refresco de `vm_porcentaje_participacion_geo` al terminar una carga exitosa.
 
 ## Ejecución
 

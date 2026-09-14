@@ -9,6 +9,7 @@ from core.pipelines.defunciones_inegi.constants import (
     CATALOG_DIR,
     CATALOG_MEMBER_DIR,
     CODIGO_ADICIONAL_ALIAS,
+    EMBEDDED_CATALOG_TABLES,
     MANIFEST_NAME,
     PIPELINE_NAME,
 )
@@ -51,7 +52,9 @@ class DefuncionesInegiExtract(Stage):
         """Cada edición publica sólo los catálogos de las variables que trae."""
         found: dict[str, pd.DataFrame] = {}
         with zipfile.ZipFile(zip_path) as archive:
-            wanted = {str(table): catalog_aliases(table) for table in T.catalogs()}
+            wanted = {
+                str(table): catalog_aliases(table) for table in T.catalogs() if table not in EMBEDDED_CATALOG_TABLES
+            }
             wanted[CODIGO_ADICIONAL_ALIAS] = (CODIGO_ADICIONAL_ALIAS,)
 
             for name, aliases in wanted.items():
@@ -59,7 +62,7 @@ class DefuncionesInegiExtract(Stage):
                 if member is not None:
                     found[name] = read_catalog_csv(archive, member)
 
-        missing = sorted(str(t) for t in T.catalogs() if str(t) not in found)
+        missing = sorted(str(t) for t in T.catalogs() if str(t) not in found and t not in EMBEDDED_CATALOG_TABLES)
         self.logger.info(f"[action] {zip_path.name}: {len(found)} catálogos; no publicados: {missing or 'ninguno'}")
         return found
 

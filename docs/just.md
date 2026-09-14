@@ -109,7 +109,8 @@ Available recipes:
   [development]
     setup                 # Instalar pre-commit hooks y dependencias
     build-dev ...         # Levantar contenedor PostGIS para desarrollo
-    stop-dev              # Detener y eliminar el contenedor de desarrollo
+    stop-dev              # Detener y eliminar el contenedor de desarrollo (conserva los datos)
+    reset-dev             # Eliminar el contenedor y el volumen de desarrollo (destructivo)
     data-clean pipeline   # Eliminar archivos temporales de extract y transform de un pipeline
 
   [setup]
@@ -193,12 +194,45 @@ just build-dev user=sieej_user pass=mi_pass db=sieej
 | `db` | `test` | Nombre de la base de datos |
 | `port` | `5432` | Puerto expuesto en el host |
 
+Los datos se guardan en el volumen con nombre `postgres-dev-data`, así que recrear el contenedor conserva las bases.
+
+> ⚠️ `user`, `pass` y `db` sólo se aplican cuando el volumen está vacío. Si ya tiene datos, se ignoran; para cambiarlos hay que ejecutar `just reset-dev` primero.
+
+> ⚠️ Si cambia la versión mayor de la imagen (por ejemplo, de `17` a `18`), el contenedor no arrancará con el volumen existente. Respalda con `pg_dumpall` y ejecuta `just reset-dev` antes.
+
+#### Migrar desde un volumen anónimo
+
+Los contenedores creados antes de este cambio guardan los datos en un volumen anónimo. Para pasarlos a `postgres-dev-data` **antes** de recrear:
+
+```bash
+VOL=$(docker inspect postgres-dev --format '{{range .Mounts}}{{.Name}}{{end}}')
+echo "$VOL"   # si sale vacío, detente
+docker volume ls -q | rg '^postgres-dev-data$'   # no debe imprimir nada, ver nota abajo
+just stop-dev
+docker volume create postgres-dev-data
+docker run --rm -v "$VOL":/from -v postgres-dev-data:/to alpine cp -a /from/. /to/
+just build-dev
+```
+
+Comprueba que las bases siguen ahí (`\l` en `psql`) y, sólo entonces, borra el volumen anónimo con `docker volume rm "$VOL"`.
+
+> ⚠️ Si `postgres-dev-data` ya existe (por ejemplo, ejecutaste `just build-dev` sin migrar y viste la base vacía), contiene un cluster nuevo que se mezclaría con la copia. Si `$VOL` sigue siendo el volumen anónimo con tus datos, elimina primero el volumen con nombre: `docker rm -f postgres-dev && docker volume rm postgres-dev-data`.
+
 ### stop-dev
 
-Detiene y elimina el contenedor `postgres-dev`.
+Detiene y elimina el contenedor `postgres-dev`. **Los datos se conservan** en `postgres-dev-data`: `just build-dev` los vuelve a montar.
 
 ```bash
 just stop-dev
+```
+
+### reset-dev
+
+Elimina el contenedor `postgres-dev` **y el volumen `postgres-dev-data`**. Borra todas las bases de desarrollo. Pide confirmación antes de ejecutarse.
+
+```bash
+just reset-dev
+just build-dev   # contenedor limpio
 ```
 
 ### data-clean

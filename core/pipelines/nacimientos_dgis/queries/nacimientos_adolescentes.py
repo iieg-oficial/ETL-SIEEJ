@@ -1,4 +1,6 @@
-INSERT_NACIMIENTOS_ADOLESCENTES = """
+from core.pipelines.nacimientos_dgis.attributes import NacimientosDgisTables as T
+
+INSERT_NACIMIENTOS_ADOLESCENTES = f"""
 DELETE FROM stg_nacimientos_adolescentes;
 
 INSERT INTO stg_nacimientos_adolescentes (
@@ -45,7 +47,7 @@ SELECT
         / NULLIF(SUM(CASE WHEN n.edad_madre BETWEEN 15 AND 19 THEN n.tot_nac END), 0) * 100, 2
     )   AS pct_edad_padre_sin_dato_madres_15_19
 
-FROM stg_nacimientos n
+FROM {T.STG_NACIMIENTOS_EDAD_MADRE} n
 JOIN conapo_poblacion c
     ON c.municipio_id = n.cve_geo
     AND c.anio = n.anio
