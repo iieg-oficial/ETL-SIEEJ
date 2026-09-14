@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.6.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.5.0...v1.6.0) (2026-09-14)
+
+
+### Features
+
+* **defunciones_inegi:** add V8 migration for date components ([729db9c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/729db9ce2f09a6e052193f4df98a38f611079403))
+* **defunciones_inegi:** add V9 migration for oaxaca district catalog ([1d13ba2](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1d13ba2d38d41c9c11805a7782d0c71756b42e0b))
+* **defunciones_inegi:** build district catalog in extract and transform ([c5a4215](https://github.com/iieg-oficial/ETL-SIEEJ/commit/c5a4215bf8041feafad751386f95df169503a4cf))
+* **defunciones_inegi:** cover date components and district catalog ([a49c3c3](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a49c3c378823d6c895557c253f63968cb313d62b))
+* **defunciones_inegi:** declare date component and district constants ([db2a716](https://github.com/iieg-oficial/ETL-SIEEJ/commit/db2a7165c971a9be5902a431f2304692dbaa8274))
+* **defunciones_inegi:** keep date parts and map oaxaca districts ([cd47302](https://github.com/iieg-oficial/ETL-SIEEJ/commit/cd4730277cc428e7052ebb0a75415610361e34e0))
+* **justfile:** fail early when required .env variables are unset ([cfc11c4](https://github.com/iieg-oficial/ETL-SIEEJ/commit/cfc11c42d50796a8a349f4393a54fb3aa371ad9d))
+* **nacimientos_dgis:** add catalog and certificate helpers ([51a5bfb](https://github.com/iieg-oficial/ETL-SIEEJ/commit/51a5bfbc79b5dab897a7914c4dc40cfd93d4a1a4))
+* **nacimientos_dgis:** add COPY queries for the certificate table ([595f067](https://github.com/iieg-oficial/ETL-SIEEJ/commit/595f067681154f9988a6ab663fa5d3bdcc3a8ab9))
+* **nacimientos_dgis:** add V11 migration renaming the aggregate table ([2d646ba](https://github.com/iieg-oficial/ETL-SIEEJ/commit/2d646ba97df43ff1003de035d2cf289ea313e106))
+* **nacimientos_dgis:** add V12 migration for SINAC catalog tables ([5b192af](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5b192afcff6a4072defb4758b2ac088fa46cb69a))
+* **nacimientos_dgis:** add V13 migration for certificate microdata ([e317434](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e31743468098b67a46b3baddc1109dad0edd8daa))
+* **nacimientos_dgis:** add V14 migration for the certificate view ([3ca7f8e](https://github.com/iieg-oficial/ETL-SIEEJ/commit/3ca7f8e74ee64b7e4456e89023fac46d8bd4b1fc))
+* **nacimientos_dgis:** add V15 migration commenting the new objects ([8e27d42](https://github.com/iieg-oficial/ETL-SIEEJ/commit/8e27d42497c02f49cb6d6944be48f97bb0ffabeb))
+* **nacimientos_dgis:** agregar campos del certificado SINAC y separar granos ([b8c4f08](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b8c4f08427579a75d13f04c9b1931e50e738c94b))
+* **nacimientos_dgis:** load certificates and SINAC catalogs ([77e82f9](https://github.com/iieg-oficial/ETL-SIEEJ/commit/77e82f96394a59b678b0b4a2d3245bc285b33e60))
+* **nacimientos_dgis:** model birth certificates and SINAC catalogs ([5e7105d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5e7105d45295276b2c2880ea2804abfdb83b141d))
+* **nacimientos_dgis:** split constants into source and facts modules ([b31b108](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b31b108af496e55be48875b3475cb8e4401ff729))
+* **participacion_ciudadana:** add geographic materialized view ([0fda6cb](https://github.com/iieg-oficial/ETL-SIEEJ/commit/0fda6cb070437afaa905867dc5b35ce00c47e64f))
+* **participacion_ciudadana:** add geographic materialized view ([72fe714](https://github.com/iieg-oficial/ETL-SIEEJ/commit/72fe714afec6194b98c8293357e7c30f365685fb))
+
+
+### Bug Fixes
+
+* **core:** correct Jalisco municipality accents in ACCENT_MAP ([b727b68](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b727b680971eeeb15fab0d0b1a42eaa03abe9f98))
+* **defunciones_inegi:** conservar componentes de fecha y resolver el distrito de Oaxaca ([f06f8c6](https://github.com/iieg-oficial/ETL-SIEEJ/commit/f06f8c6b80297b96bdc19059aa81bf2689623c5b))
+* **justfile:** resolve FDW port from .env with 5432 fallback ([495d806](https://github.com/iieg-oficial/ETL-SIEEJ/commit/495d806bd52671d2054e64a2fdda9be05d3617f6))
+* **justfile:** resolver el puerto FDW desde el .env y validar variables sin configurar ([ede43d9](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ede43d965c1539d0293763e9e63e4dfbd7e7df4e))
+* **nacimientos_dgis:** point the DAG at the renamed aggregate model ([60f991b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/60f991b823593ea8391c50c329d1b1c69a3a3f09))
+* **participacion_ciudadana:** format geographic view refresh test ([70174c3](https://github.com/iieg-oficial/ETL-SIEEJ/commit/70174c324b573db1b9fe2ae1a55d05a44fea9d60))
+
 ## [1.5.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.4.0...v1.5.0) (2026-09-04)
 
 
