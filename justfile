@@ -63,6 +63,7 @@ build-dev user="test" pass="test" db="test" port="5432":
       -e POSTGRES_PASSWORD={{pass}} \
       -e POSTGRES_DB={{db}} \
       -p {{port}}:5432 \
+      --shm-size=1g \
       -d postgis/postgis:17-3.5
 
 [group('development')]
