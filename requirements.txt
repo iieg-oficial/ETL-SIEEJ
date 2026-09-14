@@ -2,6 +2,11 @@ sqlalchemy>=2.0.0
 rich
 pandas
 geopandas
+pyarrow>=17,<22
+rasterio>=1.4,<1.5
+scipy>=1.14,<2
+matplotlib>=3.8,<4
+fiona>=1.10,<1.11
 pyproj==3.7.2
 psycopg2-binary
 python-dotenv
@@ -31,3 +36,4 @@ retry
 pre-commit
 xlrd==2.0.2
 erdalchemy[all]==0.5.0
+pyarrow
