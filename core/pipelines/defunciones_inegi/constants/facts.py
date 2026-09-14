@@ -86,6 +86,15 @@ DATE_PARTS: Final[dict[str, tuple[str, str, str]]] = {
     "fecha_certificacion": ("dia_cert", "mes_cert", "anio_cert"),
 }
 
+# Componentes normalizados que se conservan junto a cada fecha. INEGI puede
+# publicar el año sin el día o el mes, así que cada parte se guarda aparte.
+DATE_COMPONENTS: Final[dict[str, tuple[str, str, str]]] = {
+    "fecha_ocurrencia": ("dia_ocurrencia", "mes_ocurrencia", "anio_ocurrencia"),
+    "fecha_registro": ("dia_registro", "mes_registro", "anio_registro"),
+    "fecha_nacimiento": ("dia_nacimiento", "mes_nacimiento", "anio_nacimiento"),
+    "fecha_certificacion": ("dia_certificacion", "mes_certificacion", "anio_certificacion"),
+}
+
 TIME_PARTS: Final[tuple[str, str]] = ("horas", "minutos")
 TIME_COLUMN: Final[str] = "hora_defuncion"
 
@@ -98,6 +107,9 @@ EDITION_COLUMN: Final[str] = "anio_edicion"
 DAY_SENTINEL: Final[int] = 99
 MONTH_SENTINEL: Final[int] = 99
 YEAR_SENTINEL: Final[int] = 9999
+
+# Centinela de "no especificado" por posición del componente: día, mes, año.
+DATE_SENTINELS: Final[tuple[int, int, int]] = (DAY_SENTINEL, MONTH_SENTINEL, YEAR_SENTINEL)
 HOUR_SENTINEL: Final[int] = 99
 MINUTE_SENTINEL: Final[int] = 99
 
@@ -109,6 +121,8 @@ EDAD_SENTINELS: Final[frozenset[int]] = frozenset({1097, 1098, 2098, 3098, 4998}
 NUMERIC_SENTINELS: Final[dict[str, tuple[int, ...]]] = {
     "semanas_gestacion": (88, 99),
     "peso_gramos": (8888, 9999),
+    # 999 marca los registros fuera de Oaxaca, que no tienen distrito.
+    "distrito_registro_oaxaca": (999,),
 }
 
 # `ent_nac` mezcla entidades federativas y países en un solo campo. Las claves
@@ -119,6 +133,7 @@ PAIS_SENTINELS: Final[frozenset[int]] = frozenset({888, 997, 998, 999})
 
 # Columna de hechos -> catálogo contra el que se resuelve su `_id`.
 COLUMN_CATALOG: Final[dict[str, str]] = {
+    "distrito_registro_oaxaca": T.CAT_DISTRITO_OAXACA,
     "sexo": T.CAT_SEXO,
     "edad_agrupada": T.CAT_EDAD_AGRUPADA,
     "escolaridad": T.CAT_ESCOLARIDAD,

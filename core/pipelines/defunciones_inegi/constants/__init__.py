@@ -11,6 +11,10 @@ from core.pipelines.defunciones_inegi.constants.catalogs import (
     DEFAULT_CATALOG_KEY,
     CODED_CATALOG_TABLES,
     CODIGO_ADICIONAL_ALIAS,
+    DISTRITO_MAX_CLAVE,
+    EMBEDDED_CATALOG_TABLES,
+    DISTRITO_MIN_CLAVE,
+    ENTIDAD_OAXACA,
     STRUCTURED_CATALOG_TABLES,
     LEGACY_CATALOG_ALIASES,
     PAIS_MAX_CLAVE,
@@ -24,7 +28,9 @@ from core.pipelines.defunciones_inegi.constants.catalogs import (
 )
 from core.pipelines.defunciones_inegi.constants.facts import (
     COLUMN_CATALOG,
+    DATE_COMPONENTS,
     DATE_PARTS,
+    DATE_SENTINELS,
     DAY_SENTINEL,
     EDAD_SENTINELS,
     EDAD_UNIT_DIVISOR,
