@@ -20,26 +20,16 @@ from core.utils.geoserver import GeoServerClient
 from core.utils.geoserver_introspect import (
     GEOMETRY_TYPE_TO_JTS_BINDING,
     PG_TO_JAVA_BINDING,
+    discover_pipelines,
     get_columns,
     get_geometry_columns,
+    load_declared_matviews,
     pick_default_geometry,
     resolve_matviews,
 )
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger("create_geoserver_layers")
-
-PIPELINES = [
-    "produccion_ganadera",
-    "agropecuario_siap",
-    "marginacion",
-    "intensidad_migratoria",
-    "efipem",
-    "conapo",
-    "asg_imss",
-    "repd",
-    "fiscalia",
-]
 
 
 class GeoServerSettings(BaseSettings):
@@ -49,13 +39,23 @@ class GeoServerSettings(BaseSettings):
     GEOSERVER_VERIFY_SSL: bool = False
 
 
+def build_geoserver_client(settings: GeoServerSettings | None = None) -> GeoServerClient:
+    settings = settings or GeoServerSettings()
+    return GeoServerClient(
+        base_url=settings.GEOSERVER_URL,
+        user=settings.GEOSERVER_USER,
+        password=settings.GEOSERVER_PASSWORD,
+        verify_ssl=settings.GEOSERVER_VERIFY_SSL,
+    )
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--pipeline",
         action="append",
         dest="pipelines",
-        help="Pipeline a procesar (repetible). Default: los 9 pipelines conocidos.",
+        help="Pipeline a procesar (repetible). Default: todos los pipelines detectados automáticamente.",
     )
     parser.add_argument(
         "--dry-run",
@@ -113,18 +113,23 @@ def build_featuretype_fields(
     return fields
 
 
+def remove_orphan_featuretypes(gs: GeoServerClient, workspace: str, kept_layers: list[str]) -> None:
+    """Borra en GeoServer cualquier featuretype de `workspace` que no esté en
+    `kept_layers` (lo que se acaba de crear/actualizar en esta corrida) --
+    vistas renombradas, eliminadas, o que perdieron su columna de geometría.
+    """
+    existing = gs.list_featuretypes(workspace, workspace)
+    for name in existing:
+        if name not in kept_layers:
+            gs.delete_featuretype(workspace, workspace, name)
+
+
 def process_pipeline(gs: GeoServerClient, pipeline_name: str, dry_run: bool) -> None:
     config = importlib.import_module(f"core.pipelines.{pipeline_name}.config")
-    try:
-        queries = importlib.import_module(f"core.pipelines.{pipeline_name}.queries")
-        declared_views = queries.MATERIALIZED_VIEWS
-    except AttributeError:
-        # Algunos pipelines (ej. asg_imss) no re-exportan MATERIALIZED_VIEWS en
-        # queries/__init__.py; vive directo en queries/views.py.
-        queries = importlib.import_module(f"core.pipelines.{pipeline_name}.queries.views")
-        declared_views = queries.MATERIALIZED_VIEWS
+    declared = load_declared_matviews(pipeline_name)
+    if declared is None:
+        raise ValueError(f"{pipeline_name} no declara MATERIALIZED_VIEWS")
     settings = config.settings
-    declared = declared_views
 
     workspace = f"proxmox_{pipeline_name}"
     db = Database(pipeline_name, settings.database_url)
@@ -147,6 +152,7 @@ def process_pipeline(gs: GeoServerClient, pipeline_name: str, dry_run: bool) -> 
                 expose_primary_keys=True,
             )
 
+        ensured_layers: list[str] = []
         for matview in matviews:
             geoms = get_geometry_columns(db, matview)
             if not geoms:
@@ -165,6 +171,10 @@ def process_pipeline(gs: GeoServerClient, pipeline_name: str, dry_run: bool) -> 
                 continue
 
             gs.ensure_featuretype(workspace, workspace, layer_name=matview, managed_fields=fields)
+            ensured_layers.append(matview)
+
+        if not dry_run:
+            remove_orphan_featuretypes(gs, workspace, ensured_layers)
     finally:
         db.disconnect()
 
@@ -172,18 +182,11 @@ def process_pipeline(gs: GeoServerClient, pipeline_name: str, dry_run: bool) -> 
 def main() -> int:
     load_dotenv()
     args = build_arg_parser().parse_args()
-    gs_settings = GeoServerSettings()
-    gs = GeoServerClient(
-        base_url=gs_settings.GEOSERVER_URL,
-        user=gs_settings.GEOSERVER_USER,
-        password=gs_settings.GEOSERVER_PASSWORD,
-        verify_ssl=gs_settings.GEOSERVER_VERIFY_SSL,
-    )
+    gs = build_geoserver_client()
 
-    targets = args.pipelines or PIPELINES
-    unknown = set(targets) - set(PIPELINES)
-    if unknown:
-        logger.error(f"Pipelines desconocidos: {sorted(unknown)}. Conocidos: {PIPELINES}")
+    targets = args.pipelines or discover_pipelines()
+    if not targets:
+        logger.error("No se detectó ningún pipeline con MATERIALIZED_VIEWS")
         return 1
 
     for name in targets:

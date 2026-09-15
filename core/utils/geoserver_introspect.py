@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import importlib
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable
 
 from sqlalchemy import text
 
+import core.pipelines as pipelines_pkg
 from core.db import Database
 from core.utils.logger import get_console_logger
 
@@ -133,3 +136,36 @@ def pick_default_geometry(geoms: list[GeometryColumnInfo]) -> GeometryColumnInfo
     if PREFERRED_DEFAULT_GEOMETRY_COLUMN in by_name:
         return by_name[PREFERRED_DEFAULT_GEOMETRY_COLUMN]
     return geoms[0]
+
+
+def load_declared_matviews(pipeline_name: str) -> list[str] | None:
+    """Intenta importar MATERIALIZED_VIEWS del pipeline. Algunos pipelines
+    (ej. asg_imss) no re-exportan la constante en queries/__init__.py; vive
+    directo en queries/views.py. Devuelve None si el pipeline no la declara
+    (no es un pipeline geo) o ni siquiera existe como paquete -- señal para
+    que el caller lo excluya sin error.
+    """
+    try:
+        queries = importlib.import_module(f"core.pipelines.{pipeline_name}.queries")
+        return queries.MATERIALIZED_VIEWS
+    except ModuleNotFoundError:
+        return None
+    except AttributeError:
+        pass
+
+    try:
+        queries = importlib.import_module(f"core.pipelines.{pipeline_name}.queries.views")
+        return queries.MATERIALIZED_VIEWS
+    except (ModuleNotFoundError, AttributeError):
+        return None
+
+
+def discover_pipelines() -> list[str]:
+    """Descubre automáticamente qué pipelines declaran MATERIALIZED_VIEWS,
+    iterando core/pipelines/* en vez de mantener una lista fija a mano. Un
+    pipeline nuevo con vistas geográficas (ej. participacion_ciudadana) queda
+    incluido sin tener que tocar este módulo.
+    """
+    pipelines_dir = Path(pipelines_pkg.__file__).parent
+    candidates = sorted(p.name for p in pipelines_dir.iterdir() if p.is_dir() and not p.name.startswith("_"))
+    return [name for name in candidates if load_declared_matviews(name)]

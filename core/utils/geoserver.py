@@ -221,6 +221,32 @@ class GeoServerClient:
         response.raise_for_status()
         return response.json()
 
+    def list_featuretypes(self, workspace: str, datastore: str) -> list[str]:
+        """Nombres de todos los featuretypes registrados hoy en `datastore`, para
+        que el caller pueda detectar huérfanos (ver remove_orphan_featuretypes
+        en scripts/create_geoserver_layers.py).
+        """
+        response = self._request(
+            "GET", f"/workspaces/{workspace}/datastores/{datastore}/featuretypes.json", expect=(200,)
+        )
+        if response.status_code == NOT_FOUND_STATUS:
+            return []
+        response.raise_for_status()
+        # GeoServer devuelve "" en vez de {} cuando el datastore no tiene featuretypes.
+        feature_types = response.json().get("featureTypes") or {}
+        entries = feature_types.get("featureType", [])
+        return [entry["name"] for entry in entries]
+
+    def delete_featuretype(self, workspace: str, datastore: str, name: str, *, recurse: bool = True) -> None:
+        """Borra un featuretype y, con recurse=True, su layer asociada."""
+        self._request(
+            "DELETE",
+            f"/workspaces/{workspace}/datastores/{datastore}/featuretypes/{name}.json",
+            params={"recurse": str(recurse).lower()},
+            expect=(200,),
+        )
+        logger.info(f"[featuretype] {workspace}/{datastore}/{name} eliminado (huérfano)")
+
     def ensure_featuretype(
         self,
         workspace: str,
