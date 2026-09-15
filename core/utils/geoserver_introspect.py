@@ -123,9 +123,7 @@ def get_columns(db: Database, matview: str) -> list[ColumnInfo]:
     # geometria (ej. "geometry(MultiPolygon,6368)") no necesitan normalizarse
     # bien porque nunca pasan por ese diccionario (se resuelven aparte via
     # geometry_columns/pick_default_geometry).
-    return [
-        ColumnInfo(name=row[0], pg_type=row[1].split("(")[0].strip(), ordinal_position=row[2]) for row in rows
-    ]
+    return [ColumnInfo(name=row[0], pg_type=row[1].split("(")[0].strip(), ordinal_position=row[2]) for row in rows]
 
 
 def pick_default_geometry(geoms: list[GeometryColumnInfo]) -> GeometryColumnInfo:

@@ -158,9 +158,7 @@ class GeoServerClient:
             self._request("POST", f"/workspaces/{workspace}/datastores", json_body=payload, expect=(201,))
             logger.info(f"[datastore] {workspace}/{name} creado")
         else:
-            self._request(
-                "PUT", f"/workspaces/{workspace}/datastores/{name}.json", json_body=payload, expect=(200,)
-            )
+            self._request("PUT", f"/workspaces/{workspace}/datastores/{name}.json", json_body=payload, expect=(200,))
             logger.info(f"[datastore] {workspace}/{name} actualizado")
 
     @staticmethod

@@ -6,6 +6,7 @@ declare MATERIALIZED_VIEWS. Idempotente: seguro correrlo varias veces.
 Uso (dentro del contenedor de Airflow, con scripts/ montado):
     PYTHONPATH=. python3 scripts/create_geoserver_layers.py [--pipeline NAME ...] [--dry-run]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -101,7 +102,9 @@ def build_featuretype_fields(
     for col in ordered_columns:
         if col.name in geom_columns:
             geom_info = next(g for g in geoms if g.column == col.name)
-            binding = GEOMETRY_TYPE_TO_JTS_BINDING.get(geom_info.geometry_type, GEOMETRY_TYPE_TO_JTS_BINDING["GEOMETRY"])
+            binding = GEOMETRY_TYPE_TO_JTS_BINDING.get(
+                geom_info.geometry_type, GEOMETRY_TYPE_TO_JTS_BINDING["GEOMETRY"]
+            )
         else:
             binding = PG_TO_JAVA_BINDING.get(col.pg_type)
             if binding is None:
