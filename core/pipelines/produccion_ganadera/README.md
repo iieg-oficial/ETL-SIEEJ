@@ -56,6 +56,7 @@ SIAP_URL=https://nube.agricultura.gob.mx/index.php?view=E370DEBE-390827E8-728383
 | `V4__views_produccion_ganadera.sql` | Vistas analíticas desnormalizadas |
 | `V5__initialize_materialized_view.sql` | Expone las geometrías municipales en el FDW de `cvegeo` |
 | `V6__materialized_views_produccion_ganadera.sql` | Vista materializada `vm_prod_pecuaria_geo` para la capa municipal de GeoServer |
+| `V7__update_vm_prod_pecuaria_geo_columns.sql` | Homologa las columnas temporales y geográficas de `vm_prod_pecuaria_geo` |
 
 ## Variables de entorno
 

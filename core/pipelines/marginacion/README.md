@@ -63,6 +63,7 @@ URL_LOCALIDAD=https://conapo.segob.gob.mx/work/models/CONAPO/Datos_Abiertos/Loca
 | `V4__views_marginacion.sql` | Vistas analíticas |
 | `V5__initialize_materialized_view.sql` | Expone las geometrías municipales en el FDW de `cvegeo` |
 | `V6__materialized_views_marginacion.sql` | Vista materializada `vm_marginacion_geo` para la capa municipal de GeoServer |
+| `V7__update_vm_marginacion_geo_columns.sql` | Homologa las columnas temporales y geográficas de `vm_marginacion_geo` |
 
 ## Variables de entorno
 

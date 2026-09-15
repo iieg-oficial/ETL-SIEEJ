@@ -59,6 +59,7 @@ SIAP_URL=https://nube.agricultura.gob.mx/index.php?view=10AE434F-A2158368-A120BC
 | `V4__views_agropecuario_siap.sql` | Vistas analíticas desnormalizadas |
 | `V5__initialize_materialized_view.sql` | Expone las geometrías municipales en el FDW de `cvegeo` |
 | `V6__materialized_views_agropecuario_siap.sql` | Vista materializada `vm_agricola_geo` para la capa municipal de GeoServer |
+| `V7__update_vm_agricola_geo_columns.sql` | Homologa las columnas temporales y geográficas de `vm_agricola_geo` |
 
 ## Variables de entorno
 
