@@ -71,6 +71,7 @@ IIM_URL_ESTATAL_2020=https://repodatos.atdt.gob.mx/api_update/conapo/indice_inte
 | `V5__materialized_views_iim.sql` | Vista materializada `vm_iim_geo` para la capa municipal de GeoServer |
 | `V6__update_vm_iim_geo_columns.sql` | Actualiza fecha y claves de `vm_iim_geo` |
 | `V7__update_vm_iim_geo_key_types.sql` | Expone las claves geográficas como texto |
+| `V8__update_vm_iim_geo_columns.sql` | Homologa columnas y capitalización de categorías de `vm_iim_geo` |
 
 ## Variables de entorno
 
