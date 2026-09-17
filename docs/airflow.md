@@ -19,6 +19,7 @@
 - [Operación con la API REST](#operación-con-la-api-rest)
 - [flowrs: la TUI de Airflow](#flowrs-la-tui-de-airflow)
 - [Flujo completo: REPD](#flujo-completo-repd)
+- [Sincronización de GeoServer](#sincronización-de-geoserver)
 - [Diagnóstico](#diagnóstico)
 - [Notas para clientes automatizados](#notas-para-clientes-automatizados)
 
@@ -442,6 +443,67 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/
 | Memoria pico del scheduler | ~483 MiB de 8 GiB |
 
 El load inserta en chunks de 5,000 (`REPD_LOAD_BATCH_SIZE`), así que el consumo se mantiene plano. El límite de 8 GB del scheduler quedó holgado.
+
+---
+
+## Sincronización de GeoServer
+
+`etl_geoserver_sync` publica/actualiza en GeoServer (workspace + datastore PostGIS + un featuretype por vista) las vistas materializadas con geometría de cada pipeline, y borra las que ya no correspondan (huérfanas — renombradas, eliminadas, o que perdieron su columna de geometría). Es idempotente: seguro correrlo las veces que haga falta.
+
+No tiene `schedule` propio (`schedule=None`) ni entra al registro de `core/schedules/` — es como los `bootstrap`, pero disparado por otro DAG en vez de por una persona. Normalmente lo dispara un `TriggerDagRunOperator` al final del bootstrap/update de cada pipeline geo (`produccion_ganadera`, `agropecuario_siap`, `marginacion`, `intensidad_migratoria`, `efipem`, `conapo`, `asg_imss`, `repd`, `fiscalia`, `participacion_ciudadana`), pasándole `conf={"pipeline": "<nombre>"}`. Ese trigger tiene `wait_for_completion=False`: si GeoServer está caído, el pipeline de datos igual queda en `success`.
+
+Los pipelines que se sincronizan no están en una lista fija: `scripts/create_geoserver_layers.py` los descubre solos (`discover_pipelines()`), iterando `core/pipelines/*` y quedándose con los que declaran `MATERIALIZED_VIEWS`. Un pipeline nuevo con geometría entra automáticamente, sin tocar este DAG ni el script.
+
+Además de disparado automáticamente, hay tres formas de correrlo por separado, sin pasar por el bootstrap/update completo de un pipeline:
+
+### Vía Airflow (UI)
+
+"Trigger DAG w/ config" en `etl_geoserver_sync`, con:
+
+```json
+{"pipeline": "conapo"}
+```
+
+### Vía Airflow (CLI o API REST)
+
+Mismo patrón que el resto de esta guía, agregando `conf`:
+
+```bash
+docker compose exec airflow-scheduler airflow dags trigger etl_geoserver_sync --conf '{"pipeline": "conapo"}'
+```
+
+```bash
+curl -s -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  "$AIRFLOW_URL/api/v2/dags/etl_geoserver_sync/dagRuns" \
+  -d '{"logical_date": null, "conf": {"pipeline": "conapo"}}'
+```
+
+### Saltándose Airflow — el script directo
+
+`etl_geoserver_sync` es un wrapper delgado sobre `scripts/create_geoserver_layers.py` (necesita `scripts/` montado al contenedor, ya declarado en `compose.yaml`):
+
+```bash
+docker compose exec airflow-scheduler bash -c \
+  "PYTHONPATH=. python3 scripts/create_geoserver_layers.py --pipeline conapo"
+```
+
+Sin `--pipeline` corre contra **todos** los pipelines detectados automáticamente. `--dry-run` solo loggea qué haría, sin llamar al REST API de GeoServer.
+
+### Variables de entorno
+
+```bash
+# .env (raíz)
+GEOSERVER_URL=https://10.25.7.4/sextante/rest
+GEOSERVER_USER=iieg
+GEOSERVER_PASSWORD=<real>
+GEOSERVER_VERIFY_SSL=false
+```
+
+GeoServer vive en un host distinto (`10.25.7.4`) al de la base de datos de cada pipeline — no es un error de tipeo, son máquinas separadas.
+
+### Prerrequisito: datos ya cargados
+
+El script solo *lee* Postgres (`pg_matviews`, `geometry_columns`, `pg_attribute`) — nunca crea ni llena datos. Si se corre antes de que el pipeline haya hecho bootstrap, `resolve_matviews` devuelve una lista vacía y no publica nada (sin error, 0 layers). Si la vista existe pero sigue vacía (`CREATE MATERIALIZED VIEW ... WITH NO DATA`, o antes del primer `refresh_materialized_views`), la layer se crea igual pero con bounding box vacío hasta la siguiente corrida después de un refresh con datos reales.
 
 ---
 
