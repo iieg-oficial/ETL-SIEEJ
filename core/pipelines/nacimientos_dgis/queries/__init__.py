@@ -6,4 +6,4 @@ from core.pipelines.nacimientos_dgis.queries.stg import (
     TRUNCATE_STG,
 )
 from core.pipelines.nacimientos_dgis.queries.tasa_fecundidad import INSERT_TASA_FECUNDIDAD
-from core.pipelines.nacimientos_dgis.queries.views import REFRESH_VIEWS
+from core.pipelines.nacimientos_dgis.queries.views import MATERIALIZED_VIEWS

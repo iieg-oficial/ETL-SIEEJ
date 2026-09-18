@@ -19,7 +19,7 @@ from core.pipelines.nacimientos_dgis.queries import (
     COPY_STG,
     INSERT_NACIMIENTOS_ADOLESCENTES,
     INSERT_TASA_FECUNDIDAD,
-    REFRESH_VIEWS,
+    MATERIALIZED_VIEWS,
     TRUNCATE_CERTIFICADOS,
     TRUNCATE_STG,
 )
@@ -32,6 +32,7 @@ from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert_do_nothing, count_records, get_mapping, sync_id_sequence
 from core.utils.files import cleanup_pipeline_data
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 CERTIFICADO_COPY_COLS = [
     column for column in StgNacimientosCertificados.columns() if column != StgNacimientosCertificados.id.key
@@ -157,10 +158,7 @@ class NacimientosDgisLoad(Stage):
             cursor.close()
 
     def _refresh_views(self) -> None:
-        with self.db.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(REFRESH_VIEWS)
-            cursor.close()
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS, concurrently=False)
         self.logger.info("[action] materialized views refreshed")
 
     # ------------------------------------------------------------------
