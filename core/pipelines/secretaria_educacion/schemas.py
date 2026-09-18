@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import DateTime, Date, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from core.pipelines.secretaria_educacion.attributes import SecretariaEducacionTables as T
@@ -17,7 +17,7 @@ class CatTurnos(SecretariaEducacionBase):
 
     # El id es el código de la fuente y no es secuencial: 120 corresponde a MAT-VESP.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    nombre_turno: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
+    turno: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
 
 
 class CatMedios(SecretariaEducacionBase):
@@ -51,9 +51,39 @@ class CatProgramas(SecretariaEducacionBase):
 class CatRegiones(SecretariaEducacionBase):
     __tablename__ = T.CAT_REGIONES
 
-    # El id es el código regional de la fuente: 121 corresponde a CENTRO ZMG.
+    # El id es el código regional de la fuente: 121 corresponde a Centro ZMG.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
-    nombre_region: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+    region: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+
+
+class CatLocalidades(SecretariaEducacionBase):
+    """Catálogo de localidades. cvegeo solo cubre entidad y municipio."""
+
+    __tablename__ = T.CAT_LOCALIDADES
+    __table_args__ = (
+        UniqueConstraint("entidad_id", "municipio_id", "clave_localidad", name="uq_cat_localidades_clave"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    cve_geo_id: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    clave_localidad: Mapped[int] = mapped_column(Integer, nullable=False)
+    localidad: Mapped[str] = mapped_column(String(150), nullable=False)
+
+
+class CatColonias(SecretariaEducacionBase):
+    """Catálogo de colonias, dependiente de la localidad que las contiene."""
+
+    __tablename__ = T.CAT_COLONIAS
+    __table_args__ = (UniqueConstraint("localidad_id", "clave_colonia", name="uq_cat_colonias_clave"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    localidad_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=False)
+    clave_colonia: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    colonia: Mapped[str] = mapped_column(String(150), nullable=False)
+
+    localidad: Mapped["CatLocalidades"] = relationship()
 
 
 class CatProgramasEstrategicos(SecretariaEducacionBase):
@@ -64,7 +94,7 @@ class CatProgramasEstrategicos(SecretariaEducacionBase):
 
 
 class CatRegionesOperativas(SecretariaEducacionBase):
-    """Regionalización propia de la SEJ, distinta de la estatal de cat_regiones."""
+    """Regionalización propia de la dependencia, distinta de la estatal de cat_regiones."""
 
     __tablename__ = T.CAT_REGIONES_OPERATIVAS
 
@@ -86,18 +116,14 @@ class StgDirectorioCentrosTrabajo(SecretariaEducacionBase):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
     entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    localidad_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_LOCALIDADES}.id"), nullable=True)
+    colonia_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_COLONIAS}.id"), nullable=True)
     clave_ct: Mapped[str] = mapped_column(String(20), nullable=False)
     turno_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_TURNOS}.id"), nullable=False)
     nombre_ct: Mapped[str] = mapped_column(String(255), nullable=False)
     domicilio: Mapped[str | None] = mapped_column(Text, nullable=True)
-    localidad_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    nombre_localidad: Mapped[str | None] = mapped_column(String(150), nullable=True)
-    colonia_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    nombre_colonia: Mapped[str | None] = mapped_column(String(150), nullable=True)
-    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    nombre_municipio: Mapped[str | None] = mapped_column(String(150), nullable=True)
     medio_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_MEDIOS}.id"), nullable=True)
     director: Mapped[str | None] = mapped_column(String(255), nullable=True)
     codigo_postal: Mapped[str | None] = mapped_column(String(10), nullable=True)
@@ -117,6 +143,7 @@ class StgDirectorioCentrosTrabajo(SecretariaEducacionBase):
     mujeres_matriculadas: Mapped[int] = mapped_column(Integer, nullable=False)
     total_matriculados: Mapped[int] = mapped_column(Integer, nullable=False)
     total_docentes_directivo: Mapped[int] = mapped_column(Integer, nullable=False)
+    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
     fecha_actualizacion_fuente: Mapped[date | None] = mapped_column(Date, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
@@ -128,25 +155,25 @@ class StgDirectorioCentrosTrabajo(SecretariaEducacionBase):
     region: Mapped["CatRegiones"] = relationship()
 
 
-class StgEscuelasProgramas(SecretariaEducacionBase):
-    """Relación entre centros de trabajo y programas estratégicos."""
+class StgEscuelasProgramasEstrategicos(SecretariaEducacionBase):
+    """Relación entre centros de trabajo y los programas estratégicos estatales."""
 
-    __tablename__ = T.STG_ESCUELAS_PROGRAMAS
+    __tablename__ = T.STG_ESCUELAS_PROGRAMAS_ESTRATEGICOS
     __table_args__ = (
         UniqueConstraint(
             "fecha_corte",
             "clave_ct",
             "programa_estrategico_id",
-            name="uq_stg_escuelas_programas",
+            name="uq_stg_escuelas_programas_estrategicos",
         ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
     clave_ct: Mapped[str] = mapped_column(String(20), nullable=False)
     programa_estrategico_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_PROGRAMAS_ESTRATEGICOS}.id"), nullable=False
     )
+    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
     fecha_actualizacion_fuente: Mapped[date | None] = mapped_column(Date, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
@@ -158,15 +185,18 @@ class StgAulasGoogle(SecretariaEducacionBase):
     __table_args__ = (UniqueConstraint("fecha_corte", "clave_ct", "nombre_ct", name="uq_stg_aulas_google"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    # El origen solo trae el municipio por nombre, así que se resuelve contra
+    # cvegeo en el load y queda nulo cuando el nombre no casa.
+    municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     clave_ct: Mapped[str] = mapped_column(String(20), nullable=False)
     nombre_ct: Mapped[str] = mapped_column(String(255), nullable=False)
     inmueble: Mapped[str | None] = mapped_column(String(20), nullable=True)
     region_operativa_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey(f"{T.CAT_REGIONES_OPERATIVAS}.id"), nullable=True
     )
-    nombre_municipio: Mapped[str | None] = mapped_column(String(150), nullable=True)
     aulas_asignadas: Mapped[int] = mapped_column(Integer, nullable=False)
+    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
     fecha_actualizacion_fuente: Mapped[date | None] = mapped_column(Date, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
