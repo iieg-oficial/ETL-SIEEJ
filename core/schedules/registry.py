@@ -29,6 +29,11 @@ SCHEDULES: Final[dict[str, Schedule]] = {
     "etl_enoe_microdatos_incremental": Schedule("enoe_microdatos", "0 0 10 3,6,9,12 *", "cada 3 meses, el día 10"),
     "etl_enoe_update": Schedule("enoe", "0 3 10 3,6,9,12 *", "cada 3 meses, el día 10"),
     "etl_asg_imss_update": Schedule("asg_imss", "0 12 10 * *", "cada mes, el día 10"),
+    # Quincenal por Aulas Google, el más frecuente de los tres conjuntos. Los otros
+    # dos son anuales y una corrida sin novedades ni abre conexión a la base.
+    "etl_secretaria_educacion_update": Schedule(
+        "secretaria_educacion", "0 19 1,16 * *", "cada quincena, los días 1 y 16"
+    ),
 }
 
 

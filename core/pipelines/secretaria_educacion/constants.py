@@ -18,6 +18,10 @@ DATASET_PREFIXES: Final[dict[str, str]] = {
 
 MANIFEST_FILENAME: Final[str] = "manifest.json"
 
+# Los catálogos viajan por disco para que load pueda reintentarse como una tarea
+# de Airflow independiente, sin la memoria del proceso que corrió transform.
+CATALOGS_FILENAME: Final[str] = "catalogs.pkl"
+
 NULL_VALUES: Final[list[str]] = ["NA", "N/A", "null", "nan", ""]
 
 # El xlsx del directorio trae título, notas metodológicas y una leyenda antes de

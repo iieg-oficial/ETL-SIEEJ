@@ -127,3 +127,11 @@ def test_las_columnas_modeladas_sobreviven_completas():
 
     faltantes = [column for column in DIRECTORIO_COLUMNS if column not in salida.columns]
     assert not faltantes
+
+
+def test_un_update_sin_cargas_nuevas_no_es_un_error():
+    # El extract deja el manifiesto vacío y esta etapa debe salir limpia.
+    salida = SecretariaEducacionTransform(mode="update").action({"frames": {}, "manifest": {}})
+
+    assert salida["frames"] == {}
+    assert salida["catalogs"] == {}

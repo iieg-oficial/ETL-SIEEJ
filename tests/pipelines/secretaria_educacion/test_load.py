@@ -180,3 +180,14 @@ def test_recargar_un_corte_borra_antes_de_insertar(load, captured):
     modelo, registros = captured["bulk"][0]
     assert modelo is StgAulasGoogle
     assert len(registros) == 1
+
+
+def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured):
+    """Sin nada que cargar no tiene sentido tocar la base."""
+    conexiones = []
+    load.db.connect = lambda: conexiones.append("connect")
+
+    load.action({"frames": {}, "manifest": {}, "catalogs": {}})
+
+    assert conexiones == []
+    assert captured["bulk"] == []

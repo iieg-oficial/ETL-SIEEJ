@@ -10,6 +10,7 @@ from core.pipelines.secretaria_educacion.constants import (
     AULAS_GOOGLE_DATASET,
     AULAS_RENAMES,
     CAPITALIZE_COLS,
+    CATALOGS_FILENAME,
     DIRECTORIO_COLUMNS,
     DIRECTORIO_DATASET,
     DIRECTORIO_FLOAT_COLUMNS,
@@ -55,7 +56,12 @@ class SecretariaEducacionTransform(Stage):
             self.logger.info(f"[source] Loaded {len(frames)} dataset(s) from extract")
             return {"frames": frames, "manifest": manifest}
 
-        return input_data
+        if input_data:
+            return input_data
+
+        # Un update sin cargas nuevas no es un error: no hay nada que transformar.
+        self.logger.info("[source] No datasets to transform")
+        return {"frames": {}, "manifest": manifest}
 
     def _standardize(self, df: pd.DataFrame, columns: list[str], renames: dict[str, str]) -> pd.DataFrame:
         """Normalize headers, rename to the schema names and keep the modeled columns."""
@@ -218,11 +224,12 @@ class SecretariaEducacionTransform(Stage):
         return catalogs
 
     def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        if self.mode != "bootstrap":
-            raise ValueError("secretaria_educacion v1 only supports bootstrap mode")
-
         frames = input_data["frames"]
         manifest = input_data["manifest"]
+
+        if not frames:
+            self.logger.info("[action] Nothing to transform")
+            return {"frames": {}, "manifest": manifest, "catalogs": {}}
         preparers = {
             DIRECTORIO_DATASET: self._prepare_directorio,
             PROGRAMAS_DATASET: self._prepare_programas,
@@ -240,5 +247,9 @@ class SecretariaEducacionTransform(Stage):
         for dataset, df in input_data["frames"].items():
             df.to_pickle(self.work_dir / f"{dataset}.pkl")
             self.logger.info(f"[finalization] {dataset}: {len(df):,} rows saved")
+
+        # Sin esto, load solo funciona si corre en el mismo proceso que transform.
+        pd.to_pickle(input_data["catalogs"], self.work_dir / CATALOGS_FILENAME)
+        self.logger.info(f"[finalization] {len(input_data['catalogs'])} catalog(s) saved")
 
         return input_data

@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional
 
@@ -18,9 +19,18 @@ from core.utils.logger import get_logger
 
 
 class SecretariaEducacionExtract(Stage):
-    def __init__(self, mode: str = "bootstrap"):
+    def __init__(self, mode: str = "bootstrap", since: str | None = None, processed_etags: Iterable[str] = ()):
+        """
+        Args:
+            mode: `bootstrap` toma todo el histórico; `update` solo lo nuevo.
+            since: watermark, el `actualizado_en` del último envío procesado.
+            processed_etags: etags ya cargados, para saltar envíos que se
+                reenviaron sin que el archivo cambiara.
+        """
         super().__init__(PIPELINE_NAME, "extract")
         self.mode = mode
+        self.since = since
+        self.processed_etags = frozenset(processed_etags)
         self.logger = get_logger(f"{PIPELINE_NAME}.extract")
 
     def _resolve_dataset(self, conjunto: str) -> str | None:
@@ -35,12 +45,23 @@ class SecretariaEducacionExtract(Stage):
                 return dataset
         return None
 
-    def source(self, input_data: Optional[Any] = None) -> dict[str, Upload]:
-        if self.mode != "bootstrap":
-            raise ValueError("secretaria_educacion v1 only supports bootstrap mode")
+    def _is_new(self, upload: Upload) -> bool:
+        """True when an update run still has to process this upload."""
+        if self.since and upload.updated_at <= self.since:
+            return False
 
-        self.logger.info(f"[source] Listing uploads for '{settings.DEPENDENCIA}'")
+        if upload.etag and upload.etag in self.processed_etags:
+            self.logger.info(f"[source] envio {upload.envio_id}: unchanged file, skipped")
+            return False
+
+        return True
+
+    def source(self, input_data: Optional[Any] = None) -> dict[str, Upload]:
+        self.logger.info(f"[source] Listing uploads for '{settings.DEPENDENCIA}' in {self.mode} mode")
         uploads = list_uploads(settings.DEPENDENCIA)
+
+        if self.mode == "update":
+            uploads = [upload for upload in uploads if self._is_new(upload)]
 
         resolved: dict[str, Upload] = {}
         for upload in uploads:
@@ -54,7 +75,7 @@ class SecretariaEducacionExtract(Stage):
             if previous is None or upload.fecha_corte > previous.fecha_corte:
                 resolved[dataset] = upload
 
-        if not resolved:
+        if not resolved and self.mode == "bootstrap":
             raise ValueError(f"No known datasets found for '{settings.DEPENDENCIA}'")
 
         self.logger.info(f"[source] Resolved datasets: {sorted(resolved)}")

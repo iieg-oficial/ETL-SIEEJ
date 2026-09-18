@@ -10,6 +10,7 @@ from core.db import Database
 from core.pipelines.secretaria_educacion.config import settings
 from core.pipelines.secretaria_educacion.constants import (
     AULAS_GOOGLE_DATASET,
+    CATALOGS_FILENAME,
     DIRECTORIO_DATASET,
     MANIFEST_FILENAME,
     PIPELINE_NAME,
@@ -76,6 +77,7 @@ class SecretariaEducacionLoad(Stage):
         self.db = Database(PIPELINE_NAME, settings.database_url)
 
     def source(self, input_data: Optional[Any] = None) -> dict[str, Any]:
+        """Read what transform left on disk, so this stage can rerun on its own."""
         transform_dir = Path("data/transform") / PIPELINE_NAME
         manifest = read_json(Path("data/extract") / PIPELINE_NAME / MANIFEST_FILENAME) or {}
 
@@ -85,11 +87,27 @@ class SecretariaEducacionLoad(Stage):
             if pickle_path.exists():
                 frames[dataset] = pd.read_pickle(pickle_path)
 
-        if frames:
-            self.logger.info(f"[source] Loaded {len(frames)} dataset(s) from transform")
-            return {"frames": frames, "manifest": manifest, "catalogs": input_data["catalogs"]}
+        if not frames:
+            if input_data:
+                return input_data
 
-        return input_data
+            # Con manifiesto vacío el update no trajo nada; sin manifiesto, falta transform.
+            if not manifest:
+                self.logger.info("[source] No datasets to load")
+                return {"frames": {}, "manifest": {}, "catalogs": {}}
+
+            raise FileNotFoundError(f"No transformed data in {transform_dir}. Run transform first.")
+
+        catalogs_path = transform_dir / CATALOGS_FILENAME
+        if catalogs_path.exists():
+            catalogs = pd.read_pickle(catalogs_path)
+        elif input_data:
+            catalogs = input_data["catalogs"]
+        else:
+            raise FileNotFoundError(f"No catalogs in {catalogs_path}. Run transform first.")
+
+        self.logger.info(f"[source] Loaded {len(frames)} dataset(s) from transform")
+        return {"frames": frames, "manifest": manifest, "catalogs": catalogs}
 
     def _load_catalogs(self, session, catalogs: dict[str, list[dict[str, Any]]]) -> None:
         # Estos llevan el id del origen, así que se actualizan: si la dependencia
@@ -244,8 +262,9 @@ class SecretariaEducacionLoad(Stage):
         upsert_records(session, records, CargasAcervo, conflict_keys=["envio_id", "object_key"])
 
     def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        if self.mode != "bootstrap":
-            raise ValueError("secretaria_educacion v1 only supports bootstrap mode")
+        if not input_data["frames"]:
+            self.logger.info("[action] Nothing to load")
+            return input_data
 
         self.db.connect()
         try:
@@ -261,6 +280,10 @@ class SecretariaEducacionLoad(Stage):
         return input_data
 
     def finalization(self, input_data: dict[str, Any]) -> dict[str, int]:
+        if not input_data["frames"]:
+            cleanup_pipeline_data(PIPELINE_NAME)
+            return {}
+
         totals = {}
         try:
             with self.db.get_session() as session:
