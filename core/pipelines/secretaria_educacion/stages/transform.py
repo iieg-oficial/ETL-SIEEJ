@@ -59,7 +59,6 @@ class SecretariaEducacionTransform(Stage):
         if input_data:
             return input_data
 
-        # Un update sin cargas nuevas no es un error: no hay nada que transformar.
         self.logger.info("[source] No datasets to transform")
         return {"frames": {}, "manifest": manifest}
 
@@ -124,7 +123,6 @@ class SecretariaEducacionTransform(Stage):
     def _prepare_programas(self, df: pd.DataFrame, meta: dict[str, Any]) -> pd.DataFrame:
         df = self._standardize(df, PROGRAMAS_COLUMNS, PROGRAMAS_RENAMES)
 
-        # A diferencia de los demás archivos, este ya viene en snake_case minúsculas.
         df["programa_estrategico"] = df["programa_estrategico"].str.replace("_", " ", regex=False)
 
         df = self._normalize_text_columns(df)
@@ -248,7 +246,6 @@ class SecretariaEducacionTransform(Stage):
             df.to_pickle(self.work_dir / f"{dataset}.pkl")
             self.logger.info(f"[finalization] {dataset}: {len(df):,} rows saved")
 
-        # Sin esto, load solo funciona si corre en el mismo proceso que transform.
         pd.to_pickle(input_data["catalogs"], self.work_dir / CATALOGS_FILENAME)
         self.logger.info(f"[finalization] {len(input_data['catalogs'])} catalog(s) saved")
 

@@ -91,7 +91,6 @@ class SecretariaEducacionLoad(Stage):
             if input_data:
                 return input_data
 
-            # Con manifiesto vacío el update no trajo nada; sin manifiesto, falta transform.
             if not manifest:
                 self.logger.info("[source] No datasets to load")
                 return {"frames": {}, "manifest": {}, "catalogs": {}}

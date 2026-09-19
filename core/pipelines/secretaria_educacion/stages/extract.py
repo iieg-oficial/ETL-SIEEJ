@@ -70,7 +70,6 @@ class SecretariaEducacionExtract(Stage):
                 self.logger.warning(f"[source] Unknown dataset '{upload.conjunto}', skipped")
                 continue
 
-            # A later cut of the same dataset replaces the earlier one.
             previous = resolved.get(dataset)
             if previous is None or upload.fecha_corte > previous.fecha_corte:
                 resolved[dataset] = upload
@@ -118,8 +117,6 @@ class SecretariaEducacionExtract(Stage):
             df.to_pickle(self.work_dir / f"{dataset}.pkl")
             self.logger.info(f"[finalization] {dataset}: {len(df):,} rows saved")
 
-        # El manifiesto lleva las fechas y la trazabilidad del envío, que los
-        # pickles no cargan y que transform y load necesitan.
         manifest = {
             dataset: {
                 "envio_id": upload.envio_id,

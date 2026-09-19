@@ -15,7 +15,6 @@ class SecretariaEducacionBase(DeclarativeBase):
 class CatTurnos(SecretariaEducacionBase):
     __tablename__ = T.CAT_TURNOS
 
-    # El id es el código de la fuente y no es secuencial: 120 corresponde a MAT-VESP.
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     turno: Mapped[str] = mapped_column(String(30), nullable=False, unique=True)
 
@@ -186,8 +185,6 @@ class StgAulasGoogle(SecretariaEducacionBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
-    # El origen solo trae el municipio por nombre, así que se resuelve contra
-    # cvegeo en el load y queda nulo cuando el nombre no casa.
     municipio_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     clave_ct: Mapped[str] = mapped_column(String(20), nullable=False)
     nombre_ct: Mapped[str] = mapped_column(String(255), nullable=False)
