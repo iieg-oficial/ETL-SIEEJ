@@ -1,5 +1,5 @@
-REFRESH_VIEWS = """
-REFRESH MATERIALIZED VIEW tasa_fecundidad;
-REFRESH MATERIALIZED VIEW nacimientos_adolescentes;
-REFRESH MATERIALIZED VIEW nacimientos_infantiles;
-"""
+MATERIALIZED_VIEWS = [
+    "tasa_fecundidad",
+    "nacimientos_adolescentes",
+    "nacimientos_infantiles",
+]
