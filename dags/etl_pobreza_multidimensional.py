@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 try:
     from airflow import DAG
     from airflow.providers.standard.operators.python import PythonOperator
+    from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
     _AIRFLOW_AVAILABLE = True
 except ImportError:
@@ -51,7 +52,14 @@ if _AIRFLOW_AVAILABLE:
         max_active_runs=1,
         tags=["etl", "pobreza_multidimensional", "bootstrap", "on-demand", "coneval"],
     ) as dag_bootstrap:
-        PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+        bootstrap_task = PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+        trigger_geoserver_sync = TriggerDagRunOperator(
+            task_id="trigger_geoserver_sync",
+            trigger_dag_id="etl_geoserver_sync",
+            conf={"pipeline": "pobreza_multidimensional"},
+            wait_for_completion=False,
+        )
+        bootstrap_task >> trigger_geoserver_sync
 
 
 if __name__ == "__main__":
