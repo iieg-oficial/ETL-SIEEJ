@@ -63,12 +63,21 @@ build-dev user="test" pass="test" db="test" port="5432":
       -e POSTGRES_PASSWORD={{pass}} \
       -e POSTGRES_DB={{db}} \
       -p {{port}}:5432 \
+      --shm-size=1g \
+      -v postgres-dev-data:/var/lib/postgresql/data \
       -d postgis/postgis:17-3.5
 
 [group('development')]
-[doc("Detener y eliminar el contenedor de desarrollo")]
+[doc("Detener y eliminar el contenedor de desarrollo (conserva los datos)")]
 stop-dev:
     docker stop postgres-dev && docker rm postgres-dev
+
+[group('development')]
+[doc("Eliminar el contenedor y el volumen de desarrollo (destructivo)")]
+[confirm("¿Eliminar postgres-dev y TODOS sus datos? [Y/N]:")]
+reset-dev:
+    -docker rm -f postgres-dev
+    -docker volume rm postgres-dev-data
 
 [group('development')]
 [doc("Eliminar archivos temporales de extract y transform de un pipeline")]

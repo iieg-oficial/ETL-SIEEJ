@@ -5,21 +5,20 @@ from __future__ import annotations
 import pandas as pd
 
 from core.pipelines.defunciones_inegi.constants import (
+    DATE_COMPONENTS,
     DATE_PARTS,
-    DAY_SENTINEL,
+    DATE_SENTINELS,
     EDAD_SENTINELS,
     EDAD_UNIT_DIVISOR,
     ENTIDAD_MAX_CLAVE,
     HOUR_SENTINEL,
     LUGAR_NACIMIENTO_COLUMN,
     MINUTE_SENTINEL,
-    MONTH_SENTINEL,
     NUMERIC_SENTINELS,
     PAIS_SENTINELS,
     RENAME_HEADER,
     TIME_COLUMN,
     TIME_PARTS,
-    YEAR_SENTINEL,
 )
 from core.utils.clean import to_nullable_int as to_int
 from core.utils.normalize import lowercase_headers
@@ -36,24 +35,38 @@ def rename_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_dates(df: pd.DataFrame) -> pd.DataFrame:
-    """Colapsa día/mes/año en una fecha. Un centinela en cualquier parte anula la fecha."""
-    for target, (day_col, month_col, year_col) in DATE_PARTS.items():
-        if not {day_col, month_col, year_col} <= set(df.columns):
+    """Guarda día, mes y año por separado y arma la fecha sólo si los tres sirven.
+
+    Un centinela anula únicamente su propio componente: cuando INEGI conoce el
+    año pero no el día o el mes, ese año sigue disponible para agregados anuales.
+    """
+    for target, source_cols in DATE_PARTS.items():
+        component_cols = DATE_COMPONENTS[target]
+        if not set(source_cols) <= set(df.columns):
             df[target] = pd.NaT
+            for column in component_cols:
+                df[column] = pd.NA
             continue
 
-        day, month, year = (to_int(df[col]) for col in (day_col, month_col, year_col))
-        valid = (day != DAY_SENTINEL) & (month != MONTH_SENTINEL) & (year != YEAR_SENTINEL)
-        valid &= day.notna() & month.notna() & year.notna()
+        for column, source, sentinel in zip(component_cols, source_cols, DATE_SENTINELS, strict=True):
+            values = to_int(df[source])
+            df[column] = values.where(values != sentinel)
 
-        # Se arma como texto porque `to_datetime` sobre columnas Int64 revienta
-        # con NA. `coerce` además descarta fechas imposibles (31 de febrero).
-        stamps = (
-            year.astype(str).str.zfill(4) + "-" + month.astype(str).str.zfill(2) + "-" + day.astype(str).str.zfill(2)
-        ).where(valid)
-        df[target] = pd.to_datetime(stamps, format="%Y-%m-%d", errors="coerce").dt.date
+        df[target] = assemble_date(*(df[column] for column in component_cols))
 
     return df.drop(columns=[col for parts in DATE_PARTS.values() for col in parts], errors="ignore")
+
+
+def assemble_date(day: pd.Series, month: pd.Series, year: pd.Series) -> pd.Series:
+    """Fecha de calendario a partir de los tres componentes ya sin centinelas."""
+    complete = day.notna() & month.notna() & year.notna()
+
+    # Se arma como texto porque `to_datetime` sobre columnas Int64 revienta
+    # con NA. `coerce` además descarta fechas imposibles (31 de febrero).
+    stamps = (
+        year.astype(str).str.zfill(4) + "-" + month.astype(str).str.zfill(2) + "-" + day.astype(str).str.zfill(2)
+    ).where(complete)
+    return pd.to_datetime(stamps, format="%Y-%m-%d", errors="coerce").dt.date
 
 
 def build_time(df: pd.DataFrame) -> pd.DataFrame:

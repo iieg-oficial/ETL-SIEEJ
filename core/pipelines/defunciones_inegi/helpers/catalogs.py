@@ -6,6 +6,9 @@ import pandas as pd
 
 from core.pipelines.defunciones_inegi.constants import (
     CAPITULO_CLAVE_FACTOR,
+    DISTRITO_MAX_CLAVE,
+    DISTRITO_MIN_CLAVE,
+    ENTIDAD_OAXACA,
     PRESERVED_TERMS,
     CLAVE_ALIASES,
     DESCRIPCION_ALIASES,
@@ -120,6 +123,31 @@ def pais_records(df: pd.DataFrame) -> list[dict]:
     within_range = frame["clave"].between(PAIS_MIN_CLAVE, PAIS_MAX_CLAVE)
     frame = frame[within_range].rename(columns={"descripcion": "nombre_pais"})
     return frame.to_dict("records")
+
+
+def distrito_oaxaca_records(df: pd.DataFrame) -> list[dict]:
+    """Los 30 distritos de Oaxaca, que viajan en el catálogo de localidades.
+
+    Son filas con `cve_loc` en cero, así que `localidad_records` las descarta:
+    un distrito no es una localidad. Sin este catálogo, `dis_re_oax` queda como
+    un entero sin significado.
+    """
+    lowered = {str(col).strip().lower(): col for col in df.columns}
+    frame = pd.DataFrame(
+        {
+            "cve_ent": to_nullable_int(_clean_key(df[lowered["cve_ent"]])),
+            "clave": to_nullable_int(_clean_key(df[lowered["cve_mun"]])),
+            "descripcion": _clean(df[_pick_column(df, DESCRIPCION_ALIASES)]),
+        }
+    )
+    frame = frame[
+        (frame["cve_ent"] == ENTIDAD_OAXACA)
+        & frame["clave"].between(DISTRITO_MIN_CLAVE, DISTRITO_MAX_CLAVE)
+        & (frame["descripcion"] != "")
+    ]
+    frame = frame.drop_duplicates(subset=["clave"], keep="first")
+    logger.info(f"[catalogs] distritos de Oaxaca: {len(frame)}")
+    return frame[["clave", "descripcion"]].to_dict("records")
 
 
 def localidad_records(df: pd.DataFrame) -> list[dict]:

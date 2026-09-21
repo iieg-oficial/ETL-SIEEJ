@@ -70,6 +70,7 @@ STRUCTURED_CATALOG_TABLES: Final[tuple[str, ...]] = (
     T.CAT_LOCALIDAD,
     T.CAT_PAIS,
     T.CAT_CAPITULO_GRUPO,
+    T.CAT_DISTRITO_OAXACA,
 )
 
 CODED_CATALOG_TABLES: Final[tuple[str, ...]] = tuple(
@@ -83,6 +84,16 @@ CODIGO_ADICIONAL_ALIAS: Final[str] = "codigo_adicional"
 # ya viven en cvegeo_states, así que sólo se conserva el rango de países.
 PAIS_MIN_CLAVE: Final[int] = 101
 PAIS_MAX_CLAVE: Final[int] = 535
+
+# Los 30 distritos de Oaxaca viajan dentro del catálogo de localidades, como
+# filas con `cve_loc` en cero: no son localidades, son un nivel intermedio que
+# sólo existe en esa entidad. `20999` es "Municipio no especificado".
+# Catálogos sin archivo propio en `catalogos/`: se derivan del archivo de otro.
+EMBEDDED_CATALOG_TABLES: Final[tuple[str, ...]] = (T.CAT_DISTRITO_OAXACA,)
+
+ENTIDAD_OAXACA: Final[int] = 20
+DISTRITO_MIN_CLAVE: Final[int] = 901
+DISTRITO_MAX_CLAVE: Final[int] = 930
 
 # La edición 2017 publica capítulo y grupo en una sola clave: cap * 100 + gpo.
 CAPITULO_CLAVE_FACTOR: Final[int] = 100

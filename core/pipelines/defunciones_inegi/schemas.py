@@ -177,6 +177,12 @@ class CatGrupoListaMexicana(TextCodedCatalog):
     __tablename__ = T.CAT_GRUPO_LISTA_MEXICANA
 
 
+class CatDistritoOaxaca(CodedCatalog):
+    """Los 30 distritos de Oaxaca (901-930), único nivel geográfico intermedio del país."""
+
+    __tablename__ = T.CAT_DISTRITO_OAXACA
+
+
 class CatPais(DefuncionesInegiBase):
     __tablename__ = T.CAT_PAIS
 
@@ -261,6 +267,7 @@ CODED_MODELS: tuple[type[DefuncionesInegiBase], ...] = (
     CatCondicionActividad,
     CatCondicionEmbarazo,
     CatCondicionIndigena,
+    CatDistritoOaxaca,
     CatDonador,
     CatEdadAgrupada,
     CatEscolaridad,
@@ -326,10 +333,24 @@ class StgDefunciones(DefuncionesInegiBase):
         Integer, ForeignKey(f"{T.CAT_TAMANIO_LOCALIDAD}.id"), nullable=True
     )
 
+    # Cada fecha se guarda completa y además desarmada: INEGI publica el año sin
+    # el día o el mes con frecuencia, y la fecha nula perdía ese año.
     fecha_ocurrencia: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_ocurrencia: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    mes_ocurrencia: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    anio_ocurrencia: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, index=True)
     fecha_registro: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_registro: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    mes_registro: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    anio_registro: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     fecha_nacimiento: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_nacimiento: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    mes_nacimiento: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    anio_nacimiento: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     fecha_certificacion: Mapped[date | None] = mapped_column(Date, nullable=True)
+    dia_certificacion: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    mes_certificacion: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    anio_certificacion: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
     hora_defuncion: Mapped[time | None] = mapped_column(Time, nullable=True)
 
     # `edad` viene codificada como unidad + cantidad en cuatro dígitos.
@@ -407,7 +428,9 @@ class StgDefunciones(DefuncionesInegiBase):
         Integer, ForeignKey(f"{T.CAT_RAZON_MATERNA}.id"), nullable=True
     )
 
-    distrito_registro_oaxaca: Mapped[int | None] = mapped_column(SmallInteger, nullable=True)
+    distrito_registro_oaxaca_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey(f"{T.CAT_DISTRITO_OAXACA}.id"), nullable=True
+    )
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
 
 

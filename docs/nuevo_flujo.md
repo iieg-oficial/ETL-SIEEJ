@@ -205,7 +205,8 @@ Ejecuta `just` sin argumentos para ver todos los comandos disponibles.
 | Comando | Descripción |
 |:--------|:------------|
 | `just build-dev [user] [pass] [db] [port]` | Levanta un contenedor PostGIS para desarrollo |
-| `just stop-dev` | Detiene y elimina el contenedor `postgres-dev` |
+| `just stop-dev` | Detiene y elimina el contenedor `postgres-dev` (conserva los datos) |
+| `just reset-dev` | Elimina el contenedor y el volumen `postgres-dev-data` ⚠️ |
 | `just create-cvegeo-db` | Crea la base de datos `cvegeo` en el contenedor de dev |
 
 ### Flyway

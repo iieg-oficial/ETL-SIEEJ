@@ -49,6 +49,7 @@ class DefuncionesInegiTables(StrEnum):
 
     # Catálogos de estructura propia
     CAT_CAPITULO_GRUPO = auto()
+    CAT_DISTRITO_OAXACA = auto()
     CAT_PAIS = auto()
 
     CAT_EDICION = auto()
