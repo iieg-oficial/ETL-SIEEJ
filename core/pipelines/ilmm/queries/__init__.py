@@ -1,5 +1,5 @@
-from core.pipelines.ilmm.queries.views import REFRESH_VIEWS
+from core.pipelines.ilmm.queries.views import MATERIALIZED_VIEWS
 
 __all__ = [
-    "REFRESH_VIEWS",
+    "MATERIALIZED_VIEWS",
 ]
