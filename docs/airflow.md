@@ -501,6 +501,18 @@ GEOSERVER_VERIFY_SSL=false
 
 GeoServer vive en un host distinto (`10.25.7.4`) al de la base de datos de cada pipeline — no es un error de tipeo, son máquinas separadas.
 
+### Advertencia: el host que se escribe en GeoServer
+
+En cada corrida, por cada pipeline, el script **sobrescribe** los parámetros de conexión del datastore `proxmox_<pipeline>` en GeoServer (`host`, `port`, `database`, `schema`, `user`, `passwd`) con los del `.env` de ese pipeline (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`). Si el datastore ya existía, lo actualiza; no pregunta.
+
+GeoServer está en otro servidor (`10.25.7.4`), así que **`DB_HOST` debe ser una dirección que GeoServer pueda alcanzar**. `localhost` no sirve (para GeoServer es su propia máquina), y `host.docker.internal` normalmente tampoco (solo se resuelve dentro de Docker en el host que corre Airflow).
+
+> **No correr el script desde una máquina de desarrollo contra el GeoServer de producción.** Con el `.env` local (`DB_HOST=localhost`), el datastore de producción queda apuntando a un host inalcanzable y sus capas dejan de poder leer datos. Síntoma: `HTTP 500` al actualizar el featuretype (GeoServer intenta reconectarse para recalcular el bounding box) y, después, errores en WMS/WFS. Pasó con `repd`.
+
+Antes de correrlo contra un GeoServer real, usar `--dry-run`, y confirmar que el `DB_HOST` del `.env` del pipeline es el que GeoServer debe usar.
+
+**Reparación:** volver a correr el script (o `etl_geoserver_sync`) desde un entorno cuyo `.env` tenga el host correcto. Como siempre sobrescribe esos campos, el datastore se corrige solo.
+
 ### Prerrequisito: datos ya cargados
 
 El script solo *lee* Postgres (`pg_matviews`, `geometry_columns`, `pg_attribute`) — nunca crea ni llena datos. Si se corre antes de que el pipeline haya hecho bootstrap, `resolve_matviews` devuelve una lista vacía y no publica nada (sin error, 0 layers). Si la vista existe pero sigue vacía (`CREATE MATERIALIZED VIEW ... WITH NO DATA`, o antes del primer `refresh_materialized_views`), la layer se crea igual pero con bounding box vacío hasta la siguiente corrida después de un refresh con datos reales.
