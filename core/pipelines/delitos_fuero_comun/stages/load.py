@@ -16,10 +16,11 @@ from core.pipelines.delitos_fuero_comun.schemas import (
     StgDelitosFueroComun2026,
     StgDelitosFueroComunHistorico,
 )
-from core.pipelines.delitos_fuero_comun.queries import REFRESH_GOLD, REFRESH_SECRETARIADO
+from core.pipelines.delitos_fuero_comun.queries import MATERIALIZED_VIEWS, REFRESH_GOLD
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert_do_nothing, get_mapping, insert_records, sync_id_sequence, upsert_records
 from core.utils.files import clean_directory
+from core.utils.views import refresh_materialized_views
 
 
 def _prepare_records(df: pd.DataFrame, model, exclude_cols: tuple[str, ...]) -> list[dict]:
@@ -107,9 +108,8 @@ class DelitosLoad(Stage):
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(REFRESH_GOLD)
-            for stmt in REFRESH_SECRETARIADO:
-                cursor.execute(stmt)
             cursor.close()
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
         self.logger.info("vw_gold_delitos_fuero_comun y vistas secretariado refrescadas")
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:

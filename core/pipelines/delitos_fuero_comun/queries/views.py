@@ -1,6 +1,10 @@
 REFRESH_GOLD = "REFRESH MATERIALIZED VIEW vw_gold_delitos_fuero_comun;"
 
-_SECRETARIADO_VIEWS = [
+# Vistas con geometría (índice único por vista, ver
+# migrations/delitos_fuero_comun/sql/V7__vistas_materializadas_secretariado.sql).
+# vw_gold_delitos_fuero_comun queda fuera: es una tabla analítica agregada sin
+# geometría, se refresca aparte con REFRESH_GOLD.
+MATERIALIZED_VIEWS = [
     "vwm_datos_delitos_abuso_sexual_secretariado",
     "vwm_datos_delitos_feminicidio_secretariado",
     "vwm_datos_delitos_homicidio_doloso_secretariado",
@@ -18,5 +22,3 @@ _SECRETARIADO_VIEWS = [
     "vwm_datos_delitos_violencia_genero_no_familiar_secretariado",
     "vwm_feminicidios",
 ]
-
-REFRESH_SECRETARIADO = [f"REFRESH MATERIALIZED VIEW {v};" for v in _SECRETARIADO_VIEWS]
