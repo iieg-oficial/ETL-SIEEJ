@@ -42,3 +42,4 @@ def test_refresh_views_targets_maternal_mortality_view(monkeypatch):
     monkeypatch.setattr(load, "refresh_materialized_views", lambda database, views: refreshed.append((database, views)))
 
     loader._refresh_views()
+    assert refreshed == [(db, ["vm_mortalidad_materna_geo", "vm_mortalidad_infantil_geo"])]
