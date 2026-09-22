@@ -43,6 +43,7 @@ class Delitos(BaseClass):
     robo_autopartes = (auto(), ElPatrimonio.robo_autopartes.value)
     robo_cuentahabitantes = (auto(), ElPatrimonio.robo_cuentahabitantes.value)
     robo_bancos = (auto(), ElPatrimonio.robo_bancos.value)
+    violencia_vicaria = (auto(), LaFamilia.violencia_vicaria.value)
 
 
 class EsViolencia(BaseClass):
