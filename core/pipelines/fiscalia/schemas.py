@@ -1,4 +1,4 @@
-from sqlalchemy import String, ForeignKey, Date, Float
+from sqlalchemy import String, ForeignKey, Date, Float, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from core.pipelines.fiscalia.attributes.fiscalia import FiscaliaTables
 from datetime import date
@@ -76,3 +76,14 @@ class Casos(FiscaliaBase):
     latitud: Mapped[float] = mapped_column(Float, nullable=True)
     fecha_denuncia: Mapped[date] = mapped_column(Date, nullable=True)
     fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=True)
+
+
+class Bitacora(FiscaliaBase):
+    __tablename__ = FiscaliaTables.BITACORA
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    fecha: Mapped[date] = mapped_column(Date, nullable=False)
+    tipo_cambio: Mapped[str] = mapped_column(String(50), nullable=False)
+    tabla_afectada: Mapped[str] = mapped_column(String(100), nullable=True)
+    descripcion: Mapped[str] = mapped_column(Text, nullable=False)
+    referencia: Mapped[str] = mapped_column(String(100), nullable=True)

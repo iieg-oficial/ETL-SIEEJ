@@ -79,5 +79,5 @@ with DAG(
 
 
 if __name__ == "__main__":
-    run_bootstrap()
+    # run_bootstrap()
     run_update()
