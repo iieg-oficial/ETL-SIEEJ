@@ -1,0 +1,1 @@
+from core.pipelines.fosas_clandestinas.queries.views import MATERIALIZED_VIEWS
