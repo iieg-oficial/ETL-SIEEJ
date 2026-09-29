@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.6.0...v1.7.0) (2026-09-29)
+
+
+### Features
+
+* **fosas_clandestinas:** adds migrations ([1dfe204](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1dfe2040db882f12ca897d90e79b8da207ea40de))
+* **pipeline:** fosas_clandestinas ([aa4d89d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/aa4d89dff6f28ca59856867e838b745592b1f669))
+
+
+### Bug Fixes
+
+* **deps:** limitar sqlalchemy a &lt;2.1 por incompatibilidad con airflow 3.1.1 ([ed55520](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ed55520dcb6525ee26d9de808eede400708c4f75))
+* **deps:** limitar sqlalchemy a &lt;2.1 por incompatibilidad de sqlalchemy_utils con airflow 3.1.1 ([c67c05b](https://github.com/iieg-oficial/ETL-SIEEJ/commit/c67c05b7243670a413e74330c113870cd403b130))
+
 ## [1.6.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.5.0...v1.6.0) (2026-09-14)
 
 
