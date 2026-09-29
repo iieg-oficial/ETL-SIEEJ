@@ -50,6 +50,7 @@ El archivo CSV consolidado se obtiene desde Google Drive (acceso público con el
 | `V3__view_participacion.sql` | Vista analítica |
 | `V4__initialize_materialized_view.sql` | Expone geometrías municipales en el FDW de `cvegeo` |
 | `V5__materialized_views_participacion_ciudadana.sql` | Vista materializada `vm_porcentaje_participacion_geo` para consumo GIS |
+| `V6__update_vm_porcentaje_participacion_geo_columns.sql` | Homologa las columnas temporales y geográficas de `vm_porcentaje_participacion_geo` |
 
 ## Variables de entorno
 
