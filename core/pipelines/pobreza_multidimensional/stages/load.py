@@ -5,6 +5,7 @@ import pandas as pd
 from core.db import Database
 from core.pipelines.pobreza_multidimensional.config import settings
 from core.pipelines.pobreza_multidimensional.consts import PIPELINE_NAME
+from core.pipelines.pobreza_multidimensional.queries import MATERIALIZED_VIEWS
 from core.pipelines.pobreza_multidimensional.schemas import (
     CatEntidad,
     PobrezaMultidimensionalBase,
@@ -13,6 +14,7 @@ from core.pipelines.pobreza_multidimensional.schemas import (
 from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, get_mapping, insert_records, sync_id_sequence
 from core.utils.files import clean_directory
+from core.utils.views import refresh_materialized_views
 
 
 class PobrezaMultidimensionalLoad(Stage):
@@ -72,9 +74,15 @@ class PobrezaMultidimensionalLoad(Stage):
             )
             sync_id_sequence(session, PobrezaMultidimensionalDatos)
 
+        self._refresh_views()
+
         row_count = len(df)
         self.logger.info(f"Cargados {row_count} registros en {PobrezaMultidimensionalDatos.__tablename__}")
         return {"row_count": row_count}
+
+    def _refresh_views(self) -> None:
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
+        self.logger.info("[action] materialized views refreshed")
 
     def finalization(self, input_data: Optional[Any] = None) -> dict:
         clean_directory(self.work_dir, self.logger)

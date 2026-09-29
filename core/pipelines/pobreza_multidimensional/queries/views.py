@@ -1,0 +1,18 @@
+MATERIALIZED_VIEWS = [
+    "pobreza",
+    "pobreza_extrema",
+    "pobreza_moderada",
+    "poblacion_ingreso_inferior_linea_pobreza_ingresos",
+    "poblacion_ingreso_inferior_linea_pobreza_extrema_ingresos",
+    "rezago_educativo",
+    "carencia_acceso_servicios_salud",
+    "carencia_acceso_seguridad_social",
+    "carencia_calidad_espacios_vivienda",
+    "carencia_servicios_basicos_vivienda",
+    "carencia_acceso_alimentacion",
+    "poblacion_con_al_menos_una_carencia_social",
+    "poblacion_con_tres_o_mas_carencias_sociales",
+    "vulnerables_por_carencia_social",
+    "vulnerables_por_ingreso",
+    "no_pobre_y_no_vulnerable",
+]

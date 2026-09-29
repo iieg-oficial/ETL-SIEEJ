@@ -8,10 +8,11 @@ from sqlalchemy.dialects.postgresql import insert
 from core.db import Database
 from core.pipelines.stage import Stage
 from core.pipelines.ilmm.config import settings
-from core.pipelines.ilmm.queries import REFRESH_VIEWS
+from core.pipelines.ilmm.queries import MATERIALIZED_VIEWS
 from core.pipelines.ilmm.schemas import Ilmm, IlmmEstimador
 from core.utils.bulk_ops import count_records
 from core.utils.files import cleanup_pipeline_data
+from core.utils.views import refresh_materialized_views
 
 
 class IlmmLoad(Stage):
@@ -40,11 +41,7 @@ class IlmmLoad(Stage):
         self.logger.info(f"[action] Seeded {len(records)} rows into {IlmmEstimador.__tablename__}")
 
     def _refresh_views(self) -> None:
-        with self.db.get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(REFRESH_VIEWS)
-            cursor.close()
-
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
         self.logger.info("[action] materialized views refreshed")
 
     def action(self, input_data: tuple[pd.DataFrame, pd.DataFrame | None]) -> dict:
