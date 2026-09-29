@@ -1,0 +1,31 @@
+id: pendiente_p95_municipal_grados
+nombre: Percentil 95 de pendiente municipal en grados
+tema: medio_ambiente
+definicion: Percentil 95 de la pendiente Wood–Evans 5×5 en grados dentro del límite municipal seleccionado.
+unidad: grados
+fuente: IIEG, derivado del CEM 4.0 de INEGI, edición 2025 con cobertura temporal 2024
+pipeline: pendientes
+origen: vw_pendientes_estadisticas_municipales
+nivel: municipal
+periodicidad: no periódica
+cobertura: { geografica: Jalisco, temporal: "2024" }
+parametros:
+  - {
+      nombre: cve_geo,
+      tipo: str,
+      requerido: false,
+      descripcion: Clave EEMMM; omitir para todos los municipios.,
+    }
+  - {
+      nombre: fuente_limite,
+      tipo: str,
+      requerido: true,
+      descripcion: Fuente territorial iieg o inegi.,
+    }
+sql: |
+  SELECT cvegeo::text AS cve_geo, nombre_geo::text AS nombre_geo, '2024'::text AS periodo,
+         slope_degrees_p95::numeric AS valor, 'total'::text AS categoria
+  FROM vw_pendientes_estadisticas_municipales
+  WHERE fuente_limite = CAST(:fuente_limite AS text)
+    AND (CAST(:cve_geo AS text) IS NULL OR cvegeo = CAST(:cve_geo AS text))
+  ORDER BY cve_geo

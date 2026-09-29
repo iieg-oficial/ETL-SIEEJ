@@ -1,0 +1,1 @@
+"""Stages del pipeline pendientes."""
