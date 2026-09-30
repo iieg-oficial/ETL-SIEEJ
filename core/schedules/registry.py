@@ -32,6 +32,8 @@ SCHEDULES: Final[dict[str, Schedule]] = {
     "etl_secretaria_educacion_update": Schedule(
         "secretaria_educacion", "0 19 1,16 * *", "cada quincena, los días 1 y 16"
     ),
+    # La Fiscalía sube el corte en los primeros días del mes siguiente.
+    "etl_fosas_clandestinas_update": Schedule("fosas_clandestinas", "0 12 8 * *", "cada mes, el día 8"),
 }
 
 
