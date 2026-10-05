@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS cat_actividades (
+    id INTEGER PRIMARY KEY,
+    actividad VARCHAR(120) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS cat_regiones (
+    id SERIAL PRIMARY KEY,
+    region VARCHAR(80) NOT NULL UNIQUE
+);

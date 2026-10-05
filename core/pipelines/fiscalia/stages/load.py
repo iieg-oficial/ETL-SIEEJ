@@ -83,6 +83,10 @@ class FiscaliaLoad(Stage):
         municipios_map = get_cvegeo_mapping(session, cve_ent=14, is_normalize=True)
 
         df["delitos_id"] = normalize_col(df, "delito").map(delitos_map)
+        unmapped_delitos = df.loc[df["delitos_id"].isna(), "delito"].unique()
+        if len(unmapped_delitos):
+            raise ValueError(f"Unmapped delito values (not in catalog 'delitos'): {list(unmapped_delitos)}")
+
         df["violencia_id"] = normalize_col(df, "violencia").map(violencia_map)
         df["zonas_geograficas_id"] = df["municipio"].map(zonas_geo_map)
         df["municipios_id"] = normalize_col(df, "municipio").map(municipios_map)

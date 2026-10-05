@@ -15,6 +15,7 @@ class FiscaliaTables(StrEnum):
     DELITOS = auto()
     BIEN_AFECTADO = auto()
     CASOS = auto()
+    BITACORA = auto()
 
 
 class FiscaliaColumns(StrEnum):
