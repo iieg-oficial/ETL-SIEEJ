@@ -26,6 +26,7 @@ class IntegridadSexual(BaseClass):
 
 class LaFamilia(BaseClass):
     violencia_familiar = "Violencia familiar"
+    violencia_vicaria = "Violencia vicaria"
 
 
 class ElPatrimonio(BaseClass):

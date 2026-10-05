@@ -57,6 +57,7 @@ HISTORICAL_FILENAME=
 | `V2__catalogos_fiscalia.sql` | Catálogos de delitos, bienes afectados, violencia y zonas geográficas |
 | `V3__tabla_casos.sql` | Tabla principal `casos` |
 | `V4__vista_fiscalia.sql` | Vista analítica desnormalizada |
+| `V23__tabla_bitacora.sql` | Tabla `bitacora` para registrar cambios de catálogo y eventos relevantes |
 
 ## Variables de entorno
 
