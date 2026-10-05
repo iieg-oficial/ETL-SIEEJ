@@ -16,8 +16,10 @@ from core.pipelines.code.constants import (
     PUNTOS_COLUMNS,
     PUNTOS_FRAME,
     PUNTOS_RENAMES,
+    REQUIRED_COLUMNS,
     SHEET_ACTIVIDADES,
     SHEET_PUNTOS,
+    UNIQUE_KEY,
 )
 from core.pipelines.code.helpers.values import title_es
 from core.pipelines.stage import Stage
@@ -78,8 +80,8 @@ class CodeTransform(Stage):
 
     def _prepare_puntos(self, df: pd.DataFrame, manifest: dict[str, Any]) -> pd.DataFrame:
         df = self._standardize(df)
-        df["region"] = df["region"].map(title_es)
         df = list_values_to_null(df, rm_list=NULL_VALUES)
+        df["region"] = df["region"].map(title_es)
 
         for column in INTEGER_COLUMNS:
             df[column] = pd.to_numeric(df[column], errors="coerce").astype("Int64")
@@ -88,11 +90,27 @@ class CodeTransform(Stage):
             df[column] = pd.to_numeric(df[column], errors="coerce")
 
         df["entidad_id"] = JALISCO_CVE_ENTIDAD
-        return self._add_dates(df, manifest)
+        df = self._add_dates(df, manifest)
+        self._validate_puntos(df)
+        return df
+
+    def _validate_puntos(self, df: pd.DataFrame) -> None:
+        """Fail here with the offending values, not later as a database error."""
+        for column in REQUIRED_COLUMNS:
+            if df[column].isna().any():
+                raise ValueError(f"Column '{column}' has {int(df[column].isna().sum())} row(s) without a value")
+
+        duplicated = df.loc[df.duplicated(UNIQUE_KEY, keep=False), UNIQUE_KEY].drop_duplicates()
+        if not duplicated.empty:
+            raise ValueError(f"Found duplicated {UNIQUE_KEY} keys:\n{duplicated.to_string(index=False)}")
 
     def _build_catalogs(self, puntos: pd.DataFrame, actividades: pd.DataFrame) -> dict[str, list[dict[str, Any]]]:
         actividades = list_values_to_null(actividades[ACTIVIDADES_COLUMNS], rm_list=NULL_VALUES).dropna()
         actividades["id"] = actividades["id"].astype(int)
+
+        unknown = sorted(set(puntos["actividad_id"].dropna()) - set(actividades["id"]))
+        if unknown:
+            raise ValueError(f"actividad_id values missing from the activities catalog: {unknown}")
 
         return {
             "actividades": actividades.sort_values("id").to_dict("records"),

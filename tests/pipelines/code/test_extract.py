@@ -154,3 +154,24 @@ def test_un_zip_sin_hoja_de_calculo_falla(tmp_path, monkeypatch):
 
     with pytest.raises(FileNotFoundError, match="xlsx"):
         extract.action(_upload())
+
+
+def test_el_watermark_se_compara_como_fecha_con_zona_horaria():
+    # Como texto "2026-09-09 17:16:53+00:00" < "2026-09-09 12:00:00-06:00", aunque es la misma hora.
+    extract = CodeExtract(mode="update", since="2026-09-09 12:00:00-06:00")
+
+    assert extract._is_new(_upload(updated_at="2026-09-09 18:16:53+00:00")) is True
+    assert extract._is_new(_upload(updated_at="2026-09-09 17:59:00+00:00")) is False
+
+
+def test_el_watermark_acepta_formatos_distintos_del_mismo_instante():
+    extract = CodeExtract(mode="update", since="2026-09-09T17:16:53.235786+00:00")
+
+    assert extract._is_new(_upload(updated_at="2026-09-09 17:16:53.235786+00:00")) is False
+
+
+def test_un_envio_sin_actualizado_en_falla_antes_de_cargar(listado):
+    listado["uploads"] = [_upload(updated_at="")]
+
+    with pytest.raises(ValueError, match="actualizado_en"):
+        CodeExtract().source()

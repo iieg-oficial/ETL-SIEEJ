@@ -20,7 +20,7 @@ FILA = {
     "espacio": "  Unidad  Deportiva ",
     "dias_y_horarios": "L - Mi - V de 18:00 a 19:30",
     "actividad": "Baile ",
-    "cat_actividad": 3.0,
+    "cat_actividad": 1.0,
     "cantidad_de_usuarios": 14,
     "y": 20.7,
     "x": -103.4,
@@ -58,7 +58,7 @@ def test_los_horarios_no_se_parsean():
 
 
 def test_la_actividad_flotante_pasa_a_entero_nullable():
-    assert _preparar()["actividad_id"].item() == 3
+    assert _preparar()["actividad_id"].item() == 1
 
 
 def test_una_actividad_faltante_queda_nula():
@@ -131,7 +131,13 @@ def test_el_catalogo_de_actividades_conserva_el_id_del_origen():
 
 
 def test_el_catalogo_de_regiones_sale_de_los_valores_ya_limpios():
-    df = pd.concat([_puntos(region="Norte "), _puntos(region="norte"), _puntos(region="Altos sur")])
+    df = pd.concat(
+        [
+            _puntos(id=1, region="Norte ", espacio="A"),
+            _puntos(id=2, region="norte", espacio="B"),
+            _puntos(id=3, region="Altos sur", espacio="C"),
+        ]
+    )
     preparado = CodeTransform()._prepare_puntos(df, MANIFEST)
 
     regiones = CodeTransform()._build_catalogs(preparado, CATALOGO)["regiones"]
@@ -144,3 +150,51 @@ def test_un_update_sin_cargas_nuevas_no_es_un_error():
 
     assert salida["frames"] == {}
     assert salida["catalogs"] == {}
+
+
+@pytest.mark.parametrize("sucio", ["NA", "null", "N/A", "nan"])
+def test_una_region_nula_del_origen_no_llega_al_catalogo(sucio):
+    preparado = _preparar(region=sucio)
+
+    assert pd.isna(preparado["region"].item())
+    assert CodeTransform()._build_catalogs(preparado, CATALOGO)["regiones"] == []
+
+
+def test_un_punto_duplicado_en_la_llave_unica_es_un_error_claro():
+    df = pd.concat([_puntos(id=1), _puntos(id=2)])
+
+    with pytest.raises(ValueError, match=r"(?s)duplicated.*Unidad Deportiva"):
+        CodeTransform()._prepare_puntos(df, MANIFEST)
+
+
+def test_el_mismo_espacio_en_otro_municipio_no_es_duplicado():
+    df = pd.concat([_puntos(id=1), _puntos(id=2, clave_agem=121)])
+
+    assert len(CodeTransform()._prepare_puntos(df, MANIFEST)) == 2
+
+
+@pytest.mark.parametrize(
+    ("cambio", "columna"),
+    [
+        ({"id": None}, "clave_punto"),
+        ({"clave_agem": None}, "municipio_id"),
+        ({"espacio": "  "}, "nombre_espacio"),
+        ({"id": "abc"}, "clave_punto"),
+    ],
+)
+def test_una_columna_obligatoria_sin_valor_es_un_error_que_la_nombra(cambio, columna):
+    with pytest.raises(ValueError, match=columna):
+        _preparar(**cambio)
+
+
+def test_una_actividad_fuera_del_catalogo_es_un_error():
+    puntos = _preparar(cat_actividad=99.0)
+
+    with pytest.raises(ValueError, match="99"):
+        CodeTransform()._build_catalogs(puntos, CATALOGO)
+
+
+def test_una_actividad_nula_no_se_valida_contra_el_catalogo():
+    puntos = _preparar(cat_actividad=float("nan"))
+
+    assert CodeTransform()._build_catalogs(puntos, CATALOGO)["actividades"]

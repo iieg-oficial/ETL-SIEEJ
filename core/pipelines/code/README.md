@@ -117,7 +117,7 @@ Lista los envíos de la dependencia con `list_uploads(settings.DEPENDENCIA, fiel
 
 El envío es un ZIP con dos archivos: `code_catalogo_actividad_reto.xlsx`, que es la fuente, y `reto.gpkg`, que se ignora. La hoja `base` trae los puntos y la hoja `cat_actividad` el catálogo de actividades.
 
-Cada envío trae el conjunto completo, así que solo se procesa el más reciente. En modo `update` se descarta lo anterior al watermark (`actualizado_en` del último envío procesado) y los envíos cuyo `etag` ya fue cargado. Un `update` sin nada nuevo termina sin error y sin tocar la base; un `bootstrap` sin envíos sí falla.
+Cada envío trae el conjunto completo, así que solo se procesa el más reciente. En modo `update` se descarta lo anterior al watermark (`actualizado_en` del último envío procesado) y los envíos cuyo `etag` ya fue cargado. El watermark se compara como fechas con zona horaria, y un envío sin `actualizado_en` falla en extract. Un `update` sin nada nuevo termina sin error y sin tocar la base; un `bootstrap` sin envíos sí falla.
 
 ### Transform
 
@@ -126,6 +126,7 @@ Cada envío trae el conjunto completo, así que solo se procesa el más reciente
 - No guarda el nombre del municipio: se resuelve en la vista contra cvegeo. Tampoco guarda la columna `actividad` en texto libre, porque la actividad sale del catálogo.
 - Renombra `x` a `longitud` e `y` a `latitud`, como el resto de pipelines con puntos; no se construye geometría.
 - **El corte sale de los datos.** El formulario de CODE no trae fecha de corte ni de actualización, así que `fecha_corte` es la columna `fecha` de cada fila y `fecha_actualizacion_fuente` es la fecha del envío.
+- Valida antes de cargar: columnas obligatorias sin valor, llaves duplicadas `(fecha_corte, municipio_id, nombre_espacio)` y actividades ausentes del catálogo fallan con un error que lista los valores.
 - Construye los catálogos: las actividades con el id del origen y las regiones desde los valores ya limpios.
 
 ### Load

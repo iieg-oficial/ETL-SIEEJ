@@ -47,6 +47,10 @@ PUNTOS_COLUMNS: Final[list[str]] = [
     "latitud",
 ]
 
+# NOT NULL columns of the fact table and its unique key.
+REQUIRED_COLUMNS: Final[list[str]] = ["clave_punto", "municipio_id", "nombre_espacio", "fecha_corte"]
+UNIQUE_KEY: Final[list[str]] = ["fecha_corte", "municipio_id", "nombre_espacio"]
+
 ACTIVIDADES_COLUMNS: Final[list[str]] = ["id", "actividad"]
 
 INTEGER_COLUMNS: Final[list[str]] = ["clave_punto", "municipio_id", "actividad_id", "cantidad_usuarios"]

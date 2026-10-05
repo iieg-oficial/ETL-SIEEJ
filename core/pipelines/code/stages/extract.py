@@ -34,9 +34,17 @@ class CodeExtract(Stage):
         self.processed_etags = frozenset(processed_etags)
         self.logger = get_logger(f"{PIPELINE_NAME}.extract")
 
+    def _parse_timestamp(self, value: str, envio_id: int) -> pd.Timestamp:
+        timestamp = pd.to_datetime(value, utc=True) if value else pd.NaT
+        if pd.isna(timestamp):
+            raise ValueError(f"envio {envio_id} has no valid actualizado_en")
+        return timestamp
+
     def _is_new(self, upload: Upload) -> bool:
         """True when an update run still has to process this upload."""
-        if self.since and upload.updated_at <= self.since:
+        if self.since and self._parse_timestamp(upload.updated_at, upload.envio_id) <= pd.to_datetime(
+            self.since, utc=True
+        ):
             return False
 
         if upload.etag and upload.etag in self.processed_etags:
@@ -58,7 +66,9 @@ class CodeExtract(Stage):
             return None
 
         # Each submission is the full dataset, so only the newest one is loaded.
-        return max(uploads, key=lambda upload: upload.uploaded_at)
+        newest = max(uploads, key=lambda upload: upload.uploaded_at)
+        self._parse_timestamp(newest.updated_at, newest.envio_id)
+        return newest
 
     def _read_sheets(self, path: Path) -> dict[str, pd.DataFrame]:
         """The upload is a ZIP holding the spreadsheet with the data and its catalog."""
