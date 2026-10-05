@@ -18,9 +18,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import boto3
+from botocore.config import Config
 
 from core.acervo.config import settings
 from core.acervo.constants import (
+    ACERVO_CONNECT_TIMEOUT,
+    ACERVO_MAX_ATTEMPTS,
+    ACERVO_READ_TIMEOUT,
     CONJUNTO_PATH,
     DATA_FIELD,
     DATASETS_FIELD,
@@ -77,6 +81,11 @@ def get_client():
         aws_access_key_id=settings.ACERVO_ACCESS_KEY,
         aws_secret_access_key=settings.ACERVO_SECRET_KEY,
         region_name=settings.ACERVO_REGION,
+        config=Config(
+            connect_timeout=ACERVO_CONNECT_TIMEOUT,
+            read_timeout=ACERVO_READ_TIMEOUT,
+            retries={"total_max_attempts": ACERVO_MAX_ATTEMPTS},
+        ),
     )
 
 
@@ -92,6 +101,7 @@ def _scan_prefix(client, bucket: str, prefix: str, envio_filename: str) -> tuple
             if obj["Key"].endswith(f"/{envio_filename}"):
                 envios.append(obj["Key"])
 
+    logger.info(f"[acervo] scanned {len(etags)} object(s) under '{prefix}', {len(envios)} {envio_filename} found")
     return envios, etags
 
 
@@ -118,6 +128,7 @@ def list_uploads(
     bucket: str | None = None,
     prefix: str | None = None,
     estado: str = ESTADO_ENVIADO,
+    field: str = DATA_FIELD,
 ) -> list[Upload]:
     """Return a dependency's submitted uploads, oldest first.
 
@@ -130,6 +141,7 @@ def list_uploads(
         bucket: bucket holding the submissions; defaults to the configured one.
         prefix: form prefix to scan; defaults to the configured one.
         estado: submission state to accept; pass None to accept every state.
+        field: form field holding the data files.
     """
     client = client or get_client()
     bucket = bucket or settings.ACERVO_BUCKET
@@ -151,7 +163,7 @@ def list_uploads(
         folder = key.removeprefix(prefix).removesuffix(f"/{envio_filename}")
         for archivo in envio.get("archivos", []):
             field_path = archivo.get("field_path", "")
-            if DATA_FIELD not in field_path:
+            if field not in field_path:
                 continue
 
             block = _dataset_block(envio, field_path)
