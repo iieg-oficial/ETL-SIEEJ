@@ -34,6 +34,7 @@ SCHEDULES: Final[dict[str, Schedule]] = {
     ),
     # La Fiscalía sube el corte en los primeros días del mes siguiente.
     "etl_fosas_clandestinas_update": Schedule("fosas_clandestinas", "0 12 8 * *", "cada mes, el día 8"),
+    "etl_code_update": Schedule("code", "0 12 5 * *", "cada mes, el día 5"),
 }
 
 

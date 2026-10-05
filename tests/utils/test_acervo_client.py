@@ -5,7 +5,8 @@ import json
 import pytest
 
 from core.acervo import list_uploads, normalize
-from core.acervo.client import Upload
+from core.acervo.client import Upload, get_client
+from core.acervo.constants import ACERVO_CONNECT_TIMEOUT, ACERVO_MAX_ATTEMPTS, ACERVO_READ_TIMEOUT
 
 PREFIX = "formulario/"
 DEPENDENCIA = "Secretaría de Educación"
@@ -22,10 +23,10 @@ def _envio(persona: str, archivos: list[dict], estado: str = "enviado", dependen
     }
 
 
-def _archivo(nombre: str, subido_en: str) -> dict:
+def _archivo(nombre: str, subido_en: str, campo: str = "carga_de_datos") -> dict:
     return {
-        "field_path": "conunto_datos[0].carga_de_datos",
-        "object_key": f"{PREFIX}persona/conunto_datos-0.carga_de_datos/{nombre}",
+        "field_path": f"conunto_datos[0].{campo}",
+        "object_key": f"{PREFIX}persona/conunto_datos-0.{campo}/{nombre}",
         "filename_original": nombre,
         "size_bytes": 10,
         "subido_en": subido_en,
@@ -125,6 +126,36 @@ def test_la_dependencia_se_compara_sin_acentos_ni_mayusculas():
     assert len(_listar(envios)) == 1
 
 
+CAMPO_METODOLOGIA = "adjunte_el_documento_metodologico_asociado_al_conjunto_de_datos"
+
+
+def test_por_defecto_se_ignoran_los_archivos_de_otros_campos():
+    envios = {
+        f"{PREFIX}persona/envio.json": _envio(
+            "persona", [_archivo("a.zip", "2026-09-10 21:31:00+00:00", campo=CAMPO_METODOLOGIA)]
+        )
+    }
+
+    assert _listar(envios) == []
+
+
+def test_se_puede_leer_otro_campo_del_formulario():
+    # Hay dependencias que adjuntan los datos en el campo del documento metodologico.
+    envios = {
+        f"{PREFIX}persona/envio.json": _envio(
+            "persona",
+            [
+                _archivo("datos.csv", "2026-09-10 21:31:00+00:00"),
+                _archivo("a.zip", "2026-09-10 21:31:00+00:00", campo=CAMPO_METODOLOGIA),
+            ],
+        )
+    }
+
+    uploads = _listar(envios, field=CAMPO_METODOLOGIA)
+
+    assert [u.filename for u in uploads] == ["a.zip"]
+
+
 def test_la_carga_trae_las_fechas_del_formulario():
     envios = {f"{PREFIX}persona/envio.json": _envio("persona", [_archivo("a.csv", "2026-09-10 21:31:00+00:00")])}
 
@@ -155,6 +186,15 @@ def test_el_etag_multiparte_no_sirve_como_hash_de_contenido(etag, es_md5):
     )
 
     assert upload.etag_is_md5 is es_md5
+
+
+def test_el_cliente_falla_rapido_si_acervo_no_responde():
+    # Sin tunel, los defaults de boto3 dejan el proceso minutos en silencio.
+    config = get_client().meta.config
+
+    assert config.connect_timeout == ACERVO_CONNECT_TIMEOUT
+    assert config.read_timeout == ACERVO_READ_TIMEOUT
+    assert config.retries["total_max_attempts"] == ACERVO_MAX_ATTEMPTS
 
 
 def test_normalize_conserva_los_espacios():
