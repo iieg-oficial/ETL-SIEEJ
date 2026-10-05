@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.8.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.7.0...v1.8.0) (2026-10-05)
+
+
+### Features
+
+* **acervo:** add form field selection and fail-fast timeouts to client ([23a92af](https://github.com/iieg-oficial/ETL-SIEEJ/commit/23a92af1be4b6f35b1961228974d12d9b6c67aa5))
+* adds readme and entity relation diagram ([1d364f6](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1d364f61d6641d38be2918052d3db4cff07f3cdb))
+* **code:** add bootstrap and update dag ([12721fc](https://github.com/iieg-oficial/ETL-SIEEJ/commit/12721fc61d4a4a1273ca17814e9af024dea018dd))
+* **code:** add catalogs, staging table and view migrations ([5e6e193](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5e6e1934b9e809b04e92b73ca7e28be73703bb94))
+* **code:** add extract, transform and load stages ([4c899dd](https://github.com/iieg-oficial/ETL-SIEEJ/commit/4c899dd57e97bb1c36e031f7344c5988df94ff31))
+* **code:** add schemas, constants and pipeline configuration ([b6d3b7c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/b6d3b7c2ed7708d645ce260de1120b1c9aa9953f))
+* **pipeline:** CODE ([05625f8](https://github.com/iieg-oficial/ETL-SIEEJ/commit/05625f8f9e424788deec8f609db5e450e0333a3f))
+* **secretaria_educacion:** pipeline de la Secretaría de Educación Jalisco ([05ef0f5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/05ef0f5e16623f7c7e1c60483c671c467a46a3c1))
+
+
+### Bug Fixes
+
+* **code:** validate keys and watermark before loading ([c8c74e2](https://github.com/iieg-oficial/ETL-SIEEJ/commit/c8c74e2bb28dc61c8ff63e4c84b6662e2c0d8eed))
+* **fiscalia:** agregar violencia vicaria al catálogo y tabla bitacora ([e9c2672](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e9c26724ed996d2c5d0faabfc54def236189a6fe))
+
 ## [1.7.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.6.0...v1.7.0) (2026-09-29)
 
 
