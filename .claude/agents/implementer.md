@@ -103,7 +103,27 @@ Eres un implementador ETL. Tu trabajo es ejecutar **una sola fase** desde inicio
 - Verifica registros insertados > 0.
 - Recorre todos los checkpoints de `.claude/CHECKPOINTS.md` y confirma que se cumplen.
 
-### Phase 9 — README
+### Phase 9 — GeoServer Sync
+- Lee primero: `core/pipelines/ilmm/queries/views.py`, `core/pipelines/ilmm/stages/load.py`, `dags/etl_repd.py`, `core/utils/views.py`, `scripts/create_geoserver_layers.py`.
+- Revisa con `get_geometry_columns`/`geometry_columns` (o simplemente mirando las migraciones `V4__views_{pipeline}.sql`) si alguna vista materializada del pipeline tiene columna de geometría.
+- **Si ninguna vista tiene geometría:** no toques nada, marca la fase `done` con nota "n/a — sin vistas geo".
+- **Si hay vistas con geometría:**
+  1. Declara `MATERIALIZED_VIEWS = [...]` en `queries/views.py` (o `queries/__init__.py`) del pipeline, listando los nombres de esas vistas.
+  2. En `stages/load.py`, reemplaza el refresco manual de vistas por `refresh_materialized_views(self.db, MATERIALIZED_VIEWS)` (importado de `core/utils/views.py`). Usa `concurrently=False` solo si las vistas no tienen índice único.
+  3. En `dags/etl_{pipeline}.py`, importa `TriggerDagRunOperator` y encadena tras el último task de cada DAG (bootstrap y update):
+     ```python
+     trigger_geoserver_sync = TriggerDagRunOperator(
+         task_id="trigger_geoserver_sync",
+         trigger_dag_id="etl_geoserver_sync",
+         conf={"pipeline": "{pipeline}"},
+         wait_for_completion=False,
+     )
+     run_task >> trigger_geoserver_sync
+     ```
+  4. Valida corriendo `PYTHONPATH=. python3 scripts/create_geoserver_layers.py --pipeline {pipeline} --dry-run` primero, y si está disponible un GeoServer de prueba, sin `--dry-run`.
+- Nunca corras el script sin `--dry-run` contra el GeoServer de producción desde un entorno con `.env` local — sobrescribe el datastore (ver advertencia en `docs/airflow.md`).
+
+### Phase 10 — README
 - Crea `core/pipelines/{pipeline}/README.md`.
 - Documenta: fuente de datos, URL(s), tablas generadas, schedule del DAG, instrucciones para actualizar.
 
