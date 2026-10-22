@@ -136,6 +136,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `V3__tables_secretaria_educacion.sql` | Las 3 tablas de hechos y la de control |
 | `V4__views_secretaria_educacion.sql` | Las 3 vistas |
 | `V5__comments_secretaria_educacion.sql` | `COMMENT ON` de todas las tablas, vistas y columnas |
+| `V6__materialized_view_prog_estra_sej_geo.sql` | Vista materializada geográfica de escuelas beneficiadas por programas estratégicos |
 
 ## Vistas
 
@@ -144,6 +145,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `vw_directorio_centros_trabajo` | Directorio con catálogos resueltos; entidad y municipio desde cvegeo, localidad y colonia desde los catálogos propios |
 | `vw_escuelas_programas_estrategicos` | Relación escuela-programa con el nombre del programa resuelto |
 | `vw_aulas_google` | Equipamiento con región operativa y municipio resueltos |
+| `vm_prog_estra_sej_geo` | Escuelas beneficiadas por programas estratégicos, con una fila canónica por CCT del directorio y geometría puntual EPSG:6368 |
 
 ## Variables de entorno
 

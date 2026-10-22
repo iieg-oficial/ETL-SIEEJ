@@ -7,7 +7,11 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from core.pipelines.secretaria_educacion.constants import AULAS_GOOGLE_DATASET
+from core.pipelines.secretaria_educacion.constants import (
+    AULAS_GOOGLE_DATASET,
+    DIRECTORIO_DATASET,
+    PROGRAMAS_DATASET,
+)
 from core.pipelines.secretaria_educacion.schemas import (
     CatMedios,
     CatRegiones,
@@ -191,3 +195,36 @@ def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured
 
     assert conexiones == []
     assert captured["bulk"] == []
+
+
+@pytest.mark.parametrize("dataset", [DIRECTORIO_DATASET, PROGRAMAS_DATASET])
+def test_recargar_directorio_o_programas_refresca_la_vista(load, monkeypatch, dataset):
+    refrescos = []
+    monkeypatch.setattr(load, "_load_catalogs", lambda *_args: None)
+    monkeypatch.setattr(load, "_reload_dataset", lambda *_args: None)
+    monkeypatch.setattr(load, "_register_load", lambda *_args: None)
+    monkeypatch.setattr(
+        load_module,
+        "refresh_materialized_views",
+        lambda db, views: refrescos.append((db, views)),
+    )
+
+    load.action({"frames": {dataset: _aulas()}, "manifest": {}, "catalogs": {}})
+
+    assert refrescos == [(load.db, ("vm_prog_estra_sej_geo",))]
+
+
+def test_recargar_aulas_no_refresca_la_vista_de_programas(load, monkeypatch):
+    refrescos = []
+    monkeypatch.setattr(load, "_load_catalogs", lambda *_args: None)
+    monkeypatch.setattr(load, "_reload_dataset", lambda *_args: None)
+    monkeypatch.setattr(load, "_register_load", lambda *_args: None)
+    monkeypatch.setattr(
+        load_module,
+        "refresh_materialized_views",
+        lambda db, views: refrescos.append((db, views)),
+    )
+
+    load.action({"frames": {AULAS_GOOGLE_DATASET: _aulas()}, "manifest": {}, "catalogs": {}})
+
+    assert refrescos == []
