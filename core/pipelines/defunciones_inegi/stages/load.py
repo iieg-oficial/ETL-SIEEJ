@@ -20,6 +20,7 @@ from core.pipelines.defunciones_inegi.constants import (
     VERSIONED_COLUMN_CATALOG,
 )
 from core.pipelines.defunciones_inegi.helpers.catalogs import canonical_text_key
+from core.pipelines.defunciones_inegi.queries import MATERIALIZED_VIEWS
 from core.pipelines.defunciones_inegi.schemas import (
     CATALOG_MODELS,
     STABLE_MODELS,
@@ -36,6 +37,7 @@ from core.pipelines.stage import Stage
 from core.utils.bulk_ops import bulk_insert, bulk_insert_do_nothing, sync_id_sequence
 from core.utils.geo import localidad_code
 from core.utils.mappings import map_multiindex
+from core.utils.views import refresh_materialized_views
 from core.utils.logger import get_logger
 
 
@@ -67,7 +69,11 @@ class DefuncionesInegiLoad(Stage):
             for year in input_data["editions"]:
                 loaded += self._load_edition_facts(session, year, edition_ids[year], mappings)
                 session.commit()
+        self._refresh_views()
         return {"defunciones": loaded}
+
+    def _refresh_views(self) -> None:
+        refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
 
     @staticmethod
     def _edition_years(editions: list[int], catalogs: dict[str, list[dict]]) -> list[int]:
