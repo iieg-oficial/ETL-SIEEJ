@@ -190,3 +190,19 @@ def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured
 
     assert conexiones == []
     assert captured["bulk"] == []
+
+
+def test_recargar_puntos_refresca_la_vista_materializada(load, monkeypatch):
+    refrescos = []
+    monkeypatch.setattr(load, "_load_catalogs", lambda *_args: None)
+    monkeypatch.setattr(load, "_reload_puntos", lambda *_args: None)
+    monkeypatch.setattr(load, "_register_load", lambda *_args: None)
+    monkeypatch.setattr(
+        load_module,
+        "refresh_materialized_views",
+        lambda db, views: refrescos.append((db, views)),
+    )
+
+    load.action({"frames": {"puntos": _puntos()}, "manifest": MANIFEST, "catalogs": {}})
+
+    assert refrescos == [(load.db, ("vm_reto_code_geo",))]

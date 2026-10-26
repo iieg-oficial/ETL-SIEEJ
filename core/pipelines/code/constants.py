@@ -2,6 +2,8 @@ from typing import Final
 
 PIPELINE_NAME: Final[str] = "code"
 
+MATERIALIZED_VIEWS: Final[tuple[str, ...]] = ("vm_reto_code_geo",)
+
 # CODE attached its data in the methodology field of the form, not in the data one.
 UPLOAD_FIELD: Final[str] = "adjunte_el_documento_metodologico_asociado_al_conjunto_de_datos"
 
