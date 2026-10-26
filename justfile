@@ -220,6 +220,19 @@ airflow-pools:
     echo "airflow-scheduler no respondió en 150s. Ejecutar 'just airflow-pools' cuando esté arriba."
     exit 1
 
+[group('geoserver')]
+[doc("Disparar el DAG etl_geoserver_sync para un pipeline (solo encola la corrida, no espera a que termine)")]
+geoserver-sync pipeline:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    pipeline={{quote(pipeline)}}
+    if [[ ! "$pipeline" =~ ^[a-z0-9_]+$ ]] || [ ! -d "core/pipelines/$pipeline" ]; then
+        echo "Pipeline inválido o inexistente: '$pipeline' (ver core/pipelines/)"
+        exit 1
+    fi
+    docker compose exec -T airflow-scheduler airflow dags trigger etl_geoserver_sync --conf "{\"pipeline\": \"$pipeline\"}"
+    echo "Corrida encolada. Todavía no termina: el progreso y los logs se ven en ${AIRFLOW_BASE_URL:-http://localhost:8080}/dags/etl_geoserver_sync"
+
 [group('flyway')]
 [doc("Generar flyway.conf desde flyway.conf.example usando variables del .env")]
 flyway-config pipeline: (_load-env pipeline)
