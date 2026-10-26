@@ -137,6 +137,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `V4__views_secretaria_educacion.sql` | Las 3 vistas |
 | `V5__comments_secretaria_educacion.sql` | `COMMENT ON` de todas las tablas, vistas y columnas |
 | `V6__materialized_view_prog_estra_sej_geo.sql` | Vista materializada geográfica de escuelas beneficiadas por programas estratégicos |
+| `V7__materialized_view_aulas_google_geo.sql` | Vista materializada geográfica de escuelas con Aulas Google |
 
 ## Vistas
 
@@ -146,6 +147,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `vw_escuelas_programas_estrategicos` | Relación escuela-programa con el nombre del programa resuelto |
 | `vw_aulas_google` | Equipamiento con región operativa y municipio resueltos |
 | `vm_prog_estra_sej_geo` | Escuelas beneficiadas por programas estratégicos, con una fila canónica por CCT del directorio y geometría puntual EPSG:6368 |
+| `vm_aulas_google_geo` | Escuelas con Aulas Google, con una fila canónica por CCT de Aulas Google y del directorio, y geometría puntual EPSG:6368 |
 
 ## Variables de entorno
 

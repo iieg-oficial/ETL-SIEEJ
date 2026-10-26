@@ -13,7 +13,7 @@ from core.pipelines.secretaria_educacion.constants import (
     CATALOGS_FILENAME,
     DIRECTORIO_DATASET,
     MANIFEST_FILENAME,
-    MATERIALIZED_VIEWS,
+    MATERIALIZED_VIEW_SOURCES,
     PIPELINE_NAME,
     PROGRAMAS_DATASET,
 )
@@ -275,8 +275,13 @@ class SecretariaEducacionLoad(Stage):
                     self._reload_dataset(session, dataset, df)
                 self._register_load(session, input_data["manifest"])
 
-            if {DIRECTORIO_DATASET, PROGRAMAS_DATASET}.intersection(input_data["frames"]):
-                refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
+            views_to_refresh = tuple(
+                view
+                for view, source_datasets in MATERIALIZED_VIEW_SOURCES.items()
+                if source_datasets.intersection(input_data["frames"])
+            )
+            if views_to_refresh:
+                refresh_materialized_views(self.db, views_to_refresh)
                 self.logger.info("[action] materialized views refreshed")
         except Exception:
             self.db.disconnect()
