@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.9.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.8.0...v1.9.0) (2026-10-26)
+
+
+### Features
+
+* **code:** add Reto geo view ([7763b87](https://github.com/iieg-oficial/ETL-SIEEJ/commit/7763b87be34043f6da3f40850d5e3d5f4c2ccf80))
+* **code:** add Reto geo view ([5ec8942](https://github.com/iieg-oficial/ETL-SIEEJ/commit/5ec8942599c7e8cdfe6ce12080f31b498d4f2424))
+* **defunciones_inegi:** agregar vista de mortalidad adulta geográfica ([a158f07](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a158f07407b5878cbf62c476b1997c7b280a2914))
+* **defunciones_inegi:** agregar vista geográfica de mortalidad infantil ([7b87e8c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/7b87e8cb5e1857bb1287ee158626e997e951b4ff))
+* **defunciones_inegi:** agregar vista geográfica de mortalidad materna ([742bc4c](https://github.com/iieg-oficial/ETL-SIEEJ/commit/742bc4c639ce827f5c811fa2074f9a191c1bc6cf))
+* **denue:** agregar vista materializada puntual de establecimientos ([a3626ab](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a3626ab11792c76ab3c8c3ecd0ad7881a58098f7))
+* **secretaria_educacion:** add Aulas Google geo view ([4163c75](https://github.com/iieg-oficial/ETL-SIEEJ/commit/4163c75d716acfe23651fbf64921e83383084d0f))
+* **secretaria_educacion:** add geographic materialized views ([4fb9245](https://github.com/iieg-oficial/ETL-SIEEJ/commit/4fb9245455e22db07910e5d65e0d2768728e5e85))
+* **secretaria_educacion:** add programs geo view ([420efc2](https://github.com/iieg-oficial/ETL-SIEEJ/commit/420efc261c88b920d9c90811b1fb3a202c4ab725))
+
+
+### Bug Fixes
+
+* agrega granularidad municipal a vista de producción agrícola ([ee199f6](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ee199f682139f212d0dccdfe17cf6066a51c0802))
+* agrega granularidad municipal a vista de producción pecuaria ([82a0b87](https://github.com/iieg-oficial/ETL-SIEEJ/commit/82a0b87d0a9a8e2da10b548e37224fcccb5e3bd9))
+* **gis:** standardize municipal view columns ([1fc32f5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1fc32f5756342d91629500c68536b9fc2d43945f))
+* **secretaria_educacion:** rename Aulas view field ([43f138d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/43f138d2e0cded4a37b7e986ce57e3420e3dc971))
+
 ## [1.8.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.7.0...v1.8.0) (2026-10-05)
 
 
