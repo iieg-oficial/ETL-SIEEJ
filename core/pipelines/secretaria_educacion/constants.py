@@ -8,6 +8,11 @@ AULAS_GOOGLE_DATASET: Final[str] = "aulas_google"
 
 DATASETS: Final[list[str]] = [DIRECTORIO_DATASET, PROGRAMAS_DATASET, AULAS_GOOGLE_DATASET]
 
+MATERIALIZED_VIEW_SOURCES: Final[dict[str, frozenset[str]]] = {
+    "vm_prog_estra_sej_geo": frozenset({DIRECTORIO_DATASET, PROGRAMAS_DATASET}),
+    "vm_aulas_google_geo": frozenset({DIRECTORIO_DATASET, AULAS_GOOGLE_DATASET}),
+}
+
 # El formulario captura el nombre del conjunto como texto libre, así que el ruteo
 # es por prefijo normalizado: "Aulas google 2026-2027" sigue cayendo en su dataset.
 DATASET_PREFIXES: Final[dict[str, str]] = {

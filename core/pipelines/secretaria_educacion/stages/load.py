@@ -13,6 +13,7 @@ from core.pipelines.secretaria_educacion.constants import (
     CATALOGS_FILENAME,
     DIRECTORIO_DATASET,
     MANIFEST_FILENAME,
+    MATERIALIZED_VIEW_SOURCES,
     PIPELINE_NAME,
     PROGRAMAS_DATASET,
 )
@@ -45,6 +46,7 @@ from core.utils.bulk_ops import (
 from core.utils.files import cleanup_pipeline_data, read_json
 from core.utils.logger import get_logger
 from core.utils.normalize import strip_accents
+from core.utils.views import refresh_materialized_views
 
 # Catálogos con id propio del origen, que se insertan tal cual.
 SOURCE_ID_CATALOGS = [
@@ -272,6 +274,15 @@ class SecretariaEducacionLoad(Stage):
                 for dataset, df in input_data["frames"].items():
                     self._reload_dataset(session, dataset, df)
                 self._register_load(session, input_data["manifest"])
+
+            views_to_refresh = tuple(
+                view
+                for view, source_datasets in MATERIALIZED_VIEW_SOURCES.items()
+                if source_datasets.intersection(input_data["frames"])
+            )
+            if views_to_refresh:
+                refresh_materialized_views(self.db, views_to_refresh)
+                self.logger.info("[action] materialized views refreshed")
         except Exception:
             self.db.disconnect()
             raise

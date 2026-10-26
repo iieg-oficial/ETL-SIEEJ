@@ -7,7 +7,11 @@ from datetime import date
 import pandas as pd
 import pytest
 
-from core.pipelines.secretaria_educacion.constants import AULAS_GOOGLE_DATASET
+from core.pipelines.secretaria_educacion.constants import (
+    AULAS_GOOGLE_DATASET,
+    DIRECTORIO_DATASET,
+    PROGRAMAS_DATASET,
+)
 from core.pipelines.secretaria_educacion.schemas import (
     CatMedios,
     CatRegiones,
@@ -191,3 +195,27 @@ def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured
 
     assert conexiones == []
     assert captured["bulk"] == []
+
+
+@pytest.mark.parametrize(
+    ("dataset", "expected_views"),
+    [
+        (DIRECTORIO_DATASET, ("vm_prog_estra_sej_geo", "vm_aulas_google_geo")),
+        (PROGRAMAS_DATASET, ("vm_prog_estra_sej_geo",)),
+        (AULAS_GOOGLE_DATASET, ("vm_aulas_google_geo",)),
+    ],
+)
+def test_recargar_fuentes_refresca_solo_las_vistas_dependientes(load, monkeypatch, dataset, expected_views):
+    refrescos = []
+    monkeypatch.setattr(load, "_load_catalogs", lambda *_args: None)
+    monkeypatch.setattr(load, "_reload_dataset", lambda *_args: None)
+    monkeypatch.setattr(load, "_register_load", lambda *_args: None)
+    monkeypatch.setattr(
+        load_module,
+        "refresh_materialized_views",
+        lambda db, views: refrescos.append((db, views)),
+    )
+
+    load.action({"frames": {dataset: _aulas()}, "manifest": {}, "catalogs": {}})
+
+    assert refrescos == [(load.db, expected_views)]
