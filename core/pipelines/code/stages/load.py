@@ -7,7 +7,13 @@ from sqlalchemy import delete
 
 from core.db import Database
 from core.pipelines.code.config import settings
-from core.pipelines.code.constants import CATALOGS_FILENAME, MANIFEST_FILENAME, PIPELINE_NAME, PUNTOS_FRAME
+from core.pipelines.code.constants import (
+    CATALOGS_FILENAME,
+    MANIFEST_FILENAME,
+    MATERIALIZED_VIEWS,
+    PIPELINE_NAME,
+    PUNTOS_FRAME,
+)
 from core.pipelines.code.schemas import CargasAcervo, CatActividades, CatRegiones, StgPuntosActivacionReto
 from core.pipelines.stage import Stage
 from core.utils import df_to_records
@@ -21,6 +27,7 @@ from core.utils.bulk_ops import (
 )
 from core.utils.files import cleanup_pipeline_data, read_json
 from core.utils.logger import get_logger
+from core.utils.views import refresh_materialized_views
 
 
 class CodeLoad(Stage):
@@ -120,6 +127,8 @@ class CodeLoad(Stage):
                 self._load_catalogs(session, input_data["catalogs"])
                 self._reload_puntos(session, puntos)
                 self._register_load(session, input_data["manifest"], puntos)
+            refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
+            self.logger.info("[action] materialized views refreshed")
         except Exception:
             self.db.disconnect()
             raise

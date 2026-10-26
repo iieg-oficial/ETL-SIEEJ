@@ -93,12 +93,14 @@ Control de envíos procesados: da el watermark del incremental.
 | `V3__tables_code.sql` | La tabla de hechos y la de control |
 | `V4__views_code.sql` | La vista `vw_puntos_activacion_reto` |
 | `V5__comments_code.sql` | `COMMENT ON` de todas las tablas, la vista y sus columnas |
+| `V6__materialized_view_reto_code_geo.sql` | Vista materializada geográfica de puntos de activación Reto |
 
 ## Vistas
 
 | vista | alcance |
 |---|---|
 | `vw_puntos_activacion_reto` | Puntos con región y actividad resueltas; entidad y municipio desde cvegeo; `longitud` y `latitud` directas de la tabla |
+| `vm_reto_code_geo` | Puntos de activación Reto con actividad, atributos geográficos y geometría puntual EPSG:6368 |
 
 ## Variables de entorno
 
