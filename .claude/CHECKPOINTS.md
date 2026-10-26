@@ -51,7 +51,15 @@
 - [ ] `sync_id_sequence` llamado tras insertar catálogos con id fijo
 - [ ] No hay `NaN` en columnas FK después de `.map()`
 
-## C6 — Sesión cerrada correctamente
+## C6 — GeoServer Sync (si el pipeline tiene vistas con geometría)
+
+- [ ] `MATERIALIZED_VIEWS` declarado en `queries/` (o `views.py`) listando las vistas con columna de geometría
+- [ ] `stages/load.py` llama a `refresh_materialized_views()` de `core/utils/views.py` (no reimplementa su propio refresco)
+- [ ] `dags/etl_{pipeline}.py` encadena `TriggerDagRunOperator(trigger_dag_id="etl_geoserver_sync", conf={"pipeline": "{pipeline}"}, wait_for_completion=False)` tras el task de load, en bootstrap y update
+- [ ] `etl_geoserver_sync` corrido al menos una vez contra el pipeline sin error (layers creadas/actualizadas en GeoServer)
+- [ ] n/a si el pipeline no tiene ninguna vista con geometría — no se exige nada de lo anterior
+
+## C7 — Sesión cerrada correctamente
 
 - [ ] `progress/history.md` tiene una entrada de la sesión actual
 - [ ] `progress/current.md` solo contiene la plantilla vacía
@@ -62,4 +70,4 @@
 
 **Cómo usar este archivo:** el agente revisor (`.claude/agents/reviewer.md`)
 recorre cada checkbox, marca `[x]` o `[ ]`, y rechaza el cierre si quedan
-boxes sin marcar en C1–C6.
+boxes sin marcar en C1–C7.

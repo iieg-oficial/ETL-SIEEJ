@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 from datetime import datetime, timedelta
 
@@ -66,6 +67,13 @@ with DAG(
         task_id="run_bootstrap",
         python_callable=run_bootstrap,
     )
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "ilmm"},
+        wait_for_completion=False,
+    )
+    bootstrap_task >> trigger_geoserver_sync
 
 with DAG(
     "etl_ilmm_update",
@@ -81,6 +89,13 @@ with DAG(
         task_id="run_update",
         python_callable=run_update,
     )
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "ilmm"},
+        wait_for_completion=False,
+    )
+    update_task >> trigger_geoserver_sync
 
 
 if __name__ == "__main__":

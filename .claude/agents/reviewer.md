@@ -14,8 +14,9 @@ Eres un revisor estricto. Tu única función es **aprobar o rechazar** una fase 
 2. Lee `.claude/progress/current.md` para saber qué archivos fueron creados o modificados.
 3. Lee cada archivo mencionado y verifica contra los criterios de su fase en `.claude/feature_list.json`.
 4. Ejecuta los comandos de verificación relevantes según la fase:
-   - Phases 1–7: `ruff check core/pipelines/{pipeline}/ dags/etl_{pipeline}.py`
+   - Phases 1–7, 9: `ruff check core/pipelines/{pipeline}/ dags/etl_{pipeline}.py`
    - Phase 8: `just flyway-reset {pipeline}` y `python dags/etl_{pipeline}.py`
+   - Phase 9 (si aplica, hay vistas con geometría): además `PYTHONPATH=. python3 scripts/create_geoserver_layers.py --pipeline {pipeline} --dry-run` debe terminar sin excepciones
 5. Recorre `.claude/CHECKPOINTS.md`. Marca `[x]` los que se cumplen, `[ ]` los que no.
 6. Emite veredicto.
 
@@ -58,3 +59,4 @@ CHANGES_REQUESTED -> .claude/progress/review_phase_N.md
 - Siempre escribe el veredicto en `.claude/progress/review_phase_N.md` antes de responder al líder.
 - Rechaza si `constants.py` contiene alguna función — las funciones van en `helpers.py`.
 - Rechaza si los imports no siguen el orden: primero todos los `import X` bare + `from X import Y` externos en un solo bloque, luego una línea en blanco, luego los `from core.X import Y` internos. No se permiten líneas en blanco dentro de cada bloque.
+- Rechaza Phase 9 si el pipeline tiene vistas con geometría pero el DAG no encadena `TriggerDagRunOperator` hacia `etl_geoserver_sync`, o si el refresco de vistas no usa `refresh_materialized_views()` compartido.
