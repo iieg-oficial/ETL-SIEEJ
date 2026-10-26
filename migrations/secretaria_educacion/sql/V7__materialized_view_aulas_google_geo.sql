@@ -59,7 +59,7 @@ SELECT
     )::varchar(5) AS cvegeo_municipio,
     m.nomgeo AS municipio,
     a.clave_centro_de_trabajo,
-    a.nombre_ct,
+    a.nombre_ct AS nombre_centro_de_trabajo,
     a.domicilio,
     a.codigo_postal,
     a.telefono,
@@ -100,7 +100,7 @@ COMMENT ON COLUMN vm_aulas_google_geo.municipio IS
     'Nombre oficial del municipio, resuelto contra cvegeo.';
 COMMENT ON COLUMN vm_aulas_google_geo.clave_centro_de_trabajo IS
     'Clave de centro de trabajo (CCT) de la escuela con Aulas Google.';
-COMMENT ON COLUMN vm_aulas_google_geo.nombre_ct IS
+COMMENT ON COLUMN vm_aulas_google_geo.nombre_centro_de_trabajo IS
     'Nombre del centro de trabajo de la fila canónica más reciente del directorio.';
 COMMENT ON COLUMN vm_aulas_google_geo.domicilio IS
     'Domicilio reportado por el directorio canónico.';
