@@ -21,10 +21,13 @@ from core.pipelines.code.constants import (
     SHEET_PUNTOS,
     UNIQUE_KEY,
 )
+from core.pipelines.code.datasets import ACADEMIAS, MAIN_FRAMES, POLIDEPORTIVOS, RETO
+from core.pipelines.code.helpers.academias import transform_academias
+from core.pipelines.code.helpers.polideportivos import transform_polideportivos
 from core.pipelines.code.helpers.values import title_es
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null
-from core.utils.files import read_json
+from core.utils.files import clean_directory, read_json
 from core.utils.logger import get_logger
 from core.utils.normalize import normalize_text
 
@@ -35,25 +38,25 @@ class CodeTransform(Stage):
         self.mode = mode
         self.logger = get_logger(f"{PIPELINE_NAME}.transform")
 
-    def source(self, input_data: Optional[Any] = None) -> dict[str, Any]:
+    def source(self, input_data: Optional[Any] = None) -> dict[str, dict[str, Any]]:
         extract_dir = Path("data/extract") / PIPELINE_NAME
         manifest = read_json(extract_dir / MANIFEST_FILENAME) or {}
 
-        frames = {}
-        for sheet in (SHEET_PUNTOS, SHEET_ACTIVIDADES):
-            pickle_path = extract_dir / f"{sheet}.pkl"
-            if manifest and pickle_path.exists():
-                frames[sheet] = pd.read_pickle(pickle_path)
+        loaded = {}
+        for key, entry in manifest.items():
+            frames = {path.stem: pd.read_pickle(path) for path in sorted((extract_dir / key).glob("*.pkl"))}
+            if frames:
+                loaded[key] = {"frames": frames, "manifest": entry}
 
-        if frames:
-            self.logger.info(f"[source] Loaded {len(frames)} sheet(s) from extract")
-            return {"frames": frames, "manifest": manifest}
+        if loaded:
+            self.logger.info(f"[source] Loaded {sorted(loaded)} from extract")
+            return loaded
 
         if input_data:
             return input_data
 
         self.logger.info("[source] No data to transform")
-        return {"frames": {}, "manifest": manifest}
+        return {}
 
     def _standardize(self, df: pd.DataFrame) -> pd.DataFrame:
         """Normalize headers, rename to the schema names and keep the modeled columns."""
@@ -117,26 +120,43 @@ class CodeTransform(Stage):
             "regiones": [{"region": value} for value in sorted(puntos["region"].dropna().unique())],
         }
 
-    def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        frames = input_data["frames"]
-        manifest = input_data["manifest"]
-
-        if not frames:
-            self.logger.info("[action] Nothing to transform")
-            return {"frames": {}, "manifest": manifest, "catalogs": {}}
-
+    def _transform_reto(self, frames: dict[str, pd.DataFrame], manifest: dict[str, Any]) -> tuple[dict, dict]:
         puntos = self._prepare_puntos(frames[SHEET_PUNTOS], manifest)
-        self.logger.info(f"[action] {PUNTOS_FRAME}: {len(puntos):,} rows prepared")
-
         catalogs = self._build_catalogs(puntos, frames[SHEET_ACTIVIDADES])
-        return {"frames": {PUNTOS_FRAME: puntos}, "manifest": manifest, "catalogs": catalogs}
+        return {PUNTOS_FRAME: puntos}, catalogs
 
-    def finalization(self, input_data: dict[str, Any]) -> dict[str, Any]:
-        for name, df in input_data["frames"].items():
-            df.to_pickle(self.work_dir / f"{name}.pkl")
-            self.logger.info(f"[finalization] {name}: {len(df):,} rows saved")
+    def action(self, input_data: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        if not input_data:
+            self.logger.info("[action] Nothing to transform")
+            return {}
 
-        pd.to_pickle(input_data["catalogs"], self.work_dir / CATALOGS_FILENAME)
-        self.logger.info(f"[finalization] {len(input_data['catalogs'])} catalog(s) saved")
+        handlers = {
+            RETO: self._transform_reto,
+            ACADEMIAS: transform_academias,
+            POLIDEPORTIVOS: transform_polideportivos,
+        }
+
+        transformed = {}
+        for key, entry in input_data.items():
+            frames, catalogs = handlers[key](entry["frames"], entry["manifest"])
+            if frames[MAIN_FRAMES[key]].empty:
+                raise ValueError(f"{key}: the source has no rows")
+            for name, df in frames.items():
+                self.logger.info(f"[action] {key}/{name}: {len(df):,} rows prepared")
+            transformed[key] = {"frames": frames, "manifest": entry["manifest"], "catalogs": catalogs}
+
+        return transformed
+
+    def finalization(self, input_data: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+        for key, entry in input_data.items():
+            folder = self.work_dir / key
+            folder.mkdir(parents=True, exist_ok=True)
+            clean_directory(folder, self.logger)
+            for name, df in entry["frames"].items():
+                df.to_pickle(folder / f"{name}.pkl")
+                self.logger.info(f"[finalization] {key}/{name}: {len(df):,} rows saved")
+
+            pd.to_pickle(entry["catalogs"], folder / CATALOGS_FILENAME)
+            self.logger.info(f"[finalization] {key}: {len(entry['catalogs'])} catalog(s) saved")
 
         return input_data

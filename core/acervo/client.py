@@ -27,6 +27,7 @@ from core.acervo.constants import (
     ACERVO_READ_TIMEOUT,
     CONJUNTO_PATH,
     DATA_FIELD,
+    DATASET_NAME_FIELD,
     DATASETS_FIELD,
     DEPENDENCIA_PATH,
     ESTADO_ENVIADO,
@@ -57,6 +58,7 @@ class Upload:
     fecha_corte: str
     fecha_actualizacion: str
     etag: str
+    dataset_name: str = ""
 
     @property
     def etag_is_md5(self) -> bool:
@@ -180,6 +182,7 @@ def list_uploads(
                 fecha_corte=str(block.get(FECHA_CORTE_FIELD, "")),
                 fecha_actualizacion=str(block.get(FECHA_ACTUALIZACION_FIELD, "")),
                 etag=etags.get(archivo["object_key"], ""),
+                dataset_name=str(block.get(DATASET_NAME_FIELD, "")).strip(),
             )
             slot = (folder, field_path)
             current = newest.get(slot)
