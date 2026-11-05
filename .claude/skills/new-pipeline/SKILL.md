@@ -228,7 +228,7 @@ Review all phase checklists before marking done.
 
 ## PHASE 8 — README
 
-Run `/update-readme`.
+Write `core/pipelines/{pipeline}/README.md` following `docs/readme-pipeline.md`.
 
 ---
 

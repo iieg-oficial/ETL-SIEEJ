@@ -49,6 +49,14 @@ Template para el `README.md` de cada pipeline. Reemplaza los valores entre `<>` 
 |---|---|
 | `V1__<nombre>.sql` | <Qué crea o modifica esta migración> |
 
+## Vistas
+
+<Omitir esta sección si el pipeline no crea vistas. Incluye vistas (`vw_`) y vistas materializadas (`vm_`).>
+
+| vista | alcance |
+|---|---|
+| `<vw_nombre>` | <Qué expone la vista y a qué registros se limita> |
+
 ## Variables de entorno
 
 | variable | descripción |

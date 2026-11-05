@@ -105,7 +105,7 @@ Eres un implementador ETL. Tu trabajo es ejecutar **una sola fase** desde inicio
 
 ### Phase 9 — README
 - Crea `core/pipelines/{pipeline}/README.md`.
-- Documenta: fuente de datos, URL(s), tablas generadas, schedule del DAG, instrucciones para actualizar.
+- Sigue la plantilla de `docs/readme-pipeline.md`.
 
 ## Reglas duras
 
