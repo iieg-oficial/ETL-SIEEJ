@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="906.0" height="779.0" style="font-family: system-ui, -apple-system, sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1470.0" height="1201.0" style="font-family: system-ui, -apple-system, sans-serif;">
   <defs>
     <pattern id="erd-dots" width="24" height="24" patternUnits="userSpaceOnUse">
       <circle cx="1" cy="1" r="0.8" fill="#d1d5db" />
@@ -13,19 +13,37 @@
   </defs>
   <rect width="100%" height="100%" fill="#f9fafb" />
   <rect width="100%" height="100%" fill="url(#erd-dots)" />
+  <g class="erd-rel" data-from="cat_deportes" data-to="stg_academias_deportivas">
+    <path d="M 564.0 112.0 L 719.0 112.0 Q 729.0 112.0 729.0 122.0 L 729.0 545.0 Q 729.0 555.0 719.0 555.0 L 705.0 555.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 564.0 112.0 L 719.0 112.0 Q 729.0 112.0 729.0 122.0 L 729.0 545.0 Q 729.0 555.0 719.0 555.0 L 705.0 555.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="584.0" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="725.0" y="543.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-rel" data-from="cat_tipos_academia" data-to="stg_academias_deportivas">
+    <path d="M 906.0 112.0 L 469.0 112.0 Q 459.0 112.0 459.0 122.0 L 459.0 566.0 Q 459.0 576.0 469.0 576.0 L 483.0 576.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 906.0 112.0 L 469.0 112.0 Q 459.0 112.0 459.0 122.0 L 459.0 566.0 Q 459.0 576.0 469.0 576.0 L 483.0 576.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="886.0" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="463.0" y="564.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
   <g class="erd-rel" data-from="cat_regiones" data-to="stg_puntos_activacion_reto">
-    <path d="M 282.0 238.0 L 302.0 238.0 Q 312.0 238.0 312.0 228.0 L 312.0 206.0 Q 312.0 196.0 322.0 196.0 L 342.0 196.0" fill="none" stroke="transparent" stroke-width="18" />
-    <path class="erd-edge" d="M 282.0 238.0 L 302.0 238.0 Q 312.0 238.0 312.0 228.0 L 312.0 206.0 Q 312.0 196.0 322.0 196.0 L 342.0 196.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
-    <text x="302.0" y="226.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
-    <text x="322.0" y="184.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+    <path d="M 846.0 112.0 L 1001.0 112.0 Q 1011.0 112.0 1011.0 122.0 L 1011.0 566.0 Q 1011.0 576.0 1001.0 576.0 L 987.0 576.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 846.0 112.0 L 1001.0 112.0 Q 1011.0 112.0 1011.0 122.0 L 1011.0 566.0 Q 1011.0 576.0 1001.0 576.0 L 987.0 576.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="866.0" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="1007.0" y="564.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
   </g>
   <g class="erd-rel" data-from="cat_actividades" data-to="stg_puntos_activacion_reto">
-    <path d="M 624.0 238.0 L 604.0 238.0 Q 594.0 238.0 594.0 248.0 L 594.0 249.0 Q 594.0 259.0 584.0 259.0 L 564.0 259.0" fill="none" stroke="transparent" stroke-width="18" />
-    <path class="erd-edge" d="M 624.0 238.0 L 604.0 238.0 Q 594.0 238.0 594.0 248.0 L 594.0 249.0 Q 594.0 259.0 584.0 259.0 L 564.0 259.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
-    <text x="604.0" y="226.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
-    <text x="584.0" y="247.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+    <path d="M 282.0 112.0 L 513.5 112.0 Q 523.5 112.0 523.5 122.0 L 523.5 629.0 Q 523.5 639.0 533.5 639.0 L 765.0 639.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 282.0 112.0 L 513.5 112.0 Q 523.5 112.0 523.5 122.0 L 523.5 629.0 Q 523.5 639.0 533.5 639.0 L 765.0 639.0" fill="none" stroke="#c4cad4" stroke-width="1.5" marker-end="url(#arr)" />
+    <text x="302.0" y="100.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">1</text>
+    <text x="745.0" y="627.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
   </g>
-  <g class="erd-node" data-table="cargas_acervo" transform="translate(60.0, 482.0)" style="cursor: grab;">
+  <g class="erd-rel" data-from="stg_polideportivos" data-to="cat_deportes">
+    <path d="M 1188.0 210.0 L 886.0 210.0 Q 876.0 210.0 876.0 200.0 L 876.0 115.0 Q 876.0 105.0 866.0 105.0 L 564.0 105.0" fill="none" stroke="transparent" stroke-width="18" />
+    <path class="erd-edge" d="M 1188.0 210.0 L 886.0 210.0 Q 876.0 210.0 876.0 200.0 L 876.0 115.0 Q 876.0 105.0 866.0 105.0 L 564.0 105.0" fill="none" stroke="#c4cad4" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arr)" />
+    <text x="1168.0" y="198.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+    <text x="584.0" y="93.0" font-size="11" font-family="monospace" fill="#c4cad4" text-anchor="middle" dominant-baseline="middle">N</text>
+  </g>
+  <g class="erd-node" data-table="cargas_acervo" transform="translate(60.0, 904.0)" style="cursor: grab;">
     <rect x="3" y="3" rx="7" width="222" height="237" fill="rgba(0,0,0,0.06)" />
     <rect class="erd-card" rx="7" width="222" height="237" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
     <rect rx="7" width="222" height="36" fill="#1e40af" />
@@ -58,7 +76,7 @@
     <text x="10" y="221.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">procesado_en</text>
     <text x="214" y="221.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">datetime</text>
   </g>
-  <g class="erd-node" data-table="cat_actividades" transform="translate(624.0, 186.0)" style="cursor: grab;">
+  <g class="erd-node" data-table="cat_actividades" transform="translate(60.0, 60.0)" style="cursor: grab;">
     <rect x="3" y="3" rx="7" width="222" height="90" fill="rgba(0,0,0,0.06)" />
     <rect class="erd-card" rx="7" width="222" height="90" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
     <rect rx="7" width="222" height="36" fill="#1e40af" />
@@ -70,7 +88,19 @@
     <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">actividad</text>
     <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
   </g>
-  <g class="erd-node" data-table="cat_regiones" transform="translate(60.0, 186.0)" style="cursor: grab;">
+  <g class="erd-node" data-table="cat_deportes" transform="translate(342.0, 60.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="222" height="90" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="222" height="90" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="222" height="36" fill="#1e40af" />
+    <rect y="29" width="222" height="7" fill="#1e40af" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatDeportes</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="214" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="212" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">deporte</text>
+    <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+  </g>
+  <g class="erd-node" data-table="cat_regiones" transform="translate(624.0, 60.0)" style="cursor: grab;">
     <rect x="3" y="3" rx="7" width="222" height="90" fill="rgba(0,0,0,0.06)" />
     <rect class="erd-card" rx="7" width="222" height="90" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
     <rect rx="7" width="222" height="36" fill="#1e40af" />
@@ -82,7 +112,115 @@
     <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">region</text>
     <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
   </g>
-  <g class="erd-node" data-table="stg_puntos_activacion_reto" transform="translate(342.0, 60.0)" style="cursor: grab;">
+  <g class="erd-node" data-table="cat_tipos_academia" transform="translate(906.0, 60.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="222" height="90" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="222" height="90" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="222" height="36" fill="#1e40af" />
+    <rect y="29" width="222" height="7" fill="#1e40af" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">CatTiposAcademia</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="214" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="212" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">tipo</text>
+    <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+  </g>
+  <g class="erd-node" data-table="stg_academias_deportivas" transform="translate(483.0, 440.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="222" height="384" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="222" height="384" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="222" height="36" fill="#1e40af" />
+    <rect y="29" width="222" height="7" fill="#1e40af" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">StgAcademiasDeportivas</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="214" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="212" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">entidad_id</text>
+    <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="84" x2="212" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">municipio_id</text>
+    <text x="214" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="105" x2="212" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#c2410c" font-weight="400" dominant-baseline="middle">deporte_id</text>
+    <text x="214" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="126" x2="212" y2="126" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="137.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#c2410c" font-weight="400" dominant-baseline="middle">tipo_id</text>
+    <text x="214" y="137.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#c2410c" text-anchor="end" dominant-baseline="middle" opacity="0.9">FK</text>
+    <line x1="10" y1="147" x2="212" y2="147" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="158.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">deporte_nombre_largo</text>
+    <text x="214" y="158.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string?</text>
+    <line x1="10" y1="168" x2="212" y2="168" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="179.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">beneficiarios_total</text>
+    <text x="214" y="179.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int?</text>
+    <line x1="10" y1="189" x2="212" y2="189" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="200.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">beneficiarios_hombres</text>
+    <text x="214" y="200.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int?</text>
+    <line x1="10" y1="210" x2="212" y2="210" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="221.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">beneficiarios_mujeres</text>
+    <text x="214" y="221.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int?</text>
+    <line x1="10" y1="231" x2="212" y2="231" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="242.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">domicilio</text>
+    <text x="214" y="242.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text?</text>
+    <line x1="10" y1="252" x2="212" y2="252" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="263.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">horarios</text>
+    <text x="214" y="263.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text?</text>
+    <line x1="10" y1="273" x2="212" y2="273" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="284.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">longitud</text>
+    <text x="214" y="284.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">float?</text>
+    <line x1="10" y1="294" x2="212" y2="294" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="305.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">latitud</text>
+    <text x="214" y="305.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">float?</text>
+    <line x1="10" y1="315" x2="212" y2="315" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="326.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_corte</text>
+    <text x="214" y="326.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date</text>
+    <line x1="10" y1="336" x2="212" y2="336" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="347.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_actualizacion_fuente</text>
+    <text x="214" y="347.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date?</text>
+    <line x1="10" y1="357" x2="212" y2="357" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="368.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_actualizacion</text>
+    <text x="214" y="368.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date</text>
+  </g>
+  <g class="erd-node" data-table="stg_polideportivos" transform="translate(1188.0, 60.0)" style="cursor: grab;">
+    <rect x="3" y="3" rx="7" width="222" height="300" fill="rgba(0,0,0,0.06)" />
+    <rect class="erd-card" rx="7" width="222" height="300" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
+    <rect rx="7" width="222" height="36" fill="#1e40af" />
+    <rect y="29" width="222" height="7" fill="#1e40af" />
+    <text x="12" y="19.0" font-size="13" font-weight="600" fill="white" dominant-baseline="middle" style="letter-spacing: 0.01em;">StgPolideportivos</text>
+    <text x="10" y="53.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#5C2472" font-weight="700" dominant-baseline="middle">id</text>
+    <text x="214" y="53.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#5C2472" text-anchor="end" dominant-baseline="middle" opacity="0.9">PK</text>
+    <line x1="10" y1="63" x2="212" y2="63" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="74.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">entidad_id</text>
+    <text x="214" y="74.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="84" x2="212" y2="84" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="95.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">municipio_id</text>
+    <text x="214" y="95.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">int</text>
+    <line x1="10" y1="105" x2="212" y2="105" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="116.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">nombre_centro</text>
+    <text x="214" y="116.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">string</text>
+    <line x1="10" y1="126" x2="212" y2="126" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="137.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">domicilio</text>
+    <text x="214" y="137.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text?</text>
+    <line x1="10" y1="147" x2="212" y2="147" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="158.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">horarios</text>
+    <text x="214" y="158.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text?</text>
+    <line x1="10" y1="168" x2="212" y2="168" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="179.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">servicios</text>
+    <text x="214" y="179.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#9ca3af" text-anchor="end" dominant-baseline="middle" opacity="0.9">text?</text>
+    <line x1="10" y1="189" x2="212" y2="189" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="200.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">longitud</text>
+    <text x="214" y="200.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">float?</text>
+    <line x1="10" y1="210" x2="212" y2="210" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="221.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">latitud</text>
+    <text x="214" y="221.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#6b7280" text-anchor="end" dominant-baseline="middle" opacity="0.9">float?</text>
+    <line x1="10" y1="231" x2="212" y2="231" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="242.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_corte</text>
+    <text x="214" y="242.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date</text>
+    <line x1="10" y1="252" x2="212" y2="252" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="263.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_actualizacion_fuente</text>
+    <text x="214" y="263.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date?</text>
+    <line x1="10" y1="273" x2="212" y2="273" stroke="#f0f2f5" stroke-width="1" />
+    <text x="10" y="284.5" font-size="10" font-family="'Courier New', Courier, monospace" fill="#3d4552" font-weight="400" dominant-baseline="middle">fecha_actualizacion</text>
+    <text x="214" y="284.5" font-size="9" font-family="'Courier New', Courier, monospace" fill="#1d4ed8" text-anchor="end" dominant-baseline="middle" opacity="0.9">date</text>
+  </g>
+  <g class="erd-node" data-table="stg_puntos_activacion_reto" transform="translate(765.0, 440.0)" style="cursor: grab;">
     <rect x="3" y="3" rx="7" width="222" height="342" fill="rgba(0,0,0,0.06)" />
     <rect class="erd-card" rx="7" width="222" height="342" fill="#ffffff" stroke="#dde1e8" stroke-width="1" />
     <rect rx="7" width="222" height="36" fill="#1e40af" />
