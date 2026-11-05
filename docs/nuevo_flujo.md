@@ -18,12 +18,13 @@
 
 1. [Visión General](#visión-general)
 2. [Crear el Issue](#1-crear-el-issue)
-3. [Implementar los Stages](#2-implementar-los-stages)
-4. [Crear las Migraciones](#3-crear-las-migraciones)
-5. [Crear el DAG de Airflow](#4-crear-el-dag-de-airflow)
-6. [Probar localmente](#5-probar-localmente)
-7. [Probar en Airflow](#6-probar-en-airflow)
-8. [Comandos `just`](#comandos-just)
+3. [Generar la estructura](#2-generar-la-estructura)
+4. [Implementar los Stages](#3-implementar-los-stages)
+5. [Crear las Migraciones](#4-crear-las-migraciones)
+6. [Completar el DAG de Airflow](#5-completar-el-dag-de-airflow)
+7. [Probar localmente](#6-probar-localmente)
+8. [Probar en Airflow](#7-probar-en-airflow)
+9. [Comandos `just`](#comandos-just)
 
 ---
 
@@ -33,7 +34,7 @@ Un pipeline vive en tres lugares:
 
 | Componente | Ubicación | Qué contiene |
 |:----------:|:----------|:-------------|
-| Lógica ETL | `core/pipelines/<nombre>/` | `config.py`, `consts.py`, `schemas.py`, `stages/` (extract, transform, load) |
+| Lógica ETL | `core/pipelines/<nombre>/` | `config.py`, `schemas.py`, `constants/`, `attributes/`, `mappings/`, `queries/`, `assets/`, `stages/` (extract, transform, load), `README.md` |
 | Migraciones | `migrations/<nombre>/` | `flyway.conf.example`, `sql/V*.sql` |
 | DAG | `dags/etl_<nombre>.py` | DAGs de bootstrap y update para Airflow |
 
@@ -69,14 +70,35 @@ Antes de escribir código, crea un issue con label `new-pipeline` que incluya:
 
 ---
 
-## 2. Implementar los Stages
+## 2. Generar la estructura
+
+No crees la estructura a mano. Con el entorno virtual activo, ejecuta:
+
+```bash
+just new-pipeline mi_pipeline
+just new-pipeline mi_pipeline "Nombre del responsable"   # opcional: owner del DAG, por defecto IIEG
+```
+
+El comando muestra lo que creó y falla sin modificar nada si el nombre es inválido o si el pipeline ya existe. El detalle está en [`templates/pipeline/README.md`](../templates/pipeline/README.md).
+
+> ⚠️ `.env` y `flyway.conf` están ignorados por git, así que `git clean -fd` no los borra. Para eliminar un pipeline de prueba usa `rm -rf core/pipelines/mi_pipeline migrations/mi_pipeline dags/etl_mi_pipeline.py`.
+
+---
+
+## 3. Implementar los Stages
 
 ```
 core/pipelines/mi_pipeline/
-├── __init__.py
 ├── config.py          ← hereda BaseConfig, apunta al .env del pipeline
-├── consts.py          ← PIPELINE_NAME, SOURCE_URL, EXPECTED_COLUMNS
 ├── schemas.py         ← modelos SQLAlchemy (tablas)
+├── constants/         ← PIPELINE_NAME, URLs y columnas, por submódulo
+├── attributes/        ← enums con los nombres de las tablas
+├── mappings/          ← catálogos estáticos, por submódulo
+├── queries/           ← consultas y vistas SQL
+├── assets/            ← ERD y archivos estáticos
+├── README.md          ← parte de docs/readme-pipeline.md
+├── .env.example
+├── .env               ← no se versiona
 └── stages/
     ├── __init__.py
     ├── extract.py     ← descarga, descomprime, genera inventario
@@ -93,11 +115,11 @@ core/pipelines/mi_pipeline/
 
 ---
 
-## 3. Crear las Migraciones
+## 4. Crear las Migraciones
+
+`just new-pipeline` ya generó `migrations/mi_pipeline/` con `flyway.conf.example`, `flyway.conf` y `sql/`. Agrega ahí tus migraciones:
 
 ```bash
-mkdir -p migrations/mi_pipeline/sql
-cp migrations/censos_economicos/flyway.conf.example migrations/mi_pipeline/flyway.conf.example
 touch migrations/mi_pipeline/sql/V1__tablas_iniciales.sql
 ```
 
@@ -118,15 +140,15 @@ Consulta la [Guía de Flyway](flyway.md) para convenciones de nombres y comandos
 
 ---
 
-## 4. Crear el DAG de Airflow
+## 5. Completar el DAG de Airflow
 
-Crea `dags/etl_mi_pipeline.py` con dos DAGs: uno con `schedule=None` para bootstrap y otro con el cron de update. Incluye `if __name__ == "__main__"` para poder ejecutarlo directamente como script.
+`just new-pipeline` ya generó `dags/etl_mi_pipeline.py` con el DAG de bootstrap (`schedule=None`) y `if __name__ == "__main__"` para ejecutarlo como script.
 
-Toma como referencia los DAGs existentes en `dags/`.
+Si el pipeline tiene update, agrega su DAG y registra el calendario en `core/schedules/registry.py`. Toma como referencia los DAGs existentes en `dags/`.
 
 ---
 
-## 5. Probar localmente
+## 6. Probar localmente
 
 ```bash
 
@@ -136,21 +158,22 @@ just build-dev user=sieej_user pass=mi_pass db=mi_pipeline
 # 2. Crear migración de la base de datos de cvegeo y hacer la migración:
 just create-cvegeo-db user=sieej_user && just flyway-migrate cvegeo
 
-# 3. Configurar Flyway
+# 3. Configurar variables de entorno del pipeline
+# → Editar core/pipelines/mi_pipeline/.env con las credenciales
+
+# 4. Configurar Flyway
 just flyway-config mi_pipeline
-#4. aplicar migraciones
+
+# 5. Aplicar migraciones
 just flyway-migrate mi_pipeline
 
-# 5. Configurar variables de entorno del pipeline
-cp core/pipelines/mi_pipeline/.env.example core/pipelines/mi_pipeline/.env
-# → Editar .env con las credenciales
 # 6. Ejecutar
 python dags/etl_mi_pipeline.py
 ```
 
 ---
 
-## 6. Probar en Airflow
+## 7. Probar en Airflow
 
 ```bash
 just up
@@ -181,6 +204,12 @@ just logs airflow-dag-processor   # errores de importación
 ## Comandos `just`
 
 Ejecuta `just` sin argumentos para ver todos los comandos disponibles.
+
+### Pipelines
+
+| Comando | Descripción |
+|:--------|:------------|
+| `just new-pipeline <pipeline> [owner]` | Genera la estructura inicial del pipeline, sus migraciones y su DAG |
 
 ### Docker
 
