@@ -8,8 +8,8 @@
 
 ## C1 — Estructura de archivos completa
 
-- [ ] `core/pipelines/{pipeline}/constants.py` existe
-- [ ] `core/pipelines/{pipeline}/attributes.py` o `attributes/` existe
+- [ ] `core/pipelines/{pipeline}/constants/` existe
+- [ ] `core/pipelines/{pipeline}/attributes/` existe
 - [ ] `core/pipelines/{pipeline}/schemas.py` existe
 - [ ] `core/pipelines/{pipeline}/stages/extract.py` existe
 - [ ] `core/pipelines/{pipeline}/stages/transform.py` existe
@@ -32,7 +32,7 @@
 
 ## C3 — Calidad del código
 
-- [ ] No hay constantes UPPERCASE definidas fuera de `constants.py` (ni en `stages/`, `schemas.py`, `mappings.py`)
+- [ ] No hay constantes UPPERCASE definidas fuera de `constants/` (ni en `stages/`, `schemas.py`, `mappings/`)
 - [ ] No hay funciones helper definidas fuera de `helpers/` — los stages solo contienen métodos de clase
 - [ ] Importaciones siguen el orden: stdlib → third-party → internal (`core.*`), con línea en blanco entre grupos
 - [ ] Ninguna función nueva en el pipeline reimplementa lógica ya existente en `core/utils/`

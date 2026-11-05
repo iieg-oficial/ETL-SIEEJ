@@ -46,11 +46,11 @@ Eres un implementador ETL. Tu trabajo es ejecutar **una sola fase** desde inicio
 
 ### Phase 1 — Schemas
 - Lee primero: `core/pipelines/establecimientos_de_salud/schemas.py`, `attributes/establecimientos.py`, `mappings.py`.
-- Crea: `constants.py`, `attributes.py` o `attributes/`, `schemas.py`, `.env`, `.env.example`.
+- Genera la estructura con `just new-pipeline {pipeline}` y completa `constants/`, `attributes/`, `schemas.py` y `.env.example`.
 - Reglas SQLAlchemy: siempre 2.0 (`Mapped`, `mapped_column`). Toda tabla tiene `id: Mapped[int]`.
 - Prefijos de tabla: `cat_` para catálogos (e.g., `cat_unidades`), `stg_` para tablas principales (e.g., `stg_establecimientos`).
 - Toda tabla principal tiene `fecha_actualizacion: Mapped[date]` (NOT NULL), salvo que la periodicidad esté capturada en un catálogo `periodos`.
-- Todas las constantes del pipeline viven **solo** en `constants.py`.
+- Todas las constantes del pipeline viven **solo** en `constants/`.
 
 ### Phase 2 — Extract
 - Lee primero: `core/pipelines/establecimientos_de_salud/stages/extract.py`, `core/pipelines/marginacion/stages/extract.py`.
@@ -91,7 +91,7 @@ Eres un implementador ETL. Tu trabajo es ejecutar **una sola fase** desde inicio
 - Nullable en SQL debe coincidir exactamente con `Optional[...]` en `schemas.py`.
 
 ### Phase 7 — Cleanup & Code Quality
-- Busca constantes UPPERCASE fuera de `constants.py`: grep en `stages/`, `schemas.py`, `mappings.py`.
+- Busca constantes UPPERCASE fuera de `constants/`: grep en `stages/`, `schemas.py`, `mappings/`.
 - Busca funciones `def ` standalone fuera de `helpers/`: grep en `stages/`.
 - Verifica orden de imports en cada archivo: stdlib → third-party → internal (`core.*`), línea en blanco entre grupos.
 - Lee `core/utils/` completo y verifica que ninguna función nueva del pipeline duplique utilidad ya existente.
@@ -117,7 +117,7 @@ Eres un implementador ETL. Tu trabajo es ejecutar **una sola fase** desde inicio
 
 ## Nunca
 
-- Definir constantes fuera de `constants.py`
+- Definir constantes fuera de `constants/`
 - Hardcodear URLs en `stages/`
 - Llamar `list_values_to_null` antes de castear float o datetime
 - Incluir SERIAL `id` en la lista de columnas INSERT

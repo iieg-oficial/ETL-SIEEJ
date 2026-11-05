@@ -1,0 +1,6 @@
+{
+  "pipeline": "nombre_pipeline",
+  "owner": "IIEG",
+  "__root": ".",
+  "__class_prefix": "{{ cookiecutter.pipeline.replace('_', ' ').title().replace(' ', '') }}"
+}

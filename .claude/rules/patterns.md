@@ -6,7 +6,7 @@ paths:
 # Common Patterns
 
 - Every main table has `fecha_actualizacion: Date (NOT NULL)`, unless periodicity is already captured by a `periodos` catalog
-- Static catalogs live in `mappings.py`; dynamic catalogs are built in `transform._build_catalogs()`
+- Static catalogs live in `mappings/`; dynamic catalogs are built in `transform._build_catalogs()`
 - Geographic keys: `cve_geo_id = int(f"{entidad_id:02}{municipio_id:03}{localidad_id:04}")`
 - Foreign key mapping uses `normalize_col()` before `.map()`
 - Deduplication: `drop_duplicates_col(df, col).dropna(subset=[col])` — only for string columns (`drop_duplicates_col` calls `.str.lower()` internally). For integer/numeric columns use `df.drop_duplicates(subset=[col]).dropna(subset=[col])` directly.

@@ -5,6 +5,7 @@ geopandas
 pyproj==3.7.2
 psycopg2-binary
 python-dotenv
+cookiecutter==2.6.0
 polars
 babel
 openpyxl
