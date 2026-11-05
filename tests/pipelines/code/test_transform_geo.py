@@ -207,3 +207,22 @@ def test_academias_tipos_que_solo_difieren_en_forma_se_unifican_en_una_entrada()
     assert set(frames["academias"]["tipo"]) == {"Semillero Rojiblanco"}
     assert sum(item["tipo"] == "Semillero Rojiblanco" for item in catalogs["tipos"]) == 1
     assert len(catalogs["tipos"]) == 3
+
+
+def test_academias_un_deporte_repetido_identico_en_el_catalogo_se_deduplica():
+    repetido = pd.concat([CAT_DEPORTE, CAT_DEPORTE.iloc[[1]]], ignore_index=True)
+
+    result = transform_academias(
+        {"datos": gdf_from_rows([ACADEMIA_ROW]), "cat_deporte": repetido, "cat_tipo": CAT_TIPO}, MANIFEST
+    )
+
+    assert len(result[1]["deportes"]) == 3
+
+
+def test_academias_el_mismo_id_con_dos_nombres_en_el_catalogo_falla_con_claridad():
+    conflicto = pd.concat([CAT_DEPORTE, pd.DataFrame({"deporte": ["Surf"], "id": [19]})], ignore_index=True)
+
+    with pytest.raises(ValueError, match="19"):
+        transform_academias(
+            {"datos": gdf_from_rows([ACADEMIA_ROW]), "cat_deporte": conflicto, "cat_tipo": CAT_TIPO}, MANIFEST
+        )

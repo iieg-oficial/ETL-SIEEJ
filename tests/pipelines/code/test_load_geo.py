@@ -1,5 +1,6 @@
 """Load de Academias y Polideportivos, sin tocar PostgreSQL."""
 
+import logging
 from datetime import date
 
 import pandas as pd
@@ -20,6 +21,7 @@ from core.pipelines.code.schemas import (
     StgPuntosActivacionReto,
 )
 from core.pipelines.code.stages import load as load_module
+from core.utils.files import write_json_atomic
 from tests.pipelines.code.code_factories import FakeSession
 
 MANIFEST = {
@@ -375,3 +377,55 @@ def _puntos_reto(corte: date) -> pd.DataFrame:
             }
         ]
     )
+
+
+# cat_tipos_academia: los tipos se concilian por nombre normalizado contra los guardados.
+
+
+def test_un_tipo_con_otra_forma_usa_el_nombre_guardado_y_no_crea_fila(load, captured, monkeypatch):
+    monkeypatch.setattr(load_module, "get_mapping", lambda *a, **k: {"Regular": 2})
+    df = _academias().assign(tipo="REGULAR")
+
+    out = load._reconcile_tipos(FakeSession(), df, [{"tipo": "REGULAR"}])
+
+    assert out["tipo"].tolist() == ["Regular"]
+    assert captured["inserts"] == []
+
+
+def test_un_tipo_con_acento_distinto_tambien_se_concilia(load, captured, monkeypatch):
+    monkeypatch.setattr(load_module, "get_mapping", lambda *a, **k: {"Regular": 2})
+    df = _academias().assign(tipo="Regúlar")
+
+    out = load._reconcile_tipos(FakeSession(), df, [{"tipo": "Regúlar"}])
+
+    assert out["tipo"].tolist() == ["Regular"]
+    assert captured["inserts"] == []
+
+
+def test_un_tipo_nuevo_se_inserta_una_sola_vez(load, captured, monkeypatch):
+    monkeypatch.setattr(load_module, "get_mapping", lambda *a, **k: {"Regular": 2})
+    df = _academias().assign(tipo="Semillero")
+
+    out = load._reconcile_tipos(FakeSession(), df, [{"tipo": "Regular"}, {"tipo": "Semillero"}])
+
+    assert out["tipo"].tolist() == ["Semillero"]
+    model, rows, keys = captured["inserts"][0]
+    assert (model, rows, keys) == (CatTiposAcademia, [{"tipo": "Semillero"}], ["tipo"])
+
+
+# source: un conjunto del manifiesto sin frames se omite con aviso.
+
+
+def test_el_source_avisa_cuando_un_conjunto_del_manifiesto_no_tiene_frames(load, tmp_path, monkeypatch, caplog):
+    monkeypatch.chdir(tmp_path)
+    write_json_atomic({"academias": MANIFEST, "polideportivos": MANIFEST}, tmp_path / "data/extract/code/manifest.json")
+    folder = tmp_path / "data/transform/code/academias"
+    folder.mkdir(parents=True)
+    _academias().to_pickle(folder / "academias.pkl")
+    pd.to_pickle({"deportes": [], "tipos": []}, folder / "catalogs.pkl")
+
+    with caplog.at_level(logging.WARNING, logger="test.code.load"):
+        out = load.source()
+
+    assert set(out) == {"academias"}
+    assert "polideportivos" in caplog.text

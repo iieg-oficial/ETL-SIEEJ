@@ -18,7 +18,7 @@ from core.pipelines.code.constants import (
     POLIDEPORTIVOS_UNIQUE_KEY,
     PUNTOS_FRAME,
 )
-from core.pipelines.code.datasets import ACADEMIAS, POLIDEPORTIVOS, RETO
+from core.pipelines.code.datasets import ACADEMIAS, MAIN_FRAMES, RETO
 from core.pipelines.code.helpers.common import catalog_conflicts
 from core.pipelines.code.schemas import (
     CargasAcervo,
@@ -43,10 +43,10 @@ from core.utils.bulk_ops import (
 )
 from core.utils.files import cleanup_pipeline_data, read_json
 from core.utils.logger import get_logger
+from core.utils.normalize import normalize_text
 from core.utils.views import refresh_materialized_views
 
 # Main table of each dataset: what finalization counts and register reads.
-MAIN_FRAMES = {RETO: PUNTOS_FRAME, ACADEMIAS: ACADEMIAS_FRAME, POLIDEPORTIVOS: POLIDEPORTIVOS_FRAME}
 MAIN_MODELS = {
     PUNTOS_FRAME: StgPuntosActivacionReto,
     ACADEMIAS_FRAME: StgAcademiasDeportivas,
@@ -75,6 +75,7 @@ class CodeLoad(Stage):
                 if path.name != CATALOGS_FILENAME
             }
             if not frames:
+                self.logger.warning(f"[source] {key} is in the manifest but has no transformed frames, skipped")
                 continue
             catalogs_path = folder / CATALOGS_FILENAME
             if not catalogs_path.exists():
@@ -145,6 +146,17 @@ class CodeLoad(Stage):
         cuts = sorted(df["fecha_corte"].unique())
         self.logger.info(f"[action] {model.__tablename__} replaced with {len(df):,} rows for cut(s) {cuts}")
 
+    def _reconcile_tipos(self, session, df: pd.DataFrame, tipos: list[dict[str, Any]]) -> pd.DataFrame:
+        """Map incoming tipos onto stored names by normalized form and insert only the new ones."""
+        stored = {normalize_text(name): name for name in get_mapping(session, CatTiposAcademia, "tipo", "id")}
+
+        new = [item for item in tipos if normalize_text(item["tipo"]) not in stored]
+        if new:
+            sync_id_sequence(session, CatTiposAcademia)
+            insert_records(session, new, CatTiposAcademia, conflict_keys=["tipo"])
+
+        return df.assign(tipo=df["tipo"].map(lambda name: stored.get(normalize_text(name), name)))
+
     def _reload_academias(self, session, df: pd.DataFrame) -> None:
         tipos = get_mapping(session, CatTiposAcademia, "tipo", "id")
         mapped = df.assign(tipo_id=df["tipo"].map(tipos))
@@ -200,9 +212,7 @@ class CodeLoad(Stage):
             self._replace_table(session, self._map_foreign_keys(session, main), StgPuntosActivacionReto)
         elif key == ACADEMIAS:
             self._load_deportes(session, catalogs)
-            sync_id_sequence(session, CatTiposAcademia)
-            insert_records(session, catalogs["tipos"], CatTiposAcademia, conflict_keys=["tipo"])
-            self._reload_academias(session, main)
+            self._reload_academias(session, self._reconcile_tipos(session, main, catalogs["tipos"]))
         else:
             self._load_deportes(session, catalogs)
             self._reload_polideportivos(session, main, frames[POLIDEPORTIVO_DEPORTES_FRAME])

@@ -1,9 +1,11 @@
 """El descubrimiento va por el campo de metodologia, donde CODE subio sus datos."""
 
+import pandas as pd
+
 from core.acervo.client import Upload
 from core.pipelines.code.constants import UPLOAD_FIELD
 from core.pipelines.code.stages.extract import CodeExtract
-from tests.pipelines.code.code_factories import make_upload
+from tests.pipelines.code.code_factories import ACADEMIAS_NAME, make_upload
 
 
 def _upload(updated_at: str = "2026-09-09 17:16:53+00:00", etag: str = "abc123") -> Upload:
@@ -54,3 +56,16 @@ def test_el_watermark_acepta_formatos_distintos_del_mismo_instante():
     extract = CodeExtract(mode="update", since={"reto": "2026-09-09T17:16:53.235786+00:00"})
 
     assert extract._is_new(_upload(updated_at="2026-09-09 17:16:53.235786+00:00")) is False
+
+
+def test_la_finalizacion_borra_los_pickles_de_una_extraccion_anterior(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    stage = CodeExtract()
+    folder = stage.work_dir / "academias"
+    folder.mkdir(parents=True)
+    pd.DataFrame({"tipo": ["viejo"]}).to_pickle(folder / "cat_tipo.pkl")
+    entry = {"frames": {"datos": pd.DataFrame({"a": [1]})}, "upload": make_upload(name=ACADEMIAS_NAME)}
+
+    stage.finalization({"academias": entry})
+
+    assert sorted(path.name for path in folder.glob("*.pkl")) == ["datos.pkl"]

@@ -21,13 +21,13 @@ from core.pipelines.code.constants import (
     SHEET_PUNTOS,
     UNIQUE_KEY,
 )
-from core.pipelines.code.datasets import ACADEMIAS, POLIDEPORTIVOS, RETO
+from core.pipelines.code.datasets import ACADEMIAS, MAIN_FRAMES, POLIDEPORTIVOS, RETO
 from core.pipelines.code.helpers.academias import transform_academias
 from core.pipelines.code.helpers.polideportivos import transform_polideportivos
 from core.pipelines.code.helpers.values import title_es
 from core.pipelines.stage import Stage
 from core.utils.clean import list_values_to_null
-from core.utils.files import read_json
+from core.utils.files import clean_directory, read_json
 from core.utils.logger import get_logger
 from core.utils.normalize import normalize_text
 
@@ -139,6 +139,8 @@ class CodeTransform(Stage):
         transformed = {}
         for key, entry in input_data.items():
             frames, catalogs = handlers[key](entry["frames"], entry["manifest"])
+            if frames[MAIN_FRAMES[key]].empty:
+                raise ValueError(f"{key}: the source has no rows")
             for name, df in frames.items():
                 self.logger.info(f"[action] {key}/{name}: {len(df):,} rows prepared")
             transformed[key] = {"frames": frames, "manifest": entry["manifest"], "catalogs": catalogs}
@@ -149,6 +151,7 @@ class CodeTransform(Stage):
         for key, entry in input_data.items():
             folder = self.work_dir / key
             folder.mkdir(parents=True, exist_ok=True)
+            clean_directory(folder, self.logger)
             for name, df in entry["frames"].items():
                 df.to_pickle(folder / f"{name}.pkl")
                 self.logger.info(f"[finalization] {key}/{name}: {len(df):,} rows saved")

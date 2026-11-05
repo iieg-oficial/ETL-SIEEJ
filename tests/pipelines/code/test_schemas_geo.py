@@ -64,3 +64,15 @@ def test_la_puente_tiene_llave_compuesta_y_borra_en_cascada():
     fk = next(iter(table.c.polideportivo_id.foreign_keys))
     assert fk.ondelete == "CASCADE"
     assert {f.target_fullname for f in table.c.deporte_id.foreign_keys} == {"cat_deportes.id"}
+
+
+def _indexes(model):
+    return {index.name: tuple(c.name for c in index.columns) for index in model.__table__.indexes}
+
+
+def test_academias_declara_el_indice_por_corte_de_la_migracion():
+    assert _indexes(StgAcademiasDeportivas)["ix_stg_academias_deportivas_fecha_corte"] == ("fecha_corte",)
+
+
+def test_la_puente_declara_el_indice_por_deporte_de_la_migracion():
+    assert _indexes(PolideportivoDeportes)["ix_polideportivo_deportes_deporte_id"] == ("deporte_id",)

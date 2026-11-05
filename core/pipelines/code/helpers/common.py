@@ -65,6 +65,12 @@ def deporte_catalog(cat_deporte: pd.DataFrame) -> list[dict]:
     """Sports with the id the dependency assigns them."""
     catalog = list_values_to_null(cat_deporte[["id", "deporte"]], rm_list=NULL_VALUES).dropna()
     catalog["id"] = catalog["id"].astype(int)
+    catalog = catalog.drop_duplicates()
+
+    repeated = catalog.loc[catalog["id"].duplicated(keep=False)]
+    if not repeated.empty:
+        raise ValueError(f"Sports catalog has ids with different names:\n{repeated.to_string(index=False)}")
+
     return catalog.sort_values("id").to_dict("records")
 
 

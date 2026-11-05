@@ -78,3 +78,26 @@ def test_el_source_sin_manifiesto_no_tiene_nada_que_hacer(stage, tmp_path, monke
     monkeypatch.chdir(tmp_path)
 
     assert stage.source() == {}
+
+
+@pytest.mark.parametrize("key", ["academias", "polideportivos"])
+def test_un_conjunto_sin_filas_falla_con_un_error_claro(stage, key):
+    data = _frames()
+    datos = data[key]["frames"]["datos"]
+    data[key]["frames"]["datos"] = datos.iloc[0:0]
+
+    with pytest.raises(ValueError, match=f"{key}.*no rows"):
+        stage.action(data)
+
+
+def test_la_finalizacion_borra_los_frames_viejos_del_conjunto(stage):
+    frames = stage.action(_frames())
+    key = next(iter(frames))
+    folder = stage.work_dir / key
+    folder.mkdir(parents=True, exist_ok=True)
+    viejo = folder / "viejo.pkl"
+    viejo.touch()
+
+    stage.finalization(frames)
+
+    assert not viejo.exists()

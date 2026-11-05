@@ -10,7 +10,7 @@ from core.pipelines.code.constants import MANIFEST_FILENAME, PIPELINE_NAME
 from core.pipelines.code.datasets import BY_KEY, DATASETS, RETO, Dataset
 from core.pipelines.code.helpers.sources import read_geo_zip, read_reto_zip
 from core.pipelines.stage import Stage
-from core.utils.files import safe_extract_zip, validate_zip, write_json_atomic
+from core.utils.files import clean_directory, safe_extract_zip, validate_zip, write_json_atomic
 from core.utils.logger import get_logger
 
 
@@ -117,6 +117,8 @@ class CodeExtract(Stage):
         for key, entry in input_data.items():
             folder = self.work_dir / key
             folder.mkdir(parents=True, exist_ok=True)
+            # A stale frame (e.g. cat_tipo) must not outlive a zip that lacks it.
+            clean_directory(folder, self.logger)
             for name, df in entry["frames"].items():
                 df.to_pickle(folder / f"{name}.pkl")
                 self.logger.info(f"[finalization] {key}/{name}: {len(df):,} rows saved")

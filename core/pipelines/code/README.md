@@ -70,11 +70,11 @@ CODE entrega el conjunto completo en cada envío, así que cada carga reemplaza 
 | `fecha_actualizacion_fuente` | Fecha del envío en el formulario (`actualizado_en`) |
 | `fecha_actualizacion` | Fecha en que el ETL cargó el registro |
 
-Restricción única: `(fecha_corte, municipio_id, nombre_espacio)`.
+Restricción única dentro del envío vigente: `(fecha_corte, municipio_id, nombre_espacio)`. Como cada carga reemplaza la tabla, no distingue cortes históricos.
 
 ### stg_academias_deportivas
 
-Una fila por academia, deporte y corte. Sin restricción única: el origen repite domicilio para varios deportes.
+Una fila por academia y deporte del envío vigente. Sin restricción única: el origen repite domicilio para varios deportes.
 
 | variable | descripción |
 |---|---|
@@ -91,7 +91,7 @@ Una fila por academia, deporte y corte. Sin restricción única: el origen repit
 
 ### stg_polideportivos
 
-Una fila por centro y corte. Restricción única: `(fecha_corte, municipio_id, nombre_centro)`.
+Una fila por centro del envío vigente. Restricción única dentro del envío: `(fecha_corte, municipio_id, nombre_centro)`; no hay historia por corte.
 
 | variable | descripción |
 |---|---|
@@ -104,7 +104,7 @@ Una fila por centro y corte. Restricción única: `(fecha_corte, municipio_id, n
 
 ### polideportivo_deportes
 
-Tabla puente. `deportes` del origen es una lista de ids de `cat_deportes` separados por coma (por ejemplo `19,22,23,4`) y aquí queda una fila por polideportivo y deporte. Llave primaria `(polideportivo_id, deporte_id)`; se borra en cascada al recargar el corte.
+Tabla puente. `deportes` del origen es una lista de ids de `cat_deportes` separados por coma (por ejemplo `19,22,23,4`) y aquí queda una fila por polideportivo y deporte. Llave primaria `(polideportivo_id, deporte_id)`; se borra en cascada al reemplazar `stg_polideportivos`.
 
 ### cargas_acervo
 
@@ -196,9 +196,13 @@ Reto:
 
 ### Load
 
-Cada conjunto se carga en su propia sesión, así que uno defectuoso no revierte a los demás. `cat_actividades` y `cat_deportes` usan `upsert_records` por `id`, porque `insert_records` usa `ON CONFLICT DO NOTHING` y dejaría congelada una etiqueta que CODE corrigiera. `cat_regiones` y `cat_tipos_academia` usan `insert_records` por su nombre.
+Cada conjunto se carga en su propia sesión, así que uno defectuoso no revierte a los demás. Al final, si alguno falló, se lanza un `ExceptionGroup` con todos los errores y la tarea falla; los conjuntos sanos ya quedaron cargados.
 
-Recarga cada tabla por corte: borra las filas de los `fecha_corte` presentes en el archivo y las reinserta, así correr dos veces no duplica. En Polideportivos el borrado arrastra la tabla puente en cascada y las filas puente se reinsertan con los ids recién creados. Al final registra el envío de cada conjunto en `cargas_acervo` con el nombre canónico del conjunto como `conjunto`. Solo Reto refresca `vm_reto_code_geo`.
+`cat_deportes` es compartido, y su id es el del origen. Antes de cargar se rechaza cualquier par que reetiquete un deporte: el mismo id con otro nombre, o el mismo nombre con otro id, ya sea contra lo guardado o contra el catálogo del otro conjunto en la misma corrida. Un conflicto salta los conjuntos afectados y conservan sus datos anteriores; los demás se cargan. Un conjunto sin filas o un catálogo con ids contradictorios falla en el transform, antes de tocar la base: esa corrida no carga ningún conjunto y todos conservan sus datos anteriores. Un cambio solo de mayúsculas o acentos es una actualización, no un conflicto. Un catálogo con el mismo id repetido y el mismo nombre se deduplica; con nombres distintos falla en el transform.
+
+`cat_tipos_academia` concilia por nombre normalizado: `REGULAR` o `Regúlar` se mapean al `Regular` ya guardado y no crean fila. `cat_actividades` y `cat_deportes` usan `upsert_records` por `id`, porque `insert_records` usa `ON CONFLICT DO NOTHING` y dejaría congelada una etiqueta que CODE corrigiera. `cat_regiones` y `cat_tipos_academia` usan `insert_records` por su nombre.
+
+Reemplaza por completo la tabla de cada conjunto: borra todas sus filas y reinserta el envío en la misma transacción, así que un insert fallido conserva los datos anteriores y correr dos veces no duplica. En Polideportivos el borrado arrastra la tabla puente en cascada y las filas puente se reinsertan con los ids recién creados. Al final registra el envío de cada conjunto en `cargas_acervo` con el nombre canónico del conjunto como `conjunto`. Solo Reto refresca `vm_reto_code_geo`.
 
 ## Ejecución
 

@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from core.pipelines.code.attributes import CodeTables as T
@@ -67,6 +67,7 @@ class StgPuntosActivacionReto(CodeBase):
 
 class StgAcademiasDeportivas(CodeBase):
     __tablename__ = T.STG_ACADEMIAS_DEPORTIVAS
+    __table_args__ = (Index("ix_stg_academias_deportivas_fecha_corte", "fecha_corte"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -109,6 +110,7 @@ class StgPolideportivos(CodeBase):
 
 class PolideportivoDeportes(CodeBase):
     __tablename__ = T.POLIDEPORTIVO_DEPORTES
+    __table_args__ = (Index("ix_polideportivo_deportes_deporte_id", "deporte_id"),)
 
     polideportivo_id: Mapped[int] = mapped_column(
         Integer, ForeignKey(f"{T.STG_POLIDEPORTIVOS}.id", ondelete="CASCADE"), primary_key=True

@@ -2,7 +2,13 @@ from dataclasses import dataclass
 from typing import Final
 
 from core.acervo import normalize
-from core.pipelines.code.constants import DATA_FIELD, UPLOAD_FIELD
+from core.pipelines.code.constants import (
+    ACADEMIAS_FRAME,
+    DATA_FIELD,
+    POLIDEPORTIVOS_FRAME,
+    PUNTOS_FRAME,
+    UPLOAD_FIELD,
+)
 
 RETO: Final[str] = "reto"
 ACADEMIAS: Final[str] = "academias"
@@ -34,3 +40,10 @@ DATASETS: Final[tuple[Dataset, ...]] = (
 )
 
 BY_KEY: Final[dict[str, Dataset]] = {dataset.key: dataset for dataset in DATASETS}
+
+# Main frame of each dataset: what an empty-source guard and finalization read.
+MAIN_FRAMES: Final[dict[str, str]] = {
+    RETO: PUNTOS_FRAME,
+    ACADEMIAS: ACADEMIAS_FRAME,
+    POLIDEPORTIVOS: POLIDEPORTIVOS_FRAME,
+}
