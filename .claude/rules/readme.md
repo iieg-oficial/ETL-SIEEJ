@@ -6,13 +6,10 @@ paths:
 
 # Pipeline README
 
-Minimalist style. Required sections in this order:
+`docs/readme-pipeline.md` is the authoritative template. Read it before writing or restructuring a pipeline README, and keep its section names and order.
 
-1. **Title** — `DB_NAME` (from `.env`) as H1
-2. **ERD** — ERD image: `![ERD](assets/erd.svg)`
-3. **Diccionario de variables** — one markdown table per main table (column → description). Only include columns whose purpose is not obvious from the name. Skip self-explanatory columns like `id`, `nombre`, `fecha_actualizacion`.
-4. **Fuentes** — markdown table with source level, filename, and URL env var
-5. **Actualización** — update frequency, whether manual or automatic, and a brief justification based on the nature of the data
+- Omit `Vistas` and `Notas adicionales` when they do not apply.
+- `Diccionario de variables`: one table per main table. Only include columns whose purpose is not obvious from the name; skip columns like `id`, `nombre`, `fecha_actualizacion`.
 
 ## ERD generation
 
