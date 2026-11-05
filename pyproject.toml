@@ -17,6 +17,7 @@ exclude = [
     ".claude",
     ".github",
     ".opencode",
+    "templates/pipeline",
 ]
 
 [tool.ruff.lint]

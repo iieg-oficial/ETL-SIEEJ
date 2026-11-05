@@ -24,7 +24,7 @@ Toda limpieza de texto, fechas y valores nulos usa las utilidades de `core/utils
 El esquema de la base de datos se define en `migrations/{pipeline}/sql/`. Los modelos SQLAlchemy en `schemas.py` deben reflejar exactamente ese esquema. Si hay discrepancia, las migraciones tienen precedencia.
 
 ### 6. Las constantes definen el contrato del dataset
-`constants.py` de cada pipeline declara explícitamente qué columnas se renombran, qué valores son nulos, qué columnas se capitalizan y cómo se parsean fechas. Cambiar el comportamiento de una transformación significa cambiar `constants.py`, no hardcodear lógica condicional en `transform.py`.
+`constants/` de cada pipeline (o `constants.py` en los existentes) declara explícitamente qué columnas se renombran, qué valores son nulos, qué columnas se capitalizan y cómo se parsean fechas. Cambiar el comportamiento de una transformación significa cambiar esas constantes, no hardcodear lógica condicional en `transform.py`.
 
 ## Flujo de Datos
 
@@ -61,8 +61,8 @@ El flujo es unidireccional. Los archivos en `data/` son temporales: existen solo
 - Type hints completos en funciones públicas
 - `Path` para todas las rutas de archivos
 - Logging con mensajes cortos en inglés usando `core.utils.logger`
-- Catálogos estáticos en `mappings.py` y dinámicos construidos en `transform._build_catalogs()`
+- Catálogos estáticos en `mappings/` y dinámicos construidos en `transform._build_catalogs()`
 - Uso de `data/` solo cuando la persistencia entre stages sea necesaria
 - Pipelines con variantes `bootstrap` e `incremental` cuando la fuente lo requiera
-- Atributos de tabla en forma plana (`attributes.py`) o carpeta (`attributes/`) según la cantidad de enums necesarios
+- Atributos de tabla en la carpeta `attributes/`; los pipelines existentes pueden conservar `attributes.py`
 - crear funciones helper dentro de helpers/.
