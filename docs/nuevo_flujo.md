@@ -72,7 +72,7 @@ Antes de escribir código, crea un issue con label `new-pipeline` que incluya:
 
 ## 2. Generar la estructura
 
-No crees la estructura a mano. Con el entorno virtual activo, ejecuta:
+Para crear la estructura general del pipeline es necesario ejecutar lo siguiente con el entorno virtual activo:
 
 ```bash
 just new-pipeline mi_pipeline
@@ -80,8 +80,6 @@ just new-pipeline mi_pipeline "Nombre del responsable"   # opcional: owner del D
 ```
 
 El comando muestra lo que creó y falla sin modificar nada si el nombre es inválido o si el pipeline ya existe. El detalle está en [`templates/pipeline/README.md`](../templates/pipeline/README.md).
-
-> ⚠️ `.env` y `flyway.conf` están ignorados por git, así que `git clean -fd` no los borra. Para eliminar un pipeline de prueba usa `rm -rf core/pipelines/mi_pipeline migrations/mi_pipeline dags/etl_mi_pipeline.py`.
 
 ---
 
