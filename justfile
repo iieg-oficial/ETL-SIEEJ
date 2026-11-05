@@ -127,7 +127,7 @@ create-db pipeline: (_load-env pipeline)
 [group('setup')]
 [doc("Crear la estructura inicial de un pipeline desde templates/pipeline")]
 new-pipeline pipeline owner="IIEG":
-    python -m cookiecutter templates/pipeline --no-input --overwrite-if-exists pipeline={{pipeline}} "owner={{owner}}"
+    @python -m cookiecutter templates/pipeline --no-input --overwrite-if-exists pipeline={{pipeline}} "owner={{owner}}"
 
 [group('setup')]
 [doc("Inicializar .env de un pipeline desde su .env.example")]

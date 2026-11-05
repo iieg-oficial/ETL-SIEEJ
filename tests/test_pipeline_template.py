@@ -53,6 +53,15 @@ def test_renders_names_and_valid_python(tmp_path):
         compile(path.read_text(), str(path), "exec")
 
 
+def test_logs_created_paths(tmp_path, capfd):
+    generate(tmp_path)
+    output = capfd.readouterr().out
+
+    assert "🟢" in output
+    for path in ["core/pipelines/mi_pipeline/", "migrations/mi_pipeline/", "dags/etl_mi_pipeline.py", "extract.py"]:
+        assert path in output
+
+
 def test_owner_is_optional(tmp_path):
     generate(tmp_path / "default")
     generate(tmp_path / "custom", owner="Nombre Apellido")
