@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 from core.pipeline import Pipeline
 from core.pipelines.produccion_ganadera.config import settings
@@ -65,7 +66,14 @@ with DAG(
     schedule=None,
     tags=["etl", "produccion_ganadera", "bootstrap", "on-demand", "siap"],
 ) as dag_bootstrap:
-    PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+    bootstrap_task = PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "produccion_ganadera"},
+        wait_for_completion=False,
+    )
+    bootstrap_task >> trigger_geoserver_sync
 
 
 with DAG(
@@ -78,7 +86,14 @@ with DAG(
     schedule=schedule_for("etl_produccion_ganadera_update"),
     tags=["etl", "produccion_ganadera", "update", "siap"],
 ) as dag_update:
-    PythonOperator(task_id="run_update", python_callable=run_update)
+    update_task = PythonOperator(task_id="run_update", python_callable=run_update)
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "produccion_ganadera"},
+        wait_for_completion=False,
+    )
+    update_task >> trigger_geoserver_sync
 
 
 if __name__ == "__main__":

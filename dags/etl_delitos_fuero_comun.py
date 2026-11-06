@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 try:
     from airflow import DAG
     from airflow.providers.standard.operators.python import PythonOperator
+    from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
     _AIRFLOW_AVAILABLE = True
 except ImportError:
@@ -65,7 +66,14 @@ if _AIRFLOW_AVAILABLE:
         max_active_runs=1,
         tags=["etl", "delitos_fuero_comun", "sspc", "bootstrap", "gold"],
     ) as dag_bootstrap:
-        PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+        bootstrap_task = PythonOperator(task_id="run_bootstrap", python_callable=run_bootstrap)
+        trigger_geoserver_sync = TriggerDagRunOperator(
+            task_id="trigger_geoserver_sync",
+            trigger_dag_id="etl_geoserver_sync",
+            conf={"pipeline": "delitos_fuero_comun"},
+            wait_for_completion=False,
+        )
+        bootstrap_task >> trigger_geoserver_sync
 
     with DAG(
         "etl_delitos_fuero_comun_update",
@@ -77,7 +85,14 @@ if _AIRFLOW_AVAILABLE:
         max_active_runs=1,
         tags=["etl", "delitos_fuero_comun", "sspc", "update", "gold"],
     ) as dag_update:
-        PythonOperator(task_id="run_update", python_callable=run_update)
+        update_task = PythonOperator(task_id="run_update", python_callable=run_update)
+        trigger_geoserver_sync = TriggerDagRunOperator(
+            task_id="trigger_geoserver_sync",
+            trigger_dag_id="etl_geoserver_sync",
+            conf={"pipeline": "delitos_fuero_comun"},
+            wait_for_completion=False,
+        )
+        update_task >> trigger_geoserver_sync
 
 
 if __name__ == "__main__":

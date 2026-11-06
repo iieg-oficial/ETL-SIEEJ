@@ -134,8 +134,22 @@
     },
     {
       "id": 9,
+      "name": "geoserver_sync",
+      "title": "Phase 9 — GeoServer Sync",
+      "description": "Si el pipeline tiene vistas materializadas con geometría, declararlas con MATERIALIZED_VIEWS y enganchar el DAG a etl_geoserver_sync para publicar/actualizar sus layers automáticamente tras cada bootstrap/update. Si el pipeline no tiene geometría, la fase se marca done sin cambios (n/a).",
+      "acceptance": [
+        "Si hay vistas materializadas con columna de geometría: MATERIALIZED_VIEWS declarado en queries/ (o views.py) del pipeline",
+        "stages/load.py refresca esas vistas llamando a refresh_materialized_views() de core/utils/views.py",
+        "dags/etl_{pipeline}.py encadena TriggerDagRunOperator(trigger_dag_id=\"etl_geoserver_sync\", conf={\"pipeline\": \"{pipeline}\"}, wait_for_completion=False) después del task de load, tanto en bootstrap como en update",
+        "etl_geoserver_sync disparado una vez contra el pipeline (manual o vía trigger) sin error, con las layers visibles en GeoServer",
+        "Si el pipeline no tiene ninguna vista con geometría: fase marcada done como n/a, sin tocar el DAG"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": 10,
       "name": "readme",
-      "title": "Phase 9 — README",
+      "title": "Phase 10 — README",
       "description": "Generar la documentación del pipeline.",
       "acceptance": [
         "README.md creado en core/pipelines/{pipeline}/",

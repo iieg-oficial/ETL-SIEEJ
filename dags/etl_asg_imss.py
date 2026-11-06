@@ -20,6 +20,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator
 
 from core.pipeline import Pipeline
 from core.pipelines.asg_imss.stages.extract import (
@@ -130,7 +131,13 @@ with DAG(
         task_id="bootstrap_datos",
         python_callable=run_bootstrap_datos,
     )
-    task_bootstrap_catalogos >> task_bootstrap_datos
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "asg_imss"},
+        wait_for_completion=False,
+    )
+    task_bootstrap_catalogos >> task_bootstrap_datos >> trigger_geoserver_sync
 
 
 # ============================================================================
@@ -161,7 +168,13 @@ with DAG(
         task_id="update_datos",
         python_callable=run_update_datos,
     )
-    task_update_catalogos >> task_update_datos
+    trigger_geoserver_sync = TriggerDagRunOperator(
+        task_id="trigger_geoserver_sync",
+        trigger_dag_id="etl_geoserver_sync",
+        conf={"pipeline": "asg_imss"},
+        wait_for_completion=False,
+    )
+    task_update_catalogos >> task_update_datos >> trigger_geoserver_sync
 
 
 if __name__ == "__main__":

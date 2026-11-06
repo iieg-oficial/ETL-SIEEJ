@@ -97,6 +97,7 @@ x-airflow-common: &airflow-common
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/core:/opt/airflow/core
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+    - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
   user: "${AIRFLOW_UID:-50000}:0"
   # Con LocalExecutor las tareas corren dentro del contenedor, así que un
   # DB_HOST=localhost en el .env de un pipeline apunta al contenedor, no al host.
