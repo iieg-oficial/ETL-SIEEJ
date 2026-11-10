@@ -11,14 +11,13 @@ from core.pipelines.code.constants import (
     ACADEMIAS_FRAME,
     CATALOGS_FILENAME,
     MANIFEST_FILENAME,
-    MATERIALIZED_VIEWS,
     PIPELINE_NAME,
     POLIDEPORTIVO_DEPORTES_FRAME,
     POLIDEPORTIVOS_FRAME,
     POLIDEPORTIVOS_UNIQUE_KEY,
     PUNTOS_FRAME,
 )
-from core.pipelines.code.datasets import ACADEMIAS, MAIN_FRAMES, RETO
+from core.pipelines.code.datasets import ACADEMIAS, BY_KEY, MAIN_FRAMES, RETO
 from core.pipelines.code.helpers.common import catalog_conflicts
 from core.pipelines.code.schemas import (
     CargasAcervo,
@@ -261,12 +260,17 @@ class CodeLoad(Stage):
                     errors.append(error)
                     failed.append(key)
 
-            if RETO in loaded:
+            refreshed: set[str] = set()
+            for key in loaded:
+                pending = tuple(view for view in BY_KEY[key].views if view not in refreshed)
+                if not pending:
+                    continue
                 try:
-                    refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
-                    self.logger.info("[action] materialized views refreshed")
+                    refresh_materialized_views(self.db, pending)
+                    refreshed.update(pending)
+                    self.logger.info(f"[action] {key} materialized views refreshed")
                 except Exception as error:
-                    self.logger.error(f"[action] refresh failed: {error}")
+                    self.logger.error(f"[action] {key} refresh failed: {error}")
                     errors.append(error)
         except BaseException:
             self.db.disconnect()

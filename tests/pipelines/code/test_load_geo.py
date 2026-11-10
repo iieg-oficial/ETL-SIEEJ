@@ -9,6 +9,8 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from core.pipelines.code.constants import VIEW_ACADEMIAS_GEO, VIEW_POLIDEPORTIVOS_GEO, VIEW_RETO_GEO
+from core.pipelines.code.datasets import DATASETS
 from core.pipelines.code.schemas import (
     CargasAcervo,
     CatDeportes,
@@ -221,11 +223,11 @@ def test_un_conjunto_que_falla_no_detiene_a_los_demas_y_la_tarea_falla(load, cap
         load.action({"reto": entrada, "academias": entrada, "polideportivos": entrada})
 
     assert cargados == ["reto", "polideportivos"]
-    assert refrescos == [("vm_reto_code_geo",)]
+    assert refrescos == [("vm_reto_code_geo",), ("vm_polideportivos_geo", "vm_academias_deportivas_geo")]
     assert [str(e) for e in error.value.exceptions] == ["falla academias"]
 
 
-def test_si_falla_reto_no_se_refresca_la_vista_y_los_demas_cargan(load, captured, monkeypatch):
+def test_si_falla_reto_no_se_refresca_su_vista_y_los_demas_cargan_y_refrescan(load, captured, monkeypatch):
     cargados, refrescos = [], []
 
     def cargar(session, key, entry):
@@ -241,16 +243,60 @@ def test_si_falla_reto_no_se_refresca_la_vista_y_los_demas_cargan(load, captured
         load.action({"reto": entrada, "academias": entrada})
 
     assert cargados == ["academias"]
-    assert refrescos == []
+    assert refrescos == [("vm_academias_deportivas_geo", "vm_polideportivos_geo")]
 
 
-def test_solo_reto_refresca_la_vista_materializada(load, captured, monkeypatch):
+@pytest.mark.parametrize(
+    ("conjunto", "vistas"),
+    [
+        ("reto", [("vm_reto_code_geo",)]),
+        ("academias", [("vm_academias_deportivas_geo", "vm_polideportivos_geo")]),
+        ("polideportivos", [("vm_polideportivos_geo", "vm_academias_deportivas_geo")]),
+    ],
+)
+def test_cada_conjunto_refresca_sus_vistas_materializadas(load, captured, monkeypatch, conjunto, vistas):
     refrescos = []
     monkeypatch.setattr(load, "_load_dataset", lambda *_a: None)
     monkeypatch.setattr(load_module, "refresh_materialized_views", lambda db, views: refrescos.append(views))
     entrada = {"frames": {}, "manifest": MANIFEST, "catalogs": {}}
 
-    load.action({"academias": entrada})
+    load.action({conjunto: entrada})
+
+    assert refrescos == vistas
+
+
+def test_dos_conjuntos_que_comparten_vistas_no_las_refrescan_dos_veces(load, captured, monkeypatch):
+    refrescos = []
+    monkeypatch.setattr(load, "_load_dataset", lambda *_a: None)
+    monkeypatch.setattr(load_module, "refresh_materialized_views", lambda db, views: refrescos.append(views))
+    entrada = {"frames": {}, "manifest": MANIFEST, "catalogs": {}}
+
+    load.action({"academias": entrada, "polideportivos": entrada})
+
+    assert refrescos == [("vm_academias_deportivas_geo", "vm_polideportivos_geo")]
+
+
+def test_todo_conjunto_declara_vistas_conocidas():
+    conocidas = {VIEW_RETO_GEO, VIEW_ACADEMIAS_GEO, VIEW_POLIDEPORTIVOS_GEO}
+
+    for dataset in DATASETS:
+        assert dataset.views
+        assert set(dataset.views) <= conocidas
+
+
+def test_si_falla_academias_no_se_refresca_su_vista(load, captured, monkeypatch):
+    refrescos = []
+
+    def cargar(session, key, entry):
+        if key == "academias":
+            raise ValueError("falla academias")
+
+    monkeypatch.setattr(load, "_load_dataset", cargar)
+    monkeypatch.setattr(load_module, "refresh_materialized_views", lambda db, views: refrescos.append(views))
+    entrada = {"frames": {}, "manifest": MANIFEST, "catalogs": {}}
+
+    with pytest.raises(ExceptionGroup):
+        load.action({"academias": entrada})
 
     assert refrescos == []
 
