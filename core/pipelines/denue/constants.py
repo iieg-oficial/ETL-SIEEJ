@@ -87,4 +87,7 @@ INT_COLS: Final[set] = {
     "tipo_establecimiento_id",
 }
 
+# Stringified nulls (after astype(str)) to emit as the COPY null marker.
+NULL_TEXT: Final[set] = {"nan", "NaT", "None"}
+
 ENTIDADES = list(range(1, 33))
