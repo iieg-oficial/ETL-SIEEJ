@@ -165,6 +165,17 @@ def test_la_carga_trae_las_fechas_del_formulario():
     assert upload.fecha_actualizacion == "2026-09-01"
 
 
+def test_upload_carries_the_name_of_its_own_dataset_not_the_general_one():
+    envio = _envio("persona", [_archivo("a.csv", "2026-09-10 21:31:00+00:00")])
+    envio["datos"]["conunto_datos"][0]["nombre_del_conjunto_de_datos"] = "Polideportivos "
+    envios = {f"{PREFIX}persona/envio.json": envio}
+
+    upload = _listar(envios)[0]
+
+    assert upload.conjunto == "Aulas google"
+    assert upload.dataset_name == "Polideportivos"
+
+
 @pytest.mark.parametrize(
     ("etag", "es_md5"),
     [("abc123", True), ("abc123-2", False), ("", False)],

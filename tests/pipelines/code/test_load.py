@@ -1,15 +1,12 @@
 """Como el load entrega los datos a la base, sin tocar PostgreSQL."""
 
-import logging
-from contextlib import contextmanager
 from datetime import date
 
 import pandas as pd
-import pytest
 
 from core.pipelines.code.schemas import CargasAcervo, CatActividades, CatRegiones, StgPuntosActivacionReto
 from core.pipelines.code.stages import load as load_module
-from core.pipelines.code.stages.load import CodeLoad
+from tests.pipelines.code.code_factories import FakeSession
 
 MANIFEST = {
     "envio_id": 28,
@@ -18,64 +15,6 @@ MANIFEST = {
     "etag": "abc",
     "actualizado_en": "2026-09-09 17:16:53+00:00",
 }
-
-
-class _FakeSession:
-    def __init__(self):
-        self.deletes = []
-
-    def execute(self, statement, params=None):
-        self.deletes.append(statement)
-        return None
-
-    def flush(self):
-        pass
-
-
-class _FakeDb:
-    def connect(self):
-        pass
-
-    def disconnect(self):
-        pass
-
-    @contextmanager
-    def get_session(self):
-        yield _FakeSession()
-
-
-@pytest.fixture
-def captured(monkeypatch) -> dict:
-    calls: dict = {"inserts": [], "upserts": [], "bulk": []}
-
-    monkeypatch.setattr(load_module, "get_mapping", lambda *a, **k: {"Altos Sur": 5, "Norte": 9})
-    monkeypatch.setattr(load_module, "sync_id_sequence", lambda session, model: None)
-    monkeypatch.setattr(load_module, "count_records", lambda session, model: 0)
-    monkeypatch.setattr(
-        load_module,
-        "insert_records",
-        lambda session, data, model, conflict_keys: calls["inserts"].append((model, data, conflict_keys)),
-    )
-    monkeypatch.setattr(
-        load_module,
-        "upsert_records",
-        lambda session, data, model, conflict_keys, **k: calls["upserts"].append((model, data, conflict_keys)),
-    )
-    monkeypatch.setattr(
-        load_module,
-        "bulk_insert",
-        lambda session, data, model: calls["bulk"].append((model, data)),
-    )
-    return calls
-
-
-@pytest.fixture
-def load() -> CodeLoad:
-    stage = object.__new__(CodeLoad)
-    stage.logger = logging.getLogger("test.code.load")
-    stage.db = _FakeDb()
-    stage.mode = "bootstrap"
-    return stage
 
 
 def _puntos(cortes=(date(2026, 7, 1),)) -> pd.DataFrame:
@@ -109,7 +48,7 @@ CATALOGOS = {
 
 def test_las_actividades_con_id_del_origen_se_actualizan(load, captured):
     """Con DO NOTHING una etiqueta corregida por la dependencia no se propagaria."""
-    load._load_catalogs(_FakeSession(), CATALOGOS)
+    load._load_catalogs(FakeSession(), CATALOGOS)
 
     modelo, registros, conflict_keys = captured["upserts"][0]
     assert modelo is CatActividades
@@ -118,26 +57,26 @@ def test_las_actividades_con_id_del_origen_se_actualizan(load, captured):
 
 
 def test_las_regiones_con_id_generado_se_insertan_por_su_valor(load, captured):
-    load._load_catalogs(_FakeSession(), CATALOGOS)
+    load._load_catalogs(FakeSession(), CATALOGOS)
 
     assert captured["inserts"] == [(CatRegiones, [{"region": "Altos Sur"}], ["region"])]
 
 
 def test_un_catalogo_vacio_no_genera_escritura(load, captured):
-    load._load_catalogs(_FakeSession(), {})
+    load._load_catalogs(FakeSession(), {})
 
     assert captured["upserts"] == []
     assert captured["inserts"] == []
 
 
 def test_la_region_se_resuelve_contra_su_catalogo(load, captured):
-    mapeado = load._map_foreign_keys(_FakeSession(), _puntos())
+    mapeado = load._map_foreign_keys(FakeSession(), _puntos())
 
     assert mapeado["region_id"].item() == 5
 
 
 def test_los_registros_excluyen_el_id_y_el_texto_de_la_region(load, captured):
-    mapeado = load._map_foreign_keys(_FakeSession(), _puntos())
+    mapeado = load._map_foreign_keys(FakeSession(), _puntos())
 
     registro = load._records_from_df(mapeado, StgPuntosActivacionReto)[0]
 
@@ -150,11 +89,11 @@ def test_los_registros_excluyen_el_id_y_el_texto_de_la_region(load, captured):
     assert "geom" not in registro
 
 
-def test_recargar_un_corte_borra_antes_de_insertar(load, captured):
-    """La recarga por corte es lo que hace que correr dos veces no duplique."""
-    session = _FakeSession()
+def test_reemplazar_la_tabla_borra_antes_de_insertar(load, captured):
+    """Cada envio trae el conjunto completo: correr dos veces no duplica."""
+    session = FakeSession()
 
-    load._reload_puntos(session, _puntos())
+    load._replace_table(session, load._map_foreign_keys(session, _puntos()), StgPuntosActivacionReto)
 
     assert len(session.deletes) == 1
     modelo, registros = captured["bulk"][0]
@@ -162,17 +101,18 @@ def test_recargar_un_corte_borra_antes_de_insertar(load, captured):
     assert len(registros) == 1
 
 
-def test_el_borrado_cubre_todos_los_cortes_del_archivo(load, captured):
-    session = _FakeSession()
+def test_el_borrado_no_filtra_por_corte(load, captured):
+    session = FakeSession()
+    datos = load._map_foreign_keys(session, _puntos(cortes=(date(2026, 7, 1), date(2026, 8, 1))))
 
-    load._reload_puntos(session, _puntos(cortes=(date(2026, 7, 1), date(2026, 8, 1), date(2026, 7, 1))))
+    load._replace_table(session, datos, StgPuntosActivacionReto)
 
     sentencia = str(session.deletes[0].compile(compile_kwargs={"literal_binds": True}))
-    assert "2026-07-01" in sentencia and "2026-08-01" in sentencia
+    assert "WHERE" not in sentencia
 
 
 def test_el_registro_de_carga_toma_el_corte_de_los_datos(load, captured):
-    load._register_load(_FakeSession(), MANIFEST, _puntos(cortes=(date(2026, 7, 1), date(2026, 8, 1))))
+    load._register_load(FakeSession(), MANIFEST, _puntos(cortes=(date(2026, 7, 1), date(2026, 8, 1))))
 
     modelo, registros, conflict_keys = captured["upserts"][0]
     assert modelo is CargasAcervo
@@ -186,7 +126,7 @@ def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured
     conexiones = []
     load.db.connect = lambda: conexiones.append("connect")
 
-    load.action({"frames": {}, "manifest": {}, "catalogs": {}})
+    load.action({})
 
     assert conexiones == []
     assert captured["bulk"] == []
@@ -194,15 +134,13 @@ def test_un_update_sin_cargas_nuevas_ni_siquiera_abre_la_conexion(load, captured
 
 def test_recargar_puntos_refresca_la_vista_materializada(load, monkeypatch):
     refrescos = []
-    monkeypatch.setattr(load, "_load_catalogs", lambda *_args: None)
-    monkeypatch.setattr(load, "_reload_puntos", lambda *_args: None)
-    monkeypatch.setattr(load, "_register_load", lambda *_args: None)
+    monkeypatch.setattr(load, "_load_dataset", lambda *_args: None)
     monkeypatch.setattr(
         load_module,
         "refresh_materialized_views",
         lambda db, views: refrescos.append((db, views)),
     )
 
-    load.action({"frames": {"puntos": _puntos()}, "manifest": MANIFEST, "catalogs": {}})
+    load.action({"reto": {"frames": {"puntos": _puntos()}, "manifest": MANIFEST, "catalogs": {}}})
 
     assert refrescos == [(load.db, ("vm_reto_code_geo",))]
