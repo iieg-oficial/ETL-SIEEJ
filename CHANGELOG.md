@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.10.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.9.0...v1.10.0) (2026-11-10)
+
+
+### Features
+
+* **code:** add academias and polideportivos datasets ([9445a22](https://github.com/iieg-oficial/ETL-SIEEJ/commit/9445a22220f9b7f62053134f58e5f891f08e169c))
+* **code:** add academias and polideportivos datasets ([6073519](https://github.com/iieg-oficial/ETL-SIEEJ/commit/6073519932710fdbee9f106d4a6de2aa5823ecba))
+* **code:** add academias and polideportivos geo materialized views ([3e4a927](https://github.com/iieg-oficial/ETL-SIEEJ/commit/3e4a927d601e50db755d8ab83b2ca8f40438b194))
+* **code:** add academias and polideportivos geo materialized views ([ec31961](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ec319618b82c1bcddb3c0c3f6d8693072783c8b1))
+* **pipelines:** add cookiecutter template for new pipelines ([d9c2a78](https://github.com/iieg-oficial/ETL-SIEEJ/commit/d9c2a78c59e76b57605a1c9752693079a8a58ded))
+* **pipelines:** add cookiecutter template for new pipelines ([e230fbb](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e230fbbae50be7ca7e575d369de9e0737005c87e))
+* **pipelines:** log created paths in new-pipeline ([ecb9d92](https://github.com/iieg-oficial/ETL-SIEEJ/commit/ecb9d9297ffd3289b4eb5859a1c45fd35bc0388b))
+
+
+### Bug Fixes
+
+* **ci:** create .env files from all examples under core ([98a4d30](https://github.com/iieg-oficial/ETL-SIEEJ/commit/98a4d30eb3f3e1c68f6808eb8ba0dcfc54f94fdb))
+* **ci:** create .env files from all examples under core ([dbdc7e7](https://github.com/iieg-oficial/ETL-SIEEJ/commit/dbdc7e79a19304662ca3ecf1c441a8591851d1df))
+* **code:** harden catalogs, empty sources and stale frames ([1aca967](https://github.com/iieg-oficial/ETL-SIEEJ/commit/1aca967e3f5ced9c542f9fab350309ff5c2b8f94))
+* **denue:** set COPY null marker after escaping text columns ([5427954](https://github.com/iieg-oficial/ETL-SIEEJ/commit/54279543d1abda9bca2644e25e0799881cb7dcd8))
+* **secretaria_educacion:** store telefono and codigo_postal as text ([264b361](https://github.com/iieg-oficial/ETL-SIEEJ/commit/264b36125e4cf1af8747fb855168d4137350c4dd))
+* **secretaria_educacion:** store telefono and codigo_postal as text ([e46a906](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e46a9069712688ce094636ca4e028eb92f68ab3e))
+
+
+### Updates
+
+* **denue:** add COPY buffer edge case and pandas 2 null tests ([92845ca](https://github.com/iieg-oficial/ETL-SIEEJ/commit/92845ca9f36a0e93c68c8dee2acc47bb574441eb))
+
 ## [1.9.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.8.0...v1.9.0) (2026-10-26)
 
 
