@@ -8,7 +8,7 @@ from core.db import Database
 from core.pipelines.stage import Stage
 from core.pipelines.denue.attributes import DenueTables as T
 from core.pipelines.denue.config import settings
-from core.pipelines.denue.constants import ENTIDAD_JALISCO, INT_COLS, RAW_COLS
+from core.pipelines.denue.constants import ENTIDAD_JALISCO, INT_COLS, NULL_TEXT, RAW_COLS
 from core.pipelines.denue.mappings import RANGOS_PERSONAL, TIPOS_ESTABLECIMIENTOS, get_sector_codigo
 from core.pipelines.denue.queries import INSERT_FROM_RAW, TMP_TABLE_DDL
 from core.pipelines.denue.schemas import (
@@ -112,14 +112,15 @@ class DenueLoad(Stage):
 
         text_cols = [c for c in RAW_COLS if c not in INT_COLS and c != "codigo_actividad"]
         for col in text_cols:
-            subset[col] = (
+            text = (
                 subset[col]
                 .astype(str)
-                .replace({"nan": "\\N", "NaT": "\\N", "None": "\\N"})
                 .str.replace("\\", "\\\\", regex=False)
                 # Free-text fields break a QUOTE_NONE tab-delimited COPY.
                 .str.replace(r"[\t\r\n]+", " ", regex=True)
             )
+            # Null marker is set last so the backslash escape cannot corrupt it.
+            subset[col] = text.mask(text.isin(NULL_TEXT) | subset[col].isna(), "\\N")
 
         buffer = io.StringIO()
         subset.to_csv(buffer, sep="\t", header=False, index=False, quoting=QUOTE_NONE, na_rep="\\N")
