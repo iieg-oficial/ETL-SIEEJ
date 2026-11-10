@@ -24,9 +24,11 @@ from core.pipelines.secretaria_educacion.constants import (
     PROGRAMAS_DATASET,
     PROGRAMAS_RENAMES,
     SENTINEL_VALUES,
+    TEXT_NUMBER_COLUMNS,
     TITLE_COLS,
     ZERO_TO_NULL_COLUMNS,
 )
+from core.pipelines.secretaria_educacion.helpers.numbers import whole_number_to_str
 from core.pipelines.secretaria_educacion.helpers.values import capitalize_es, plain_title, title_es
 from core.pipelines.secretaria_educacion.mappings import TURNO_LABELS
 from core.pipelines.stage import Stage
@@ -101,6 +103,10 @@ class SecretariaEducacionTransform(Stage):
 
         # Se expande antes de construir el catálogo, para que columna y catálogo coincidan.
         df["turno"] = df["turno"].replace(TURNO_LABELS)
+
+        # Antes de limpiar nulos: strip_text anula los valores no str de una columna object.
+        for column in TEXT_NUMBER_COLUMNS:
+            df[column] = df[column].map(whole_number_to_str)
 
         df = list_values_to_null(df, rm_list=NULL_VALUES)
 
