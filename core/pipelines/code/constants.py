@@ -7,6 +7,9 @@ MATERIALIZED_VIEWS: Final[tuple[str, ...]] = ("vm_reto_code_geo",)
 # CODE attached its data in the methodology field of the form, not in the data one.
 UPLOAD_FIELD: Final[str] = "adjunte_el_documento_metodologico_asociado_al_conjunto_de_datos"
 
+# Academias and Polideportivos came in the data field of the form.
+DATA_FIELD: Final[str] = "carga_de_datos"
+
 MANIFEST_FILENAME: Final[str] = "manifest.json"
 
 # Catalogs travel through disk so load can be retried as its own Airflow task.
@@ -15,6 +18,19 @@ CATALOGS_FILENAME: Final[str] = "catalogs.pkl"
 # The zip also ships a gpkg that duplicates the sheet; the xlsx is the source.
 XLSX_GLOB: Final[str] = "*.xlsx"
 EXTRACT_DIRNAME: Final[str] = "reto"
+
+GPKG_GLOB: Final[str] = "*.gpkg"
+CSV_GLOB: Final[str] = "*.csv"
+
+# Raw frames of the gpkg datasets. Catalog CSVs are told apart by their header,
+# since file names change between uploads.
+FRAME_DATOS: Final[str] = "datos"
+FRAME_CAT_DEPORTE: Final[str] = "cat_deporte"
+FRAME_CAT_TIPO: Final[str] = "cat_tipo"
+CATALOG_HEADERS: Final[dict[str, frozenset[str]]] = {
+    FRAME_CAT_DEPORTE: frozenset({"deporte", "id"}),
+    FRAME_CAT_TIPO: frozenset({"tipo", "id"}),
+}
 
 SHEET_PUNTOS: Final[str] = "base"
 SHEET_ACTIVIDADES: Final[str] = "cat_actividad"
@@ -60,3 +76,67 @@ FLOAT_COLUMNS: Final[list[str]] = ["latitud", "longitud"]
 
 # Words kept in lowercase unless they open the label ("Sierra de Amula").
 LOWERCASE_WORDS: Final[frozenset[str]] = frozenset({"de", "del", "la", "las", "los", "y", "e", "en", "el", "a", "al"})
+
+# Transformed frames.
+ACADEMIAS_FRAME: Final[str] = "academias"
+POLIDEPORTIVOS_FRAME: Final[str] = "polideportivos"
+POLIDEPORTIVO_DEPORTES_FRAME: Final[str] = "polideportivo_deportes"
+
+# Dates in the gpkg files are dd/mm/yyyy text.
+GEO_DATE_FORMAT: Final[str] = "%d/%m/%Y"
+WGS84: Final[str] = "EPSG:4326"
+
+ACADEMIAS_RENAMES: Final[dict[str, str]] = {
+    "fecha": "fecha_corte",
+    "cve_mun": "municipio_id",
+    "deportenombrelargo": "deporte_nombre_largo",
+}
+
+# Names (municipio, deporte) are dropped: municipio resolves in the view against
+# cvegeo and deporte through the catalog. `cat_deporte` is only used to audit.
+ACADEMIAS_COLUMNS: Final[list[str]] = [
+    "fecha_corte",
+    "municipio_id",
+    "beneficiarios_total",
+    "beneficiarios_hombres",
+    "beneficiarios_mujeres",
+    "deporte_nombre_largo",
+    "deporte",
+    "cat_deporte",
+    "tipo",
+    "domicilio",
+    "horarios",
+    "longitud",
+    "latitud",
+]
+ACADEMIAS_INTEGER_COLUMNS: Final[list[str]] = [
+    "municipio_id",
+    "beneficiarios_total",
+    "beneficiarios_hombres",
+    "beneficiarios_mujeres",
+]
+ACADEMIAS_REQUIRED_COLUMNS: Final[list[str]] = ["fecha_corte", "municipio_id", "deporte_id", "tipo"]
+
+POLIDEPORTIVOS_RENAMES: Final[dict[str, str]] = {
+    "fecha": "fecha_corte",
+    "clave_entidad": "entidad_id",
+    "cve_mun": "municipio_id",
+}
+POLIDEPORTIVOS_COLUMNS: Final[list[str]] = [
+    "fecha_corte",
+    "entidad_id",
+    "municipio_id",
+    "nombre_centro",
+    "domicilio",
+    "horarios",
+    "servicios",
+    "deportes",
+    "longitud",
+    "latitud",
+]
+POLIDEPORTIVOS_INTEGER_COLUMNS: Final[list[str]] = ["entidad_id", "municipio_id"]
+POLIDEPORTIVOS_REQUIRED_COLUMNS: Final[list[str]] = ["fecha_corte", "entidad_id", "municipio_id", "nombre_centro"]
+POLIDEPORTIVOS_UNIQUE_KEY: Final[list[str]] = ["fecha_corte", "municipio_id", "nombre_centro"]
+DEPORTES_SEPARATOR: Final[str] = ","
+
+DEPORTES_COLUMNS: Final[list[str]] = ["id", "deporte"]

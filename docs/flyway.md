@@ -313,7 +313,7 @@ git commit -m "[FEAT] index on municipio column added to censos_economicos"
 
 ## 🔄 Flujo completo de desarrollo
 
-Para el flujo completo (levantar BD, aplicar migraciones y ejecutar el pipeline) consulta la [Guía de nuevo flujo](nuevo_flujo.md#-paso-5--probar-localmente).
+Para el flujo completo (levantar BD, aplicar migraciones y ejecutar el pipeline) consulta la [Guía de nuevo flujo](nuevo_flujo.md#6-probar-localmente).
 
 En resumen:
 

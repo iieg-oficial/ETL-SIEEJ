@@ -11,32 +11,43 @@ from core.schedules import schedule_for
 
 
 def get_watermark():
-    """Último envío procesado y etags ya cargados, para no repetir trabajo.
+    """Último envío procesado por conjunto y etags ya cargados, para no repetir trabajo.
 
     Vive en el DAG y no en el stage porque el extract no necesita base de datos:
-    solo el corte contra el que filtrar.
+    solo el corte contra el que filtrar. El corte es por conjunto porque los tres
+    comparten envío y un conjunto nuevo no debe quedar detrás del de otro.
     """
+    from sqlalchemy import func
+
     from core.db import Database
     from core.pipelines.code.config import settings
+    from core.pipelines.code.datasets import DATASETS
     from core.pipelines.code.schemas import CargasAcervo
-    from core.utils.bulk_ops import get_last_update
 
     db = Database(settings.PIPELINE_NAME, settings.database_url)
     db.connect()
     try:
         with db.get_session() as session:
-            since = get_last_update(session, CargasAcervo, CargasAcervo.actualizado_en.key)
+            since = {}
+            for dataset in DATASETS:
+                last = (
+                    session.query(func.max(CargasAcervo.actualizado_en))
+                    .filter(CargasAcervo.conjunto == dataset.label)
+                    .scalar()
+                )
+                if last:
+                    since[dataset.key] = str(last)
             etags = [row[0] for row in session.query(CargasAcervo.etag).all() if row[0]]
     finally:
         db.disconnect()
 
-    return (str(since) if since else None), etags
+    return since, etags
 
 
 def run_extract(mode: str):
     from core.pipelines.code.stages.extract import CodeExtract
 
-    since, etags = get_watermark() if mode == "update" else (None, ())
+    since, etags = get_watermark() if mode == "update" else ({}, ())
     CodeExtract(mode=mode, since=since, processed_etags=etags).execute()
 
 

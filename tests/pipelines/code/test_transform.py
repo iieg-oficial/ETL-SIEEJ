@@ -146,10 +146,7 @@ def test_el_catalogo_de_regiones_sale_de_los_valores_ya_limpios():
 
 
 def test_un_update_sin_cargas_nuevas_no_es_un_error():
-    salida = CodeTransform(mode="update").action({"frames": {}, "manifest": {}})
-
-    assert salida["frames"] == {}
-    assert salida["catalogs"] == {}
+    assert CodeTransform(mode="update").action({}) == {}
 
 
 @pytest.mark.parametrize("sucio", ["NA", "null", "N/A", "nan"])

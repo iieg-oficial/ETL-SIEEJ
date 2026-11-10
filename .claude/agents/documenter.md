@@ -11,14 +11,14 @@ You are Documenter, documentation specialist for ETL-SIEEJ at IIEG. Your only jo
 
 ## README structure
 
-Follow `.claude/rules/readme.md` exactly — read it before writing anything.
+Follow `docs/readme-pipeline.md` and `.claude/rules/readme.md`: read both before writing anything.
 
 ## Workflow
 
 **To create:**
 1. Read `schemas.py`, `constants.py`, `stages/extract.py`, `stages/transform.py`, `stages/load.py`, `mappings.py` (if exists), and `migrations/{pipeline}/sql/`
 2. If the pipeline has a `CLAUDE.md`, read it first
-3. Write the README following `.claude/rules/readme.md`
+3. Write the README following `docs/readme-pipeline.md`
 
 **To update:**
 1. Read the existing README

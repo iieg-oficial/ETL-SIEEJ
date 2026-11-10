@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from core.pipelines.code.attributes import CodeTables as T
@@ -26,6 +26,20 @@ class CatRegiones(CodeBase):
     region: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
 
 
+class CatDeportes(CodeBase):
+    __tablename__ = T.CAT_DEPORTES
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    deporte: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+
+
+class CatTiposAcademia(CodeBase):
+    __tablename__ = T.CAT_TIPOS_ACADEMIA
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tipo: Mapped[str] = mapped_column(String(80), nullable=False, unique=True)
+
+
 class StgPuntosActivacionReto(CodeBase):
     __tablename__ = T.STG_PUNTOS_ACTIVACION_RETO
     __table_args__ = (
@@ -49,6 +63,59 @@ class StgPuntosActivacionReto(CodeBase):
 
     region: Mapped["CatRegiones"] = relationship()
     actividad: Mapped["CatActividades"] = relationship()
+
+
+class StgAcademiasDeportivas(CodeBase):
+    __tablename__ = T.STG_ACADEMIAS_DEPORTIVAS
+    __table_args__ = (Index("ix_stg_academias_deportivas_fecha_corte", "fecha_corte"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    deporte_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_DEPORTES}.id"), nullable=False)
+    tipo_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_TIPOS_ACADEMIA}.id"), nullable=False)
+    deporte_nombre_largo: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    beneficiarios_total: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    beneficiarios_hombres: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    beneficiarios_mujeres: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    domicilio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    horarios: Mapped[str | None] = mapped_column(Text, nullable=True)
+    longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
+    fecha_actualizacion_fuente: Mapped[date | None] = mapped_column(Date, nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
+
+    deporte: Mapped["CatDeportes"] = relationship()
+    tipo: Mapped["CatTiposAcademia"] = relationship()
+
+
+class StgPolideportivos(CodeBase):
+    __tablename__ = T.STG_POLIDEPORTIVOS
+    __table_args__ = (UniqueConstraint("fecha_corte", "municipio_id", "nombre_centro", name="uq_stg_polideportivos"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    nombre_centro: Mapped[str] = mapped_column(String(255), nullable=False)
+    domicilio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    horarios: Mapped[str | None] = mapped_column(Text, nullable=True)
+    servicios: Mapped[str | None] = mapped_column(Text, nullable=True)
+    longitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    latitud: Mapped[float | None] = mapped_column(Float, nullable=True)
+    fecha_corte: Mapped[date] = mapped_column(Date, nullable=False)
+    fecha_actualizacion_fuente: Mapped[date | None] = mapped_column(Date, nullable=True)
+    fecha_actualizacion: Mapped[date] = mapped_column(Date, nullable=False)
+
+
+class PolideportivoDeportes(CodeBase):
+    __tablename__ = T.POLIDEPORTIVO_DEPORTES
+    __table_args__ = (Index("ix_polideportivo_deportes_deporte_id", "deporte_id"),)
+
+    polideportivo_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey(f"{T.STG_POLIDEPORTIVOS}.id", ondelete="CASCADE"), primary_key=True
+    )
+    deporte_id: Mapped[int] = mapped_column(Integer, ForeignKey(f"{T.CAT_DEPORTES}.id"), primary_key=True)
 
 
 class CargasAcervo(CodeBase):
