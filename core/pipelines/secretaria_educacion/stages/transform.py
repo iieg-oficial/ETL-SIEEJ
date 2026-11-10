@@ -2,7 +2,6 @@ from datetime import date
 from pathlib import Path
 from typing import Any, Optional
 
-import numpy as np
 import pandas as pd
 
 from core.constants.geo import JALISCO_CVE_ENTIDAD
@@ -29,6 +28,7 @@ from core.pipelines.secretaria_educacion.constants import (
     TITLE_COLS,
     ZERO_TO_NULL_COLUMNS,
 )
+from core.pipelines.secretaria_educacion.helpers.numbers import whole_number_to_str
 from core.pipelines.secretaria_educacion.helpers.values import capitalize_es, plain_title, title_es
 from core.pipelines.secretaria_educacion.mappings import TURNO_LABELS
 from core.pipelines.stage import Stage
@@ -36,17 +36,6 @@ from core.utils.clean import list_values_to_null
 from core.utils.files import read_json
 from core.utils.logger import get_logger
 from core.utils.normalize import normalize_text
-
-
-def _whole_number_to_str(value: Any) -> Any:
-    """Render ints and whole floats as text without the ".0" suffix; leave the rest as is."""
-    if isinstance(value, (bool, np.bool_)):
-        return value
-    if isinstance(value, (int, np.integer)):
-        return str(int(value))
-    if isinstance(value, (float, np.floating)) and float(value).is_integer():
-        return str(int(value))
-    return value
 
 
 class SecretariaEducacionTransform(Stage):
@@ -117,7 +106,7 @@ class SecretariaEducacionTransform(Stage):
 
         # Antes de limpiar nulos: strip_text anula los valores no str de una columna object.
         for column in TEXT_NUMBER_COLUMNS:
-            df[column] = df[column].map(_whole_number_to_str)
+            df[column] = df[column].map(whole_number_to_str)
 
         df = list_values_to_null(df, rm_list=NULL_VALUES)
 

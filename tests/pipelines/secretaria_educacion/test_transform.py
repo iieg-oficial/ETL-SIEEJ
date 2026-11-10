@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 
 from core.pipelines.secretaria_educacion.constants import AULAS_COLUMNS, DIRECTORIO_COLUMNS
-from core.pipelines.secretaria_educacion.stages.transform import SecretariaEducacionTransform, _whole_number_to_str
+from core.pipelines.secretaria_educacion.helpers.numbers import whole_number_to_str
+from core.pipelines.secretaria_educacion.stages.transform import SecretariaEducacionTransform
 
 META = {"fecha_corte": "2025-09-30", "fecha_actualizacion": "2026-04-01"}
 
@@ -198,5 +199,5 @@ def test_text_number_columns_leave_non_integer_floats_unchanged():
 
 
 def test_text_number_columns_do_not_convert_bool():
-    assert _whole_number_to_str(True) is True
-    assert _whole_number_to_str(np.bool_(False)) is np.False_
+    assert whole_number_to_str(True) is True
+    assert whole_number_to_str(np.bool_(False)) is np.False_
