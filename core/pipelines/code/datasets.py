@@ -8,6 +8,9 @@ from core.pipelines.code.constants import (
     POLIDEPORTIVOS_FRAME,
     PUNTOS_FRAME,
     UPLOAD_FIELD,
+    VIEW_ACADEMIAS_GEO,
+    VIEW_POLIDEPORTIVOS_GEO,
+    VIEW_RETO_GEO,
 )
 
 RETO: Final[str] = "reto"
@@ -21,6 +24,8 @@ class Dataset:
     # Stored in cargas_acervo.conjunto, so the watermark is per dataset.
     label: str
     field: str
+    # Materialized views to refresh once the dataset loads.
+    views: tuple[str, ...]
     # Other names the form may carry for the dataset; the label always matches.
     aliases: tuple[str, ...] = ()
 
@@ -34,9 +39,16 @@ DATASETS: Final[tuple[Dataset, ...]] = (
         RETO,
         "Puntos de activación del programa Reto, Reactivación para Todas y Todos",
         UPLOAD_FIELD,
+        (VIEW_RETO_GEO,),
     ),
-    Dataset(ACADEMIAS, "Academias deportivas, Espacios para la Paz", DATA_FIELD),
-    Dataset(POLIDEPORTIVOS, "Polideportivos", DATA_FIELD),
+    # Both read cat_deportes, which either load can upsert, so each refreshes both views.
+    Dataset(
+        ACADEMIAS,
+        "Academias deportivas, Espacios para la Paz",
+        DATA_FIELD,
+        (VIEW_ACADEMIAS_GEO, VIEW_POLIDEPORTIVOS_GEO),
+    ),
+    Dataset(POLIDEPORTIVOS, "Polideportivos", DATA_FIELD, (VIEW_POLIDEPORTIVOS_GEO, VIEW_ACADEMIAS_GEO)),
 )
 
 BY_KEY: Final[dict[str, Dataset]] = {dataset.key: dataset for dataset in DATASETS}

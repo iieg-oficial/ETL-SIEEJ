@@ -141,6 +141,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `V7__tables_academias_polideportivos_code.sql` | Catálogos `cat_deportes` y `cat_tipos_academia`, tablas `stg_academias_deportivas`, `stg_polideportivos` y la puente |
 | `V8__views_academias_polideportivos_code.sql` | Vistas `vw_academias_deportivas`, `vw_polideportivos` y `vw_polideportivo_deportes` |
 | `V9__comments_academias_polideportivos_code.sql` | `COMMENT ON` de las tablas, vistas y columnas nuevas |
+| `V10__materialized_views_academias_polideportivos_geo.sql` | Vistas materializadas geográficas de Academias y Polideportivos |
 
 ## Vistas
 
@@ -151,6 +152,8 @@ Control de envíos procesados: da el watermark del incremental.
 | `vw_polideportivos` | Polideportivos con los deportes agregados en texto |
 | `vw_polideportivo_deportes` | Una fila por polideportivo y deporte |
 | `vm_reto_code_geo` | Puntos de activación Reto con actividad, atributos geográficos y geometría puntual EPSG:6368 |
+| `vm_academias_deportivas_geo` | Una fila por academia con deporte, tipo, beneficiarios, atributos geográficos y geometría puntual EPSG:6368 |
+| `vm_polideportivos_geo` | Una fila por polideportivo con los deportes agregados en texto, atributos geográficos y geometría puntual EPSG:6368 |
 
 ## Variables de entorno
 
@@ -202,7 +205,7 @@ Cada conjunto se carga en su propia sesión, así que uno defectuoso no revierte
 
 `cat_tipos_academia` concilia por nombre normalizado: `REGULAR` o `Regúlar` se mapean al `Regular` ya guardado y no crean fila. `cat_actividades` y `cat_deportes` usan `upsert_records` por `id`, porque `insert_records` usa `ON CONFLICT DO NOTHING` y dejaría congelada una etiqueta que CODE corrigiera. `cat_regiones` y `cat_tipos_academia` usan `insert_records` por su nombre.
 
-Reemplaza por completo la tabla de cada conjunto: borra todas sus filas y reinserta el envío en la misma transacción, así que un insert fallido conserva los datos anteriores y correr dos veces no duplica. En Polideportivos el borrado arrastra la tabla puente en cascada y las filas puente se reinsertan con los ids recién creados. Al final registra el envío de cada conjunto en `cargas_acervo` con el nombre canónico del conjunto como `conjunto`. Solo Reto refresca `vm_reto_code_geo`.
+Reemplaza por completo la tabla de cada conjunto: borra todas sus filas y reinserta el envío en la misma transacción, así que un insert fallido conserva los datos anteriores y correr dos veces no duplica. En Polideportivos el borrado arrastra la tabla puente en cascada y las filas puente se reinsertan con los ids recién creados. Al final registra el envío de cada conjunto en `cargas_acervo` con el nombre canónico del conjunto como `conjunto`. Después de cargar, Reto refresca `vm_reto_code_geo`; Academias y Polideportivos refrescan ambas `vm_academias_deportivas_geo` y `vm_polideportivos_geo`, porque las dos leen `cat_deportes` y cualquiera de las cargas puede modificarlo. Si se cargan en la misma corrida, cada vista se refresca una vez. Si un conjunto falla, no refresca sus vistas.
 
 ## Ejecución
 
@@ -229,7 +232,6 @@ Arranca desde el watermark por conjunto de `cargas_acervo`, así que una corrida
 - **Los beneficiarios de Academias son por academia,** según confirmó CODE, de modo que se pueden sumar entre filas. Algunas academias de un mismo municipio reportan cifras idénticas (Jalostotitlán: 72 en tres; Lagos de Moreno: 146 en dos).
 - **Las cifras de Semillero Rojiblanco difieren de las publicadas.** La suma de `beneficiarios_total` es 1,195 en octubre de 2026; la [nota de Chivas de noviembre de 2025](https://www.chivasdecorazon.com.mx/es/noticias/40178/Concluy-con-xito-la-segunda-generacin-de-Semillero-Rojiblanco) reporta 390 participantes de la segunda generación. Son periodos distintos y la diferencia no está explicada.
 - **Pendiente con CODE:** confirmar si `cat_deporte` o el nombre del deporte es el correcto en Academias, y corregir el código de `Semillero Rojiblanco` en los datos y en su catálogo de tipos.
-- **Sin vista materializada geográfica** para Academias y Polideportivos: solo Reto la tiene (`vm_reto_code_geo`).
 - **El DAG declara una tarea por stage** (`extract >> transform >> load`), de modo que se puede reintentar una sola sin repetir las anteriores. La excepción es reintentar `load` **después** de un run exitoso: su limpieza borra los archivos intermedios, así que hay que reintentar desde `transform`.
 - **`conunto_datos`** aparece así, con el error de escritura, en las rutas del origen. No se corrige para no romper la correspondencia con el formulario.
 - **El acceso a Acervo requiere red interna.** Para desarrollo local hace falta un túnel; ver [`core/acervo/README.md`](../../acervo/README.md).
