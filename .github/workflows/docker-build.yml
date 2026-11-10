@@ -11,7 +11,7 @@ jobs:
 
       - name: Create .env files from examples
         run: |
-          find core/pipelines -name ".env.example" | while read f; do
+          find core -name ".env.example" | while read f; do
             cp "$f" "$(dirname $f)/.env"
           done
           echo "AIRFLOW_UID=50000" > .env
