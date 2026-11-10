@@ -168,6 +168,9 @@ DIRECTORIO_FLOAT_COLUMNS: Final[list[str]] = ["longitud", "latitud"]
 # escolar queda aislado tras el 255, que es la última zona real.
 SENTINEL_VALUES: Final[dict[str, list[int]]] = {"zona_escolar": [999]}
 
+# Números que se guardan como texto; pandas los infiere float y dejaría el sufijo ".0".
+TEXT_NUMBER_COLUMNS: Final[list[str]] = ["telefono", "codigo_postal"]
+
 # El origen usa 0 como "sin dato" en estas columnas opcionales.
 ZERO_TO_NULL_COLUMNS: Final[list[str]] = [
     "telefono",

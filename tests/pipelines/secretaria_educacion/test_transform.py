@@ -1,10 +1,11 @@
 """Reglas de limpieza que salieron de inspeccionar los datos reales de la dependencia."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from core.pipelines.secretaria_educacion.constants import AULAS_COLUMNS, DIRECTORIO_COLUMNS
-from core.pipelines.secretaria_educacion.stages.transform import SecretariaEducacionTransform
+from core.pipelines.secretaria_educacion.stages.transform import SecretariaEducacionTransform, _whole_number_to_str
 
 META = {"fecha_corte": "2025-09-30", "fecha_actualizacion": "2026-04-01"}
 
@@ -135,3 +136,67 @@ def test_un_update_sin_cargas_nuevas_no_es_un_error():
 
     assert salida["frames"] == {}
     assert salida["catalogs"] == {}
+
+
+@pytest.mark.parametrize(
+    ("source", "column", "raw", "expected"),
+    [
+        ("TELEFONO", "telefono", 3867442394.0, "3867442394"),
+        ("CODIGO POSTAL", "codigo_postal", 44100.0, "44100"),
+        ("TELEFONO", "telefono", "33 1234 5678", "33 1234 5678"),
+        ("TELEFONO", "telefono", "3312345678 ext 12", "3312345678 ext 12"),
+        ("CODIGO POSTAL", "codigo_postal", "04100", "04100"),
+    ],
+)
+def test_text_number_columns_drop_the_float_suffix_and_keep_text(source, column, raw, expected):
+    value = _preparar(**{source: raw})[column].item()
+
+    assert value == expected
+    assert isinstance(value, str)
+
+
+@pytest.mark.parametrize("raw", [float("nan"), 0, 0.0, "0"])
+@pytest.mark.parametrize(("source", "column"), [("TELEFONO", "telefono"), ("CODIGO POSTAL", "codigo_postal")])
+def test_text_number_columns_keep_nulls_and_zeros_as_null(source, column, raw):
+    assert pd.isna(_preparar(**{source: raw})[column].item())
+
+
+def _prepare_rows(column_source: str, values: list) -> pd.DataFrame:
+    frame = pd.DataFrame([{**FILA_DIRECTORIO, column_source: value} for value in values])
+    return SecretariaEducacionTransform()._prepare_directorio(frame, META)
+
+
+@pytest.mark.parametrize("raw", [3867442394, np.int64(3867442394), np.float32(44100.0)])
+def test_text_number_columns_convert_integer_values_to_str(raw):
+    value = _preparar(TELEFONO=raw)["telefono"].item()
+
+    assert value == str(int(raw))
+    assert isinstance(value, str)
+
+
+def test_text_number_columns_convert_an_int64_column_without_blanks():
+    frame = pd.DataFrame([{**FILA_DIRECTORIO, "TELEFONO": n} for n in (3312345678, 3387654321)])
+    frame["TELEFONO"] = frame["TELEFONO"].astype("int64")
+
+    result = SecretariaEducacionTransform()._prepare_directorio(frame, META)
+
+    assert result["telefono"].tolist() == ["3312345678", "3387654321"]
+    assert all(isinstance(v, str) for v in result["telefono"])
+
+
+def test_text_number_columns_handle_a_mixed_object_column():
+    result = _prepare_rows("TELEFONO", ["33 1234 5678", 3312345678.0, float("nan")])["telefono"]
+
+    assert result.iloc[0] == "33 1234 5678"
+    assert result.iloc[1] == "3312345678"
+    assert isinstance(result.iloc[1], str)
+    assert pd.isna(result.iloc[2])
+
+
+def test_text_number_columns_leave_non_integer_floats_unchanged():
+    assert _preparar(**{"CODIGO POSTAL": 44100.5})["codigo_postal"].item() == 44100.5
+
+
+def test_text_number_columns_do_not_convert_bool():
+    assert _whole_number_to_str(True) is True
+    assert _whole_number_to_str(np.bool_(False)) is np.False_
