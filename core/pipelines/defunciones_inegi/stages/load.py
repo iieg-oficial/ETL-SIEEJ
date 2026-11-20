@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from core.db import Database
 from core.pipelines.defunciones_inegi.attributes import DefuncionesInegiTables as T
@@ -52,11 +52,30 @@ class DefuncionesInegiLoad(Stage):
         self.logger = get_logger(f"{PIPELINE_NAME}.load")
 
     def source(self, input_data: Optional[Any] = None) -> dict[str, Any]:
+        """Carga sólo las ediciones que Transform procesó en esta corrida.
+
+        No se lista el directorio de hechos: ahí pueden quedar artefactos de
+        corridas anteriores y volver a insertarlos duplica la tabla de hechos.
+        """
+        editions = sorted(int(year) for year in (input_data or {}).get("editions", []))
+        if not editions:
+            return {"catalogs": {}, "editions": []}
+
+        missing = [year for year in editions if not self._facts_path(year).exists()]
+        if missing:
+            raise FileNotFoundError(f"[source] Faltan los hechos transformados de: {missing}")
+
         catalogs = pd.read_pickle(self.transform_dir / CATALOGS_FILE)
-        editions = sorted(int(path.stem) for path in (self.transform_dir / FACTS_DIR).glob("*.pkl"))
         return {"catalogs": catalogs, "editions": editions}
 
-    def action(self, input_data: dict[str, Any]) -> dict[str, int]:
+    def _facts_path(self, year: int) -> Path:
+        return self.transform_dir / FACTS_DIR / f"{year}.pkl"
+
+    def action(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        if not input_data["editions"]:
+            self.logger.warning("[action] Sin ediciones que cargar; la base no se modifica")
+            return {"defunciones": 0, "editions": []}
+
         self.db.connect()
         loaded = 0
         with self.db.get_session() as session:
@@ -70,7 +89,7 @@ class DefuncionesInegiLoad(Stage):
                 loaded += self._load_edition_facts(session, year, edition_ids[year], mappings)
                 session.commit()
         self._refresh_views()
-        return {"defunciones": loaded}
+        return {"defunciones": loaded, "editions": input_data["editions"]}
 
     def _refresh_views(self) -> None:
         refresh_materialized_views(self.db, MATERIALIZED_VIEWS)
@@ -212,9 +231,23 @@ class DefuncionesInegiLoad(Stage):
 
         return df
 
+    def _replace_edition(self, session, year: int, edicion_id: int) -> None:
+        """Borra la edición antes de reinsertarla para que la carga sea idempotente.
+
+        La ampliación va primero: su FK a stg_defunciones no tiene ON DELETE CASCADE.
+        """
+        edition_facts = select(StgDefunciones.id).where(StgDefunciones.edicion_id == edicion_id)
+        extras = session.execute(
+            delete(StgDefuncionesAmpliacion).where(StgDefuncionesAmpliacion.defuncion_id.in_(edition_facts))
+        ).rowcount
+        facts = session.execute(delete(StgDefunciones).where(StgDefunciones.edicion_id == edicion_id)).rowcount
+        if facts or extras:
+            self.logger.info(f"[action] {year}: reemplazando {facts:,} defunciones y {extras:,} filas de ampliación")
+
     def _load_edition_facts(self, session, year: int, edicion_id: int, mappings: dict[str, dict]) -> int:
-        df = pd.read_pickle(self.transform_dir / FACTS_DIR / f"{year}.pkl")
+        df = pd.read_pickle(self._facts_path(year))
         df = self._resolve_ids(df, edicion_id, mappings)
+        self._replace_edition(session, year, edicion_id)
 
         first_id = (session.execute(select(func.max(StgDefunciones.id))).scalar() or 0) + 1
         df["id"] = range(first_id, first_id + len(df))
@@ -239,10 +272,17 @@ class DefuncionesInegiLoad(Stage):
         frame = df.reindex(columns=columns)
         return frame.astype(object).where(frame.notna(), None).to_dict("records")
 
-    def finalization(self, input_data: dict[str, int]) -> dict[str, int]:
+    def finalization(self, input_data: dict[str, Any]) -> dict[str, Any]:
+        if not input_data["editions"]:
+            return input_data
+
         with self.db.get_session() as session:
             sync_id_sequence(session, StgDefunciones)
             session.commit()
         self.db.disconnect()
+
+        # Ya están en la base: si se quedan en disco, otra corrida podría reinsertarlos.
+        for year in input_data["editions"]:
+            self._facts_path(year).unlink(missing_ok=True)
         self.logger.info(f"[finalization] {input_data['defunciones']:,} defunciones en total")
         return input_data
