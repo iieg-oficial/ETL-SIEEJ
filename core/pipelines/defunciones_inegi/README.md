@@ -155,6 +155,14 @@ Consolida los catálogos de todas las ediciones y normaliza los hechos por lotes
 
 Inserta primero los catálogos (`ON CONFLICT DO NOTHING`), construye los mapeos clave → `id` desde la base y luego carga los hechos edición por edición con `bulk_insert`. Los `id` de `stg_defunciones` se asignan explícitamente para poder construir la fila 1:1 de la ampliación sin un round-trip, y al final se llama `sync_id_sequence`.
 
+La carga es **idempotente por edición**:
+
+- Load sólo procesa las ediciones que Transform devolvió en la misma corrida; no lista `data/transform/defunciones_inegi/hechos/`. Si Transform no produjo ediciones, Load no toca la base ni refresca vistas.
+- Antes de insertar una edición se borran sus filas de `stg_defunciones_ampliacion` y `stg_defunciones` (en ese orden, por la FK), dentro de la misma transacción.
+- Transform limpia los `.pkl` de hechos al empezar y Load borra los que ya cargó, para que ninguna corrida posterior vea artefactos viejos.
+
+Al terminar se refrescan `vm_mortalidad_materna_geo`, `vm_mortalidad_infantil_geo` y `vm_mortalidad_adulta_geo`.
+
 ## Ejecución
 
 **Bootstrap** (carga inicial de todas las ediciones):
@@ -178,7 +186,7 @@ just flyway-reset defunciones_inegi
 python dags/etl_defunciones_inegi.py
 ```
 
-Los ZIP ya descargados se reusan, así que la recarga cuesta transform y load, no la descarga. Partir del schema vacío es obligatorio: el load asigna los `id` de `stg_defunciones` explícitamente y correr el bootstrap sobre datos existentes los duplicaría.
+Los ZIP ya descargados se reusan, así que la recarga cuesta transform y load, no la descarga. Como cada edición se reemplaza completa, correr el bootstrap sobre datos existentes ya no los duplica; partir del schema vacío sólo es necesario cuando cambian las migraciones.
 
 ## Notas adicionales
 
