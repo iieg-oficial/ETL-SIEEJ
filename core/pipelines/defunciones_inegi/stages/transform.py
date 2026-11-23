@@ -53,6 +53,7 @@ class DefuncionesInegiTransform(Stage):
         return {int(year): Path(path) for year, path in manifest.items()}
 
     def action(self, input_data: dict[int, Path]) -> dict[str, Any]:
+        self._clear_facts()
         if not input_data:
             self.logger.warning("[action] Sin ediciones que transformar")
             return {"catalogs": {}, "editions": []}
@@ -61,6 +62,14 @@ class DefuncionesInegiTransform(Stage):
             "catalogs": self._build_catalogs(sorted(input_data)),
             "editions": self._build_facts(input_data),
         }
+
+    def _clear_facts(self) -> None:
+        """Quita hechos de corridas anteriores: Load sólo debe ver los de esta corrida."""
+        stale = sorted((self.work_dir / FACTS_DIR).glob("*.pkl"))
+        for path in stale:
+            path.unlink()
+        if stale:
+            self.logger.info(f"[action] {len(stale)} archivos de hechos previos eliminados")
 
     def _edition_catalog(self, year: int, name: str) -> pd.DataFrame | None:
         path = self.extract_dir / CATALOG_DIR / str(year) / f"{name}.pkl"
