@@ -31,13 +31,17 @@ def _log_retry(state) -> None:
     before_sleep=_log_retry,
     reraise=True,
 )
-def http_get(url: str, timeout: int) -> requests.Response:
+def http_get(url: str, timeout: int, stream: bool = False) -> requests.Response:
     """GET a URL, retrying transient failures (connection, timeout, 5xx).
 
     Client errors (4xx) are returned as-is so callers can handle them —
     a 404 usually means "edition not published yet", not a failure.
+
+    With *stream* the body is not downloaded up front, so a caller can peek at
+    the first bytes and close the response; it must close it (use it as a
+    context manager).
     """
-    response = requests.get(url, timeout=timeout)
+    response = requests.get(url, timeout=timeout, stream=stream)
     if response.status_code >= SERVER_ERROR_STATUS:
         response.raise_for_status()
     return response

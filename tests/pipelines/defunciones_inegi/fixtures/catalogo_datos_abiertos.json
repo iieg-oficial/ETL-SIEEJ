@@ -1,0 +1,47 @@
+[
+  {
+    "consecutivo": "5",
+    "idArchivo": "1969356",
+    "titulo": "Estadísticas de Defunciones Registradas 2016",
+    "descripcion": "DatosAbiertos",
+    "formato": "_csv.zip&19.2  MB&CON_ESTANDAR|",
+    "tipoInformacion": "Datos abiertos",
+    "areaGeografica": "Estados Unidos Mexicanos,0 -1969356   |",
+    "url": "",
+    "extension": "csv|",
+    "pathLogico": "/programas/edr/datosabiertos/defunciones/2016/defunciones_base_datos_2016",
+    "anioInformacion": "|2016",
+    "fechaActualizacion": null,
+    "idAreaGeografica": "0"
+  },
+  {
+    "consecutivo": "13",
+    "idArchivo": "3161201",
+    "titulo": "Estadísticas de Defunciones Registradas 2024",
+    "descripcion": "DatosAbiertos",
+    "formato": "_csv.zip&29.6  MB&CON_ESTANDAR|",
+    "tipoInformacion": "Datos abiertos",
+    "areaGeografica": "Estados Unidos Mexicanos,0 -3161201   |",
+    "url": "",
+    "extension": "csv|",
+    "pathLogico": "/programas/edr/datosabiertos/defunciones/2024/conjunto_de_datos_edr2024",
+    "anioInformacion": "|2024",
+    "fechaActualizacion": null,
+    "idAreaGeografica": "0"
+  },
+  {
+    "consecutivo": "14",
+    "idArchivo": "4102198",
+    "titulo": "Estadísticas de Defunciones Registradas 2025",
+    "descripcion": "DatosAbiertos",
+    "formato": "_csv.zip&29.2  MB&CON_ESTANDAR|",
+    "tipoInformacion": "Datos abiertos",
+    "areaGeografica": "Estados Unidos Mexicanos,0 -4102198   |",
+    "url": "",
+    "extension": "csv|",
+    "pathLogico": "/programas/edr/datosabiertos/conjunto_de_datos_edr2025",
+    "anioInformacion": "|2025",
+    "fechaActualizacion": null,
+    "idAreaGeografica": "0"
+  }
+]
