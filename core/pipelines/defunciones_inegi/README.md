@@ -2,7 +2,7 @@
 
 ## Descripción general
 
-Defunciones registradas en México publicadas por INEGI en el programa **EDR** (Estadísticas de Defunciones Registradas). Cada fila es una defunción, con su causa (CIE-10 y clasificaciones agregadas), características demográficas y socioeconómicas de la persona fallecida, circunstancias de la muerte y su geografía en cuatro ámbitos: registro, residencia habitual, ocurrencia y ocurrencia de la lesión. Se carga el país completo desde la edición **2017**, la primera publicada en esta ruta de datos abiertos.
+Defunciones registradas en México publicadas por INEGI en el programa **EDR** (Estadísticas de Defunciones Registradas). Cada fila es una defunción, con su causa (CIE-10 y clasificaciones agregadas), características demográficas y socioeconómicas de la persona fallecida, circunstancias de la muerte y su geografía en cuatro ámbitos: registro, residencia habitual, ocurrencia y ocurrencia de la lesión. Se carga el país completo desde la edición **2017**, la primera con la estructura de datos abiertos actual.
 
 No confundir con el pipeline `defunciones`, que toma los mismos hechos de la **DGIS (Secretaría de Salud)** con un esquema distinto.
 
@@ -12,32 +12,59 @@ https://www.inegi.org.mx/programas/edr/
 
 ## Fuente específica
 
-INEGI renombró el archivo tres veces sin cambiar la ruta. El extract prueba las
-tres plantillas en orden hasta que una responde un ZIP real, así que no hay que
-tocar nada cuando salga la edición 2025.
+INEGI cambia el nombre y hasta la carpeta del archivo entre ediciones: renombró
+el ZIP tres veces dentro de `defunciones/{year}/` y publicó 2025 fuera de esa
+carpeta. Por eso las URLs **no se adivinan**: se leen del mismo catálogo con el
+que la página arma la pestaña
+[Datos abiertos](https://www.inegi.org.mx/programas/edr/#datos_abiertos).
+
+**1. Catálogo de descarga masiva (fuente primaria)** — `SOURCE_CATALOG_URL`
+
+```shell
+https://www.inegi.org.mx/app/api/descarga/componente/descargamasiva/lista/archivoscompaginacion?...&idBiinegi=3358&datosAbiertos=1&tipodocto=12
+```
+
+Devuelve un registro por edición. Se toman los de `tipoInformacion = "Datos abiertos"`
+con formato `_csv.zip`, y la URL se arma como
+`SOURCE_CONTENT_URL` + `pathLogico` + `_csv.zip`:
+
+```json
+{
+  "anioInformacion": "|2025",
+  "formato": "_csv.zip&29.2  MB&CON_ESTANDAR|",
+  "pathLogico": "/programas/edr/datosabiertos/conjunto_de_datos_edr2025",
+  "tipoInformacion": "Datos abiertos"
+}
+```
+
+**2. Plantillas (respaldo)** — `SOURCE_BASE_URL` + `SOURCE_URL_TEMPLATES`
+
+Si el catálogo falla (red, HTTP, JSON inválido, lista vacía) o no lista un año,
+se prueban las plantillas en orden, como antes del catálogo:
 
 ```shell
 https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/{year}/{archivo}
 ```
 
-| Plantilla del archivo | Ediciones | Ejemplo |
+| Edición | Ruta publicada | Ejemplo |
 |---|---|---|
-| `conjunto_de_datos_edr{year}_csv.zip` | 2024 | [2024](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2024/conjunto_de_datos_edr2024_csv.zip) |
-| `conjunto_de_datos_defunciones_registradas_{year}_csv.zip` | 2018 – 2023 | [2023](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2023/conjunto_de_datos_defunciones_registradas_2023_csv.zip) |
-| `conjunto_de_datos_defunciones_generales_{year}_csv.zip` | 2017 | [2017](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2017/conjunto_de_datos_defunciones_generales_2017_csv.zip) |
+| 2025 | `datosabiertos/conjunto_de_datos_edr{year}_csv.zip` (sólo vía catálogo) | [2025](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/conjunto_de_datos_edr2025_csv.zip) |
+| 2024 | `defunciones/{year}/conjunto_de_datos_edr{year}_csv.zip` | [2024](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2024/conjunto_de_datos_edr2024_csv.zip) |
+| 2018 – 2023 | `defunciones/{year}/conjunto_de_datos_defunciones_registradas_{year}_csv.zip` | [2023](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2023/conjunto_de_datos_defunciones_registradas_2023_csv.zip) |
+| 2017 | `defunciones/{year}/conjunto_de_datos_defunciones_generales_{year}_csv.zip` | [2017](https://www.inegi.org.mx/contenidos/programas/edr/datosabiertos/defunciones/2017/conjunto_de_datos_defunciones_generales_2017_csv.zip) |
 
-La raíz y las plantillas son configuración: `SOURCE_BASE_URL` y `SOURCE_URL_TEMPLATES` en el `.env`.
+El log indica de dónde salió cada URL: `[source] 2025: https://… (catalogo)` o `(plantilla)`.
 
 **El código HTTP no basta para saber si un año existe:** INEGI responde `200` con
-una página de error (~2 KB de `text/html`) cuando no hay edición. Por eso el
-descubrimiento valida el `Content-Type` de la respuesta. Es también la razón por
-la que 2016 y años anteriores no se cargan: la ruta responde, pero con HTML.
+una página de error (~2 KB de `text/html`) cuando no hay edición. Por eso toda URL,
+venga del catálogo o de una plantilla, se valida leyendo sólo sus primeros bytes:
+un ZIP real empieza con `PK`. No se baja el archivo para descubrirlo.
 
 ## Características de los datos
 
 | Característica | Valor |
 |---|---|
-| Última fecha disponible | `2024` |
+| Última fecha disponible | `2025` |
 | Frecuencia de actualización | Anual |
 | Desagregación | Localidad |
 | ¿Tiene update? | Sí |
@@ -129,8 +156,11 @@ Variables que INEGI incorporó en **2022**. Relación 1:1 con `stg_defunciones` 
 | variable | descripción |
 |---|---|
 | `DB_*` | Conexión a la base `defunciones_inegi` |
-| `SOURCE_BASE_URL` | Raíz de los datos abiertos del programa EDR |
-| `SOURCE_URL_TEMPLATES` | Plantillas del archivo por año, separadas por coma y probadas en ese orden |
+| `SOURCE_CATALOG_URL` | Catálogo de descarga masiva de INEGI (`idBiinegi=3358`); fuente primaria de las URLs |
+| `SOURCE_CONTENT_URL` | Prefijo que se antepone al `pathLogico` del catálogo (por defecto `https://www.inegi.org.mx/contenidos`) |
+| `CATALOG_TIMEOUT` | Segundos de espera por el catálogo (por defecto `60`) |
+| `SOURCE_BASE_URL` | Raíz de los datos abiertos del programa EDR; respaldo cuando el catálogo no trae la edición |
+| `SOURCE_URL_TEMPLATES` | Plantillas del archivo por año, separadas por coma y probadas en ese orden (respaldo) |
 | `BACKFILL_MIN_YEAR` | Primera edición a descubrir y cargar (por defecto `2017`) |
 | `DOWNLOAD_TIMEOUT` | Segundos de espera por descarga (por defecto `600`) |
 | `CHUNK_SIZE` | Filas por lote al leer el CSV de hechos y al hacer bulk insert |
@@ -139,7 +169,7 @@ Variables que INEGI incorporó en **2022**. Relación 1:1 con `stg_defunciones` 
 
 ### Extract
 
-Descubre las ediciones publicadas sondeando año por año desde 2017. **El código HTTP no basta**: INEGI responde `200` con la página de error cuando el año no existe, así que se valida el `Content-Type` de la respuesta. Deja el ZIP en disco (lo reusa entre corridas) y extrae sólo los catálogos; el CSV de hechos pesa cientos de MB y lo recorre el transform.
+Consulta una vez el catálogo de descarga masiva y, año por año desde `BACKFILL_MIN_YEAR` (o desde la edición siguiente a la última cargada, en update), prueba primero la URL del catálogo y luego las plantillas. **El código HTTP no basta**: INEGI responde `200` con la página de error cuando el año no existe, así que cada candidata se valida leyendo sólo su firma de ZIP (`PK`). Deja el ZIP en disco (lo reusa entre corridas) y extrae sólo los catálogos; el CSV de hechos pesa cientos de MB y lo recorre el transform.
 
 ### Transform
 
@@ -195,7 +225,7 @@ Los ZIP ya descargados se reusan, así que la recarga cuesta transform y load, n
 - **La edición 2017 nombra los catálogos con prefijo `de`** (`desexo.csv`, `detamloc.csv`) y codifica capítulo y grupo en una sola clave (`101` = capítulo 1, grupo 1). De 2019 en adelante usa la nomenclatura moderna.
 - **Entidades y municipios no se copian.** Viven en la base `cvegeo` y se consultan por FDW, según `docs/estandares_datos.md` §2. `cat_localidad` guarda sólo el nivel localidad, que `cvegeo` no cubre. Las claves se conservan en `stg_` porque `cvegeo` desconoce los centinelas (`88` no aplica, `99` no especificada, `33` Estados Unidos).
 - **Convención de nombres en las vistas.** `X_id` es la clave (código INEGI o clave del catálogo) y `X` la descripción legible: `entidad_registro_id` = `14`, `entidad_registro` = `Jalisco`.
-- **2016 y años anteriores no existen** en esta ruta: el servidor devuelve una página HTML con código `200`.
+- **2012 – 2016 no se cargan.** El catálogo sí las lista, pero en otra carpeta y con otro archivo (`defunciones/{year}/defunciones_base_datos_{year}_csv.zip`) cuya estructura este pipeline no ha validado. `BACKFILL_MIN_YEAR=2017` las deja fuera; bajar ese valor requiere revisar primero sus columnas y catálogos.
 
 ## Sugerencia de vistas materializadas
 
