@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.10.1](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.10.0...v1.10.1) (2026-11-25)
+
+
+### Bug Fixes
+
+* **code:** read Reto points from GeoPackage geometry ([e9c17de](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e9c17deb48772e3db7f8ca3d3ca873c0c7396ec1))
+* **code:** read Reto points from GeoPackage geometry ([33b92e5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/33b92e5be1737209117a5bfe14663a3e27e678a3))
+* **defunciones_inegi:** discover edition urls from inegi catalog ([8be98e5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/8be98e52ee857cd09d10925d9b5638820e6bbc2e))
+* **defunciones_inegi:** discover edition urls from inegi catalog ([a65202d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/a65202da9306e7ef6e7b0762a557110d84d95d39))
+* **defunciones_inegi:** make load idempotent per edition ([3125af2](https://github.com/iieg-oficial/ETL-SIEEJ/commit/3125af20d6e6bbe6000cda07ff4eb5c6d6111533))
+* **defunciones_inegi:** make load idempotent per edition ([2f70768](https://github.com/iieg-oficial/ETL-SIEEJ/commit/2f70768008f7f69b06b215bdceeccc59166de0fe))
+
 ## [1.10.0](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.9.0...v1.10.0) (2026-11-10)
 
 
