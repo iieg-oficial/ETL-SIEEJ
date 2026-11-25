@@ -407,7 +407,6 @@ def _puntos_reto(corte: date) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
-                "clave_punto": 1,
                 "region": "Altos Sur",
                 "municipio_id": 120,
                 "nombre_espacio": "Espacio 1",
