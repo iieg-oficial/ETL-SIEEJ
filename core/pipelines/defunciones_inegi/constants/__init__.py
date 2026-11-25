@@ -54,11 +54,19 @@ from core.pipelines.defunciones_inegi.constants.facts import (
     YEAR_SENTINEL,
 )
 from core.pipelines.defunciones_inegi.constants.source import (
+    CATALOG_FORMAT_FIELD,
+    CATALOG_FORMAT_PART_SEPARATOR,
+    CATALOG_FORMAT_SUFFIX,
+    CATALOG_LIST_SEPARATOR,
     CATALOG_MEMBER_DIR,
+    CATALOG_OPEN_DATA_TYPE,
+    CATALOG_PATH_FIELD,
+    CATALOG_TYPE_FIELD,
+    CATALOG_YEAR_FIELD,
     CLAVE_ALIASES,
     DESCRIPCION_ALIASES,
     FACT_MEMBER_DIR,
     FACT_MEMBER_EXCLUDE,
     SOURCE_ENCODINGS,
-    ZIP_CONTENT_TYPES,
+    ZIP_SIGNATURE,
 )

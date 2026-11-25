@@ -17,12 +17,26 @@ from core.pipelines.code.constants import (
 )
 
 
+def _read_single_layer(extract_dir: Path) -> gpd.GeoDataFrame:
+    gpkgs = sorted(extract_dir.rglob(GPKG_GLOB))
+    if not gpkgs:
+        raise FileNotFoundError(f"No .gpkg inside {extract_dir.name}")
+
+    layers = list_layers(gpkgs[0])
+    if len(layers) != 1:
+        raise ValueError(f"{gpkgs[0].name} has {len(layers)} layer(s), expected exactly one")
+
+    return gpd.read_file(gpkgs[0], layer=layers[0][0])
+
+
 def read_reto_zip(extract_dir: Path) -> dict[str, pd.DataFrame]:
+    """Points from the gpkg; the xlsx adds the activities catalog and the regions."""
     sheets = sorted(extract_dir.rglob(XLSX_GLOB))
     if not sheets:
         raise FileNotFoundError(f"No .xlsx inside {extract_dir.name}")
 
-    return pd.read_excel(sheets[0], sheet_name=[SHEET_PUNTOS, SHEET_ACTIVIDADES])
+    points = _read_single_layer(extract_dir)
+    return {FRAME_DATOS: points, **pd.read_excel(sheets[0], sheet_name=[SHEET_PUNTOS, SHEET_ACTIVIDADES])}
 
 
 def _read_catalogs(extract_dir: Path) -> dict[str, pd.DataFrame]:
@@ -38,12 +52,4 @@ def _read_catalogs(extract_dir: Path) -> dict[str, pd.DataFrame]:
 
 def read_geo_zip(extract_dir: Path) -> dict[str, pd.DataFrame]:
     """The gpkg with the data plus whichever catalogs the zip ships."""
-    gpkgs = sorted(extract_dir.rglob(GPKG_GLOB))
-    if not gpkgs:
-        raise FileNotFoundError(f"No .gpkg inside {extract_dir.name}")
-
-    layers = list_layers(gpkgs[0])
-    if len(layers) != 1:
-        raise ValueError(f"{gpkgs[0].name} has {len(layers)} layer(s), expected exactly one")
-
-    return {FRAME_DATOS: gpd.read_file(gpkgs[0], layer=layers[0][0]), **_read_catalogs(extract_dir)}
+    return {FRAME_DATOS: _read_single_layer(extract_dir), **_read_catalogs(extract_dir)}

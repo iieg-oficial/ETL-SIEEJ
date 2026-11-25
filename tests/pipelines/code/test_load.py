@@ -21,7 +21,6 @@ def _puntos(cortes=(date(2026, 7, 1),)) -> pd.DataFrame:
     return pd.DataFrame(
         [
             {
-                "clave_punto": i,
                 "region": "Altos Sur",
                 "municipio_id": 120,
                 "nombre_espacio": f"Espacio {i}",

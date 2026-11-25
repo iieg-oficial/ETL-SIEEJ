@@ -12,7 +12,7 @@ CODE entrega los tres conjuntos en un mismo envío. Cada uno se procesa de forma
 
 | Conjunto | Campo del formulario | Archivo |
 |---|---|---|
-| Puntos de activación del programa Reto, Reactivación para Todas y Todos | metodología | ZIP con xlsx (hojas `base` y `cat_actividad`) |
+| Puntos de activación del programa Reto, Reactivación para Todas y Todos | metodología | ZIP con gpkg (puntos) y xlsx (hojas `base` y `cat_actividad`) |
 | Academias deportivas, Espacios para la Paz | `carga_de_datos` | ZIP con gpkg y CSV de catálogos |
 | Polideportivos | `carga_de_datos` | ZIP con gpkg y CSV de catálogo |
 
@@ -57,15 +57,14 @@ CODE entrega el conjunto completo en cada envío, así que cada carga reemplaza 
 
 | variable | descripción |
 |---|---|
-| `clave_punto` | Identificador del punto en el archivo de origen (`id`). Tiene huecos y no se garantiza estable entre cortes |
 | `entidad_id` | Clave de la entidad. Siempre 14 (Jalisco). Referencia lógica a `cvegeo_states.cve_ent` |
-| `municipio_id` | Clave del municipio (`clave_agem` del origen, sin relleno de ceros). Referencia lógica a `cvegeo_municipalities.cve_mun`, sin FK |
-| `region_id` | Región del estado, en `cat_regiones` |
+| `municipio_id` | Clave del municipio (`cve_mun` del gpkg, sin relleno de ceros). Referencia lógica a `cvegeo_municipalities.cve_mun`, sin FK |
+| `region_id` | Región del estado, en `cat_regiones`. Sale de la hoja `base` del xlsx por municipio |
 | `nombre_espacio` | Nombre del espacio donde se realiza la actividad |
 | `dias_horarios` | Días y horarios en texto libre, tal como los captura CODE. No se interpreta |
 | `actividad_id` | Actividad que se realiza, en `cat_actividades`. Nula cuando el origen no la reporta |
 | `cantidad_usuarios` | Cantidad de usuarios reportada. Ver la nota sobre su interpretación |
-| `longitud`, `latitud` | Ubicación en grados decimales (EPSG:4326), columnas `x` e `y` del origen. Nulas si el origen no las trae |
+| `longitud`, `latitud` | Ubicación en grados decimales (EPSG:4326), de la geometría del gpkg |
 | `fecha_corte` | Fecha a la que corresponden los datos, tomada de la columna `fecha` del archivo |
 | `fecha_actualizacion_fuente` | Fecha del envío en el formulario (`actualizado_en`) |
 | `fecha_actualizacion` | Fecha en que el ETL cargó el registro |
@@ -142,6 +141,7 @@ Control de envíos procesados: da el watermark del incremental.
 | `V8__views_academias_polideportivos_code.sql` | Vistas `vw_academias_deportivas`, `vw_polideportivos` y `vw_polideportivo_deportes` |
 | `V9__comments_academias_polideportivos_code.sql` | `COMMENT ON` de las tablas, vistas y columnas nuevas |
 | `V10__materialized_views_academias_polideportivos_geo.sql` | Vistas materializadas geográficas de Academias y Polideportivos |
+| `V11__drop_clave_punto_reto.sql` | Quita `clave_punto` de Reto y recrea `vw_puntos_activacion_reto` y `vm_reto_code_geo` |
 
 ## Vistas
 
@@ -189,10 +189,10 @@ Reto: igual que antes (ver abajo). Academias y Polideportivos:
 
 Reto:
 
-- Descarta las filas completamente vacías que arrastra el xlsx.
+- **Los puntos salen del gpkg.** CODE corrige las ubicaciones en el gpkg y no siempre en la hoja `base` del xlsx (en el corte de julio de 2026 la hoja ubicaba un punto de Ahualulco fuera de Jalisco). El gpkg no trae `id` ni `region`, así que no se guarda una clave del origen y la región se toma de la hoja `base` por municipio; un municipio sin región o con dos falla.
 - Limpia las regiones, que llegan con espacios sobrantes y variantes de mayúsculas, a title case con acentos restituidos y preposiciones en minúscula (`Ciénega`, `Costa-Sierra Occidental`, `Sierra de Amula`).
 - No guarda el nombre del municipio: se resuelve en la vista contra cvegeo. Tampoco guarda la columna `actividad` en texto libre, porque la actividad sale del catálogo.
-- Renombra `x` a `longitud` e `y` a `latitud`, como el resto de pipelines con puntos; no se construye geometría.
+- `longitud` y `latitud` salen de la geometría convertida a EPSG:4326; los atributos `x` e `y` de la capa se descartan, como en Academias y Polideportivos.
 - **El corte sale de los datos.** El formulario de CODE no trae fecha de corte ni de actualización, así que `fecha_corte` es la columna `fecha` de cada fila y `fecha_actualizacion_fuente` es la fecha del envío.
 - Valida antes de cargar: columnas obligatorias sin valor, llaves duplicadas `(fecha_corte, municipio_id, nombre_espacio)` y actividades ausentes del catálogo fallan con un error que lista los valores.
 - Construye los catálogos: las actividades con el id del origen y las regiones desde los valores ya limpios.

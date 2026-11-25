@@ -9,7 +9,7 @@ from core.pipelines.code.helpers.sources import read_geo_zip
 from core.pipelines.code.stages import extract as extract_module
 from core.pipelines.code.stages.extract import CodeExtract
 
-from tests.pipelines.code.code_factories import ACADEMIAS_NAME, DATA_FIELD, make_upload
+from tests.pipelines.code.code_factories import ACADEMIAS_NAME, DATA_FIELD, make_upload, write_gpkg
 
 
 def test_el_zip_de_academias_trae_los_datos_y_los_dos_catalogos(academias_zip, tmp_path):
@@ -77,30 +77,37 @@ def test_la_finalizacion_escribe_un_manifiesto_con_una_entrada_por_conjunto(tmp_
     assert (tmp_path / "academias" / "datos.pkl").exists()
 
 
-def _reto_zip(tmp_path, with_xlsx=True):
+def _reto_zip(tmp_path, with_xlsx=True, with_gpkg=True):
     archive = tmp_path / "zip_reto.zip"
     with zipfile.ZipFile(archive, "w") as zf:
         if with_xlsx:
             xlsx = tmp_path / "datos.xlsx"
             with pd.ExcelWriter(xlsx) as writer:
-                pd.DataFrame({"id": [1]}).to_excel(writer, sheet_name="base", index=False)
+                pd.DataFrame({"clave_agem": [120], "region": ["Centro"]}).to_excel(
+                    writer, sheet_name="base", index=False
+                )
                 pd.DataFrame({"actividad": ["Baile"], "id": [1]}).to_excel(
                     writer, sheet_name="cat_actividad", index=False
                 )
             zf.write(xlsx, "any_name.xlsx")
-        zf.writestr("reto.gpkg", b"ignored")
+        if with_gpkg:
+            gpkg = tmp_path / "reto.gpkg"
+            write_gpkg(gpkg, [{"nombre_centro": "Plaza", "y_6368": 20.7, "x_6368": -103.97}], layer="cualquiera")
+            zf.write(gpkg, "zip_reto/reto.gpkg")
     return archive
 
 
-def test_la_accion_de_reto_lee_la_hoja_de_datos_y_la_del_catalogo(tmp_path, monkeypatch):
+def test_la_accion_de_reto_lee_la_capa_y_las_hojas_del_xlsx(tmp_path, monkeypatch):
     monkeypatch.setattr(extract_module, "download", lambda upload, folder: _reto_zip(tmp_path))
     extract = CodeExtract()
     extract.work_dir = tmp_path / "work"
 
     out = extract.action({"reto": make_upload()})
 
-    assert set(out["reto"]["frames"]) == {"base", "cat_actividad"}
-    assert out["reto"]["frames"]["cat_actividad"]["actividad"].tolist() == ["Baile"]
+    frames = out["reto"]["frames"]
+    assert set(frames) == {"datos", "base", "cat_actividad"}
+    assert frames["datos"].crs.to_epsg() == 6368
+    assert frames["cat_actividad"]["actividad"].tolist() == ["Baile"]
 
 
 def test_un_zip_de_reto_sin_hoja_de_calculo_falla(tmp_path, monkeypatch):
@@ -109,6 +116,15 @@ def test_un_zip_de_reto_sin_hoja_de_calculo_falla(tmp_path, monkeypatch):
     extract.work_dir = tmp_path / "work"
 
     with pytest.raises(FileNotFoundError, match="xlsx"):
+        extract.action({"reto": make_upload()})
+
+
+def test_un_zip_de_reto_sin_gpkg_falla(tmp_path, monkeypatch):
+    monkeypatch.setattr(extract_module, "download", lambda upload, folder: _reto_zip(tmp_path, with_gpkg=False))
+    extract = CodeExtract()
+    extract.work_dir = tmp_path / "work"
+
+    with pytest.raises(FileNotFoundError, match="gpkg"):
         extract.action({"reto": make_upload()})
 
 
