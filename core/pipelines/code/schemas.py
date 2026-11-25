@@ -47,7 +47,6 @@ class StgPuntosActivacionReto(CodeBase):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    clave_punto: Mapped[int] = mapped_column(Integer, nullable=False)
     entidad_id: Mapped[int] = mapped_column(Integer, nullable=False)
     municipio_id: Mapped[int] = mapped_column(Integer, nullable=False)
     region_id: Mapped[int | None] = mapped_column(Integer, ForeignKey(f"{T.CAT_REGIONES}.id"), nullable=True)
