@@ -28,7 +28,9 @@ class DenueExtract(Stage):
     def source(self, input_data: Optional[Any] = None) -> list[dict]:
         download_scian(self.work_dir, settings.SCIAN_FILE_ID, settings.SCIAN_CSV_NAME)
 
-        start_date = resolve_start_date(self.mode, self.start_date, settings.DB_NAME, settings.database_url)
+        start_date = resolve_start_date(
+            self.mode, self.start_date, self.entidad, settings.DB_NAME, settings.database_url
+        )
         self.logger.info(f"[source] Scraping URLs for entidad {self.entidad} after {start_date}")
         driver = driver_configuration(settings.DENUE_URL)
 
