@@ -6,7 +6,7 @@ from zipfile import ZipFile
 from requests.exceptions import ChunkedEncodingError, ConnectionError, HTTPError, Timeout
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from core.pipelines.denue.constants import DTYPE_OVERRIDES
+from core.pipelines.denue.constants import COLUMN_ALIASES, DTYPE_OVERRIDES
 from core.utils.logger import get_console_logger
 
 logger = get_console_logger(__name__)
@@ -28,12 +28,19 @@ def _extract_csv_from_zip(zip_content: BytesIO) -> bytes:
         return zf.read(csv_files[0])
 
 
+def _read_csv(buffer: bytes) -> pd.DataFrame:
+    header = pd.read_csv(BytesIO(buffer), nrows=0).columns
+    dtype = {col: DTYPE_OVERRIDES[col.lower()] for col in header if col.lower() in DTYPE_OVERRIDES}
+    df = pd.read_csv(BytesIO(buffer), dtype=dtype, low_memory=False)
+    df.columns = df.columns.str.lower()
+    return df.rename(columns=COLUMN_ALIASES)
+
+
 def _csv_to_dataframe(csv_content: bytes) -> pd.DataFrame:
     try:
-        return pd.read_csv(BytesIO(csv_content), dtype=DTYPE_OVERRIDES, low_memory=False)
-    except Exception:
-        csv_utf8 = csv_content.decode("latin-1").encode("utf-8")
-        return pd.read_csv(BytesIO(csv_utf8), dtype=DTYPE_OVERRIDES, low_memory=False)
+        return _read_csv(csv_content)
+    except UnicodeDecodeError:
+        return _read_csv(csv_content.decode("latin-1").encode("utf-8"))
 
 
 @retry(
