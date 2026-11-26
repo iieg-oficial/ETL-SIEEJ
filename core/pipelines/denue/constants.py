@@ -7,7 +7,7 @@ RENAME_HEADER: Final[dict] = {
     "raz_social": "razon_social",
     "codigo_act": "codigo_actividad",
     "per_ocu": "per_ocu",
-    "tipoUniEco": "tipo_uni_eco",
+    "tipounieco": "tipo_uni_eco",
     "latitud": "latitud",
     "longitud": "longitud",
     "fecha_alta": "fecha_alta",
@@ -25,7 +25,15 @@ RENAME_HEADER: Final[dict] = {
     "localidad": "localidad",
 }
 
-# Keys are source CSV column names. An unknown key is a silent no-op and pandas
+REQUIRED_SOURCE_COLS: Final[List[str]] = ["clee", "id", "codigo_act"]
+
+# Source columns renamed by INEGI in 2026-11, mapped to their previous names.
+COLUMN_ALIASES: Final[dict] = {
+    "cve_ageb": "ageb",
+    "cve_mza": "manzana",
+}
+
+# Keys are lowercase source CSV column names. An unknown key is a silent no-op and pandas
 # infers the type, dropping leading zeros.
 DTYPE_OVERRIDES: Final[dict] = {
     "numero_int": str,
