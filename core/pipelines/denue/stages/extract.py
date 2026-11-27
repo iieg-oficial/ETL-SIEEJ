@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 
 from core.pipelines.stage import Stage
 from core.pipelines.denue.config import settings
-from core.pipelines.denue.constants import RENAME_HEADER
+from core.pipelines.denue.constants import RENAME_HEADER, REQUIRED_SOURCE_COLS
 from core.pipelines.denue.helpers.date_utils import parse_periodo, resolve_start_date
 from core.pipelines.denue.helpers.file_processor import download_denue_csv
 from core.pipelines.denue.helpers.scian import download_scian
@@ -28,7 +28,9 @@ class DenueExtract(Stage):
     def source(self, input_data: Optional[Any] = None) -> list[dict]:
         download_scian(self.work_dir, settings.SCIAN_FILE_ID, settings.SCIAN_CSV_NAME)
 
-        start_date = resolve_start_date(self.mode, self.start_date, settings.DB_NAME, settings.database_url)
+        start_date = resolve_start_date(
+            self.mode, self.start_date, self.entidad, settings.DB_NAME, settings.database_url
+        )
         self.logger.info(f"[source] Scraping URLs for entidad {self.entidad} after {start_date}")
         driver = driver_configuration(settings.DENUE_URL)
 
@@ -105,6 +107,9 @@ class DenueExtract(Stage):
             )
             df = download_denue_csv(item["url"])
             missing = [c for c in columns_to_keep if c not in df.columns]
+            missing_required = [c for c in REQUIRED_SOURCE_COLS if c in missing]
+            if missing_required:
+                raise ValueError(f"[action] Periodo {periodo_str} missing required source columns: {missing_required}")
             if missing:
                 self.logger.warning(f"[action] Periodo {periodo_str} missing source columns: {missing}")
             df = df.reindex(columns=columns_to_keep)
