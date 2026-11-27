@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.10.2](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.10.1...v1.10.2) (2026-11-27)
+
+
+### Bug Fixes
+
+* **denue:** actualizar vm_denue_geo al último corte ([045316d](https://github.com/iieg-oficial/ETL-SIEEJ/commit/045316d059baa72cd95ff502972649bea162623d))
+* **denue:** load 2026-11 cut with INEGI uppercase headers ([70bcbb5](https://github.com/iieg-oficial/ETL-SIEEJ/commit/70bcbb5070c7d67161db72f635a7a8d1c6d50e54))
+* **denue:** read INEGI headers case-insensitively ([909ae33](https://github.com/iieg-oficial/ETL-SIEEJ/commit/909ae3392722fcfb67bb040d7743eec1b37c364f))
+* **denue:** resolve update start date per entidad ([86b74b4](https://github.com/iieg-oficial/ETL-SIEEJ/commit/86b74b411c3423450f3ce1d869f291946fb1c98f))
+* **denue:** use latest cut in geographic materialized view ([e0e97b1](https://github.com/iieg-oficial/ETL-SIEEJ/commit/e0e97b135c37b0c081912f91470b2d1f24fc202f))
+
 ## [1.10.1](https://github.com/iieg-oficial/ETL-SIEEJ/compare/v1.10.0...v1.10.1) (2026-11-25)
 
 
